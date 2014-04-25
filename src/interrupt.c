@@ -1,5 +1,7 @@
 #include <string.h>
 #include "emu.h"
+#include "interrupt.h"
+#include "cpu.h"
 
 /* DC000000: Interrupt controller */
 struct interrupt_state intr;

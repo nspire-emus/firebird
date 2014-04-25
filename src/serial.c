@@ -1,5 +1,7 @@
 #include <string.h>
+#include <stdio.h>
 #include "emu.h"
+#include "interrupt.h"
 
 FILE *xmodem_file;
 u8 xmodem_buf[0x84];

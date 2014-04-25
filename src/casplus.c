@@ -2,6 +2,10 @@
 #include <stdlib.h>
 #include <string.h>
 #include "emu.h"
+#include "schedule.h"
+#include "keypad.h"
+#include "cpu.h"
+#include "flash.h"
 
 static u16 lcd_framebuffer[2];
 static u32 lcd_control;

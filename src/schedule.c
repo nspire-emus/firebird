@@ -1,6 +1,7 @@
 #include "emu.h"
 #include <stdio.h>
 #include <string.h>
+#include "schedule.h"
 
 u32 clock_rates[6] = { 0, 0, 0, 27000000, 12000000, 32768 };
 

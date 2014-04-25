@@ -1,6 +1,10 @@
 #include <stdio.h>
 #include <string.h>
 #include "emu.h"
+#include "cpu.h"
+#include "debug.h"
+#include "memory.h"
+#include "mmu.h"
 
 struct arm_state arm;
 

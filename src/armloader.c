@@ -3,6 +3,9 @@
 #include <string.h>
 #include <stdio.h>
 #include "emu.h"
+#include "cpu.h"
+#include "armsnippets.h"
+#include "memory.h"
 
 struct arm_state armloader_orig_arm_state;
 
