@@ -3,17 +3,19 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdint.h>
 #include "debug.h"
 #include "types.h"
 #include "interrupt.h"
 #include "emu.h"
+#include "cpu.h"
+#include "memory.h"
+#include "gui.h"
 
 void *virt_mem_ptr(u32 addr, u32 size) {
 	// Note: this is not guaranteed to be correct when range crosses page boundary
-	return phys_mem_ptr(mmu_translate(addr, false, NULL), size);
+	return (void *)(intptr_t)phys_mem_ptr(mmu_translate(addr, false, NULL), size);
 }
-
-#include "disasm.c"
 
 void backtrace(u32 fp) {
 	u32 *frame;
@@ -254,7 +256,7 @@ static void native_debugger(void) {
 				flag_str = "+x";
 			if (addr_str) {
 				u32 addr = parse_expr(addr_str);
-				void *ptr = phys_mem_ptr(addr & ~3, 4);
+				void *ptr = (void *)phys_mem_ptr(addr & ~3, 4);
 				if (ptr) {
 					u32 *flags = &RAM_FLAGS(ptr);
 					bool on = true;
@@ -426,7 +428,7 @@ static void native_debugger(void) {
 			u32 size = 0;
 			if (size_str)
 				size = parse_expr(size_str);
-			void *ram = phys_mem_ptr(start, size);
+			void *ram = (void *)(intptr_t)phys_mem_ptr(start, size);
 			if (!ram) {
 				printf("Address range %08x-%08x is not in RAM.\n", start, start + size - 1);
 				continue;
@@ -455,7 +457,7 @@ static void native_debugger(void) {
 			} else {
 				u32 addr = parse_expr(addr_str);
 				u32 len = parse_expr(len_str);
-				char *strptr = phys_mem_ptr(addr, len);
+				char *strptr = (char *)(intptr_t)phys_mem_ptr(addr, len);
 				char *ptr = strptr;
 				char *endptr = strptr + len;
 				if (ptr) {

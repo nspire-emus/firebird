@@ -1,5 +1,5 @@
 #include <string.h>
-#include "emu.h"
+#include "types.h"
 
 static u32 des_block[2];
 static u32 des_key[6];
