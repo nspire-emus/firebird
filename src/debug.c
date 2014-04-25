@@ -11,6 +11,7 @@
 #include "cpu.h"
 #include "memory.h"
 #include "gui.h"
+#include "disasm.h"
 
 void *virt_mem_ptr(u32 addr, u32 size) {
 	// Note: this is not guaranteed to be correct when range crosses page boundary
@@ -27,7 +28,7 @@ void backtrace(u32 fp) {
 			printf(" invalid address\n");
 			break;
 		}
-		vprintf(" %08X %08X %08X %08X\n", (va_list)frame);
+		vprintf(" %08X %08X %08X %08X\n", (void *)frame);
 		if (frame[0] <= fp) /* don't get stuck in infinite loop :) */
 			break;
 		fp = frame[0];
@@ -374,11 +375,11 @@ static void native_debugger(void) {
 						vprintf("cpsr=%08x  r0=%08x r1=%08x r2=%08x r3=%08x  r4=%08x\n"
 						        "  r5=%08x  r6=%08x r7=%08x r8=%08x r9=%08x r10=%08x\n"
 						        " r11=%08x r12=%08x sp=%08x lr=%08x pc=%08x\n",
-							(va_list)&psp[1]);
+							(void *)&psp[1]);
 					} else {
 						vprintf("cpsr=%08x  r4=%08x  r5=%08x  r6=%08x r7=%08x r8=%08x\n"
 						        "  r9=%08x r10=%08x r11=%08x r12=%08x pc=%08x\n",
-							(va_list)&psp[1]);
+							(void *)&psp[1]);
 					}
 				}
 			}
