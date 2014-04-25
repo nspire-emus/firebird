@@ -1,16 +1,3 @@
-#include <stdio.h>
-
-typedef unsigned char      u8;
-typedef unsigned short     u16;
-typedef unsigned int       u32;
-typedef unsigned long long u64;
-typedef signed char        s8;
-typedef signed short       s16;
-typedef signed int         s32;
-typedef signed long long   s64;
-
-typedef enum { false, true } bool;
-
 static inline u16 BSWAP16(u16 x) { return x << 8 | x >> 8; }
 static inline u32 BSWAP32(u32 x) {
 	if (__builtin_constant_p(x)) return x << 24 | (x << 8 & 0xFF0000) | (x >> 8 & 0xFF00) | x >> 24;
