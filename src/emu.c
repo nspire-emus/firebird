@@ -1,13 +1,23 @@
-#include <conio.h>
+//#include <conio.h>
 #include <ctype.h>
 #include <setjmp.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
 #include "emu.h"
-#include "os-win32.h"
+//#include "os-win32.h"
+#include "cpu.h"
+#include "schedule.h"
+#include "memory.h"
+#include "keypad.h"
+#include "translate.h"
+#include "debug.h"
+
+/*Type fixes here...*/
+typedef long os_time_t;
+typedef long os_frequency_t;
+typedef struct { void *prev, *function; } os_exception_frame_t;
 
 /* cycle_count_delta is a (usually negative) number telling what the time is relative
  * to the next scheduled event. See sched.c */

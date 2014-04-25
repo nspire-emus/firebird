@@ -1,5 +1,9 @@
 #include "emu.h"
 #include <string.h>
+#include "misc.h"
+#include "keypad.h"
+#include "schedule.h"
+#include "interrupt.h"
 
 volatile int keypad_type = -1;
 volatile u16 key_map[16];

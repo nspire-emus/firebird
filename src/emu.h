@@ -1,3 +1,5 @@
+#include "types.h"
+
 static inline u16 BSWAP16(u16 x) { return x << 8 | x >> 8; }
 static inline u32 BSWAP32(u32 x) {
 	if (__builtin_constant_p(x)) return x << 24 | (x << 8 & 0xFF0000) | (x >> 8 & 0xFF00) | x >> 24;

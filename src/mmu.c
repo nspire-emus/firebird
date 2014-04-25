@@ -1,6 +1,10 @@
 #include <string.h>
-#include "os-win32.h"
+#include <stdint.h>
+//#include "os-win32.h"
 #include "emu.h"
+#include "cpu.h"
+#include "mmu.h"
+#include "memory.h"
 
 /* Copy of translation table in memory (hack to approximate effect of having a TLB) */
 static u32 mmu_translation_table[0x1000];
@@ -22,7 +26,7 @@ u32 mmu_translate(u32 addr, bool writing, fault_proc *fault) {
 			if (fault) fault(addr, status + 0x5); /* Section translation fault */
 			return 0xFFFFFFFF;
 		case 1: /* Course page table (one entry per 4kB) */
-			table = phys_mem_ptr(entry & 0xFFFFFC00, 0x400);
+			table = (u32 *)(intptr_t)phys_mem_ptr(entry & 0xFFFFFC00, 0x400);
 			if (!table) {
 				if (fault) error("Bad page table pointer");
 				return 0xFFFFFFFF;
@@ -34,7 +38,7 @@ u32 mmu_translate(u32 addr, bool writing, fault_proc *fault) {
 			ap = entry >> 6;
 			goto section;
 		case 3: /* Fine page table (one entry per 1kB) */
-			table = phys_mem_ptr(entry & 0xFFFFF000, 0x1000);
+			table = (u32 *)(intptr_t)phys_mem_ptr(entry & 0xFFFFF000, 0x1000);
 			if (!table) {
 				if (fault) error("Bad page table pointer");
 				return 0xFFFFFFFF;
@@ -177,7 +181,7 @@ void addr_cache_flush() {
 	u32 i;
 
 	if (arm.control & 1) {
-		u32 *table = phys_mem_ptr(arm.translation_table_base, 0x4000);
+		u32 *table = (u32*)(intptr_t)phys_mem_ptr(arm.translation_table_base, 0x4000);
 		if (!table)
 			error("Bad translation table base register: %x", arm.translation_table_base);
 		memcpy(mmu_translation_table, table, 0x4000);

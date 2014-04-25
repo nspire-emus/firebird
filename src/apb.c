@@ -3,6 +3,13 @@
 #include <string.h>
 #include <time.h>
 #include "emu.h"
+#include "keypad.h"
+#include "link.h"
+#include "memory.h"
+#include "schedule.h"
+#include "interrupt.h"
+#include "misc.h"
+#include "apb.h"
 
 /* The APB (Advanced Peripheral Bus) hosts peripherals that do not require
  * high bandwidth. The bridge to the APB is accessed via addresses 90xxxxxx. */

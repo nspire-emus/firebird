@@ -3,6 +3,7 @@
 #include <string.h>
 
 #include "emu.h"
+#include "usb.h"
 
 struct packet {
 	u16 constant;

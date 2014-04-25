@@ -21,9 +21,16 @@
 #else
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <netinet/tcp.h>
 #endif
 
 #include "emu.h"
+#include "debug.h"
+#include "memory.h"
+#include "cpu.h"
+#include "armsnippets.h"
 
 static void gdbstub_disconnect(void);
 
@@ -113,7 +120,7 @@ static void set_nonblocking(int socket, bool nonblocking) {
 	u_long mode = nonblocking;
 	ioctlsocket(socket, FIONBIO, &mode);
 #else
-	ret = fcntl(socket, F_GETFL, 0);
+	int ret = fcntl(socket, F_GETFL, 0);
 	fcntl(socket, F_SETFL, nonblocking ? ret | O_NONBLOCK : ret & ~O_NONBLOCK);
 #endif
 }

@@ -1,5 +1,7 @@
 #include <string.h>
 #include "emu.h"
+#include "interrupt.h"
+#include "schedule.h"
 
 struct {
 	u32 timing[4];

@@ -1,5 +1,9 @@
 #include <stdio.h>
 #include "emu.h"
+#include "memory.h"
+#include "cpu.h"
+#include "asmcode.h"
+#include "translate.h"
 
 extern void translation_enter();
 extern void translation_next();
