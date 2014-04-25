@@ -1,3 +1,6 @@
+#include <stdio.h>
+#include "debug.h"
+
 static char *strcpy2(char *dest, const char *src) {
 	while ((*dest = *src)) { dest++; src++; }
 	return dest;

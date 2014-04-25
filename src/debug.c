@@ -3,6 +3,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "debug.h"
+#include "types.h"
+#include "interrupt.h"
 #include "emu.h"
 
 void *virt_mem_ptr(u32 addr, u32 size) {
