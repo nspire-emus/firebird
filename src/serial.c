@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include "emu.h"
 #include "interrupt.h"
+#include "misc.h"
 
 FILE *xmodem_file;
 u8 xmodem_buf[0x84];

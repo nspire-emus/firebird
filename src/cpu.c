@@ -22,7 +22,7 @@ void cpu_int_check() {
 /* Access the Current Program Status Register.
  * The flag bits (NZCV) are stored separately since they are so
  * frequently written to independently. */
-u32 __attribute__((fastcall)) get_cpsr() {
+u32 /* TODO: __attribute__((fastcall)) */ get_cpsr() {
 	return arm.cpsr_n << 31
 	     | arm.cpsr_z << 30
 	     | arm.cpsr_c << 29
@@ -79,7 +79,7 @@ void set_cpsr_full(u32 cpsr) {
 	arm.cpsr_low28 = cpsr & 0x090000FF; /* Mask off reserved bits */
 	cpu_int_check();
 }
-void __attribute__((fastcall)) set_cpsr(u32 cpsr, u32 mask) {
+void /* TODO: __attribute__((fastcall)) */ set_cpsr(u32 cpsr, u32 mask) {
 	if (!(arm.cpsr_low28 & 0x0F)) {
 		/* User mode. Don't change privileged or execution state bits */
 		mask &= ~0x010000FF;
@@ -101,13 +101,13 @@ static u32 *ptr_spsr() {
 	}
 	error("Attempted to access SPSR from user or system mode");
 }
-inline u32 __attribute__((fastcall)) get_spsr() {
+inline u32 /* TODO: __attribute__((fastcall)) */ get_spsr() {
 	return *ptr_spsr();
 }
 inline void set_spsr_full(u32 spsr) {
 	*ptr_spsr() = spsr;
 }
-inline void __attribute__((fastcall)) set_spsr(u32 spsr, u32 mask) {
+inline void /* TODO: __attribute__((fastcall))*/ set_spsr(u32 spsr, u32 mask) {
 	*ptr_spsr() ^= (*ptr_spsr() ^ spsr) & mask;
 }
 

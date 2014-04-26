@@ -205,9 +205,11 @@ ror_carry_mult_32:
 	ret
 
 // u32 __attribute__((fastcall)) read_byte(u32 addr);
-.globl	@read_byte@4
+//TODO: Original: .globl	@read_byte@4
+.globl	_read_byte
 .align	16
-@read_byte@4:
+//TODO: Original: @read_byte@4:
+_read_byte:
 	movl	%ecx, %eax
 	shrl	$10, %eax
 	addl	0(, %eax, 8), %ecx
@@ -230,15 +232,19 @@ rb_slow:
 	shll	$10, %eax
 	jc	rb_miss
 	addl	%eax, %ecx
-	jmp	@mmio_read_byte@4
+//TODO:Original:	jmp	@mmio_read_byte@4
+	jmp _mmio_read_byte
 rb_miss:
 	call	read_miss
-	jmp	@read_byte@4
+//TODO:Original:	jmp	@read_byte@4
+	jmp _read_byte
 
 // u32 __attribute__((fastcall)) read_half(u32 addr);
-.globl	@read_half@4
+// TODO: Original: .globl	@read_half@4
+.globl	_read_half
 .align	16
-@read_half@4:
+// TODO: Original: @read_half@4:
+_read_half:
 	movl	%ecx, %eax
 	shrl	$10, %eax
 	addl	0(, %eax, 8), %ecx
@@ -264,19 +270,24 @@ rh_slow:
 	shll	$10, %eax
 	jc	rh_miss
 	addl	%eax, %ecx
-	jmp	@mmio_read_half@4
+// TODO: Original:	jmp	@mmio_read_half@4
+	jmp _mmio_read_half
 rh_miss:
 	call	read_miss
-	jmp	@read_half@4
+// TODO: Original:	jmp	@read_half@4
+	jmp _read_half
 rh_unaligned:
 	call	align_fault
 	decl	%ecx
-	jmp	@read_half@4
+// TODO:	jmp	@read_half@4
+	jmp _read_half
 
 // u32 __attribute__((fastcall)) read_word(u32 addr);
-.globl	@read_word@4
+// TODO: Original: .globl	@read_word@4
+.globl _read_word
 .align	16
-@read_word@4:
+// TODO: Original: @read_word@4:
+_read_word:
 	movl	%ecx, %eax
 	shrl	$10, %eax
 	addl	0(, %eax, 8), %ecx
@@ -300,19 +311,24 @@ rw_slow:
 	shll	$10, %eax
 	jc	rw_miss
 	addl	%eax, %ecx
-	jmp	@mmio_read_word@4
+// TODO:	jmp	@mmio_read_word@4
+	jmp _mmio_read_word
 rw_miss:
 	call	read_miss
-	jmp	@read_word@4
+// TODO:	jmp	@read_word@4
+	jmp _read_word
 rw_unaligned:
 	call	align_fault
 	andl	$-4, %ecx
-	jmp	@read_word@4
+// TODO:	jmp	@read_word@4
+	jmp _read_word
 
 // u32 __attribute__((fastcall)) read_word_ldr(u32 addr);
-.globl	@read_word_ldr@4
+// TODO: .globl	@read_word_ldr@4
+.globl _read_word_ldr
 .align	16
-@read_word_ldr@4:
+//TODO: @read_word_ldr@4:
+_read_word_ldr:
 	movl	%ecx, %eax
 	shrl	$10, %eax
 	addl	0(, %eax, 8), %ecx
@@ -332,7 +348,8 @@ rwl_slow:
 	shll	$10, %eax
 	jc	rw_miss
 	addl	%eax, %ecx
-	jmp	@mmio_read_word@4
+// TODO:	jmp	@mmio_read_word@4
+	jmp _mmio_read_word
 rwl_unaligned:
 	pushl	%ecx
 	call	rw_unaligned
@@ -359,9 +376,11 @@ read_miss:
 	ret
 
 // void __attribute__((fastcall)) write_byte(u32 addr, u8 value);
-.globl	@write_byte@8
+// TODO: .globl	@write_byte@8
+.globl _write_byte
 .align	16
-@write_byte@8:
+// TODO: @write_byte@8:
+_write_byte:
 	movl	%ecx, %eax
 	shrl	$10, %eax
 	addl	4(, %eax, 8), %ecx
@@ -384,15 +403,19 @@ wb_slow:
 	shll	$10, %eax
 	jc	wb_miss
 	addl	%eax, %ecx
-	jmp	@mmio_write_byte@8
+// TODO:	jmp	@mmio_write_byte@8
+	jmp _mmio_write_byte
 wb_miss:
 	call	write_miss
-	jmp	@write_byte@8
+// TODO:	jmp	@write_byte@8
+	jmp _write_byte
 
 // void __attribute__((fastcall)) write_half(u32 addr, u16 value);
-.globl	@write_half@8
+// TODO: .globl	@write_half@8
+.globl _write_half
 .align	16
-@write_half@8:
+// TODO: @write_half@8:
+_write_half:
 	movl	%ecx, %eax
 	shrl	$10, %eax
 	addl	4(, %eax, 8), %ecx
@@ -418,19 +441,24 @@ wh_slow:
 	shll	$10, %eax
 	jc	wh_miss
 	addl	%eax, %ecx
-	jmp	@mmio_write_half@8
+// TODO:	jmp	@mmio_write_half@8
+	jmp _mmio_write_half
 wh_miss:
 	call	write_miss
-	jmp	@write_half@8
+// TODO:	jmp	@write_half@8
+	jmp _write_half
 wh_unaligned:
 	call	align_fault
 	decl	%ecx
-	jmp	@write_half@8
+// TODO:	jmp	@write_half@8
+	jmp _write_half
 
 // void __attribute__((fastcall)) write_word(u32 addr, u32 value);
-.globl	@write_word@8
+//TODO: .globl	@write_word@8
+.globl _write_word
 .align	16
-@write_word@8:
+// TODO: @write_word@8:
+_write_word:
 	movl	%ecx, %eax
 	shrl	$10, %eax
 	addl	4(, %eax, 8), %ecx
@@ -454,14 +482,17 @@ ww_slow:
 	shll	$10, %eax
 	jc	ww_miss
 	addl	%eax, %ecx
-	jmp	@mmio_write_word@8
+//TODO:	jmp	@mmio_write_word@8
+	jmp _mmio_write_word
 ww_miss:
 	call	write_miss
-	jmp	@write_word@8
+//TODO:	jmp	@write_word@8
+	jmp _write_word
 ww_unaligned:
 	call	align_fault
 	andl	$-4, %ecx
-	jmp	@write_word@8
+//TODO:	jmp	@write_word@8
+	jmp _write_word
 
 write_special:
 	pushl	%edx

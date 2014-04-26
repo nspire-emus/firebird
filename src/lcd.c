@@ -1,4 +1,5 @@
 #include <string.h>
+#include <stdint.h>
 #include "emu.h"
 #include "interrupt.h"
 #include "schedule.h"
@@ -18,7 +19,7 @@ struct {
  * supports either orientation, but some programs can't paste right-side-up bitmaps) */
 void lcd_draw_frame(u8 buffer[240][160]) {
 	u32 bpp = 1 << (lcd.control >> 1 & 7);
-	u32 *in = phys_mem_ptr(lcd.framebuffer, (320 * 240) / 8 * bpp);
+	u32 *in = (u32 *)(intptr_t)phys_mem_ptr(lcd.framebuffer, (320 * 240) / 8 * bpp);
 	if (!in || bpp > 32) {
 		memset(buffer, 0, 160 * 240);
 		return;
@@ -90,7 +91,7 @@ void lcd_cx_draw_frame(u16 buffer[240][320], u32 bitfields[3]) {
 		bitfields[2] = tmp;
 	}
 
-	u32 *in = phys_mem_ptr(lcd.framebuffer, (320 * 240) / 8 * bpp);
+	u32 *in = (u32 *)(intptr_t)phys_mem_ptr(lcd.framebuffer, (320 * 240) / 8 * bpp);
 	if (!in) {
 		memset(buffer, 0, 320 * 240 * 2);
 		return;
@@ -229,7 +230,8 @@ void lcd_write_word(u32 addr, u32 value) {
 		*(u32 *)((u8 *)lcd.palette + offset - 0x200) = value;
 		return;
 	}
-	return bad_write_word(addr, value);
+	bad_write_word(addr, value);
+	return;
 }
 
 #if 0

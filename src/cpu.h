@@ -51,11 +51,11 @@ extern struct arm_state arm;
 #define current_instr_size (arm.cpsr_low28 & 0x20 ? 2 /* thumb */ : 4)
 
 void cpu_int_check();
-u32 __attribute__((fastcall)) get_cpsr();
+u32 /* TODO: __attribute__((fastcall)) */ get_cpsr();
 void set_cpsr_full(u32 cpsr);
-void __attribute__((fastcall)) set_cpsr(u32 cpsr, u32 mask);
-u32 __attribute__((fastcall)) get_spsr();
-void __attribute__((fastcall)) set_spsr(u32 cpsr, u32 mask);
+void /* TODO: __attribute__((fastcall)) */ set_cpsr(u32 cpsr, u32 mask);
+u32 /* TODO: __attribute__((fastcall)) */ get_spsr();
+void /* TODO: __attribute__((fastcall)) */ set_spsr(u32 cpsr, u32 mask);
 void cpu_exception(int type);
 void cpu_interpret_instruction(u32 insn);
 void cpu_arm_loop();

@@ -713,7 +713,8 @@ void sramctl_write_word(u32 addr, u32 value) {
 		case 0x014: return;
 		case 0x018: return;
 	}
-	return bad_write_word(addr, value);
+	bad_write_word(addr, value);
+	return;
 }
 
 /* BC000000 */
@@ -807,5 +808,6 @@ void adc_write_word(u32 addr, u32 value) {
 			case 0x14: c->speed = value & 0x3FF; return;
 		}
 	}
-	return bad_write_word(addr, value);
+	bad_write_word(addr, value);
+	return;
 }

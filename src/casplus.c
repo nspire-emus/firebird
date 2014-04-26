@@ -1,18 +1,20 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "emu.h"
+#include <stdint.h>
+#include "casplus.h"
 #include "schedule.h"
 #include "keypad.h"
 #include "cpu.h"
 #include "flash.h"
+#include "emu.h"
 
 static u16 lcd_framebuffer[2];
 static u32 lcd_control;
 
 void casplus_lcd_draw_frame(u8 buffer[240][160]) {
 	u32 base = lcd_framebuffer[1] << 16 | lcd_framebuffer[0];
-	u8 *palette = phys_mem_ptr(base, 0x9620);
+	u8 *palette = (u8 *)(intptr_t)phys_mem_ptr(base, 0x9620);
 	if (!palette) {
 		memset(buffer, 0, 160 * 240);
 		return;
@@ -288,7 +290,10 @@ u32 omap_read_word(u32 addr) {
 
 void omap_write_byte(u32 addr, u8 byte) {
 	if (addr >= 0xFFFB9800 && addr <= 0xFFFB983F)
-		return serial_write(addr, byte);
+	{
+		serial_write(addr, byte);
+		return;
+	}
 	bad_write_byte(addr, byte);
 }
 void omap_write_half(u32 addr, u16 value) {

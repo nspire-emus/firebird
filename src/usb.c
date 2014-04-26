@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <string.h>
+#include <stdint.h>
 #include "emu.h"
 #include "usb.h"
 #include "interrupt.h"
@@ -59,7 +60,7 @@ static void usb_prime(struct usb_qh *qh, u32 epbit) {
 	u32 tda = qh->overlay.next_td;
 	if (tda & 0x1F)
 		error("USB: TD not 32-byte aligned");
-	struct usb_td *td = phys_mem_ptr(tda, 0x1C);
+	struct usb_td *td = (struct usb_td *)(intptr_t)phys_mem_ptr(tda, 0x1C);
 	if (!td)
 		error("USB: bad TD");
 
@@ -72,7 +73,7 @@ static void usb_complete(struct usb_qh *qh, u32 epbit, u32 size) {
 	u32 tda = qh->current_td;
 	if (tda & 0x1F)
 		error("USB: TD not 32-byte aligned");
-	struct usb_td *td = phys_mem_ptr(tda, 0x1C);
+	struct usb_td *td = (struct usb_td *)(intptr_t)phys_mem_ptr(tda, 0x1C);
 	if (!td)
 		error("USB: bad TD");
 
@@ -87,7 +88,7 @@ static void usb_complete(struct usb_qh *qh, u32 epbit, u32 size) {
 }
 
 void usb_receive_setup_packet(int endpoint, const void *packet) {
-	struct usb_qh *qh = phys_mem_ptr(usb.eplistaddr + (endpoint * 0x80), 0x30);
+	struct usb_qh *qh = (struct usb_qh *)(intptr_t)phys_mem_ptr(usb.eplistaddr + (endpoint * 0x80), 0x30);
 	if (!qh)
 		error("USB: bad QH");
 	memcpy(&qh->setup, packet, 8);
@@ -104,7 +105,7 @@ void usb_receive_packet(int endpoint, const void *packet, u32 size) {
 		printf("USB: can't receive packet, endpoint not primed\n");
 		return;
 	}
-	struct usb_qh *qh = phys_mem_ptr(usb.eplistaddr + (endpoint * 0x80), 0x30);
+	struct usb_qh *qh = (struct usb_qh *)(intptr_t)phys_mem_ptr(usb.eplistaddr + (endpoint * 0x80), 0x30);
 	if (!qh)
 		error("USB: bad QH");
 	u32 maxsize = qh->overlay.flags >> 16 & 0x7FFF;
@@ -115,7 +116,7 @@ void usb_receive_packet(int endpoint, const void *packet, u32 size) {
 	}
 	if (size) {
 		// assumes contiguous buffer
-		void *buf = phys_mem_ptr(qh->overlay.bufptr[0], size);
+		void *buf = (void *)(intptr_t)phys_mem_ptr(qh->overlay.bufptr[0], size);
 		if (!buf)
 			error("USB: bad buffer");
 		memcpy(buf, packet, size);
@@ -222,7 +223,7 @@ void usb_write_word(u32 addr, u32 value) {
 			for (ep = 0; ep < 4; ep++) {
 				if (value & (1 << ep)) {
 					//printf("Priming endpoint %d for receive\n", ep);
-					struct usb_qh *qh = phys_mem_ptr(usb.eplistaddr + (ep * 0x80), 0x30);
+					struct usb_qh *qh = (struct usb_qh *)(intptr_t)phys_mem_ptr(usb.eplistaddr + (ep * 0x80), 0x30);
 					if (!qh)
 						error("USB: bad QH");
 					usb_prime(qh, 1 << ep);
@@ -231,13 +232,13 @@ void usb_write_word(u32 addr, u32 value) {
 				}
 				if (value & (0x10000 << ep)) {
 					//printf("Priming endpoint %d for transmit\n", ep);
-					struct usb_qh *qh = phys_mem_ptr(usb.eplistaddr + (ep * 0x80) + 0x40, 0x30);
+					struct usb_qh *qh = (struct usb_qh *)(intptr_t)phys_mem_ptr(usb.eplistaddr + (ep * 0x80) + 0x40, 0x30);
 					if (!qh)
 						error("USB: bad QH");
 					usb_prime(qh, 0x10000 << ep);
 
 					u32 size = qh->overlay.flags >> 16 & 0x7FFF;
-					u8 *buf = phys_mem_ptr(qh->overlay.bufptr[0], size);
+					u8 *buf = (u8*)(intptr_t)phys_mem_ptr(qh->overlay.bufptr[0], size);
 					usblink_receive(ep, buf, size);
 
 					usb_complete(qh, 0x10000 << ep, size);
