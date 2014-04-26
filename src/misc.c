@@ -2,6 +2,11 @@
 #include <string.h>
 #include <time.h>
 #include "emu.h"
+#include "interrupt.h"
+#include "schedule.h"
+#include "misc.h"
+#include "keypad.h"
+#include "flash.h"
 
 // Miscellaneous hardware modules deemed too trivial to get their own files
 

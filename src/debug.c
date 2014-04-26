@@ -10,7 +10,7 @@
 #include "emu.h"
 #include "cpu.h"
 #include "memory.h"
-#include "gui.h"
+#include "gui/gui.h"
 #include "disasm.h"
 
 void *virt_mem_ptr(u32 addr, u32 size) {

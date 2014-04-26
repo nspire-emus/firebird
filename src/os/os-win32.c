@@ -1,8 +1,10 @@
+#if defined(_WIN32) || defined(_WIN64) || defined(__WIN32__) || defined(__TOS_WIN__) || defined(__WINDOWS__)
+
 #include <stdio.h>
 #include <stdlib.h>
 #include "emu.h"
 #include "os-win32.h"
-#include <mmsystem.h>
+//#include <mmsystem.h>
 
 static int addr_cache_exception(PEXCEPTION_RECORD er, void *x, void *y, void *z) {
 	x = x; y = y; z = z; // unused parameters
@@ -52,3 +54,5 @@ void throttle_timer_off() {
 		CloseHandle(hTimerEvent);
 	}
 }
+
+#endif

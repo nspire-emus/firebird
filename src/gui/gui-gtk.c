@@ -1,20 +1,20 @@
-#include <conio.h>
+//#include <conio.h>
 #include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-#define WIN32_LEAN_AND_MEAN
-#define _WIN32_WINNT 0x0500 // for VK_OEM constants
-#include <windows.h>
-#include <commdlg.h>
+//#define WIN32_LEAN_AND_MEAN
+//#define _WIN32_WINNT 0x0500 // for VK_OEM constants
+//#include <windows.h>
+//#include <commdlg.h>
 
-#include "id.h"
-#include "emu.h"
+//#include "id.h"
+//#include "emu.h"
 
 char target_folder[256];
 
-HWND hwndMessage;
+/*HWND hwndMessage;
 HWND hwndMain, hwndGfx, hwndKeys;
 HMENU hMenu;
 
@@ -183,7 +183,7 @@ LRESULT CALLBACK keys_wnd_proc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPara
 	static const struct key_desc {
 		BYTE vk_code;
 		BYTE ext; /* 1 = non-extended key only, 2 = extended key only, 3 = either */
-		BYTE keypad_code[NUM_KEYPAD_TYPES];
+/*		BYTE keypad_code[NUM_KEYPAD_TYPES];
 	} key_table[] = {
 		{ VK_RETURN,    2, { 0x00, 0x00, 0x10, 0x00, 0x00 } },
 		{ VK_RETURN,    1, { 0x01, 0x01, 0x10, 0x01, 0x01 } },
@@ -205,7 +205,7 @@ LRESULT CALLBACK keys_wnd_proc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPara
 		{ '1',          3, { 0x17, 0x17, 0x41, 0x17, 0x17 } },
 		{ 'T',          3, { 0x18, 0x18, 0x42, 0x15, 0x15 } },
 		{ VK_OEM_2,     3, { 0x20, 0x20, 0x14, 0x08, 0x08 } }, /* ? / */
-		{ VK_SUBTRACT,  3, { 0x21, 0x21, 0x12, 0x52, 0x52 } },
+/*		{ VK_SUBTRACT,  3, { 0x21, 0x21, 0x12, 0x52, 0x52 } },
 		{ 'S',          3, { 0x22, 0x22, 0x52, 0x16, 0x16 } },
 		{ '6',          3, { 0x23, 0x23, 0x22, 0x23, 0x23 } },
 		{ 'R',          3, { 0x24, 0x24, 0x13, 0x20, 0x20 } },
@@ -214,7 +214,7 @@ LRESULT CALLBACK keys_wnd_proc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPara
 		{ '4',          3, { 0x27, 0x27, 0x42, 0x27, 0x27 } },
 		{ 'P',          3, { 0x28, 0x28, 0x33, 0x22, 0x22 } },
 		{ VK_OEM_1,     3, { 0x30, 0x30, 0xFF, 0x08, 0x08 } }, /* : ; */
-		{ VK_MULTIPLY,  3, { 0x31, 0x31, 0x13, 0x48, 0x48 } },
+/*		{ VK_MULTIPLY,  3, { 0x31, 0x31, 0x13, 0x48, 0x48 } },
 		{ 'O',          3, { 0x32, 0x32, 0x43, 0x24, 0x24 } },
 		{ '9',          3, { 0x33, 0x33, 0x23, 0x33, 0x33 } },
 		{ 'N',          3, { 0x34, 0x34, 0x53, 0x25, 0x25 } },
@@ -223,27 +223,27 @@ LRESULT CALLBACK keys_wnd_proc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPara
 		{ '7',          3, { 0x37, 0x37, 0x43, 0x37, 0x37 } },
 		{ 'L',          3, { 0x38, 0x38, 0x24, 0x30, 0x30 } },
 		{ VK_OEM_7,     3, { 0x40, 0x40, 0xFF, 0x08, 0x08 } }, /* " ' */
-		{ VK_DIVIDE,    3, { 0x41, 0x41, 0x14, 0x38, 0x38 } },
+/*		{ VK_DIVIDE,    3, { 0x41, 0x41, 0x14, 0x38, 0x38 } },
 		{ 'K',          3, { 0x42, 0x42, 0x34, 0x31, 0x31 } },
 		{ 'J',          3, { 0x44, 0x44, 0x44, 0x32, 0x32 } },
 		{ 'I',          3, { 0x46, 0x46, 0x54, 0x34, 0x34 } },
 		{ 'H',          3, { 0x48, 0x48, 0x15, 0x35, 0x35 } },
 		{ 'G',          3, { 0x52, 0x52, 0x25, 0x36, 0x36 } },
 		{ VK_OEM_6,     3, { 0x53, 0x53, 0x34, 0x53, 0x53 } }, /* [ { */
-		{ 'F',          3, { 0x54, 0x54, 0x35, 0x40, 0x40 } },
+/*		{ 'F',          3, { 0x54, 0x54, 0x35, 0x40, 0x40 } },
 		{ VK_OEM_4,     3, { 0x55, 0x55, 0x24, 0x55, 0x55 } }, /* ] } */
-		{ 'E',          3, { 0x56, 0x56, 0x45, 0x41, 0x41 } },
+/*		{ 'E',          3, { 0x56, 0x56, 0x45, 0x41, 0x41 } },
 		{ 'D',          3, { 0x58, 0x58, 0x55, 0x42, 0x42 } },
 		{ VK_RSHIFT,    3, { 0x59, 0x59, 0x16, 0x59, 0x78 } },
 		{ VK_LSHIFT,    3, { 0x59, 0x59, 0x65, 0x59, 0x78 } },
 		{ VK_CLEAR,     3, { 0x67, 0x61, 0xFF, 0x61, 0xA1 } }, /* numeric keypad 5 */
-		{ 'C',          3, { 0x62, 0x62, 0x36, 0x44, 0x44 } },
+/*		{ 'C',          3, { 0x62, 0x62, 0x36, 0x44, 0x44 } },
 		{ VK_HOME,      2, { 0x63, 0x63, 0x56, 0x09, 0x09 } },
 		{ 'B',          3, { 0x64, 0x64, 0x46, 0x45, 0x45 } },
 		{ 'A',          3, { 0x66, 0x66, 0x56, 0x46, 0x46 } },
 		{ VK_ESCAPE,    3, { 0x65, 0x67, 0x66, 0x67, 0x67 } },
 		{ VK_OEM_5,     3, { 0x68, 0x68, 0xFF, 0x08, 0x08 } }, /* \ | */
-		{ VK_TAB,       3, { 0x6A, 0x69, 0xFF, 0x69, 0x69 } },
+/*		{ VK_TAB,       3, { 0x6A, 0x69, 0xFF, 0x69, 0x69 } },
 
 		{ VK_UP,        2, { 0x71, 0x70, 0x03, 0x72, 0x91 } },
 		{ VK_RIGHT,     2, { 0x72, 0x72, 0x02, 0x70, 0xA2 } },
@@ -252,17 +252,17 @@ LRESULT CALLBACK keys_wnd_proc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPara
 
 		{ VK_UP,        1, { 0x80, 0x70, 0x03, 0x72, 0x91 } },
 		{ VK_PRIOR,     1, { 0x81, 0x71, 0x46, 0x71, 0x92 } }, /* numeric keypad 9 */
-		{ VK_RIGHT,     1, { 0x82, 0x72, 0x02, 0x70, 0xA2 } },
+/*		{ VK_RIGHT,     1, { 0x82, 0x72, 0x02, 0x70, 0xA2 } },
 		{ VK_NEXT,      1, { 0x83, 0x73, 0x36, 0x77, 0xB2 } }, /* numeric keypad 3 */
-		{ VK_DOWN,      1, { 0x84, 0x74, 0x00, 0x76, 0xB1 } },
+/*		{ VK_DOWN,      1, { 0x84, 0x74, 0x00, 0x76, 0xB1 } },
 		{ VK_END,       1, { 0x85, 0x75, 0x37, 0x75, 0xB0 } }, /* numeric keypad 1 */
-		{ VK_LEFT,      1, { 0x86, 0x76, 0x01, 0x74, 0xA0 } },
+/*		{ VK_LEFT,      1, { 0x86, 0x76, 0x01, 0x74, 0xA0 } },
 		{ VK_HOME,      1, { 0x87, 0x77, 0x56, 0x73, 0x90 } }, /* numeric keypad 7 */
 
-		{ VK_BACK,      3, { 0x88, 0x78, 0xFF, 0x78, 0x59 } },
+/*		{ VK_BACK,      3, { 0x88, 0x78, 0xFF, 0x78, 0x59 } },
 		{ VK_CONTROL,   3, { 0x89, 0x79, 0x57, 0x79, 0x79 } },
 		{ VK_OEM_PLUS,  3, { 0x0A, 0x7A, 0x47, 0x47, 0x47 } }, /* = + */
-		{ VK_INSERT,    3, { 0xFF, 0xFF, 0x26, 0xFF, 0xFF } },
+/*		{ VK_INSERT,    3, { 0xFF, 0xFF, 0x26, 0xFF, 0xFF } },
 		{ VK_NEXT,      2, { 0xFF, 0xFF, 0x36, 0xFF, 0xFF } },
 		{ VK_END,       2, { 0xFF, 0xFF, 0x37, 0xFF, 0xFF } },
 		{ VK_PRIOR,     2, { 0xFF, 0xFF, 0x46, 0xFF, 0xFF } },
@@ -316,7 +316,7 @@ LRESULT CALLBACK keys_wnd_proc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPara
 		const struct key_desc *p = key_table;
 		if (wParam == VK_SHIFT) {
 			/* distinguish between left and right shift */
-			wParam = MapVirtualKey(lParam >> 16 & 0xFF, 3);
+/*			wParam = MapVirtualKey(lParam >> 16 & 0xFF, 3);
 		} else if (wParam >= VK_NUMPAD0 && wParam <= VK_NUMPAD9) {
 			wParam += '0' - VK_NUMPAD0;
 		}
@@ -467,14 +467,14 @@ LRESULT CALLBACK emu_wnd_proc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam
 					break;
 				case ID_SEND_OS: {
 					static const char *const os_ext_table[] = {
-						/* 0C */ "tnc CAS",
-						/* 0D */ "tlo Lab Cradle",
-						/* 0E */ "tno",
-						/* 0F */ "tcc CX CAS",
-						/* 10 */ "tco CX",
-						/* 11 */ "tmc CM CAS",
-						/* 12 */ "tmo CM",
-					};
+						/* 0C */// "tnc CAS",
+						/* 0D */// "tlo Lab Cradle",
+						/* 0E */// "tno",
+						/* 0F */// "tcc CX CAS",
+						/* 10 */// "tco CX",
+						/* 11 */// "tmc CM CAS",
+						/* 12 */// "tmo CM",
+/*					};
 					unsigned int idx = (product >> 4) - 0xC;
 					const char *os_ext = os_ext_table[idx < 7 ? idx : 2];
 					fp = sprintf(filter, "TI-Nspire%s OS images (*.%.3s)%c*.%.3s%c",
@@ -578,9 +578,9 @@ DWORD CALLBACK gui_thread(LPVOID hEvent) {
 	exiting = true;
 	return msg.wParam;
 }
-
+*/
 void gui_initialize() {
-	DWORD gui_thread_id;
+/*	DWORD gui_thread_id;
 	HANDLE hEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
 
 	hwndMessage = CreateWindow("Static", NULL, 0, 0, 0, 0, 0, NULL, NULL, NULL, NULL);
@@ -589,12 +589,13 @@ void gui_initialize() {
 	CreateThread(NULL, 0, gui_thread, hEvent, 0, &gui_thread_id);
 	WaitForSingleObject(hEvent, INFINITE);
 	CloseHandle(hEvent);
+*/
 }
 
 void get_messages() {
-	MSG msg;
-	while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
-		DispatchMessage(&msg);
+//	MSG msg;
+//	while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
+//		DispatchMessage(&msg);
 }
 
 #if 0
