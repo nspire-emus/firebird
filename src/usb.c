@@ -4,6 +4,7 @@
 #include "emu.h"
 #include "usb.h"
 #include "interrupt.h"
+#include "memory.h"
 
 extern void usblink_receive(int ep, u8 *buf, u32 size);
 extern void usblink_complete_send(int ep);

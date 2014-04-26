@@ -4,6 +4,7 @@
 #include "keypad.h"
 #include "schedule.h"
 #include "interrupt.h"
+#include "memory.h"
 
 volatile int keypad_type = -1;
 volatile u16 key_map[16];

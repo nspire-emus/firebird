@@ -1,5 +1,6 @@
 #include <string.h>
 #include "types.h"
+#include "memory.h"
 
 static u32 des_block[2];
 static u32 des_key[6];

@@ -8,6 +8,8 @@
 #include "cpu.h"
 #include "flash.h"
 #include "emu.h"
+#include "misc.h"
+#include "memory.h"
 
 static u16 lcd_framebuffer[2];
 static u32 lcd_control;

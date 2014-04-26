@@ -1,5 +1,6 @@
 #include <string.h>
 #include "emu.h"
+#include "memory.h"
 
 static u32 hash_state[8];
 static u32 hash_block[16];

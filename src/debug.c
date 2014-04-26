@@ -12,6 +12,10 @@
 #include "memory.h"
 #include "gui/gui.h"
 #include "disasm.h"
+#include "mmu.h"
+#include "translate.h"
+#include "usblink.h"
+#include "gdbstub.h"
 
 void *virt_mem_ptr(u32 addr, u32 size) {
 	// Note: this is not guaranteed to be correct when range crosses page boundary
@@ -177,7 +181,8 @@ static void native_debugger(void) {
 		cmd = strtok(line, " \n");
 		if (!cmd) {
 			continue;
-		} else if (!stricmp(cmd, "?") || !stricmp(cmd, "h")) {
+//		} else if (!stricmp(cmd, "?") || !stricmp(cmd, "h")) {
+		} else if (!strcasecmp(cmd, "?") || !strcasecmp(cmd, "h")){
 			printf(
 				"Debugger commands:\n"
 				"b - stack backtrace\n"
@@ -201,10 +206,12 @@ static void native_debugger(void) {
 				"u[a|t] [address] - disassemble memory\n"
 				"wm <file> <start> <size> - write memory to file\n"
 				"wf <file> <start> [size] - write file to memory\n");
-		} else if (!stricmp(cmd, "b")) {
+//		} else if (!stricmp(cmd, "b")) {
+		} else if (!strcasecmp(cmd, "b")) {
 			char *fp = strtok(NULL, " \n");
 			backtrace(fp ? parse_expr(fp) : arm.reg[11]);
-		} else if (!stricmp(cmd, "r")) {
+//		} else if (!stricmp(cmd, "r")) {
+		} else if (!strcasecmp(cmd, "r")){
 			int i, show_spsr;
 			u32 cpsr = get_cpsr();
 			char *mode;
@@ -233,7 +240,8 @@ static void native_debugger(void) {
 			if (show_spsr)
 				printf(" spsr=%08x", get_spsr());
 			printf("\n");
-		} else if (!stricmp(cmd, "rs")) {
+//		} else if (!stricmp(cmd, "rs")) {
+		} else if (!strcasecmp(cmd, "rs")){
 			char *reg = strtok(NULL, " \n");
 			if (!reg) {
 				printf("Parameters are missing.\n");
@@ -250,7 +258,8 @@ static void native_debugger(void) {
 						printf("Invalid register.\n");
 				}
 			}
-		} else if (!stricmp(cmd, "k")) {
+//		} else if (!stricmp(cmd, "k")) {
+		} else if (!strcasecmp(cmd, "k")){
 			char *addr_str = strtok(NULL, " \n");
 			char *flag_str = strtok(NULL, " \n");
 			if (!flag_str)
@@ -294,7 +303,7 @@ static void native_debugger(void) {
 					for (flags = flags_start; flags != flags_end; flags++) {
 						if (*flags & (RF_READ_BREAKPOINT | RF_WRITE_BREAKPOINT | RF_EXEC_BREAKPOINT)) {
 							printf("%08x %c%c%c\n",
-								mem_areas[area].base + ((u8 *)flags - (u8 *)flags_start),
+								(unsigned int)(mem_areas[area].base + ((u8 *)flags - (u8 *)flags_start)),
 								(*flags & RF_READ_BREAKPOINT)  ? 'r' : ' ',
 								(*flags & RF_WRITE_BREAKPOINT) ? 'w' : ' ',
 								(*flags & RF_EXEC_BREAKPOINT)  ? 'x' : ' ');
@@ -302,16 +311,20 @@ static void native_debugger(void) {
 					}
 				}
 			}
-		} else if (!stricmp(cmd, "c")) {
+//		} else if (!stricmp(cmd, "c")) {
+		} else if (!strcasecmp(cmd, "c")){
 			break;
-		} else if (!stricmp(cmd, "s")) {
+//		} else if (!stricmp(cmd, "s")) {
+		} else if (!strcasecmp(cmd, "s")){
 			cpu_events |= EVENT_DEBUG_STEP;
 			break;
-		} else if (!stricmp(cmd, "n")) {
+//		} else if (!stricmp(cmd, "n")) {
+		} else if (!strcasecmp(cmd, "n")){
 			if (cur_insn)
 				set_debug_next(cur_insn + 1);
 			break;
-		} else if (!stricmp(cmd, "d")) {
+//		} else if (!stricmp(cmd, "d")) {
+		} else if (!strcasecmp(cmd, "d")){
 			char *arg = strtok(NULL, " \n");
 			if (!arg) {
 				printf("Missing address parameter.\n");
@@ -319,19 +332,25 @@ static void native_debugger(void) {
 				u32 addr = parse_expr(arg);
 				dump(addr);
 			}
-		} else if (!stricmp(cmd, "u")) {
+//		} else if (!stricmp(cmd, "u")) {
+		} else if (!strcasecmp(cmd, "u")) {
 			disasm(disasm_insn);
-		} else if (!stricmp(cmd, "ua")) {
+//		} else if (!stricmp(cmd, "ua")) {
+		} else if (!strcasecmp(cmd, "ua")) {
 			disasm(disasm_arm_insn);
-		} else if (!stricmp(cmd, "ut")) {
+//		} else if (!stricmp(cmd, "ut")) {
+		} else if (!strcasecmp(cmd, "ut")) {
 			disasm(disasm_thumb_insn);
-		} else if (!stricmp(cmd, "ln")) {
+//		} else if (!stricmp(cmd, "ln")) {
+		} else if (!strcasecmp(cmd, "ln")) {
 			char *ln_cmd = strtok(NULL, " \n");
 			if (!ln_cmd) continue;
-			if (!stricmp(ln_cmd, "c")) {
+//			if (!stricmp(ln_cmd, "c")) {
+			if (!strcasecmp(ln_cmd, "c")) {
 				usblink_connect();
 				break; // and continue, ARM code needs to be run
-			} else if (!stricmp(ln_cmd, "s")) {
+//			} else if (!stricmp(ln_cmd, "s")) {
+			} else if (!strcasecmp(ln_cmd, "s")) {
 				char *file = strtok(NULL, "\n");
 				if (!file) {
 					printf("Missing file parameter.\n");
@@ -344,14 +363,16 @@ static void native_debugger(void) {
 					if (usblink_put_file(file, target_folder))
 						break; // and continue
 				}
-			} else if (!stricmp(ln_cmd, "st")) {
+//			} else if (!stricmp(ln_cmd, "st")) {
+			} else if (!strcasecmp(ln_cmd, "st")) {
 				char *dir = strtok(NULL, " \n");
 				if (dir)
 					strncpy(target_folder, dir, sizeof target_folder);
 				else
 					printf("Missing directory parameter.\n");
 			}
-		} else if (!stricmp(cmd, "taskinfo")) {
+//		} else if (!stricmp(cmd, "taskinfo")) {
+		} else if (!strcasecmp(cmd, "taskinfo")) {
 			u32 task = parse_expr(strtok(NULL, " \n"));
 			u8 *p = virt_mem_ptr(task, 52);
 			if (p) {
@@ -383,7 +404,8 @@ static void native_debugger(void) {
 					}
 				}
 			}
-		} else if (!stricmp(cmd, "tasklist")) {
+//		} else if (!stricmp(cmd, "tasklist")) {
+		} else if (!strcasecmp(cmd, "tasklist")) {
 			u32 tasklist = parse_expr(strtok(NULL, " \n"));
 			u8 *p = virt_mem_ptr(tasklist, 4);
 			if (p) {
@@ -409,14 +431,18 @@ static void native_debugger(void) {
 					task = *(u32 *)&p[4]; /* next */
 				} while (task != first);
 			}
-		} else if (!stricmp(cmd, "t+")) {
+//		} else if (!stricmp(cmd, "t+")) {
+		} else if (!strcasecmp(cmd, "t+")) {
 			do_translate = 1;
-		} else if (!stricmp(cmd, "t-")) {
+//		} else if (!stricmp(cmd, "t-")) {
+		} else if (!strcasecmp(cmd, "t-")) {
 			flush_translations();
 			do_translate = 0;
-		} else if (!stricmp(cmd, "q")) {
+//		} else if (!stricmp(cmd, "q")) {
+		} else if (!strcasecmp(cmd, "q")) {
 			exit(1);
-		} else if (!stricmp(cmd, "wm") || !stricmp(cmd, "wf")) {
+//		} else if (!stricmp(cmd, "wm") || !stricmp(cmd, "wf")) {
+		} else if (!strcasecmp(cmd, "wm") || !strcasecmp(cmd, "wf")) {
 			bool frommem = cmd[1] != 'f';
 			char *filename = strtok(NULL, " \n");
 			char *start_str = strtok(NULL, " \n");
@@ -449,7 +475,8 @@ static void native_debugger(void) {
 				perror(filename);
 				continue;
 			}
-		} else if (!stricmp(cmd, "ss")) {
+//		} else if (!stricmp(cmd, "ss")) {
+		} else if (!strcasecmp(cmd, "ss")) {
 			char *addr_str = strtok(NULL, " \n");
 			char *len_str = strtok(NULL, " \n");
 			char *string = strtok(NULL, " \n");
@@ -480,7 +507,8 @@ static void native_debugger(void) {
 					printf("Address range %08x-%08x is not in RAM.\n", addr, addr + len - 1);
 				}
 			}
-		} else if (!stricmp(cmd, "int")) {
+//		} else if (!stricmp(cmd, "int")) {
+		} else if (!strcasecmp(cmd, "int")) {
 			printf("active		= %08x\n", intr.active);
 			printf("status		= %08x\n", intr.status);
 			printf("mask		= %08x %08x\n", intr.mask[0], intr.mask[1]);
@@ -495,16 +523,20 @@ static void native_debugger(void) {
 					printf("%02x ", intr.priority[i+j]);
 				printf("\n");
 			}
-		} else if (!stricmp(cmd, "int+")) {
+//		} else if (!stricmp(cmd, "int+")) {
+		} else if (!strcasecmp(cmd, "int+")) {
 			int_set(atoi(strtok(NULL, " \n")), 1);
-		} else if (!stricmp(cmd, "int-")) {
+//		} else if (!stricmp(cmd, "int-")) {
+		} else if (!strcasecmp(cmd, "int-")) {
 			int_set(atoi(strtok(NULL, " \n")), 0);
-		} else if (!stricmp(cmd, "pr")) {
+//		} else if (!stricmp(cmd, "pr")) {
+		} else if (!strcasecmp(cmd, "pr")) {
 			// TODO: need to avoid entering debugger recursively
 			// also, where should error() go?
 			u32 addr = parse_expr(strtok(NULL, " \n"));
 			printf("%08x\n", mmio_read_word(addr));
-		} else if (!stricmp(cmd, "pw")) {
+//		} else if (!stricmp(cmd, "pw")) {
+		} else if (!strcasecmp(cmd, "pw")) {
 			// TODO: ditto
 			u32 addr = parse_expr(strtok(NULL, " \n"));
 			u32 value = parse_expr(strtok(NULL, " \n"));

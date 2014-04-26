@@ -31,6 +31,7 @@
 #include "memory.h"
 #include "cpu.h"
 #include "armsnippets.h"
+#include "gdbstub.h"
 
 static void gdbstub_disconnect(void);
 
@@ -587,7 +588,11 @@ void gdbstub_reset(void) {
 
 static void gdbstub_disconnect(void) {
 	puts("GDB disconnected.");
+#ifdef __MINGW32__
 	closesocket(socket_fd);
+#else
+	close(socket_fd);
+#endif
 	socket_fd = 0;
 	gdb_connected = false;
 	if (ndls_is_installed())

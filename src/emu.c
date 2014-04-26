@@ -13,6 +13,12 @@
 #include "keypad.h"
 #include "translate.h"
 #include "debug.h"
+#include "gui/gui.h"
+#include "mmu.h"
+#include "gdbstub.h"
+#include "flash.h"
+#include "misc.h"
+#include "os/os.h"
 
 /*Type fixes here...*/
 typedef long os_time_t;

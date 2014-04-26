@@ -1,3 +1,4 @@
+FLAGS = -W -Wall
 SRCS = $(wildcard *.S *.c */*.c)
 OBJS = $(patsubst %.S, %.o, $(SRCS:.c=.o))
 EXEC = nspire_emu
@@ -16,8 +17,11 @@ armsnippets.o: armsnippets.S
 	rm snippets.bin
 	$(OBJCOPY) --rename-section .data=.rodata,alloc,load,readonly,data,contents armsnippets.o armsnippets.o
 
-%.o : %.S
+%.o: %.S
 	$(CC) -c $< -o $@ -m32
 
+%.o: %.c
+	$(CC) $(FLAGS) -Os -c $< -o $@
+
 clean:
-	rm -r $(OBJS)
+	rm -r $(OBJS) $(EXEC)

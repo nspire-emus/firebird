@@ -17,13 +17,16 @@
 /* 90000000 */
 struct gpio_state gpio;
 
+/* TODO:
+ * This function is defined twice... Commenting this out...
 void gpio_reset() {
 	memset(&gpio, 0, sizeof gpio);
 	gpio.direction.w = 0xFFFFFFFF;
 	gpio.output.w    = 0x00000000;
 
 	gpio.input.w     = 0x0005010E;
-}
+}*/
+
 u32 gpio_read(u32 addr) {
 	int port = addr >> 6 & 3;
 	switch (addr & 0x3F) {

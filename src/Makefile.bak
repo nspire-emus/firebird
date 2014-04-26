@@ -36,8 +36,5 @@ snippets.o: armsnippets.o
 	rm snippets.bin
 	$(OBJCOPY) --rename-section .data=.rodata,alloc,load,readonly,data,contents snippets.o snippets.o
 
-%.o : %.c
-	$(CC) $(FLAGS) -Os -c $< -o $@
-
 clean : 
 	rm -f *.o nspire_emu.exe emu.exe

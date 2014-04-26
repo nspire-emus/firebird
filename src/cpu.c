@@ -5,6 +5,7 @@
 #include "debug.h"
 #include "memory.h"
 #include "mmu.h"
+#include "asmcode.h"
 
 struct arm_state arm;
 

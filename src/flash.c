@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "emu.h"
+#include "memory.h"
 
 struct nand_metrics {
 	u8 chip_manuf, chip_model;
@@ -506,7 +507,8 @@ static u32 load_zip_entry(u32 offset, FILE *f, char *name) {
 		if (fread(namebuf, zip_entry.name_length, 1, f) != 1)
 			break;
 		namebuf[zip_entry.name_length] = '\0';
-		if (!stricmp(namebuf, name)) {
+		//TODO: if (!stricmp(namebuf, name)) {
+		if (strcasecmp(namebuf, name)) {
 			fseek(f, zip_entry.extra_length, SEEK_CUR);
 			return load_file_part(offset, f, zip_entry.comp_size);
 		}

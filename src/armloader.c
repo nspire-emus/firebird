@@ -6,6 +6,8 @@
 #include "cpu.h"
 #include "armsnippets.h"
 #include "memory.h"
+#include "translate.h"
+#include "armsnippets.h"
 
 struct arm_state armloader_orig_arm_state;
 

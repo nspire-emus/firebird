@@ -1,5 +1,8 @@
 /* Declarations for armsnippets.S */
 
+#ifndef _H_ARMSNIPPETS
+#define _H_ARMSNIPPETS
+
 enum SNIPPETS {
         SNIPPET_ndls_debug_alloc, SNIPPET_ndls_debug_free
 };
@@ -18,3 +21,5 @@ struct armloader_load_params {
 };
 void armloader_cb(void);
 int armloader_load_snippet(enum SNIPPETS snippet, struct armloader_load_params params[], unsigned params_num, void (*callback)(struct arm_state *));
+
+#endif

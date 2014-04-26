@@ -3,6 +3,8 @@
 #include "emu.h"
 #include "interrupt.h"
 #include "misc.h"
+#include "memory.h"
+#include "casplus.h"
 
 FILE *xmodem_file;
 u8 xmodem_buf[0x84];

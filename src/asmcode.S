@@ -31,8 +31,8 @@ _ac_reloc_start:
 .macro AC_RELOC; 0: .data; .long 0b - 4; .text; .endm
 
 	.text
-.globl	_translation_enter
-_translation_enter:
+.globl	translation_enter
+translation_enter:
 	pushl	%ebp
 	movl	%esp, %ebp
 	pushl	%ebx
@@ -42,15 +42,15 @@ _translation_enter:
 
 	movl	$_arm, %ebx
 	movl	ARM_PC(%ebx), %eax
-	jmp	_translation_next
+	jmp	translation_next
 
-.globl	_translation_next_bx
-_translation_next_bx:
+.globl	translation_next_bx
+translation_next_bx:
 	testb	$1, %al
 	jne	switch_to_thumb
 
-.globl	_translation_next
-_translation_next:
+.globl	translation_next
+translation_next:
 	movl	%eax, ARM_PC(%ebx)
 
 	cmpl	$0, _cycle_count_delta
@@ -206,10 +206,10 @@ ror_carry_mult_32:
 
 // u32 __attribute__((fastcall)) read_byte(u32 addr);
 //TODO: Original: .globl	@read_byte@4
-.globl	_read_byte
+.globl	read_byte
 .align	16
 //TODO: Original: @read_byte@4:
-_read_byte:
+read_byte:
 	movl	%ecx, %eax
 	shrl	$10, %eax
 	addl	0(, %eax, 8), %ecx
@@ -241,10 +241,10 @@ rb_miss:
 
 // u32 __attribute__((fastcall)) read_half(u32 addr);
 // TODO: Original: .globl	@read_half@4
-.globl	_read_half
+.globl	read_half
 .align	16
 // TODO: Original: @read_half@4:
-_read_half:
+read_half:
 	movl	%ecx, %eax
 	shrl	$10, %eax
 	addl	0(, %eax, 8), %ecx
@@ -284,10 +284,10 @@ rh_unaligned:
 
 // u32 __attribute__((fastcall)) read_word(u32 addr);
 // TODO: Original: .globl	@read_word@4
-.globl _read_word
+.globl read_word
 .align	16
 // TODO: Original: @read_word@4:
-_read_word:
+read_word:
 	movl	%ecx, %eax
 	shrl	$10, %eax
 	addl	0(, %eax, 8), %ecx
@@ -325,10 +325,10 @@ rw_unaligned:
 
 // u32 __attribute__((fastcall)) read_word_ldr(u32 addr);
 // TODO: .globl	@read_word_ldr@4
-.globl _read_word_ldr
+.globl read_word_ldr
 .align	16
 //TODO: @read_word_ldr@4:
-_read_word_ldr:
+read_word_ldr:
 	movl	%ecx, %eax
 	shrl	$10, %eax
 	addl	0(, %eax, 8), %ecx
@@ -377,10 +377,10 @@ read_miss:
 
 // void __attribute__((fastcall)) write_byte(u32 addr, u8 value);
 // TODO: .globl	@write_byte@8
-.globl _write_byte
+.globl write_byte
 .align	16
 // TODO: @write_byte@8:
-_write_byte:
+write_byte:
 	movl	%ecx, %eax
 	shrl	$10, %eax
 	addl	4(, %eax, 8), %ecx
@@ -412,10 +412,10 @@ wb_miss:
 
 // void __attribute__((fastcall)) write_half(u32 addr, u16 value);
 // TODO: .globl	@write_half@8
-.globl _write_half
+.globl write_half
 .align	16
 // TODO: @write_half@8:
-_write_half:
+write_half:
 	movl	%ecx, %eax
 	shrl	$10, %eax
 	addl	4(, %eax, 8), %ecx
@@ -455,10 +455,10 @@ wh_unaligned:
 
 // void __attribute__((fastcall)) write_word(u32 addr, u32 value);
 //TODO: .globl	@write_word@8
-.globl _write_word
+.globl write_word
 .align	16
 // TODO: @write_word@8:
-_write_word:
+write_word:
 	movl	%ecx, %eax
 	shrl	$10, %eax
 	addl	4(, %eax, 8), %ecx

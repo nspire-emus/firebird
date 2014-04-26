@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "emu.h"
-//#include "os-win32.h"
+#include "os/os.h"
 #include "interrupt.h"
 #include "misc.h"
 #include "keypad.h"
@@ -15,6 +15,7 @@
 #include "casplus.h"
 #include "memory.h"
 #include "debug.h"
+#include "translate.h"
 
 u8   (*read_byte_map[64])(u32 addr);
 u16  (*read_half_map[64])(u32 addr);

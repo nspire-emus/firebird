@@ -1,5 +1,19 @@
 #if defined(_WIN32) || defined(_WIN64) || defined(__WIN32__) || defined(__TOS_WIN__) || defined(__WINDOWS__)
 
+void *os_reserve(size_t size)
+{
+	return VirtualAlloc(NULL, size, MEM_RESERVE, PAGE_READWRITE);
+}
+
+void *os_commit(void *addr, size_t size)
+{
+	return VirtualAlloc(addr, size, MEM_COMMIT, PAGE_READWRITE);
+}
+
+
+
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include "emu.h"
