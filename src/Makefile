@@ -1,9 +1,10 @@
 CFLAGS = -W -Wall -m32
-LDFLAGS=-m32 -L/usr/lib32
+LDFLAGS= -m32 -L/usr/lib32
 SRCS = $(wildcard *.S *.c */*.c)
 OBJS = $(patsubst %.S, %.o, $(SRCS:.c=.o))
 EXEC = nspire_emu
 OBJCOPY = objcopy
+CC = gcc
 
 .PHONY: all clean
 

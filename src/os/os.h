@@ -9,12 +9,15 @@ void *os_sparse_commit(void *page, size_t size);
 void os_sparse_decommit(void *page, size_t size);
 void *os_alloc_executable(size_t size);
 
+#if defined(_WIN32) || defined(_WIN64) || defined(__WIN32__) || defined(__TOS_WIN__) || defined(__WINDOWS__)
+typedef LARGE_INTEGER os_time_t;
+#else
+typedef struct timeval os_time_t;
+#endif
 
 // TODO: This in windows
-// typedef LARGE_INTEGER os_time_t;
 // #define os_query_time(p) QueryPerformanceCounter(&p)
 // #define os_time_diff(x, y) (x.QuadPart - y.QuadPart)
-typedef struct timeval os_time_t;
 void os_query_time(os_time_t *t);
 double os_time_diff(os_time_t x, os_time_t y);
 // TODO: This in windows

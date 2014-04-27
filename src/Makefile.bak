@@ -2,8 +2,6 @@ OBJ = armloader.o asmcode.o casplus.o cpu.o des.o debug.o emu.o flash.o gdbstub.
 
 FLAGS = -W -Wall
 
-CC ?= gcc
-LD ?= ld
 WINDRES ?= windres
 OBJCOPY ?= objcopy
 
