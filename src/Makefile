@@ -2,6 +2,7 @@ FLAGS = -W -Wall
 SRCS = $(wildcard *.S *.c */*.c)
 OBJS = $(patsubst %.S, %.o, $(SRCS:.c=.o))
 EXEC = nspire_emu
+OBJCOPY = objcopy
 
 .PHONY: all clean
 
@@ -24,4 +25,4 @@ armsnippets.o: armsnippets.S
 	$(CC) $(FLAGS) -Os -c $< -o $@
 
 clean:
-	rm -r $(OBJS) $(EXEC)
+	rm -f $(OBJS) $(EXEC)

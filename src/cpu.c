@@ -6,6 +6,8 @@
 #include "memory.h"
 #include "mmu.h"
 #include "asmcode.h"
+#include "armsnippets.h"
+#include "translate.h"
 
 struct arm_state arm;
 

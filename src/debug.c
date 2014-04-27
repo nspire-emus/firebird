@@ -470,8 +470,9 @@ static void native_debugger(void) {
 				size = ftell(f);
 				rewind(f);
 			}
-			// Use of |, not ||, is intentional. File should be closed regardless of read/write success.
-			if (!(frommem ? fwrite(ram, size, 1, f) : fread(ram, size, 1, f)) | fclose(f)) {
+			int res = !(frommem ? fwrite(ram, size, 1, f) : fread(ram, size, 1, f));
+			fclose(f);
+			if (res) {
 				perror(filename);
 				continue;
 			}
@@ -497,7 +498,7 @@ static void native_debugger(void) {
 							break;
 						}
 						if (!memcmp(ptr, string, slen)) {
-							printf("Found at address %08X.\n", ptr - strptr + addr);
+							printf("Found at address %08X.\n", (unsigned int)(ptr - strptr + addr));
 							break;
 						}
 						if (ptr < endptr)

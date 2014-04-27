@@ -10,6 +10,17 @@ void *os_commit(void *addr, size_t size)
 	return VirtualAlloc(addr, size, MEM_COMMIT, PAGE_READWRITE);
 }
 
+void *os_sparse_commit(void *page, size_t size)
+{
+	return VirtualAlloc(page, size, MEM_COMMIT, PAGE_READWRITE);
+}
+
+void os_sparse_decommit(void *page, size_t size)
+{
+	VirtualFree(page, size, MEM_DECOMMIT);
+	return;
+}
+
 
 
 #define WIN32_LEAN_AND_MEAN

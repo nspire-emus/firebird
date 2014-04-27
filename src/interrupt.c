@@ -141,7 +141,8 @@ void int_cx_write_word(u32 addr, u32 value) {
 		case 0x10C: return;
 		case 0x21C: return;
 	}
-	return bad_write_word(addr, value);
+	bad_write_word(addr, value);
+	return;
 }
 
 void int_set(u32 int_num, bool on) {

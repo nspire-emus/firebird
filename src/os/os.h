@@ -1,7 +1,11 @@
 #include <stdlib.h>
 
+int os_kbhit();
+
 void *os_reserve(size_t size);
 void *os_commit(void *addr, size_t size);
+void *os_sparse_commit(void *page, size_t size);
+void os_sparse_decommit(void *page, size_t size);
 
 /*
 Useful links for this section:
@@ -10,9 +14,6 @@ http://msdn.microsoft.com/en-us/library/windows/desktop/aa366887%28v=vs.85%29.as
 
 #define os_alloc_executable(size) VirtualAlloc(NULL, size, MEM_RESERVE | MEM_COMMIT, PAGE_EXECUTE_READWRITE);
 #define os_free_executable(ptr) VirtualFree(ptr, 0, MEM_RELEASE)
-
-#define os_sparse_decommit(page, size) VirtualFree(page, size, MEM_DECOMMIT)
-#define os_sparse_commit(page, size) VirtualAlloc(page, size, MEM_COMMIT, PAGE_READWRITE)
 
 //typedef LARGE_INTEGER os_frequency_t;
 typedef long os_frequency_t;

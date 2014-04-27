@@ -8,6 +8,7 @@
 #include "memory.h"
 #include "translate.h"
 #include "armsnippets.h"
+#include "debug.h"
 
 struct arm_state armloader_orig_arm_state;
 

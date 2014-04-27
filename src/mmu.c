@@ -1,10 +1,10 @@
 #include <string.h>
 #include <stdint.h>
-//#include "os-win32.h"
 #include "emu.h"
 #include "cpu.h"
 #include "mmu.h"
 #include "memory.h"
+#include "os/os.h"
 
 /* Copy of translation table in memory (hack to approximate effect of having a TLB) */
 static u32 mmu_translation_table[0x1000];

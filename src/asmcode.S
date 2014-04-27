@@ -38,9 +38,9 @@ translation_enter:
 	pushl	%ebx
 	pushl	%esi
 	pushl	%edi
-	movl	%esp, _in_translation_esp
+	movl	%esp, in_translation_esp
 
-	movl	$_arm, %ebx
+	movl	$arm, %ebx
 	movl	ARM_PC(%ebx), %eax
 	jmp	translation_next
 
@@ -53,10 +53,10 @@ translation_next_bx:
 translation_next:
 	movl	%eax, ARM_PC(%ebx)
 
-	cmpl	$0, _cycle_count_delta
+	cmpl	$0, cycle_count_delta
 	jns	return
 
-	cmpl	$0, _cpu_events
+	cmpl	$0, cpu_events
 	jnz	return
 
 	// eax = VM_MEM_PTR(eax)
@@ -72,23 +72,23 @@ addr_ok:
 	testb	$RF_CODE_TRANSLATED, %dl
 	jz	return         // Not translated
 
-	movl	%eax, _in_translation_pc_ptr
+	movl	%eax, in_translation_pc_ptr
 
 	shrl	$RFS_TRANSLATION_INDEX, %edx
 	shll	$4, %edx
-	addl	$_translation_table, %edx
+	addl	$translation_table, %edx
 
 	// Add one cycle for each instruction from this point to the end
 	movl	TRANS_END_PTR(%edx), %ecx
 	subl	%eax, %ecx
 	shrl	$2, %ecx
-	addl	%ecx, _cycle_count_delta
+	addl	%ecx, cycle_count_delta
 
 	movl	TRANS_JUMP_TABLE(%edx), %edx
 	jmp	*(%edx, %eax)
 
 return:
-	andl	$0, _in_translation_esp
+	andl	$0, in_translation_esp
 	popl	%edi
 	popl	%esi
 	popl	%ebx
@@ -233,11 +233,11 @@ rb_slow:
 	jc	rb_miss
 	addl	%eax, %ecx
 //TODO:Original:	jmp	@mmio_read_byte@4
-	jmp _mmio_read_byte
+	jmp mmio_read_byte
 rb_miss:
 	call	read_miss
 //TODO:Original:	jmp	@read_byte@4
-	jmp _read_byte
+	jmp read_byte
 
 // u32 __attribute__((fastcall)) read_half(u32 addr);
 // TODO: Original: .globl	@read_half@4
@@ -271,16 +271,16 @@ rh_slow:
 	jc	rh_miss
 	addl	%eax, %ecx
 // TODO: Original:	jmp	@mmio_read_half@4
-	jmp _mmio_read_half
+	jmp mmio_read_half
 rh_miss:
 	call	read_miss
 // TODO: Original:	jmp	@read_half@4
-	jmp _read_half
+	jmp read_half
 rh_unaligned:
 	call	align_fault
 	decl	%ecx
 // TODO:	jmp	@read_half@4
-	jmp _read_half
+	jmp read_half
 
 // u32 __attribute__((fastcall)) read_word(u32 addr);
 // TODO: Original: .globl	@read_word@4
@@ -312,16 +312,16 @@ rw_slow:
 	jc	rw_miss
 	addl	%eax, %ecx
 // TODO:	jmp	@mmio_read_word@4
-	jmp _mmio_read_word
+	jmp mmio_read_word
 rw_miss:
 	call	read_miss
 // TODO:	jmp	@read_word@4
-	jmp _read_word
+	jmp read_word
 rw_unaligned:
 	call	align_fault
 	andl	$-4, %ecx
 // TODO:	jmp	@read_word@4
-	jmp _read_word
+	jmp read_word
 
 // u32 __attribute__((fastcall)) read_word_ldr(u32 addr);
 // TODO: .globl	@read_word_ldr@4
@@ -349,7 +349,7 @@ rwl_slow:
 	jc	rw_miss
 	addl	%eax, %ecx
 // TODO:	jmp	@mmio_read_word@4
-	jmp _mmio_read_word
+	jmp mmio_read_word
 rwl_unaligned:
 	pushl	%ecx
 	call	rw_unaligned
@@ -361,16 +361,16 @@ rwl_unaligned:
 read_special:
 	pushl	%ecx
 	pushl	%ecx
-	call	_read_action
+	call	read_action
 	popl	%ecx
 	popl	%ecx
 	ret
 read_miss:
 	pushl	%ecx
-	pushl	$_data_abort
+	pushl	$data_abort
 	pushl	$0
 	pushl	%ecx
-	call	_addr_cache_miss
+	call	addr_cache_miss
 	addl	$12, %esp
 	popl	%ecx
 	ret
@@ -404,11 +404,11 @@ wb_slow:
 	jc	wb_miss
 	addl	%eax, %ecx
 // TODO:	jmp	@mmio_write_byte@8
-	jmp _mmio_write_byte
+	jmp mmio_write_byte
 wb_miss:
 	call	write_miss
 // TODO:	jmp	@write_byte@8
-	jmp _write_byte
+	jmp write_byte
 
 // void __attribute__((fastcall)) write_half(u32 addr, u16 value);
 // TODO: .globl	@write_half@8
@@ -442,16 +442,16 @@ wh_slow:
 	jc	wh_miss
 	addl	%eax, %ecx
 // TODO:	jmp	@mmio_write_half@8
-	jmp _mmio_write_half
+	jmp mmio_write_half
 wh_miss:
 	call	write_miss
 // TODO:	jmp	@write_half@8
-	jmp _write_half
+	jmp write_half
 wh_unaligned:
 	call	align_fault
 	decl	%ecx
 // TODO:	jmp	@write_half@8
-	jmp _write_half
+	jmp write_half
 
 // void __attribute__((fastcall)) write_word(u32 addr, u32 value);
 //TODO: .globl	@write_word@8
@@ -483,22 +483,22 @@ ww_slow:
 	jc	ww_miss
 	addl	%eax, %ecx
 //TODO:	jmp	@mmio_write_word@8
-	jmp _mmio_write_word
+	jmp mmio_write_word
 ww_miss:
 	call	write_miss
 //TODO:	jmp	@write_word@8
-	jmp _write_word
+	jmp write_word
 ww_unaligned:
 	call	align_fault
 	andl	$-4, %ecx
 //TODO:	jmp	@write_word@8
-	jmp _write_word
+	jmp write_word
 
 write_special:
 	pushl	%edx
 	pushl	%ecx
 	pushl	%ecx
-	call	_write_action
+	call	write_action
 	popl	%ecx
 	popl	%ecx
 	popl	%edx
@@ -506,21 +506,21 @@ write_special:
 write_miss:
 	pushl	%edx
 	pushl	%ecx
-	pushl	$_data_abort
+	pushl	$data_abort
 	pushl	$1
 	pushl	%ecx
-	call	_addr_cache_miss
+	call	addr_cache_miss
 	addl	$12, %esp
 	popl	%ecx
 	popl	%edx
 	ret
 
 align_fault:
-	testb	$2, _arm+ARM_CONTROL
+	testb	$2, arm+ARM_CONTROL
 	jz	1f
 	pushl	$1
 	pushl	%ecx
-	call	_data_abort
+	call	data_abort
 1:	ret
 
 	.data
