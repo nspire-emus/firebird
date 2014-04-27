@@ -6,7 +6,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include "emu.h"
-//#include "os-win32.h"
 #include "cpu.h"
 #include "schedule.h"
 #include "memory.h"
@@ -21,7 +20,6 @@
 #include "os/os.h"
 
 /*Type fixes here...*/
-typedef long os_time_t;
 typedef long os_frequency_t;
 typedef struct { void *prev, *function; } os_exception_frame_t;
 
@@ -144,13 +142,13 @@ void throttle_interval_event(int index) {
 	get_messages();
 
 	os_time_t interval_end;
-	os_query_time(interval_end);
+	os_query_time(&interval_end);
 
 	{	// Update graphics (frame rate is arbitrary)
 		static os_time_t prev;
 		s64 time = os_time_diff(interval_end, prev);
 		if (time >= os_frequency_hz(perffreq) >> 5) {
-			os_redraw_screen();
+			gui_redraw();
 			prev = interval_end;
 		}
 	}
@@ -164,7 +162,7 @@ void throttle_interval_event(int index) {
 			double speed = (double)os_frequency_hz(perffreq) * (intervals - prev_intervals) / time;
 			char buf[40];
 			sprintf(buf, "nspire_emu - %.1f%%", speed);
-			os_set_window_title(buf);
+			gui_set_tittle(buf);
 			prev_intervals = intervals;
 			prev = interval_end;
 		}

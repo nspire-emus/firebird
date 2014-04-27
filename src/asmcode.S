@@ -104,8 +104,8 @@ switch_to_thumb:
 	// These shift procedures are called only from translated code,
 	// so they may assume that %ebx == _arm
 	.align	4
-.globl _arm_shift_proc
-_arm_shift_proc:
+.globl arm_shift_proc
+arm_shift_proc:
 	.long	lsl
 	.long	lsr
 	.long	asr

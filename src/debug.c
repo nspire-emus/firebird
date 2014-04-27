@@ -17,6 +17,8 @@
 #include "usblink.h"
 #include "gdbstub.h"
 
+extern char target_folder[256];
+
 void *virt_mem_ptr(u32 addr, u32 size) {
 	// Note: this is not guaranteed to be correct when range crosses page boundary
 	return (void *)(intptr_t)phys_mem_ptr(mmu_translate(addr, false, NULL), size);

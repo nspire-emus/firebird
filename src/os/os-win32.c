@@ -21,6 +21,10 @@ void os_sparse_decommit(void *page, size_t size)
 	return;
 }
 
+void *os_alloc_executable(size_t size)
+{
+	return  VirtualAlloc(NULL, size, MEM_RESERVE | MEM_COMMIT, PAGE_EXECUTE_READWRITE);
+}
 
 
 #define WIN32_LEAN_AND_MEAN
