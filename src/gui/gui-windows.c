@@ -11,8 +11,11 @@
 #include <windows.h>
 #include <commdlg.h>
 
-#include "id.h"
-#include "emu.h"
+#include "gui-windows-id.h"
+#include "../emu.h"
+#include "../debug.h"
+#include "../flash.h"
+#include "../keypad.h"
 
 char target_folder[256];
 

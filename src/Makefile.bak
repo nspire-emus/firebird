@@ -1,7 +1,5 @@
 OBJ = armloader.o asmcode.o casplus.o cpu.o des.o debug.o emu.o flash.o gdbstub.o gui.o interrupt.o keypad.o lcd.o link.o memory.o misc.o mmu.o os-win32.o resource.o schedule.o serial.o sha256.o snippets.o translate.o usb.o usblink.o
 
-FLAGS = -W -Wall
-
 WINDRES ?= windres
 OBJCOPY ?= objcopy
 
@@ -15,10 +13,7 @@ nspire_emu.exe : $(OBJ)
 
 cpu.o : cpu.c
 	$(CC) $(FLAGS) -O3 -c $< -o $@
-
-resource.o : resource.rc id.h
-	$(WINDRES) $< -o $@
-
+	
 sha256.o : sha256.c
 	$(CC) $(FLAGS) -O3 -c $< -o $@
 

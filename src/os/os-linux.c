@@ -1,3 +1,5 @@
+#ifdef __unix__
+
 #include <sys/mman.h>
 #include <stdio.h>
 #include <termios.h>
@@ -107,3 +109,4 @@ void throttle_timer_off() {
 	*/
 }
 
+#endif

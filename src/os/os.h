@@ -10,25 +10,25 @@ void os_sparse_decommit(void *page, size_t size);
 void *os_alloc_executable(size_t size);
 
 #if defined(_WIN32) || defined(_WIN64) || defined(__WIN32__) || defined(__TOS_WIN__) || defined(__WINDOWS__)
+#include <windows.h>
 typedef LARGE_INTEGER os_time_t;
+typedef LARGE_INTEGER os_frequency_t;
 #else
 typedef struct timeval os_time_t;
+// TODO: os_frequency_t
 #endif
 
-// TODO: This in windows
-// #define os_query_time(p) QueryPerformanceCounter(&p)
-// #define os_time_diff(x, y) (x.QuadPart - y.QuadPart)
 void os_query_time(os_time_t *t);
 double os_time_diff(os_time_t x, os_time_t y);
 // TODO: This in windows
-//typedef LARGE_INTEGER os_frequency_t;
-//typedef long os_frequency_t;
 //#define os_query_frequency(p) QueryPerformanceFrequency(&p)
 //#define os_frequency_hz(p) (p.QuadPart)
 
 void throttle_timer_on();
 void throttle_timer_wait();
 void throttle_timer_off();
+
+typedef struct { void *prev, *function; } os_exception_frame_t;
 
 /*
 Useful links for this section:
@@ -43,7 +43,7 @@ gui
 #define os_set_window_title(buf) SetWindowText(hwndMain, buf)
 
 Address cache 
-typedef struct { void *prev, *function; } os_exception_frame_t;
+
 void addr_cache_init(os_exception_frame_t *frame);
 
 void throttle_timer_wait();

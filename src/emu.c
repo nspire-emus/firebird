@@ -19,10 +19,6 @@
 #include "misc.h"
 #include "os/os.h"
 
-/*Type fixes here...*/
-typedef long os_frequency_t;
-typedef struct { void *prev, *function; } os_exception_frame_t;
-
 /* cycle_count_delta is a (usually negative) number telling what the time is relative
  * to the next scheduled event. See sched.c */
 int cycle_count_delta = 0;

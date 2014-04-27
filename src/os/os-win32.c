@@ -1,4 +1,16 @@
+#include "os.h"
+
 #if defined(_WIN32) || defined(_WIN64) || defined(__WIN32__) || defined(__TOS_WIN__) || defined(__WINDOWS__)
+
+int os_kbhit()
+{
+	return _kbhit();
+}
+
+int os_getch()
+{
+	return _getch();
+}
 
 void *os_reserve(size_t size)
 {
@@ -26,14 +38,23 @@ void *os_alloc_executable(size_t size)
 	return  VirtualAlloc(NULL, size, MEM_RESERVE | MEM_COMMIT, PAGE_EXECUTE_READWRITE);
 }
 
+void os_query_time(os_time_t *t)
+{
+	QueryPerformanceCounter(t);
+}
+
+double os_time_diff(os_time_t x, os_time_t y)
+{
+	return x.QuadPart - y.QuadPart;
+}
+
 
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include "emu.h"
-#include "os-win32.h"
-//#include <mmsystem.h>
+#include "../emu.h"
+#include "../mmu.h"
 
 static int addr_cache_exception(PEXCEPTION_RECORD er, void *x, void *y, void *z) {
 	x = x; y = y; z = z; // unused parameters

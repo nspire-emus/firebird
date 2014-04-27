@@ -4,9 +4,11 @@ OBJS = $(patsubst %.S, %.o, $(SRCS:.c=.o))
 EXEC = nspire_emu
 OBJCOPY = objcopy
 CC = gcc
-LDFLAGS= -L/usr/lib32
+WINDRES = windres
+LDFLAGS = -L/usr/lib32
 ifeq ($(OS),Windows_NT)
 	LDFLAGS += -mi386pe
+	OBJS += resource.o
 else
 	LDFLAGS += -melf_i386
 endif
@@ -16,7 +18,10 @@ endif
 all: $(EXEC)
 
 $(EXEC): $(OBJS)
-	$(CC) $(LDFLAGS) $(OBJS) -o $@
+	$(LD) $(LDFLAGS) $(OBJS) -o $@
+
+resource.o: gui/gui-windows-resource.rc gui/gui-windows-id.h
+	$(WINDRES) $< -o $@
 
 armsnippets.o: armsnippets.S
 	arm-none-eabi-gcc -c $< -o $@ -mcpu=arm7tdmi
