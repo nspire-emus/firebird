@@ -32,6 +32,7 @@
 #include "cpu.h"
 #include "armsnippets.h"
 #include "gdbstub.h"
+#include "translate.h"
 
 static void gdbstub_disconnect(void);
 
