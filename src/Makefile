@@ -10,12 +10,12 @@ OBJCOPY = objcopy
 all: $(EXEC)
 
 $(EXEC): $(OBJS)
-	$(LD) $(LDFLAGS) $(OBJS) -o $@
+	$(CC) $(LDFLAGS) $(OBJS) -o $@
 
 armsnippets.o: armsnippets.S
 	arm-none-eabi-gcc -c $< -o $@ -mcpu=arm7tdmi
 	arm-none-eabi-objcopy -O binary $@ snippets.bin
-	$(LD) -r -b binary -o armsnippets.o snippets.bin
+	$(LD) -melf_i386 -r -b binary -o armsnippets.o snippets.bin
 	rm snippets.bin
 	$(OBJCOPY) --rename-section .data=.rodata,alloc,load,readonly,data,contents armsnippets.o armsnippets.o
 
