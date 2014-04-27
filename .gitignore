@@ -1,4 +1,4 @@
 src/*.o
-src/*/*.0
+src/*/*.o
 src/*~
 src/*/*~
