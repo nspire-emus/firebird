@@ -1,6 +1,7 @@
 #include <stdlib.h>
 
 int os_kbhit();
+int os_getch();
 
 void *os_reserve(size_t size);
 void *os_commit(void *addr, size_t size);

@@ -131,7 +131,7 @@ void throttle_interval_event(int index) {
 	usblink_timer();
 
 	if (os_kbhit()) {
-		char c = _getch();
+		char c = os_getch();
 		if (c == 4)
 			debugger(DBG_USER, 0);
 		else

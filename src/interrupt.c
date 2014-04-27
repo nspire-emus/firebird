@@ -2,6 +2,7 @@
 #include "emu.h"
 #include "interrupt.h"
 #include "cpu.h"
+#include "memory.h"
 
 /* DC000000: Interrupt controller */
 struct interrupt_state intr;

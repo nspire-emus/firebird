@@ -1,4 +1,5 @@
-FLAGS = -W -Wall
+CFLAGS = -W -Wall -m32
+LDFLAGS=-m32 -L/usr/lib32
 SRCS = $(wildcard *.S *.c */*.c)
 OBJS = $(patsubst %.S, %.o, $(SRCS:.c=.o))
 EXEC = nspire_emu
@@ -9,7 +10,7 @@ OBJCOPY = objcopy
 all: $(EXEC)
 
 $(EXEC): $(OBJS)
-	$(CC) $(OBJS) -o $@
+	$(LD) $(LDFLAGS) $(OBJS) -o $@
 
 armsnippets.o: armsnippets.S
 	arm-none-eabi-gcc -c $< -o $@ -mcpu=arm7tdmi
@@ -22,7 +23,7 @@ armsnippets.o: armsnippets.S
 	$(CC) -c $< -o $@ -m32
 
 %.o: %.c
-	$(CC) $(FLAGS) -Os -c $< -o $@
+	$(CC) $(CFLAGS) -Os -c $< -o $@
 
 clean:
 	rm -f $(OBJS) $(EXEC)

@@ -25,6 +25,11 @@ int os_kbhit()
 	return bytes_waiting;
 }
 
+int os_getch()
+{
+	return getchar();
+}
+
 void *os_reserve(size_t size)
 {
 	void * ptr = mmap((void*)0, size, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANON, -1, 0);

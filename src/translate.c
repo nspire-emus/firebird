@@ -4,6 +4,7 @@
 #include "cpu.h"
 #include "asmcode.h"
 #include "translate.h"
+#include "debug.h"
 
 extern void translation_enter();
 extern void translation_next();
