@@ -8,6 +8,7 @@ WINDRES = windres
 LDFLAGS = -L/usr/lib32
 ifeq ($(OS),Windows_NT)
 	LDFLAGS += -mi386pe
+	CFLAGS += -fno-leading-underscore
 	OBJS += resource.o
 else
 	LDFLAGS += -melf_i386
