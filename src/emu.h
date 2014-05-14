@@ -8,11 +8,11 @@ static inline u32 BSWAP32(u32 x) {
 
 /* Declarations for emu.c */
 
-extern int cycle_count_delta;
+extern int cycle_count_delta __asm__("cycle_count_delta");
 
 extern int throttle_delay;
 
-extern u32 cpu_events;
+extern u32 cpu_events __asm__("cpu_events");
 #define EVENT_IRQ 1
 #define EVENT_FIQ 2
 #define EVENT_RESET 4
@@ -42,7 +42,7 @@ void throttle_timer_on();
 void throttle_timer_off();
 int exec_hack();
 typedef void fault_proc(u32 mva, u8 status);
-fault_proc prefetch_abort, data_abort;
+fault_proc prefetch_abort, data_abort __asm__("data_abort");
 void add_reset_proc(void (*proc)(void));
 
 

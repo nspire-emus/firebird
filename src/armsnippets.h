@@ -6,8 +6,8 @@
 enum SNIPPETS {
         SNIPPET_ndls_debug_alloc, SNIPPET_ndls_debug_free
 };
-extern char binary_snippets_bin_start[];
-extern char binary_snippets_bin_end[];
+extern char binary_snippets_bin_start[] __asm__("binary_snippets_bin_start");
+extern char binary_snippets_bin_end[] __asm__("binary_snippets_bin_end");
 enum ARMLOADER_PARAM_TYPE {ARMLOADER_PARAM_VAL, ARMLOADER_PARAM_PTR};
 struct armloader_load_params {
         enum ARMLOADER_PARAM_TYPE t;

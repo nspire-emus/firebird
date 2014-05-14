@@ -6,7 +6,7 @@ struct translation {
         u32 *start_ptr;
         u32 *end_ptr;
 };
-extern struct translation translation_table[];
+extern struct translation translation_table[] __asm__("translation_table");
 #define INSN_BUFFER_SIZE 10000000
 extern u8 *insn_buffer;
 extern u8 *insn_bufptr;

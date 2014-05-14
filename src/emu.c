@@ -441,7 +441,7 @@ usage:
 	os_exception_frame_t frame;
 	addr_cache_init(&frame);
 
-	os_query_frequency(perffreq);
+	os_query_frequency(&perffreq);
 
 	gui_initialize();
 

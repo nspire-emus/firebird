@@ -2,6 +2,8 @@
 
 #if defined(_WIN32) || defined(_WIN64) || defined(__WIN32__) || defined(__TOS_WIN__) || defined(__WINDOWS__)
 
+#include <conio.h>
+
 int os_kbhit()
 {
 	return _kbhit();
@@ -48,6 +50,16 @@ double os_time_diff(os_time_t x, os_time_t y)
 	return x.QuadPart - y.QuadPart;
 }
 
+
+long os_frequency_hz(os_frequency_t f)
+{
+	return f.QuadPart;
+}
+
+void os_query_frequency(os_frequency_t *f)
+{
+	QueryPerformanceFrequency(f);
+}
 
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
