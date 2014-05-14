@@ -9,7 +9,6 @@ LDFLAGS = -L/usr/lib32
 ifeq ($(OS),Windows_NT)
 	OBJS += resource.o
 	LDFLAGS += -mi386pe
-	OBJCOPYFLAGS = --remove-leading-char
 	LIBS += -lgdi32 -lcomdlg32 -lwinmm -lws2_32
 else
 	LDFLAGS += -melf_i386
@@ -20,7 +19,7 @@ endif
 all: $(EXEC)
 
 $(EXEC): $(OBJS)
-	$(CC) $(OBJS) -o $@ $(LIBS)
+	$(CC) $(OBJS) -o $@ $(LIBS) -m32
 
 resource.o: gui/gui-windows-resource.rc gui/gui-windows-id.h
 	$(WINDRES) $< -o $@

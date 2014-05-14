@@ -83,6 +83,14 @@ double os_time_diff(os_time_t x, os_time_t y)
 	return t;
 }
 
+long os_frequency_hz(os_frequency_t f)
+{
+}
+
+void os_query_frequency(os_frequency_t *f)
+{
+}
+
 void throttle_timer_on() {
 	/*
 	hTimerEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
@@ -107,6 +115,10 @@ void throttle_timer_off() {
                 CloseHandle(hTimerEvent);
         }
 	*/
+}
+
+void addr_cache_init(os_exception_frame_t *frame)
+{
 }
 
 #endif

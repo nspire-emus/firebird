@@ -16,6 +16,7 @@ typedef LARGE_INTEGER os_frequency_t;
 #else
 typedef struct timeval os_time_t;
 // TODO: os_frequency_t
+typedef long long os_frequency_t;
 #endif
 
 void os_query_time(os_time_t *t);
@@ -29,6 +30,7 @@ void throttle_timer_wait();
 void throttle_timer_off();
 
 typedef struct { void *prev, *function; } os_exception_frame_t;
+void addr_cache_init(os_exception_frame_t *frame);
 
 /*
 Useful links for this section:
