@@ -7,11 +7,11 @@
 #include "debug.h"
 
 extern void translation_enter();
-extern void translation_next();
-extern void translation_next_bx();
-extern u32 arm_shift_proc[2][4];
-void **in_translation_esp;
-void *in_translation_pc_ptr;
+extern void translation_next() __asm__("translation_next");
+extern void translation_next_bx() __asm__("translation_next_bx");
+extern u32 arm_shift_proc[2][4] __asm__("arm_shift_proc");
+void **in_translation_esp __asm__("in_translation_esp");
+void *in_translation_pc_ptr __asm__("in_translation_pc_ptr");
 
 #define MAX_TRANSLATIONS 262144
 struct translation translation_table[MAX_TRANSLATIONS];

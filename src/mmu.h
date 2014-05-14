@@ -35,7 +35,7 @@ extern ac_entry *addr_cache;
         entry += (~(u32)((va) + entry) & AC_NOT_PTR);
 
 bool addr_cache_pagefault(void *addr);
-void *addr_cache_miss(u32 addr, bool writing, fault_proc *fault);
+void *addr_cache_miss(u32 addr, bool writing, fault_proc *fault) __asm__("addr_cache_miss");
 void addr_cache_flush();
 void *mmu_save_state(size_t *size);
 void mmu_reload_state(void *state);

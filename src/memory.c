@@ -57,6 +57,7 @@ u32 phys_mem_addr(void *ptr) {
 
 
 #define DO_READ_ACTION (RF_READ_BREAKPOINT)
+void read_action(void *ptr) __asm__("read_action");
 void read_action(void *ptr) {
 	u32 addr = phys_mem_addr(ptr);
 	if (!gdb_connected)
@@ -65,6 +66,7 @@ void read_action(void *ptr) {
 }
 
 #define DO_WRITE_ACTION (RF_WRITE_BREAKPOINT | RF_CODE_TRANSLATED | RF_CODE_NO_TRANSLATE)
+void write_action(void *ptr) __asm__("write_action");
 void write_action(void *ptr) {
 	u32 addr = phys_mem_addr(ptr);
 	u32 *flags = &RAM_FLAGS((size_t)ptr & ~3);

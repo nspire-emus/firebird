@@ -20,9 +20,9 @@ typedef struct timeval os_time_t;
 
 void os_query_time(os_time_t *t);
 double os_time_diff(os_time_t x, os_time_t y);
-// TODO: This in windows
-//#define os_query_frequency(p) QueryPerformanceFrequency(&p)
-//#define os_frequency_hz(p) (p.QuadPart)
+// TODO Fix the following declaration...
+long os_frequency_hz(os_frequency_t f);
+void os_query_frequency(os_frequency_t *f);
 
 void throttle_timer_on();
 void throttle_timer_wait();

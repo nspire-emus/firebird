@@ -51,6 +51,16 @@ double os_time_diff(os_time_t x, os_time_t y)
 }
 
 
+long os_frequency_hz(os_frequency_t f)
+{
+	return f.QuadPart;
+}
+
+void os_query_frequency(os_frequency_t *f)
+{
+	QueryPerformanceFrequency(f);
+}
+
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <stdio.h>

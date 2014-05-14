@@ -28,7 +28,7 @@ struct arm_state {  // Remember to update asmcode.S if this gets rearranged
 
 	u8  interrupts;
 };
-extern struct arm_state arm;
+extern struct arm_state arm __asm__("arm");
 
 #define MODE_USR 0x10
 #define MODE_FIQ 0x11

@@ -11,6 +11,7 @@
 #include <windows.h>
 #include <commdlg.h>
 
+#include "gui.h"
 #include "gui-windows-id.h"
 #include "../emu.h"
 #include "../debug.h"
@@ -22,6 +23,14 @@ char target_folder[256];
 HWND hwndMessage;
 HWND hwndMain, hwndGfx, hwndKeys;
 HMENU hMenu;
+
+void gui_redraw()
+{
+}
+
+void gui_set_tittle(char *buf)
+{
+}
 
 LRESULT CALLBACK message_wnd_proc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
 	if (uMsg == WM_USER) {
