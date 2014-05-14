@@ -2,3 +2,6 @@ src/*.o
 src/*/*.o
 src/*~
 src/*/*~
+src/*.exe
+src/*.bat
+
