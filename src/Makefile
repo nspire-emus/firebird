@@ -4,7 +4,7 @@ EXEC = nspire_emu
 OBJCOPY = objcopy
 CC = gcc
 WINDRES = windres
-CFLAGS = -W -Wall -m32
+CFLAGS = -W -Wall -m32 -gstabs
 LDFLAGS = -L/usr/lib32
 ifeq ($(OS),Windows_NT)
 	OBJS += resource.o
