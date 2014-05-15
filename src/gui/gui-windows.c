@@ -31,6 +31,7 @@ void gui_redraw()
 
 void gui_set_tittle(char *buf)
 {
+	SetWindowText(hwndMain, buf);
 }
 
 LRESULT CALLBACK message_wnd_proc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
