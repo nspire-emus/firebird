@@ -17,6 +17,11 @@
 #include "../debug.h"
 #include "../flash.h"
 #include "../keypad.h"
+#include "../lcd.h"
+#include "../casplus.h"
+#include "../misc.h"
+#include "../link.h"
+#include "../usblink.h"
 
 char target_folder[256];
 

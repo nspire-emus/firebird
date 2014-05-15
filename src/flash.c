@@ -182,7 +182,8 @@ void nand_write_data_word(u32 value) {
 			if (nand_buffer_pos + nand_column + 4 > nand_metrics.page_size)
 				warn("NAND write past end of page");
 			else {
-				*(u32 *)&nand_buffer[nand_buffer_pos] = value;
+				//*(u32 *)&nand_buffer[nand_buffer_pos] = value;
+				memcpy(&nand_buffer[nand_buffer_pos], &value, sizeof(value));
 				nand_buffer_pos += 4;
 			}
 			break;
@@ -254,8 +255,8 @@ void nand_phx_write_word(u32 addr, u32 value) {
 			if (value != 1)
 				error("NAND controller: wrote something other than 1 to reg 8");
 
-			logprintf(LOG_FLASH, "NAND controller: op=%06x addr=%08x size=%08x raddr=%08x\n",
-				nand_phx.operation, *(u32 *)nand_phx.address, nand_phx.op_size, nand_phx.ram_address);
+			u32 *addr = (u32 *)nand_phx.address;
+			logprintf(LOG_FLASH, "NAND controller: op=%06x addr=%08x size=%08x raddr=%08x\n", nand_phx.operation, *addr, nand_phx.op_size, nand_phx.ram_address);
 
 			nand_write_command_byte(nand_phx.operation);
 

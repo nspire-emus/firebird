@@ -34,7 +34,11 @@ bool start_send = false;
 
 static void send_packet() {
 	if (packet_buf.data_length != 0) /* Append a checksum */
-		*(u16 *)&packet_buf.data[packet_buf.data_length] = checksum(&packet_buf);
+	{
+		//*(u16 *)&packet_buf.data[packet_buf.data_length] = checksum(&packet_buf);
+		u16 chksum = checksum(&packet_buf);
+		memcpy(&packet_buf.data[packet_buf.data_length], &chksum, sizeof(chksum));
+	}
 
 	/* We can't start sending immediately, because we may have just finished
 	 * receiving the last bit of a packet, and the calc wants to see that we
@@ -128,8 +132,10 @@ static void send_app_callback() {
 	switch (state++) {
 		case 0:
 		new_page:
-			*(u16 *)&packet_buf.data[6] = app_offset;
-			*(u16 *)&packet_buf.data[8] = app_page;
+			//*(u16 *)&packet_buf.data[6] = app_offset;
+			memcpy(&packet_buf.data[6], &app_offset, sizeof(app_offset));
+			//*(u16 *)&packet_buf.data[8] = app_page;
+			memcpy(&packet_buf.data[8], &app_page, sizeof(app_page));
 
 			while (app_buffer_pos < APP_PACKET_SIZE) {
 				/* Read a record from the file */
@@ -196,7 +202,8 @@ static void send_app_callback() {
 			packet_buf.machine_ID = 0x23;
 			packet_buf.command_ID = 0x06;
 			packet_buf.data_length = 0x0A;
-			*(u16 *)&packet_buf.data[0] = app_packet_size;
+			//*(u16 *)&packet_buf.data[0] = app_packet_size;
+			memcpy(&packet_buf.data[0], &app_packet_size, sizeof(app_packet_size));
 			memcpy(&packet_buf.data[2], "\x24\x00\x00\x04", 4);
 			/* Offset and page number set above */
 			send_packet();
