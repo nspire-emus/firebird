@@ -26,6 +26,7 @@ HMENU hMenu;
 
 void gui_redraw()
 {
+	InvalidateRect(hwndGfx, NULL, FALSE);
 }
 
 void gui_set_tittle(char *buf)
