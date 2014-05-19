@@ -1,3 +1,8 @@
+#ifndef _H_MMU
+#define _H_MMU
+
+#include "emu.h"
+
 /* Declarations for mmu.c */
 
 /* Translate a VA to a PA, using a page table lookup */
@@ -39,3 +44,5 @@ void *addr_cache_miss(u32 addr, bool writing, fault_proc *fault) __asm__("addr_c
 void addr_cache_flush();
 void *mmu_save_state(size_t *size);
 void mmu_reload_state(void *state);
+
+#endif

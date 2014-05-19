@@ -6,6 +6,7 @@
 #include <sys/ioctl.h>
 #include <sys/time.h>
 #include "os.h"
+#include "../mmu.h"
 
 int os_kbhit()
 {
@@ -91,7 +92,8 @@ void os_query_frequency(os_frequency_t *f)
 {
 }
 
-void throttle_timer_on() {
+void throttle_timer_on()
+{
 	/*
 	hTimerEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
         uTimerID = timeSetEvent(throttle_delay, throttle_delay, (LPTIMECALLBACK)hTimerEvent, 0,
@@ -103,11 +105,13 @@ void throttle_timer_on() {
 	*/
 }
 
-void throttle_timer_wait() {
+void throttle_timer_wait()
+{
 	//WaitForSingleObject(hTimerEvent, INFINITE);
 }
 
-void throttle_timer_off() {
+void throttle_timer_off()
+{
 	/*
         if (uTimerID != 0) {
                 timeKillEvent(uTimerID);
@@ -117,8 +121,35 @@ void throttle_timer_off() {
 	*/
 }
 
+static int addr_cache_exception(/*PEXCEPTION_RECORD er, void *x, void *y, void *z*/)
+{
+	//if(er->ExceptionCode == EXCEPTION_ACCESS_VIOLATION)
+	//{
+	//	if(addr_cache_pagefault((void *)er->ExceptionInformation[1]))
+	//		return 0; // Continue execution
+	//}
+	//return 1; // Continue search
+}
+
 void addr_cache_init(os_exception_frame_t *frame)
 {
+	addr_cache = mmap((void*)0, AC_NUM_ENTRIES * sizeof(ac_entry), PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANON, -1, 0);
+
+	frame->function = (void *)addr_cache_exception;
+
+	asm ("movl %%fs:(%1), %0" : "=r" (frame->prev) : "r" (0));
+	asm ("movl %0, %%fs:(%1)" : : "r" (frame), "r" (0));
+
+	// Relocate the assembly code that wants addr_cache at a fixed address
+	extern long *ac_reloc_start[], *ac_reloc_end[];
+	long **reloc;
+	for (reloc = ac_reloc_start; reloc != ac_reloc_end; reloc++)
+	{
+		long prot;
+		mprotect(*reloc, 4, PROT_READ|PROT_WRITE|PROT_EXEC);
+		**reloc += (long)addr_cache;
+		mprotect(*reloc, 4, PROT_READ|PROT_WRITE|PROT_EXEC);
+	}
 }
 
 #endif

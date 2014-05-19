@@ -39,15 +39,4 @@ http://msdn.microsoft.com/en-us/library/windows/desktop/aa366887%28v=vs.85%29.as
 
 #define os_free_executable(ptr) VirtualFree(ptr, 0, MEM_RELEASE)
 
-gui 
-//extern HWND hwndMain, hwndGfx;
-#define os_redraw_screen() InvalidateRect(hwndGfx, NULL, FALSE);
-#define os_set_window_title(buf) SetWindowText(hwndMain, buf)
-
-Address cache 
-
-void addr_cache_init(os_exception_frame_t *frame);
-
-void throttle_timer_wait();
-
 */
