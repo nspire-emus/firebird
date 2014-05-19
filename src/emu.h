@@ -1,3 +1,6 @@
+#ifndef _H_EMU
+#define _H_EMU
+
 #include "types.h"
 
 static inline u16 BSWAP16(u16 x) { return x << 8 | x >> 8; }
@@ -45,6 +48,4 @@ typedef void fault_proc(u32 mva, u8 status);
 fault_proc prefetch_abort, data_abort __asm__("data_abort");
 void add_reset_proc(void (*proc)(void));
 
-
-
-
+#endif
