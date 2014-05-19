@@ -14,7 +14,7 @@ else
 	LDFLAGS += -melf_i386
 endif
 
-.PHONY: all clean
+.PHONY: all clean test
 
 all: $(EXEC)
 
@@ -39,3 +39,6 @@ armsnippets.o: armsnippets.S
 
 clean:
 	rm -f $(OBJS) $(EXEC)
+
+test:
+	./nspire_emu -1=Boot1cx.img -F=Flash.bin
