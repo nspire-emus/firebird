@@ -40,8 +40,8 @@ armsnippets.o: armsnippets.S
 clean:
 	rm -f $(OBJS) $(EXEC)
 
-test:
+test: all
 	./$(EXEC) -1=Boot1cx.img -F=Flash.bin
 
-debug:
+debug: all
 	gdb $(EXEC) -ex "run -1=Boot1cx.img -F=Flash.bin"
