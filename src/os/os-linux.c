@@ -137,19 +137,21 @@ void addr_cache_init(os_exception_frame_t *frame)
 
 	frame->function = (void *)addr_cache_exception;
 
-	asm ("movl %%fs:(%1), %0" : "=r" (frame->prev) : "r" (0));
-	asm ("movl %0, %%fs:(%1)" : : "r" (frame), "r" (0));
+	// TODO: Fix...
+	// http://feepingcreature.github.io/handling.html
+	//asm ("movl %%fs:(%1), %0" : "=r" (frame->prev) : "r" (0));
+	//asm ("movl %0, %%fs:(%1)" : : "r" (frame), "r" (0));
 
 	// Relocate the assembly code that wants addr_cache at a fixed address
-	extern long *ac_reloc_start[], *ac_reloc_end[];
-	long **reloc;
-	for (reloc = ac_reloc_start; reloc != ac_reloc_end; reloc++)
-	{
-		long prot;
-		mprotect(*reloc, 4, PROT_READ|PROT_WRITE|PROT_EXEC);
-		**reloc += (long)addr_cache;
-		mprotect(*reloc, 4, PROT_READ|PROT_WRITE|PROT_EXEC);
-	}
+	//extern long *ac_reloc_start[], *ac_reloc_end[];
+	//long **reloc;
+	//for (reloc = ac_reloc_start; reloc != ac_reloc_end; reloc++)
+	//{
+	//	long prot;
+	//	mprotect(*reloc, 4, PROT_READ|PROT_WRITE|PROT_EXEC);
+	//	**reloc += (long)addr_cache;
+	//	mprotect(*reloc, 4, PROT_READ|PROT_WRITE|PROT_EXEC);
+	//}
 }
 
 #endif
