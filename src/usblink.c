@@ -40,7 +40,6 @@ u8 usblink_header_checksum(struct packet *packet) {
 }
 
 static void dump_packet(char *type, void *data, u32 size) {
-#if 0
 	if (log_enabled[LOG_USB]) {
 		u32 i;
 		logprintf(LOG_USB, "%s", type);
@@ -50,7 +49,6 @@ static void dump_packet(char *type, void *data, u32 size) {
 			logprintf(LOG_USB, "...");
 		logprintf(LOG_USB, "\n");
 	}
-#endif
 }
 
 struct packet usblink_send_buffer;
@@ -170,8 +168,10 @@ void usblink_received_packet(u8 *data, u32 size) {
 		out->data_size = 4;
 		out->ack = 0;
 		out->seqno = 1;
-		*(u16 *)&out->data[0] = DST_ADDR;
-		*(u16 *)&out->data[2] = BSWAP16(0xFF00);
+		u16 tmp = DST_ADDR;
+		memcpy(&out->data[0], &tmp, sizeof(tmp)); // *(u16 *)&out->data[0] = DST_ADDR;
+		tmp = BSWAP16(0xFF00);
+		memcpy(&out->data[2], &tmp, sizeof(tmp)); // *(u16 *)&out->data[2] = BSWAP16(0xFF00);
 		usblink_send_packet();
 	} else if (!in->ack) {
 		/* Send an ACK */
@@ -180,7 +180,7 @@ void usblink_received_packet(u8 *data, u32 size) {
 		out->data_size = 2;
 		out->ack = 0x0A;
 		out->seqno = in->seqno;
-		*(u16 *)&out->data[0] = in->dst.service;
+		memcpy(&out->data[0], &in->dst.service, sizeof(in->dst.service)); // *(u16 *)&out->data[0] = in->dst.service;
 		usblink_send_packet();
 	}
 }
