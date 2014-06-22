@@ -85,7 +85,7 @@ void addr_cache_init(os_exception_frame_t *frame) {
 	asm ("movl %0, %%fs:(%1)" : : "r" (frame), "r" (0));
 
 	// Relocate the assembly code that wants addr_cache at a fixed address
-	extern DWORD *ac_reloc_start[], *ac_reloc_end[];
+	extern DWORD *ac_reloc_start[] __asm__("ac_reloc_start"), *ac_reloc_end[] __asm__("ac_reloc_end");
 	DWORD **reloc;
 	for (reloc = ac_reloc_start; reloc != ac_reloc_end; reloc++) {
 		DWORD prot;
