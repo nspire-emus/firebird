@@ -37,12 +37,12 @@ void bad_write_byte(u32 addr, u8 value);
 void bad_write_half(u32 addr, u16 value);
 void bad_write_word(u32 addr, u32 value);
 
-u32 /* TODO: __attribute__((fastcall)) */ mmio_read_byte(u32 addr) __asm__("mmio_read_byte");
-u32 /* TODO: __attribute__((fastcall)) */ mmio_read_half(u32 addr) __asm__("mmio_read_half");
-u32 /* TODO: __attribute__((fastcall)) */ mmio_read_word(u32 addr) __asm__("mmio_read_word");
-void /* TODO: __attribute__((fastcall)) */ mmio_write_byte(u32 addr, u32 value) __asm__("mmio_write_byte");
-void /* TODO: __attribute__((fastcall)) */ mmio_write_half(u32 addr, u32 value) __asm__("mmio_write_half");
-void /* TODO: __attribute__((fastcall)) */ mmio_write_word(u32 addr, u32 value) __asm__("mmio_write_word");
+u32 __attribute__((fastcall)) mmio_read_byte(u32 addr) __asm__("mmio_read_byte");
+u32 __attribute__((fastcall)) mmio_read_half(u32 addr) __asm__("mmio_read_half");
+u32 __attribute__((fastcall)) mmio_read_word(u32 addr) __asm__("mmio_read_word");
+void __attribute__((fastcall)) mmio_write_byte(u32 addr, u32 value) __asm__("mmio_write_byte");
+void __attribute__((fastcall)) mmio_write_half(u32 addr, u32 value) __asm__("mmio_write_half");
+void __attribute__((fastcall)) mmio_write_word(u32 addr, u32 value) __asm__("mmio_write_word");
 
 void memory_initialize();
 void *memory_save_state(size_t *size);
