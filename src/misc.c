@@ -12,7 +12,7 @@
 // Miscellaneous hardware modules deemed too trivial to get their own files
 
 /* 8FFF0000 */
-void sdramctl_write_word(u32 addr, u32 value) {
+void sdramctl_write_word(uint32_t addr, uint32_t value) {
 	switch (addr - 0x8FFF0000) {
 		case 0x00: return;
 		case 0x04: return;
@@ -24,13 +24,13 @@ void sdramctl_write_word(u32 addr, u32 value) {
 	bad_write_word(addr, value);
 }
 
-u32 memctl_cx_status;
-u32 memctl_cx_config;
+uint32_t memctl_cx_status;
+uint32_t memctl_cx_config;
 void memctl_cx_reset(void) {
 	memctl_cx_status = 0;
 	memctl_cx_config = 0;
 }
-u32 memctl_cx_read_word(u32 addr) {
+uint32_t memctl_cx_read_word(uint32_t addr) {
 	switch (addr - 0x8FFF0000) {
 		case 0x0000: return memctl_cx_status | 0x80;
 		case 0x000C: return memctl_cx_config;
@@ -46,7 +46,7 @@ u32 memctl_cx_read_word(u32 addr) {
 	}
 	return bad_read_word(addr);
 }
-void memctl_cx_write_word(u32 addr, u32 value) {
+void memctl_cx_write_word(uint32_t addr, uint32_t value) {
 	switch (addr - 0x8FFF0000) {
 		case 0x0004:
 			switch (value) {
@@ -85,7 +85,7 @@ void gpio_reset() {
 	gpio.input.w     = 0x0005010E;
 	touchpad_gpio_reset();
 }
-u32 gpio_read(u32 addr) {
+uint32_t gpio_read(uint32_t addr) {
 	int port = addr >> 6 & 3;
 	switch (addr & 0x3F) {
 		case 0x04: return 0;
@@ -98,9 +98,9 @@ u32 gpio_read(u32 addr) {
  	}
 	return bad_read_word(addr);
 }
-void gpio_write(u32 addr, u32 value) {
+void gpio_write(uint32_t addr, uint32_t value) {
 	int port = addr >> 6 & 3;
-	u32 change;
+	uint32_t change;
 	switch (addr & 0x3F) {
 		case 0x04: return;
 		case 0x08: return;
@@ -128,7 +128,7 @@ void gpio_write(u32 addr, u32 value) {
 struct timerpair timerpairs[3];
 #define ADDR_TO_TP(addr) (&timerpairs[((addr) >> 16) % 5])
 
-u32 timer_read(u32 addr) {
+uint32_t timer_read(uint32_t addr) {
 	struct timerpair *tp = ADDR_TO_TP(addr);
 	cycle_count_delta = 0; // Avoid slowdown by fast-forwarding through polling loops
 	switch (addr & 0x003F) {
@@ -143,7 +143,7 @@ u32 timer_read(u32 addr) {
 	}
 	return bad_read_word(addr);
 }
-void timer_write(u32 addr, u32 value) {
+void timer_write(uint32_t addr, uint32_t value) {
 	struct timerpair *tp = ADDR_TO_TP(addr);
 	switch (addr & 0x003F) {
 		case 0x00: tp->timers[0].start_value = tp->timers[0].value = value; return;
@@ -210,19 +210,19 @@ void timer_reset() {
 }
 
 /* 90030000 and 90040000 */
-u32 unknown_cx_read(u32 addr) {
+uint32_t unknown_cx_read(uint32_t addr) {
 	return 0;
 }
-void unknown_cx_write(u32 addr, u32 value) {
+void unknown_cx_write(uint32_t addr, uint32_t value) {
 }
 
 /* 90060000 */
 struct {
-	u32 load;
-	u32 value;
-	u8 control;
-	u8 interrupt;
-	u8 locked;
+	uint32_t load;
+	uint32_t value;
+	uint8_t control;
+	uint8_t interrupt;
+	uint8_t locked;
 } watchdog;
 static void watchdog_reload() {
 	if (watchdog.control & 1) {
@@ -249,7 +249,7 @@ void watchdog_reset() {
 	sched_items[SCHED_WATCHDOG].second = -1;
 	sched_items[SCHED_WATCHDOG].proc = watchdog_event;
 }
-u32 watchdog_read(u32 addr) {
+uint32_t watchdog_read(uint32_t addr) {
 	switch (addr & 0xFFF) {
 		case 0x000: return watchdog.load;
 		case 0x004:
@@ -264,7 +264,7 @@ u32 watchdog_read(u32 addr) {
 			return bad_read_word(addr);
 	}
 }
-void watchdog_write(u32 addr, u32 value) {
+void watchdog_write(uint32_t addr, uint32_t value) {
 	switch (addr & 0xFFF) {
 		case 0x000:
 			if (!watchdog.locked) {
@@ -274,7 +274,7 @@ void watchdog_write(u32 addr, u32 value) {
 			return;
 		case 0x008:
 			if (!watchdog.locked) {
-				u8 prev = watchdog.control;
+				uint8_t prev = watchdog.control;
 				watchdog.control = value & 3;
 				if (~prev & value & 1) {
 					watchdog_reload();
@@ -300,7 +300,7 @@ void watchdog_write(u32 addr, u32 value) {
 }
 
 /* 90080000 */
-void unknown_9008_write(u32 addr, u32 value) {
+void unknown_9008_write(uint32_t addr, uint32_t value) {
 	switch (addr & 0xFFFF) {
 		case 0x8: return;
 		case 0xC: return;
@@ -314,14 +314,14 @@ void unknown_9008_write(u32 addr, u32 value) {
 
 /* 90090000 */
 static time_t rtc_time_diff;
-u32 rtc_read(u32 addr) {
+uint32_t rtc_read(uint32_t addr) {
 	switch (addr & 0xFFFF) {
 		case 0x00: return time(NULL) - rtc_time_diff;
 		case 0x14: return 0;
 	}
 	return bad_read_word(addr);
 }
-void rtc_write(u32 addr, u32 value) {
+void rtc_write(uint32_t addr, uint32_t value) {
 	switch (addr & 0xFFFF) {
 		case 0x04: return;
 		case 0x08: rtc_time_diff = time(NULL) - value; return;
@@ -331,7 +331,7 @@ void rtc_write(u32 addr, u32 value) {
 	bad_write_word(addr, value);
 }
 
-u32 rtc_cx_read(u32 addr) {
+uint32_t rtc_cx_read(uint32_t addr) {
 	switch (addr & 0xFFFF) {
 		case 0x000: return time(NULL);
 		case 0xFE0: return 0x31;
@@ -341,7 +341,7 @@ u32 rtc_cx_read(u32 addr) {
 	}
 	return bad_read_word(addr);
 }
-void rtc_cx_write(u32 addr, u32 value) {
+void rtc_cx_write(uint32_t addr, uint32_t value) {
 	switch (addr & 0xFFFF) {
 		case 0x004: return;
 		case 0x00C: return;
@@ -352,9 +352,9 @@ void rtc_cx_write(u32 addr, u32 value) {
 }
 
 /* 900A0000 */
-u32 misc_read(u32 addr) {
+uint32_t misc_read(uint32_t addr) {
 	struct timerpair *tp = &timerpairs[(addr - 0x10) >> 3 & 3];
-	static const struct { u32 hi, lo; } idreg[4] = {
+	static const struct { uint32_t hi, lo; } idreg[4] = {
 		{ 0x00000000, 0x00000000 },
 		{ 0x04000001, 0x00010105 },
 		{ 0x88000001, 0x00010107 },
@@ -386,7 +386,7 @@ u32 misc_read(u32 addr) {
 	}
 	return bad_read_word(addr);
 }
-void misc_write(u32 addr, u32 value) {
+void misc_write(uint32_t addr, uint32_t value) {
 	struct timerpair *tp = &timerpairs[(addr - 0x10) >> 3 & 3];
 	switch (addr & 0x0FFF) {
 		case 0x04: return;
@@ -417,7 +417,7 @@ void pmu_reset(void) {
 	clock_rates[CLOCK_AHB] = 45000000;
 	clock_rates[CLOCK_APB] = 22500000;
 }
-u32 pmu_read(u32 addr) {
+uint32_t pmu_read(uint32_t addr) {
 	switch (addr & 0x003F) {
 		case 0x00: return pmu.clocks_load;
 		case 0x04: return pmu.wake_mask;
@@ -432,17 +432,17 @@ u32 pmu_read(u32 addr) {
 	}
 	return bad_read_word(addr);
 }
-void pmu_write(u32 addr, u32 value) {
+void pmu_write(uint32_t addr, uint32_t value) {
 	switch (addr & 0x003F) {
 		case 0x00: pmu.clocks_load = value; return;
 		case 0x04: pmu.wake_mask = value & 0x1FFFFFF; return;
 		case 0x08: return;
 		case 0x0C:
 			if (value & 4) {
-				u32 clocks = pmu.clocks_load;
-				u32 base;
-				u32 cpudiv = (clocks & 0xFE) ? (clocks & 0xFE) : 2;
-				u32 ahbdiv = (clocks >> 12 & 7) + 1;
+				uint32_t clocks = pmu.clocks_load;
+				uint32_t base;
+				uint32_t cpudiv = (clocks & 0xFE) ? (clocks & 0xFE) : 2;
+				uint32_t ahbdiv = (clocks >> 12 & 7) + 1;
 				if (!emulate_cx) {
 					if (clocks & 0x100)
 						base = 27000000;
@@ -458,7 +458,7 @@ void pmu_write(u32 addr, u32 value) {
 						if (base == 0) error("invalid clock speed");
 					}
 				}
-				u32 new_rates[3];
+				uint32_t new_rates[3];
 				new_rates[CLOCK_CPU] = base / cpudiv;
 				new_rates[CLOCK_AHB] = new_rates[CLOCK_CPU] / ahbdiv;
 				new_rates[CLOCK_APB] = new_rates[CLOCK_AHB] / 2;
@@ -477,19 +477,19 @@ void pmu_write(u32 addr, u32 value) {
 
 /* 90010000, 900C0000(?), 900D0000 */
 struct cx_timer {
-	u32 load;
-	u32 value;
-	u8 prescale;
-	u8 control;
-	u8 interrupt;
-	u8 reload;
+	uint32_t load;
+	uint32_t value;
+	uint8_t prescale;
+	uint8_t control;
+	uint8_t interrupt;
+	uint8_t reload;
 } timer_cx[3][2];
 
 void timer_cx_int_check(int which) {
 	int_set(INT_TIMER0+which, (timer_cx[which][0].interrupt & timer_cx[which][0].control >> 5)
 	                        | (timer_cx[which][1].interrupt & timer_cx[which][1].control >> 5));
 }
-u32 timer_cx_read(u32 addr) {
+uint32_t timer_cx_read(uint32_t addr) {
 	int which = (addr >> 16) % 5;
 	struct cx_timer *t = &timer_cx[which][addr >> 5 & 1];
 	switch (addr & 0xFFFF) {
@@ -503,7 +503,7 @@ u32 timer_cx_read(u32 addr) {
 	}
 	return bad_read_word(addr);
 }
-void timer_cx_write(u32 addr, u32 value) {
+void timer_cx_write(uint32_t addr, uint32_t value) {
 	int which = (addr >> 16) % 5;
 	struct cx_timer *t = &timer_cx[which][addr >> 5 & 1];
 	switch (addr & 0xFFFF) {
@@ -524,8 +524,8 @@ void timer_cx_advance(int which) {
 		t->prescale++;
 		if (!(t->control & 0x80))
 			continue;
-		u32 oldvalue = (t->control & 2) ? t->value : t->value & 0xFFFF;
-		u32 value = oldvalue;
+		uint32_t oldvalue = (t->control & 2) ? t->value : t->value & 0xFFFF;
+		uint32_t value = oldvalue;
 		if (t->reload) {
 			t->reload = 0;
 			value = t->load;
@@ -569,11 +569,11 @@ void timer_cx_reset() {
 }
 
 /* 900F0000 */
-u8 lcd_contrast;
+uint8_t lcd_contrast;
 void hdq1w_reset() {
 	lcd_contrast = 0;
 }
-u32 hdq1w_read(u32 addr) {
+uint32_t hdq1w_read(uint32_t addr) {
 	switch (addr & 0xFFFF) {
 		case 0x08: return 0;
 		case 0x0C: return 0;
@@ -583,7 +583,7 @@ u32 hdq1w_read(u32 addr) {
 	}
 	return bad_read_word(addr);
 }
-void hdq1w_write(u32 addr, u32 value) {
+void hdq1w_write(uint32_t addr, uint32_t value) {
 	switch (addr & 0xFFFF) {
 		case 0x04: return;
 		case 0x0C: return;
@@ -594,7 +594,7 @@ void hdq1w_write(u32 addr, u32 value) {
 }
 
 /* 90110000 */
-u32 unknown_9011_read(u32 addr) {
+uint32_t unknown_9011_read(uint32_t addr) {
 	switch (addr & 0xFFFF) {
 		case 0x000: return 0;
 		case 0xB00: return 0x1643;
@@ -605,7 +605,7 @@ u32 unknown_9011_read(u32 addr) {
 	}
 	return bad_read_word(addr);
 }
-void unknown_9011_write(u32 addr, u32 value) {
+void unknown_9011_write(uint32_t addr, uint32_t value) {
 	switch (addr & 0xFFFF) {
 		case 0xB00: return;
 		case 0xB04: return;
@@ -617,7 +617,7 @@ void unknown_9011_write(u32 addr, u32 value) {
 }
 
 /* A9000000: SPI */
-u32 spi_read_word(u32 addr) {
+uint32_t spi_read_word(uint32_t addr) {
 	switch (addr - 0xA9000000) {
 		case 0x0C: return 0;
 		case 0x10: return 1;
@@ -628,7 +628,7 @@ u32 spi_read_word(u32 addr) {
 	}
 	return bad_read_word(addr);
 }
-void spi_write_word(u32 addr, u32 value) {
+void spi_write_word(uint32_t addr, uint32_t value) {
 	switch (addr - 0xA9000000) {
 		case 0x08: return;
 		case 0x0C: return;
@@ -641,13 +641,13 @@ void spi_write_word(u32 addr, u32 value) {
 }
 
 /* AC000000: SDIO */
-u8 sdio_read_byte(u32 addr) {
+uint8_t sdio_read_byte(uint32_t addr) {
 	switch (addr & 0x3FFFFFF) {
 		case 0x29: return -1;
 	}
 	return bad_read_byte(addr);
 }
-u16 sdio_read_half(u32 addr) {
+uint16_t sdio_read_half(uint32_t addr) {
 	switch (addr & 0x3FFFFFF) {
 		case 0x10: return -1;
 		case 0x12: return -1;
@@ -662,13 +662,13 @@ u16 sdio_read_half(u32 addr) {
 	}
 	return bad_read_half(addr);
 }
-u32 sdio_read_word(u32 addr) {
+uint32_t sdio_read_word(uint32_t addr) {
 	switch (addr & 0x3FFFFFF) {
 		case 0x20: return -1;
 	}
 	return bad_read_word(addr);
 }
-void sdio_write_byte(u32 addr, u8 value) {
+void sdio_write_byte(uint32_t addr, uint8_t value) {
 	switch (addr & 0x3FFFFFF) {
 		case 0x29: return;
 		case 0x2E: return;
@@ -676,7 +676,7 @@ void sdio_write_byte(u32 addr, u8 value) {
 	}
 	bad_write_byte(addr, value);
 }
-void sdio_write_half(u32 addr, u16 value) {
+void sdio_write_half(uint32_t addr, uint16_t value) {
 	switch (addr & 0x3FFFFFF) {
 		case 0x04: return;
 		case 0x0C: return;
@@ -689,7 +689,7 @@ void sdio_write_half(u32 addr, u16 value) {
 	}
 	bad_write_half(addr, value);
 }
-void sdio_write_word(u32 addr, u32 value) {
+void sdio_write_word(uint32_t addr, uint32_t value) {
 	switch (addr & 0x3FFFFFF) {
 		case 0x00: return;
 		case 0x08: return;
@@ -699,7 +699,7 @@ void sdio_write_word(u32 addr, u32 value) {
 }
 
 /* B8000000 */
-u32 sramctl_read_word(u32 addr) {
+uint32_t sramctl_read_word(uint32_t addr) {
 	switch (addr - 0xB8001000) {
 		case 0xFE0: return 0x52;
 		case 0xFE4: return 0x13;
@@ -708,7 +708,7 @@ u32 sramctl_read_word(u32 addr) {
 	}
 	return bad_read_word(addr);
 }
-void sramctl_write_word(u32 addr, u32 value) {
+void sramctl_write_word(uint32_t addr, uint32_t value) {
 	switch (addr - 0xB8001000) {
 		case 0x010: return;
 		case 0x014: return;
@@ -719,7 +719,7 @@ void sramctl_write_word(u32 addr, u32 value) {
 }
 
 /* BC000000 */
-u32 unknown_BC_read_word(u32 addr) {
+uint32_t unknown_BC_read_word(uint32_t addr) {
 	switch (addr & 0x3FFFFFF) {
 		case 0xC: return 0;
 	}
@@ -728,17 +728,17 @@ u32 unknown_BC_read_word(u32 addr) {
 
 /* C4000000: ADC (Analog-to-Digital Converter) */
 struct {
-	u32 int_status;
-	u32 int_mask;
+	uint32_t int_status;
+	uint32_t int_mask;
 	struct adc_channel {
-		u32 unknown;
-		u32 count;
-		u32 address;
-		u16 value;
-		u16 speed;
+		uint32_t unknown;
+		uint32_t count;
+		uint32_t address;
+		uint16_t value;
+		uint16_t speed;
 	} channel[7];
 } adc;
-static u16 adc_read_channel(int n) {
+static uint16_t adc_read_channel(int n) {
 	if (pmu.disable2 & 0x10)
 		return 0x3FF;
 
@@ -755,7 +755,7 @@ static u16 adc_read_channel(int n) {
 void adc_reset() {
 	memset(&adc, 0, sizeof adc);
 }
-u32 adc_read_word(u32 addr) {
+uint32_t adc_read_word(uint32_t addr) {
 	int n;
 	if (!(addr & 0x100)) {
 		switch (addr & 0xFF) {
@@ -776,7 +776,7 @@ u32 adc_read_word(u32 addr) {
 	}
 	return bad_read_word(addr);
 }
-void adc_write_word(u32 addr, u32 value) {
+void adc_write_word(uint32_t addr, uint32_t value) {
 	int n;
 	if (!(addr & 0x100)) {
 		switch (addr & 0xFF) {

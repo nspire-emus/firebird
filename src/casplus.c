@@ -11,20 +11,20 @@
 #include "misc.h"
 #include "memory.h"
 
-static u16 lcd_framebuffer[2];
-static u32 lcd_control;
+static uint16_t lcd_framebuffer[2];
+static uint32_t lcd_control;
 
-void casplus_lcd_draw_frame(u8 buffer[240][160]) {
-	u32 base = lcd_framebuffer[1] << 16 | lcd_framebuffer[0];
-	u8 *palette = (u8 *)(intptr_t)phys_mem_ptr(base, 0x9620);
+void casplus_lcd_draw_frame(uint8_t buffer[240][160]) {
+	uint32_t base = lcd_framebuffer[1] << 16 | lcd_framebuffer[0];
+	uint8_t *palette = (uint8_t *)(intptr_t)phys_mem_ptr(base, 0x9620);
 	if (!palette) {
 		memset(buffer, 0, 160 * 240);
 		return;
 	}
-	u8 *in = palette + 0x20;
+	uint8_t *in = palette + 0x20;
 	int row, x;
 	for (row = 239; row >= 0; row--) {
-		u8 *out = buffer[row];
+		uint8_t *out = buffer[row];
 		if (lcd_control & 0x400000) { // bit set in U-Boot, guessing it reverses pixel order
 			for (x = 0; x < 320; x += 2) {
 				int color1 = palette[(*in >> 4) << 1] & 15;
@@ -45,16 +45,16 @@ void casplus_lcd_draw_frame(u8 buffer[240][160]) {
 
 /* 0A000000: NAND flash */
 
-u16 casplus_nand_read_half(u32 addr) {
+uint16_t casplus_nand_read_half(uint32_t addr) {
 	switch (addr & 0x01FFFFFF) {
 		case 0: return nand_read_data_byte();
 	}
 	return bad_read_half(addr);
 }
-u8 casplus_nand_read_byte(u32 addr) {
+uint8_t casplus_nand_read_byte(uint32_t addr) {
 	return casplus_nand_read_half(addr);
 }
-void casplus_nand_write_half(u32 addr, u16 value) {
+void casplus_nand_write_half(uint32_t addr, uint16_t value) {
 	switch (addr & 0x01FFFFFF) {
 		case 0: nand_write_data_byte(value); return;
 		case 2: nand_write_command_byte(value); return;
@@ -62,22 +62,22 @@ void casplus_nand_write_half(u32 addr, u16 value) {
 	}
 	bad_write_half(addr, value);
 }
-void casplus_nand_write_byte(u32 addr, u8 value) {
+void casplus_nand_write_byte(uint32_t addr, uint8_t value) {
 	casplus_nand_write_half(addr, value);
 }
 
 /* FFFEC5xx, FFFEC6xx, FFFEC7xx: Timers */
 
 struct omap_timer {
-	u32 control;
-	u32 load;
-	u32 value;
+	uint32_t control;
+	uint32_t load;
+	uint32_t value;
 	// top 12 bits stored explicitly,
 	// low 20 bits implicit in time remaining to next sched. event
 	// This is an arbitrary division to prevent integer overflows
 } omap_timer[3];
 
-u32 omap_timer_read_word(int which, u32 addr) {
+uint32_t omap_timer_read_word(int which, uint32_t addr) {
 	struct omap_timer *t = &omap_timer[which];
 	switch (addr & 0xFF) {
 		case 0x00:
@@ -93,7 +93,7 @@ u32 omap_timer_read_word(int which, u32 addr) {
 	return bad_read_word(addr);
 }
 
-void omap_timer_write_word(int which, u32 addr, u32 value) {
+void omap_timer_write_word(int which, uint32_t addr, uint32_t value) {
 	struct omap_timer *t = &omap_timer[which];
 	switch (addr & 0xFF) {
 		case 0x00:
@@ -102,7 +102,7 @@ void omap_timer_write_word(int which, u32 addr, u32 value) {
 				int scale = 1 + (value >> 2 & 7);
 				if (value & 1) { // starting timer
 					t->value = t->load & 0xfff00000;
-					u32 ticks = ((t->load & 0xfffff) + 1) << scale;
+					uint32_t ticks = ((t->load & 0xfffff) + 1) << scale;
 					event_set(SCHED_CASPLUS_TIMER1 + which, ticks);
 				} else { // stopping timer
 					t->value += event_ticks_remaining(SCHED_CASPLUS_TIMER1 + which) >> scale;
@@ -132,7 +132,7 @@ void omap_timer_event(int index) {
 
 		if (t->control & 2) { // Auto-reload mode
 			t->value = t->load & 0xfff00000;
-			u32 ticks = ((t->load & 0xfffff) + 1) << scale;
+			uint32_t ticks = ((t->load & 0xfffff) + 1) << scale;
 			event_repeat(index, ticks);
 		} else { // One-shot mode
 			t->control &= ~1;
@@ -143,15 +143,15 @@ void omap_timer_event(int index) {
 
 /* FFFBB4xx, FFFBBCxx, FFFBE4xx, FFFBECxx: GPIO */
 
-u16 omap_keypad_row_mask;
+uint16_t omap_keypad_row_mask;
 
 struct omap_gpio {
-	u16 dataout;
-	u16 direction;
+	uint16_t dataout;
+	uint16_t direction;
 } omap_gpio[4];
 
-u16 omap_read_keypad() {
-	u16 columns = 0;
+uint16_t omap_read_keypad() {
+	uint16_t columns = 0;
 	int row;
 	for (row = 0; row < 8; row++)
 		if (!(omap_keypad_row_mask & (1 << row)))
@@ -162,7 +162,7 @@ u16 omap_read_keypad() {
 	return columns;
 }
 
-u16 omap_gpio_read(int which, u32 addr) {
+uint16_t omap_gpio_read(int which, uint32_t addr) {
 	switch (addr & 0xFF) {
 		case 0x2C:
 			// GPIO 0x0D-0x0F: keypad columns 5-7
@@ -176,7 +176,7 @@ u16 omap_gpio_read(int which, u32 addr) {
 	}
 	return 0; //bad_read_half(addr);
 }
-void omap_gpio_write(int which, u32 addr, u16 value) {
+void omap_gpio_write(int which, uint32_t addr, uint16_t value) {
 	struct omap_gpio *g = &omap_gpio[which];
 	switch (addr & 0xFF) {
 		case 0x34: g->direction = value; return;
@@ -189,9 +189,9 @@ void omap_gpio_write(int which, u32 addr, u16 value) {
 /* FFFECBxx: Interrupts */
 
 struct {
-	u32 active;
-	u32 mask;
-	u8 priority[32];
+	uint32_t active;
+	uint32_t mask;
+	uint8_t priority[32];
 } omap_int;
 
 static void int_chk() {
@@ -202,7 +202,7 @@ static void int_chk() {
 	cpu_int_check();
 }
 
-static u32 omap_int_read_word(u32 addr) {
+static uint32_t omap_int_read_word(uint32_t addr) {
 	int offset = addr & 0xFF;
 	if (offset >= 0x1C && offset < 0x9C) {
 		return omap_int.priority[(offset - 0x1C) >> 2];
@@ -224,7 +224,7 @@ static u32 omap_int_read_word(u32 addr) {
 	}
 	return bad_read_word(addr);
 }
-static void omap_int_write_word(u32 addr, u32 value) {
+static void omap_int_write_word(uint32_t addr, uint32_t value) {
 	int offset = addr & 0xFF;
 	if (offset >= 0x1C && offset < 0x9C) {
 		omap_int.priority[(offset - 0x1C) >> 2] = value & 0x7F;
@@ -238,20 +238,20 @@ static void omap_int_write_word(u32 addr, u32 value) {
 	bad_write_word(addr, value);
 }
 
-void casplus_int_set(u32 int_num, bool on) {
+void casplus_int_set(uint32_t int_num, bool on) {
 	if (on) omap_int.active |= 1 << int_num;
 	else    omap_int.active &= ~(1 << int_num);
 	int_chk();
 }
 
-u32 omap_32k_synch_timer;
+uint32_t omap_32k_synch_timer;
 
-u8 omap_read_byte(u32 addr) {
+uint8_t omap_read_byte(uint32_t addr) {
 	if (addr >= 0xFFFB9800 && addr <= 0xFFFB983F)
 		return serial_read(addr);
 	return bad_read_byte(addr);
 }
-u16 omap_read_half(u32 addr) {
+uint16_t omap_read_half(uint32_t addr) {
 	if (addr >= 0xFFFBB400 && addr <= 0xFFFBB4FF) return omap_gpio_read(2, addr);
 	if (addr >= 0xFFFBBC00 && addr <= 0xFFFBBCFF) return omap_gpio_read(3, addr);
 	if (addr >= 0xFFFBE400 && addr <= 0xFFFBE4FF) return omap_gpio_read(0, addr);
@@ -267,7 +267,7 @@ u16 omap_read_half(u32 addr) {
 	}
 	return 0; //bad_read_half(addr);
 }
-u32 omap_read_word(u32 addr) {
+uint32_t omap_read_word(uint32_t addr) {
 	if (addr >= 0xFFFBB400 && addr <= 0xFFFBB4FF) return omap_gpio_read(2, addr);
 	if (addr >= 0xFFFBBC00 && addr <= 0xFFFBBCFF) return omap_gpio_read(3, addr);
 	if (addr >= 0xFFFBE400 && addr <= 0xFFFBE4FF) return omap_gpio_read(0, addr);
@@ -290,7 +290,7 @@ u32 omap_read_word(u32 addr) {
 	return 0; //bad_read_word(addr);
 }
 
-void omap_write_byte(u32 addr, u8 byte) {
+void omap_write_byte(uint32_t addr, uint8_t byte) {
 	if (addr >= 0xFFFB9800 && addr <= 0xFFFB983F)
 	{
 		serial_write(addr, byte);
@@ -298,7 +298,7 @@ void omap_write_byte(u32 addr, u8 byte) {
 	}
 	bad_write_byte(addr, byte);
 }
-void omap_write_half(u32 addr, u16 value) {
+void omap_write_half(uint32_t addr, uint16_t value) {
 	if (addr >= 0xFFFBB400 && addr <= 0xFFFBB4FF) return omap_gpio_write(2, addr, value);
 	if (addr >= 0xFFFBBC00 && addr <= 0xFFFBBCFF) return omap_gpio_write(3, addr, value);
 	if (addr >= 0xFFFBE400 && addr <= 0xFFFBE4FF) return omap_gpio_write(0, addr, value);
@@ -307,7 +307,7 @@ void omap_write_half(u32 addr, u16 value) {
 		case 0xFFFB5014: omap_keypad_row_mask = 0xFF00 | value; return;
 		case 0xFFFECE00: {
 			// bit 12 controls which clock timers use
-			u32 new_rates[2] = { 78000000, (value & 0x1000) ? 78000000 : 12000000 };
+			uint32_t new_rates[2] = { 78000000, (value & 0x1000) ? 78000000 : 12000000 };
 			sched_set_clocks(2, new_rates);
 			return;
 		}
@@ -316,7 +316,7 @@ void omap_write_half(u32 addr, u16 value) {
 	}
 	//bad_write_half(addr, value);
 }
-void omap_write_word(u32 addr, u32 value) {
+void omap_write_word(uint32_t addr, uint32_t value) {
 	if (addr >= 0xFFFBB400 && addr <= 0xFFFBB4FF) return omap_gpio_write(2, addr, value);
 	if (addr >= 0xFFFBBC00 && addr <= 0xFFFBBCFF) return omap_gpio_write(3, addr, value);
 	if (addr >= 0xFFFBE400 && addr <= 0xFFFBE4FF) return omap_gpio_write(0, addr, value);

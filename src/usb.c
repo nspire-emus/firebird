@@ -6,26 +6,26 @@
 #include "interrupt.h"
 #include "memory.h"
 
-extern void usblink_receive(int ep, u8 *buf, u32 size);
+extern void usblink_receive(int ep, uint8_t *buf, uint32_t size);
 extern void usblink_complete_send(int ep);
 
 struct usb_state usb;
 
 struct usb_qh { // Queue head
-	u32 flags;
-	u32 current_td;
+	uint32_t flags;
+	uint32_t current_td;
 	struct usb_td { // Transfer descriptor
-		u32 next_td;
-		u32 flags;
-		u32 bufptr[5];
+		uint32_t next_td;
+		uint32_t flags;
+		uint32_t bufptr[5];
 	} overlay;
-	u32 reserved;
+	uint32_t reserved;
 	struct usb_setup {
-		u8 bmRequestType;
-		u8 bRequest;
-		u16 wValue;
-		u16 wIndex;
-		u16 wLength;
+		uint8_t bmRequestType;
+		uint8_t bRequest;
+		uint16_t wValue;
+		uint16_t wIndex;
+		uint16_t wLength;
 	} setup;
 };
 
@@ -57,8 +57,8 @@ void usb_bus_reset_off() {
 	usb_int_check();
 }
 
-static void usb_prime(struct usb_qh *qh, u32 epbit) {
-	u32 tda = qh->overlay.next_td;
+static void usb_prime(struct usb_qh *qh, uint32_t epbit) {
+	uint32_t tda = qh->overlay.next_td;
 	if (tda & 0x1F)
 		error("USB: TD not 32-byte aligned");
 	struct usb_td *td = (struct usb_td *)(intptr_t)phys_mem_ptr(tda, 0x1C);
@@ -70,8 +70,8 @@ static void usb_prime(struct usb_qh *qh, u32 epbit) {
 	usb.epsr |= epbit;
 }
 
-static void usb_complete(struct usb_qh *qh, u32 epbit, u32 size) {
-	u32 tda = qh->current_td;
+static void usb_complete(struct usb_qh *qh, uint32_t epbit, uint32_t size) {
+	uint32_t tda = qh->current_td;
 	if (tda & 0x1F)
 		error("USB: TD not 32-byte aligned");
 	struct usb_td *td = (struct usb_td *)(intptr_t)phys_mem_ptr(tda, 0x1C);
@@ -101,7 +101,7 @@ void usb_receive_setup_packet(int endpoint, const void *packet) {
 	}
 }
 
-void usb_receive_packet(int endpoint, const void *packet, u32 size) {
+void usb_receive_packet(int endpoint, const void *packet, uint32_t size) {
 	if (!(usb.epsr & (1 << endpoint))) {
 		printf("USB: can't receive packet, endpoint not primed\n");
 		return;
@@ -109,7 +109,7 @@ void usb_receive_packet(int endpoint, const void *packet, u32 size) {
 	struct usb_qh *qh = (struct usb_qh *)(intptr_t)phys_mem_ptr(usb.eplistaddr + (endpoint * 0x80), 0x30);
 	if (!qh)
 		error("USB: bad QH");
-	u32 maxsize = qh->overlay.flags >> 16 & 0x7FFF;
+	uint32_t maxsize = qh->overlay.flags >> 16 & 0x7FFF;
 	//printf("USB: receiving %d, max %d\n", size, maxsize);
 	if (size > maxsize) {
 		printf("USB: too big\n");
@@ -126,17 +126,17 @@ void usb_receive_packet(int endpoint, const void *packet, u32 size) {
 }
 
 /* B0000000 (and B4000000?): USB */
-u8 usb_read_byte(u32 addr) {
+uint8_t usb_read_byte(uint32_t addr) {
 	//printf("[usb readb %08x]\n", addr);
 	if ((addr & 0x1FF) == 0x100) return 0x40; // CAPLENGTH: operational registers start at +40
 	return bad_read_byte(addr);
 }
-u16 usb_read_half(u32 addr) {
+uint16_t usb_read_half(uint32_t addr) {
 	//printf("[usb readh %08x]\n", addr);
 	if ((addr & 0x1FF) == 0x102) return 0x0100; // HCIVERSION: EHCI 1.0
 	return bad_read_half(addr);
 }
-u32 usb_read_word(u32 addr) {
+uint32_t usb_read_word(uint32_t addr) {
 	//printf("[usb read  %08x]\n", addr);
 	switch (addr & 0x1FF) {
 		/* Module identification registers */
@@ -177,7 +177,7 @@ u32 usb_read_word(u32 addr) {
 	}
 	return bad_read_word(addr);
 }
-void usb_write_word(u32 addr, u32 value) {
+void usb_write_word(uint32_t addr, uint32_t value) {
 	//printf("[usb write %08x %08x]\n", addr, value);
 	switch (addr & 0x1FF) {
 		/* Device/host timer registers */
@@ -238,8 +238,8 @@ void usb_write_word(u32 addr, u32 value) {
 						error("USB: bad QH");
 					usb_prime(qh, 0x10000 << ep);
 
-					u32 size = qh->overlay.flags >> 16 & 0x7FFF;
-					u8 *buf = (u8*)(intptr_t)phys_mem_ptr(qh->overlay.bufptr[0], size);
+					uint32_t size = qh->overlay.flags >> 16 & 0x7FFF;
+					uint8_t *buf = (uint8_t*)(intptr_t)phys_mem_ptr(qh->overlay.bufptr[0], size);
 					usblink_receive(ep, buf, size);
 
 					usb_complete(qh, 0x10000 << ep, size);

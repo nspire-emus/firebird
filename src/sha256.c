@@ -2,13 +2,13 @@
 #include "emu.h"
 #include "memory.h"
 
-static u32 hash_state[8];
-static u32 hash_block[16];
+static uint32_t hash_state[8];
+static uint32_t hash_block[16];
 
 #define ROR(x, y) ((x) >> (y) | (x) << (32 - (y)))
 
 static inline void initialize() {
-	static const u32 initial_state[8] = {
+	static const uint32_t initial_state[8] = {
 		0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a,
 		0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19
 	};
@@ -16,7 +16,7 @@ static inline void initialize() {
 }
 
 static void process_block() {
-	static const u32 k[64] = {
+	static const uint32_t k[64] = {
 		0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5,
 		0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3, 0x72be5d74, 0x80deb1fe, 0x9bdc06a7, 0xc19bf174,
 		0xe49b69c1, 0xefbe4786, 0x0fc19dc6, 0x240ca1cc, 0x2de92c6f, 0x4a7484aa, 0x5cb0a9dc, 0x76f988da,
@@ -27,14 +27,14 @@ static void process_block() {
 		0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208, 0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2
 	};
 
-	u32 a, b, c, d, e, f, g, h;
-	u32 w[64];
+	uint32_t a, b, c, d, e, f, g, h;
+	uint32_t w[64];
 	int i;
 
 	memcpy(w, hash_block, 64);
 	for (i = 16; i < 64; i++) {
-		u32 s0 = ROR(w[i-15], 7) ^ ROR(w[i-15], 18) ^ (w[i-15] >> 3);
-		u32 s1 = ROR(w[i-2], 17) ^ ROR(w[i-2], 19) ^ (w[i-2] >> 10);
+		uint32_t s0 = ROR(w[i-15], 7) ^ ROR(w[i-15], 18) ^ (w[i-15] >> 3);
+		uint32_t s1 = ROR(w[i-2], 17) ^ ROR(w[i-2], 19) ^ (w[i-2] >> 10);
 		w[i] = w[i-16] + s0 + w[i-7] + s1;
 	}
 
@@ -48,12 +48,12 @@ static void process_block() {
 	h = hash_state[7];
 
 	for (i = 0; i < 64; i++) {
-		u32 s0 = ROR(a, 2) ^ ROR(a, 13) ^ ROR(a, 22);
-		u32 maj = (a & b) ^ (a & c) ^ (b & c);
-		u32 t2 = s0 + maj;
-		u32 s1 = ROR(e, 6) ^ ROR(e, 11) ^ ROR(e, 25);
-		u32 ch = (e & f) ^ (~e & g);
-		u32 t1 = h + s1 + ch + k[i] + w[i];
+		uint32_t s0 = ROR(a, 2) ^ ROR(a, 13) ^ ROR(a, 22);
+		uint32_t maj = (a & b) ^ (a & c) ^ (b & c);
+		uint32_t t2 = s0 + maj;
+		uint32_t s1 = ROR(e, 6) ^ ROR(e, 11) ^ ROR(e, 25);
+		uint32_t ch = (e & f) ^ (~e & g);
+		uint32_t t1 = h + s1 + ch + k[i] + w[i];
 
 		h = g;
 		g = f;
@@ -80,7 +80,7 @@ void sha256_reset(void) {
 	memset(hash_block, 0, sizeof hash_block);
 }
 
-u32 sha256_read_word(u32 addr) {
+uint32_t sha256_read_word(uint32_t addr) {
 	switch (addr & 0x3FFFFFF) {
 		case 0x00: return 0; // bit 0 = busy
 		case 0x08: return 0x500; //?
@@ -91,7 +91,7 @@ u32 sha256_read_word(u32 addr) {
 	return bad_read_word(addr);
 }
 
-void sha256_write_word(u32 addr, u32 value) {
+void sha256_write_word(uint32_t addr, uint32_t value) {
 	switch (addr & 0x3FFFFFF) {
 		case 0x00:
 			if (value & 0x10) {

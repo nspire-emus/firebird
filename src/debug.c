@@ -5,7 +5,6 @@
 #include <string.h>
 #include <stdint.h>
 #include "debug.h"
-#include "types.h"
 #include "interrupt.h"
 #include "emu.h"
 #include "cpu.h"
@@ -19,13 +18,13 @@
 
 extern char target_folder[256];
 
-void *virt_mem_ptr(u32 addr, u32 size) {
+void *virt_mem_ptr(uint32_t addr, uint32_t size) {
 	// Note: this is not guaranteed to be correct when range crosses page boundary
 	return (void *)(intptr_t)phys_mem_ptr(mmu_translate(addr, false, NULL), size);
 }
 
-void backtrace(u32 fp) {
-	u32 *frame;
+void backtrace(uint32_t fp) {
+	uint32_t *frame;
 	printf("Frame     PrvFrame Self     Return   Start\n");
 	do {
 		printf("%08X:", fp);
@@ -41,13 +40,13 @@ void backtrace(u32 fp) {
 	} while (frame[2] != 0);
 }
 
-static void dump(u32 addr) {
-	u32 start = addr;
-	u32 end = addr + 0x7F;
+static void dump(uint32_t addr) {
+	uint32_t start = addr;
+	uint32_t end = addr + 0x7F;
 
-	u32 row, col;
+	uint32_t row, col;
 	for (row = start & ~0xF; row <= end; row += 0x10) {
-		u8 *ptr = virt_mem_ptr(row, 16);
+		uint8_t *ptr = virt_mem_ptr(row, 16);
 		if (!ptr) {
 			printf("Address %08X is not in RAM.\n", row);
 			break;
@@ -75,8 +74,8 @@ static void dump(u32 addr) {
 	}
 }
 
-static u32 parse_expr(char *str) {
-	u32 sum = 0;
+static uint32_t parse_expr(char *str) {
+	uint32_t sum = 0;
 	int sign = 1;
 	if (str == NULL)
 		return 0;
@@ -117,16 +116,16 @@ static u32 parse_expr(char *str) {
 	return sum;
 }
 
-u32 disasm_insn(u32 pc) {
+uint32_t disasm_insn(uint32_t pc) {
 	return arm.cpsr_low28 & 0x20 ? disasm_thumb_insn(pc) : disasm_arm_insn(pc);
 }
 
-static void disasm(u32 (*dis_func)(u32 pc)) {
+static void disasm(uint32_t (*dis_func)(uint32_t pc)) {
 	char *arg = strtok(NULL, " \n");
-	u32 addr = arg ? parse_expr(arg) : arm.reg[15];
+	uint32_t addr = arg ? parse_expr(arg) : arm.reg[15];
 	int i;
 	for (i = 0; i < 16; i++) {
-		u32 len = dis_func(addr);
+		uint32_t len = dis_func(addr);
 		if (!len) {
 			printf("Address %08X is not in RAM.\n", addr);
 			break;
@@ -135,8 +134,8 @@ static void disasm(u32 (*dis_func)(u32 pc)) {
 	}
 }
 
-u32 *debug_next;
-static void set_debug_next(u32 *next) {
+uint32_t *debug_next;
+static void set_debug_next(uint32_t *next) {
 	if (debug_next != NULL)
 		RAM_FLAGS(debug_next) &= ~RF_EXEC_DEBUG_NEXT;
 	if (next != NULL) {
@@ -153,7 +152,7 @@ FILE *debugger_input;
 static void native_debugger(void) {
 	char line[300];
 	char *cmd;
-	u32 *cur_insn = virt_mem_ptr(arm.reg[15] & ~3, 4);
+	uint32_t *cur_insn = virt_mem_ptr(arm.reg[15] & ~3, 4);
 
 	// Did we hit the "next" breakpoint?
 	if (cur_insn == debug_next) {
@@ -215,7 +214,7 @@ static void native_debugger(void) {
 //		} else if (!stricmp(cmd, "r")) {
 		} else if (!strcasecmp(cmd, "r")){
 			int i, show_spsr;
-			u32 cpsr = get_cpsr();
+			uint32_t cpsr = get_cpsr();
 			char *mode;
 			for (i = 0; i < 16; i++) {
 				int newline = ((1 << 5) | (1 << 11) | (1 << 15)) & (1 << i);
@@ -267,10 +266,10 @@ static void native_debugger(void) {
 			if (!flag_str)
 				flag_str = "+x";
 			if (addr_str) {
-				u32 addr = parse_expr(addr_str);
+				uint32_t addr = parse_expr(addr_str);
 				void *ptr = (void *)phys_mem_ptr(addr & ~3, 4);
 				if (ptr) {
-					u32 *flags = &RAM_FLAGS(ptr);
+					uint32_t *flags = &RAM_FLAGS(ptr);
 					bool on = true;
 					for (; *flag_str; flag_str++) {
 						switch (tolower(*flag_str)) {
@@ -299,13 +298,13 @@ static void native_debugger(void) {
 			} else {
 				unsigned int area;
 				for (area = 0; area < sizeof(mem_areas)/sizeof(*mem_areas); area++) {
-					u32 *flags;
-					u32 *flags_start = &RAM_FLAGS(mem_areas[area].ptr);
-					u32 *flags_end = &RAM_FLAGS(mem_areas[area].ptr + mem_areas[area].size);
+					uint32_t *flags;
+					uint32_t *flags_start = &RAM_FLAGS(mem_areas[area].ptr);
+					uint32_t *flags_end = &RAM_FLAGS(mem_areas[area].ptr + mem_areas[area].size);
 					for (flags = flags_start; flags != flags_end; flags++) {
 						if (*flags & (RF_READ_BREAKPOINT | RF_WRITE_BREAKPOINT | RF_EXEC_BREAKPOINT)) {
 							printf("%08x %c%c%c\n",
-								(unsigned int)(mem_areas[area].base + ((u8 *)flags - (u8 *)flags_start)),
+								(unsigned int)(mem_areas[area].base + ((uint8_t *)flags - (uint8_t *)flags_start)),
 								(*flags & RF_READ_BREAKPOINT)  ? 'r' : ' ',
 								(*flags & RF_WRITE_BREAKPOINT) ? 'w' : ' ',
 								(*flags & RF_EXEC_BREAKPOINT)  ? 'x' : ' ');
@@ -331,7 +330,7 @@ static void native_debugger(void) {
 			if (!arg) {
 				printf("Missing address parameter.\n");
 			} else {
-				u32 addr = parse_expr(arg);
+				uint32_t addr = parse_expr(arg);
 				dump(addr);
 			}
 //		} else if (!stricmp(cmd, "u")) {
@@ -375,23 +374,23 @@ static void native_debugger(void) {
 			}
 //		} else if (!stricmp(cmd, "taskinfo")) {
 		} else if (!strcasecmp(cmd, "taskinfo")) {
-			u32 task = parse_expr(strtok(NULL, " \n"));
-			u8 *p = virt_mem_ptr(task, 52);
+			uint32_t task = parse_expr(strtok(NULL, " \n"));
+			uint8_t *p = virt_mem_ptr(task, 52);
 			if (p) {
-				printf("Previous:	%08x\n", *(u32 *)&p[0]);
-				printf("Next:		%08x\n", *(u32 *)&p[4]);
+				printf("Previous:	%08x\n", *(uint32_t *)&p[0]);
+				printf("Next:		%08x\n", *(uint32_t *)&p[4]);
 				printf("ID:		%c%c%c%c\n", p[15], p[14], p[13], p[12]);
 				printf("Name:		%.8s\n", &p[16]);
 				printf("Status:		%02x\n", p[24]);
 				printf("Delayed suspend:%d\n", p[25]);
 				printf("Priority:	%02x\n", p[26]);
 				printf("Preemption:	%d\n", p[27]);
-				printf("Stack start:	%08x\n", *(u32 *)&p[36]);
-				printf("Stack end:	%08x\n", *(u32 *)&p[40]);
-				printf("Stack pointer:	%08x\n", *(u32 *)&p[44]);
-				printf("Stack size:	%08x\n", *(u32 *)&p[48]);
-				u32 sp = *(u32 *)&p[44];
-				u32 *psp = virt_mem_ptr(sp, 18 * 4);
+				printf("Stack start:	%08x\n", *(uint32_t *)&p[36]);
+				printf("Stack end:	%08x\n", *(uint32_t *)&p[40]);
+				printf("Stack pointer:	%08x\n", *(uint32_t *)&p[44]);
+				printf("Stack size:	%08x\n", *(uint32_t *)&p[48]);
+				uint32_t sp = *(uint32_t *)&p[44];
+				uint32_t *psp = virt_mem_ptr(sp, 18 * 4);
 				if (psp) {
 					printf("Stack type:	%d (%s)\n", psp[0], psp[0] ? "Interrupt" : "Normal");
 					if (psp[0]) {
@@ -408,11 +407,11 @@ static void native_debugger(void) {
 			}
 //		} else if (!stricmp(cmd, "tasklist")) {
 		} else if (!strcasecmp(cmd, "tasklist")) {
-			u32 tasklist = parse_expr(strtok(NULL, " \n"));
-			u8 *p = virt_mem_ptr(tasklist, 4);
+			uint32_t tasklist = parse_expr(strtok(NULL, " \n"));
+			uint8_t *p = virt_mem_ptr(tasklist, 4);
 			if (p) {
-				u32 first = *(u32 *)p;
-				u32 task = first;
+				uint32_t first = *(uint32_t *)p;
+				uint32_t task = first;
 				printf("Task      ID   Name     St D Pr P | StkStart StkEnd   StkPtr   StkSize\n");
 				do {
 					p = virt_mem_ptr(task, 52);
@@ -425,12 +424,12 @@ static void native_debugger(void) {
 						p[25],  /* delayed suspend */
 						p[26],  /* priority */
 						p[27],  /* preemption */
-						*(u32 *)&p[36], /* stack start */
-						*(u32 *)&p[40], /* stack end */
-						*(u32 *)&p[44], /* stack pointer */
-						*(u32 *)&p[48]  /* stack size */
+						*(uint32_t *)&p[36], /* stack start */
+						*(uint32_t *)&p[40], /* stack end */
+						*(uint32_t *)&p[44], /* stack pointer */
+						*(uint32_t *)&p[48]  /* stack size */
 						);
-					task = *(u32 *)&p[4]; /* next */
+					task = *(uint32_t *)&p[4]; /* next */
 				} while (task != first);
 			}
 //		} else if (!stricmp(cmd, "t+")) {
@@ -453,8 +452,8 @@ static void native_debugger(void) {
 				printf("Parameters are missing.\n");
 				continue;
 			}
-			u32 start = parse_expr(start_str);
-			u32 size = 0;
+			uint32_t start = parse_expr(start_str);
+			uint32_t size = 0;
 			if (size_str)
 				size = parse_expr(size_str);
 			void *ram = (void *)(intptr_t)phys_mem_ptr(start, size);
@@ -486,8 +485,8 @@ static void native_debugger(void) {
 			if (!addr_str || !len_str || !string) {
 				printf("Missing parameters.\n");
 			} else {
-				u32 addr = parse_expr(addr_str);
-				u32 len = parse_expr(len_str);
+				uint32_t addr = parse_expr(addr_str);
+				uint32_t len = parse_expr(len_str);
 				char *strptr = (char *)(intptr_t)phys_mem_ptr(addr, len);
 				char *ptr = strptr;
 				char *endptr = strptr + len;
@@ -536,13 +535,13 @@ static void native_debugger(void) {
 		} else if (!strcasecmp(cmd, "pr")) {
 			// TODO: need to avoid entering debugger recursively
 			// also, where should error() go?
-			u32 addr = parse_expr(strtok(NULL, " \n"));
+			uint32_t addr = parse_expr(strtok(NULL, " \n"));
 			printf("%08x\n", mmio_read_word(addr));
 //		} else if (!stricmp(cmd, "pw")) {
 		} else if (!strcasecmp(cmd, "pw")) {
 			// TODO: ditto
-			u32 addr = parse_expr(strtok(NULL, " \n"));
-			u32 value = parse_expr(strtok(NULL, " \n"));
+			uint32_t addr = parse_expr(strtok(NULL, " \n"));
+			uint32_t value = parse_expr(strtok(NULL, " \n"));
 			mmio_write_word(addr, value);
 		} else {
 			printf("Unknown command %s\n", cmd);
@@ -551,7 +550,7 @@ static void native_debugger(void) {
 	throttle_timer_on();
 }
 
-void debugger(enum DBG_REASON reason, u32 addr) {
+void debugger(enum DBG_REASON reason, uint32_t addr) {
 	if (gdb_connected)
 		gdbstub_debugger(reason, addr);
 	else

@@ -8,7 +8,7 @@
 struct interrupt_state intr;
 
 static void get_current_int(int is_fiq, int *current) {
-	u32 masked_status = intr.status & intr.mask[is_fiq];
+	uint32_t masked_status = intr.status & intr.mask[is_fiq];
 	int pri_limit = intr.priority_limit[is_fiq];
 	int i;
 	for (i = 0; i < 32; i++) {
@@ -20,7 +20,7 @@ static void get_current_int(int is_fiq, int *current) {
 }
 
 static void update() {
-	u32 prev_raw_status = intr.raw_status;
+	uint32_t prev_raw_status = intr.raw_status;
 	intr.raw_status = intr.active ^ ~intr.noninverted;
 
 	intr.sticky_status |= (intr.raw_status & ~prev_raw_status);
@@ -38,7 +38,7 @@ static void update() {
 	}
 }
 
-u32 int_read_word(u32 addr) {
+uint32_t int_read_word(uint32_t addr) {
 	int group = addr >> 8 & 3;
 	if (group < 2) {
 		int is_fiq = group;
@@ -82,7 +82,7 @@ u32 int_read_word(u32 addr) {
 	}
 	return bad_read_word(addr);
 }
-void int_write_word(u32 addr, u32 value) {
+void int_write_word(uint32_t addr, uint32_t value) {
 	int group = addr >> 8 & 3;
 	if (group < 2) {
 		int is_fiq = group;
@@ -119,7 +119,7 @@ static void update_cx() {
 	cpu_int_check();
 }
 
-u32 int_cx_read_word(u32 addr) {
+uint32_t int_cx_read_word(uint32_t addr) {
 	switch (addr & 0x3FFFFFF) {
 		case 0x000: return intr.active & intr.mask[0] & ~intr.mask[1];
 		case 0x004: return intr.active & intr.mask[0] & intr.mask[1];
@@ -133,7 +133,7 @@ u32 int_cx_read_word(u32 addr) {
 	}
 	return bad_read_word(addr);
 }
-void int_cx_write_word(u32 addr, u32 value) {
+void int_cx_write_word(uint32_t addr, uint32_t value) {
 	switch (addr & 0x3FFFFFF) {
 		case 0x004: return;
 		case 0x00C: intr.mask[1] = value; update_cx(); return;
@@ -146,7 +146,7 @@ void int_cx_write_word(u32 addr, u32 value) {
 	return;
 }
 
-void int_set(u32 int_num, bool on) {
+void int_set(uint32_t int_num, bool on) {
 	if (on) intr.active |= 1 << int_num;
 	else    intr.active &= ~(1 << int_num);
 	if (!emulate_cx)

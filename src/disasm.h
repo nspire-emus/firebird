@@ -3,5 +3,5 @@ static const char reg_name[16][4] = {
 	"r8", "r9", "r10", "r11", "r12", "sp", "lr", "pc"
 };
 
-u32 disasm_arm_insn(u32 pc);
-u32 disasm_thumb_insn(u32 pc);
+uint32_t disasm_arm_insn(uint32_t pc);
+uint32_t disasm_thumb_insn(uint32_t pc);

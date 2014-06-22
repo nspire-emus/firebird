@@ -7,17 +7,17 @@
 /* Emulation of the TI-84 Plus I/O link port */
 
 union packet {
-	u8 raw[4 + 65535 + 2];
+	uint8_t raw[4 + 65535 + 2];
 	struct {
-		u8 machine_ID;
-		u8 command_ID;
-		u16 data_length;
-		u8 data[65535 + 2]; /* plus checksum if not zero length */
+		uint8_t machine_ID;
+		uint8_t command_ID;
+		uint16_t data_length;
+		uint8_t data[65535 + 2]; /* plus checksum if not zero length */
 	};
 };
 
-static u16 checksum(union packet *p) {
-	u16 i, checksum = 0;
+static uint16_t checksum(union packet *p) {
+	uint16_t i, checksum = 0;
 	for (i = 0; i < p->data_length; i++)
 		checksum += p->data[i];
 	return checksum;
@@ -35,8 +35,8 @@ bool start_send = false;
 static void send_packet() {
 	if (packet_buf.data_length != 0) /* Append a checksum */
 	{
-		//*(u16 *)&packet_buf.data[packet_buf.data_length] = checksum(&packet_buf);
-		u16 chksum = checksum(&packet_buf);
+		//*(uint16_t *)&packet_buf.data[packet_buf.data_length] = checksum(&packet_buf);
+		uint16_t chksum = checksum(&packet_buf);
 		memcpy(&packet_buf.data[packet_buf.data_length], &chksum, sizeof(chksum));
 	}
 
@@ -123,8 +123,8 @@ cleanup:
 int app_page;
 int app_offset;
 int app_buffer_pos;
-u8 app_buffer[(APP_PACKET_SIZE - 1) + 255];
-u16 app_packet_size;
+uint8_t app_buffer[(APP_PACKET_SIZE - 1) + 255];
+uint16_t app_packet_size;
 
 static void send_app_callback() {
 	more:
@@ -132,9 +132,9 @@ static void send_app_callback() {
 	switch (state++) {
 		case 0:
 		new_page:
-			//*(u16 *)&packet_buf.data[6] = app_offset;
+			//*(uint16_t *)&packet_buf.data[6] = app_offset;
 			memcpy(&packet_buf.data[6], &app_offset, sizeof(app_offset));
-			//*(u16 *)&packet_buf.data[8] = app_page;
+			//*(uint16_t *)&packet_buf.data[8] = app_page;
 			memcpy(&packet_buf.data[8], &app_page, sizeof(app_page));
 
 			while (app_buffer_pos < APP_PACKET_SIZE) {
@@ -145,7 +145,7 @@ static void send_app_callback() {
 					unsigned char rectyp;
 					unsigned char data[255+1]; // + checksum
 				} record;
-				u8 checksum = 0;
+				uint8_t checksum = 0;
 				int pos, i, c;
 				do {
 					c = fgetc(var_file);
@@ -166,7 +166,7 @@ static void send_app_callback() {
 							goto error;
 						byte = byte << 4 | c;
 					}
-					((u8 *)&record)[pos] = byte;
+					((uint8_t *)&record)[pos] = byte;
 					checksum += byte;
 				}
 				if (checksum != 0)
@@ -202,7 +202,7 @@ static void send_app_callback() {
 			packet_buf.machine_ID = 0x23;
 			packet_buf.command_ID = 0x06;
 			packet_buf.data_length = 0x0A;
-			//*(u16 *)&packet_buf.data[0] = app_packet_size;
+			//*(uint16_t *)&packet_buf.data[0] = app_packet_size;
 			memcpy(&packet_buf.data[0], &app_packet_size, sizeof(app_packet_size));
 			memcpy(&packet_buf.data[2], "\x24\x00\x00\x04", 4);
 			/* Offset and page number set above */
@@ -284,7 +284,7 @@ bad_format:
 		struct {
 			char sig2[3];
 			char comment[42];
-			u16 data_size;
+			uint16_t data_size;
 		} varheader;
 #pragma pack(0)
 		if (!fread(&varheader, sizeof varheader, 1, f))
@@ -300,7 +300,7 @@ bad_format:
 			char unknown[9];
 			char name[31];
 			char unknown2[26];
-			u32 data_size;
+			uint32_t data_size;
 		} appheader;
 #pragma pack(0)
 		if (!fread(&appheader, sizeof appheader, 1, f))
@@ -356,8 +356,8 @@ static void next_bit() {
 	}
 }
 
-u8 link_input;  /* Lines not pulled down by emulator. */
-u8 link_output; /* Lines not pulled down by calculator. */
+uint8_t link_input;  /* Lines not pulled down by emulator. */
+uint8_t link_output; /* Lines not pulled down by calculator. */
 
 void ti84_io_link_reset() {
 	sending = false;
@@ -369,11 +369,11 @@ void ti84_io_link_reset() {
 	link_input = 3;
 	link_output = 3;
 }
-u32 ti84_io_link_read(u32 addr) {
+uint32_t ti84_io_link_read(uint32_t addr) {
 	//printf("read %08x (in=%d out=%d)\n", addr, link_input, link_output);
 	switch (addr & 0xFFFF) {
 		case 0x00: {
-			u8 ret = link_input & link_output;
+			uint8_t ret = link_input & link_output;
 			if (start_send) {
 				/* Start sending with first bit */
 				sending = true;
@@ -389,7 +389,7 @@ u32 ti84_io_link_read(u32 addr) {
 	}
 	return bad_read_word(addr);
 }
-void ti84_io_link_write(u32 addr, u32 value) {
+void ti84_io_link_write(uint32_t addr, uint32_t value) {
 	switch (addr & 0xFFFF) {
 		case 0x00:
 			if (value > 3)

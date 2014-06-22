@@ -7,10 +7,10 @@
 #include "memory.h"
 
 volatile int keypad_type = -1;
-volatile u16 key_map[16];
-volatile u16 touchpad_x;
-volatile u16 touchpad_y;
-volatile u8 touchpad_down;
+volatile uint16_t key_map[16];
+volatile uint16_t touchpad_x;
+volatile uint16_t touchpad_y;
+volatile uint8_t touchpad_down;
 
 /* 900E0000: Keypad controller */
 
@@ -20,7 +20,7 @@ void keypad_int_check() {
 	int_set(INT_KEYPAD, (kpc.int_enable & kpc.int_active)
 	                  | (kpc.gpio_int_enable & kpc.gpio_int_active));
 }
-u32 keypad_read(u32 addr) {
+uint32_t keypad_read(uint32_t addr) {
 	switch (addr & 0x7F) {
 		case 0x00:
 			cycle_count_delta += 1000; // avoid slowdown with polling loops
@@ -30,7 +30,7 @@ u32 keypad_read(u32 addr) {
 		case 0x0C: return kpc.int_enable;
 		case 0x10: case 0x14: case 0x18: case 0x1C:
 		case 0x20: case 0x24: case 0x28: case 0x2C:
-			return *(u32 *)((u8 *)kpc.data + ((addr - 0x10) & 31));
+			return *(uint32_t *)((uint8_t *)kpc.data + ((addr - 0x10) & 31));
 		case 0x30: return 0; // GPIO direction?
 		case 0x34: return 0; // GPIO output?
 		case 0x38: return 0; // GPIO input?
@@ -41,7 +41,7 @@ u32 keypad_read(u32 addr) {
 	}
 	return bad_read_word(addr);
 }
-void keypad_write(u32 addr, u32 value) {
+void keypad_write(uint32_t addr, uint32_t value) {
 	switch (addr & 0x7F) {
 		case 0x00:
 			kpc.control = value;
@@ -71,7 +71,7 @@ static void keypad_scan_event(int index) {
 	if (kpc.current_row >= 16)
 		error("too many keypad rows");
 
-	u16 row = ~key_map[kpc.current_row];
+	uint16_t row = ~key_map[kpc.current_row];
 	row &= ~(0x80000 >> kpc.current_row); // Emulate weird diagonal glitch
 	row |= -1 << (kpc.size >> 8 & 0xFF);  // Unused columns read as 1
 	if (emulate_cx)
@@ -104,14 +104,14 @@ void keypad_reset() {
 	sched_items[SCHED_KEYPAD].proc = keypad_scan_event;
 }
 
-u8 touchpad_page = 0x04;
+uint8_t touchpad_page = 0x04;
 
-void touchpad_write(u8 addr, u8 value) {
+void touchpad_write(uint8_t addr, uint8_t value) {
 	//printf("touchpad write: %02x %02x\n", addr, value);
 	if (addr == 0xFF)
 		touchpad_page = value;
 }
-u8 touchpad_read(u8 addr) {
+uint8_t touchpad_read(uint8_t addr) {
 	//printf("touchpad read:  %02x\n", addr);
 	if (addr == 0xFF)
 		return touchpad_page;
@@ -146,12 +146,12 @@ u8 touchpad_read(u8 addr) {
 	return 0;
 }
 
-u8 tp_prev_clock;
-u8 tp_prev_data;
-u8 tp_state;
-u8 tp_byte;
-u8 tp_bitcount;
-u8 tp_port;
+uint8_t tp_prev_clock;
+uint8_t tp_prev_data;
+uint8_t tp_state;
+uint8_t tp_byte;
+uint8_t tp_bitcount;
+uint8_t tp_port;
 void touchpad_gpio_reset() {
 	tp_prev_clock = 1;
 	tp_prev_data = 1;
@@ -161,9 +161,9 @@ void touchpad_gpio_reset() {
 	tp_port = 0;
 }
 void touchpad_gpio_change() {
-	u8 value = gpio.input.b[0] & (gpio.output.b[0] | gpio.direction.b[0]) & 0xA;
-	u8 clock = value >> 1 & 1;
-	u8 data  = value >> 3 & 1;
+	uint8_t value = gpio.input.b[0] & (gpio.output.b[0] | gpio.direction.b[0]) & 0xA;
+	uint8_t clock = value >> 1 & 1;
+	uint8_t data  = value >> 3 & 1;
 
 	if (tp_prev_clock == 1 && clock == 1) {
 		if (data < tp_prev_data) {
@@ -248,12 +248,12 @@ void touchpad_gpio_change() {
 struct {
 	int state;
 	int reading;
-	u8 port;
+	uint8_t port;
 } touchpad_cx;
 void touchpad_cx_reset(void) {
 	touchpad_cx.state = 0;
 }
-u32 touchpad_cx_read(u32 addr) {
+uint32_t touchpad_cx_read(uint32_t addr) {
 	switch (addr & 0xFFFF) {
 		case 0x0010:
 			if (!touchpad_cx.reading)
@@ -267,7 +267,7 @@ u32 touchpad_cx_read(u32 addr) {
 	}
 	return bad_read_word(addr);
 }
-void touchpad_cx_write(u32 addr, u32 value) {
+void touchpad_cx_write(uint32_t addr, uint32_t value) {
 	switch (addr & 0xFFFF) {
 		case 0x0010:
 			if (touchpad_cx.state == 0) {

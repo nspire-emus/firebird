@@ -6,7 +6,7 @@
 /* Declarations for mmu.c */
 
 /* Translate a VA to a PA, using a page table lookup */
-u32 mmu_translate(u32 addr, bool writing, fault_proc *fault);
+uint32_t mmu_translate(uint32_t addr, bool writing, fault_proc *fault);
 
 /* Table for quickly accessing RAM and ROM by virtual addresses. This contains
  * two entries for each 1kB of virtual address space, one for reading and one
@@ -27,20 +27,20 @@ u32 mmu_translate(u32 addr, bool writing, fault_proc *fault);
  */
 
 #define AC_NUM_ENTRIES (4194304*2)
-typedef u8 *ac_entry;
+typedef uint8_t *ac_entry;
 extern ac_entry *addr_cache;
 #define AC_SET_ENTRY_PTR(entry, va, ptr) \
         entry = (ptr) - (va);
 #define AC_NOT_PTR 0x80000000
 #define AC_SET_ENTRY_PHYS(entry, va, pa) \
         entry = (ac_entry)(((pa) - (va)) >> 10); \
-        entry += (~(u32)((va) + entry) & AC_NOT_PTR);
+        entry += (~(uint32_t)((va) + entry) & AC_NOT_PTR);
 #define AC_SET_ENTRY_INVALID(entry, va) \
         entry = (ac_entry)(1 << 22); \
-        entry += (~(u32)((va) + entry) & AC_NOT_PTR);
+        entry += (~(uint32_t)((va) + entry) & AC_NOT_PTR);
 
 bool addr_cache_pagefault(void *addr);
-void *addr_cache_miss(u32 addr, bool writing, fault_proc *fault) __asm__("addr_cache_miss");
+void *addr_cache_miss(uint32_t addr, bool writing, fault_proc *fault) __asm__("addr_cache_miss");
 void addr_cache_flush();
 void *mmu_save_state(size_t *size);
 void mmu_reload_state(void *state);
