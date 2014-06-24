@@ -13,7 +13,16 @@ ifeq ($(OS),Windows_NT)
 else
 	LDFLAGS += -melf_i386
 endif
-
+ifneq (,$(findstring mingw, $(OPTS)))
+	OBJS += resource.o
+	LDFLAGS += -mi386pe
+	LIBS += -lgdi32 -lcomdlg32 -lwinmm -lws2_32
+	CC = i686-w64-mingw32-gcc
+	WINDRES = i686-w64-mingw32-windres
+	OBJCOPY = i686-w64-mingw32-objcopy
+	LD = i686-w64-mingw32-ld
+	EXEC = nspire_emu.exe
+endif
 .PHONY: all clean test debug
 
 all: $(EXEC)
