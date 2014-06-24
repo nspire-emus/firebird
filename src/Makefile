@@ -22,6 +22,7 @@ ifneq (,$(findstring mingw, $(OPTS)))
 	OBJCOPY = i686-w64-mingw32-objcopy
 	LD = i686-w64-mingw32-ld
 	EXEC = nspire_emu.exe
+	WINE = wine
 endif
 .PHONY: all clean test debug
 
@@ -50,7 +51,7 @@ clean:
 	rm -f $(OBJS) $(EXEC)
 
 test: all
-	./$(EXEC) -1=Boot1cx.img -F=Flash.bin
+	$(WINE) ./$(EXEC) -1=Boot1cx.img -F=Flash.bin
 
 debug: all
 	gdb $(EXEC) -ex "run -1=Boot1cx.img -F=Flash.bin"
