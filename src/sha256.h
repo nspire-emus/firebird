@@ -1,6 +1,7 @@
 /* Declarations for sha256.c */
 
-
+#ifndef _H_SHA256
+#define _H_SHA256
 
 void sha256_reset(void);
 
@@ -11,3 +12,5 @@ void sha256_write_word(u32 addr, u32 value);
 void *sha256_save_state(size_t *size);
 
 void sha256_reload_state(void *state);
+
+#endif

@@ -1,5 +1,8 @@
 /* Declarations for usb.c */
 
+#ifndef _H_USB
+#define _H_USB
+
 extern struct usb_state {
         u32 usbcmd;      // +140
         u32 usbsts;      // +144
@@ -17,3 +20,5 @@ u8 usb_read_byte(u32 addr);
 u16 usb_read_half(u32 addr);
 u32 usb_read_word(u32 addr);
 void usb_write_word(u32 addr, u32 value);
+
+#endif

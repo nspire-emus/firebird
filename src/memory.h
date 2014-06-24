@@ -1,5 +1,8 @@
 /* Declarations for memory.c */
 
+#ifndef _H_MEMORY
+#define _H_MEMORY
+
 #define MEM_MAXSIZE (65*1024*1024) // also defined as RAM_FLAGS in asmcode.S
 
 // Must be allocated below 2GB (see comments for mmu.c)
@@ -47,3 +50,5 @@ void __attribute__((fastcall)) mmio_write_word(u32 addr, u32 value) __asm__("mmi
 void memory_initialize();
 void *memory_save_state(size_t *size);
 void memory_reload_state(void *state);
+
+#endif

@@ -1,6 +1,7 @@
 /* Declarations for keypad.c */
 
-
+#ifndef _H_KEYPAD
+#define _H_KEYPAD
 
 #define NUM_KEYPAD_TYPES 5
 
@@ -67,3 +68,5 @@ void touchpad_gpio_change();
 void *keypad_save_state(size_t *size);
 
 void keypad_reload_state(void *state);
+
+#endif

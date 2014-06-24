@@ -1,5 +1,8 @@
 /* Declarations for translate.c */
 
+#ifndef _H_TRANSLATE
+#define _H_TRANSLATE
+
 struct translation {
         u32 unused;
         u32 jump_table;
@@ -18,3 +21,5 @@ void fix_pc_for_fault();
 int range_translated(u32 range_start, u32 range_end);
 void *translate_save_state(size_t *size);
 void translate_reload_state(void *state);
+
+#endif

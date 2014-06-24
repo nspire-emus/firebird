@@ -1,5 +1,8 @@
 /* Declarations for misc.c */
 
+#ifndef _H_MISC
+#define _H_MISC
+
 void sdramctl_write_word(u32 addr, u32 value);
 
 void memctl_cx_reset(void);
@@ -102,3 +105,4 @@ void adc_reset();
 u32 adc_read_word(u32 addr);
 void adc_write_word(u32 addr, u32 value);
 
+#endif

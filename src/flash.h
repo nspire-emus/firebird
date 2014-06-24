@@ -1,5 +1,7 @@
 /* Declarations for flash.c */
 
+#ifndef _H_FLASH
+#define _H_FLASH
 
 
 extern bool nand_writable;
@@ -53,3 +55,5 @@ void flash_read_settings(u32 *sdram_size);
 void *flash_save_state(size_t *size);
 
 void flash_reload_state(void *state);
+
+#endif

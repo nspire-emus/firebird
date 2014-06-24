@@ -1,6 +1,7 @@
 /* Declarations for link.c */
 
-
+#ifndef _H_LINK
+#define _H_LINK
 
 void send_file(char *filename);
 
@@ -15,3 +16,5 @@ void ti84_io_link_write(u32 addr, u32 value);
 void *link_save_state(size_t *size);
 
 void link_reload_state(void *state);
+
+#endif

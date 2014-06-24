@@ -1,5 +1,8 @@
 /* Declarations for casplus.c */
 
+#ifndef _H_CASPLUS
+#define _H_CASPLUS
+
 #include <stdbool.h>
 #include "types.h"
 
@@ -19,3 +22,5 @@ void omap_write_half(u32 addr, u16 value);
 void omap_write_word(u32 addr, u32 value);
 
 void casplus_reset(void);
+
+#endif

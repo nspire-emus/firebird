@@ -1,5 +1,8 @@
 /* Declarations for schedule.c */
 
+#ifndef _H_SCHEDULE
+#define _H_SCHEDULE
+
 enum clock_id { CLOCK_CPU, CLOCK_AHB, CLOCK_APB, CLOCK_27M, CLOCK_12M, CLOCK_32K };
 extern u32 clock_rates[6];
 enum sched_item_index {
@@ -29,3 +32,5 @@ void event_clear(int index);
 void event_set(int index, int ticks);
 u32 event_ticks_remaining(int index);
 void sched_set_clocks(int count, u32 *new_rates);
+
+#endif

@@ -1,6 +1,7 @@
 /* Declarations for interrupt.c */
 
-
+#ifndef _H_INTERRUPT
+#define _H_INTERRUPT
 
 #define INT_SERIAL   1
 
@@ -65,3 +66,5 @@ void int_reset();
 void *int_save_state(size_t *size);
 
 void int_reload_state(void *state);
+
+#endif
