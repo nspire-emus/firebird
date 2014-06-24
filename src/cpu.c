@@ -492,7 +492,7 @@ void cpu_interpret_instruction(u32 insn) {
 				value <<= 1;
 			set_reg(insn >> 12 & 15, zeros);
 		} else if ((insn & 0xFFF000F0) == 0xE1200070) {
-			printf("Software breakpoint at %08x (%04x)\n",
+			emuprintf("Software breakpoint at %08x (%04x)\n",
 				arm.reg[15], (insn >> 4 & 0xFFF0) | (insn & 0xF));
 			debugger(DBG_EXEC_BREAKPOINT, 0);
 		} else {

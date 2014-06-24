@@ -43,7 +43,7 @@ void xmodem_send(char *filename) {
 		perror(filename);
 		return;
 	}
-	printf("XMODEM: sending file %s...\n", filename);
+	emuprintf("XMODEM: sending file %s...\n", filename);
 	xmodem_buf[1] = 0;
 	xmodem_next_packet();
 }
@@ -51,10 +51,10 @@ void xmodem_send(char *filename) {
 void serial_byte_out(u8 byte) {
 	if (xmodem_file) {
 		if (byte == 6) {
-			printf("\r%ld bytes sent", ftell(xmodem_file));
+			emuprintf("\r%ld bytes sent", ftell(xmodem_file));
 			xmodem_next_packet();
 		} else {
-			printf("xmodem got byte %02X\n", byte);
+			emuprintf("xmodem got byte %02X\n", byte);
 			fclose(xmodem_file);
 			xmodem_file = NULL;
 		}

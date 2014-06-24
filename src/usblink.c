@@ -90,7 +90,7 @@ void put_file_next(struct packet *in) {
 			break;
 		case RECVING_04:
 			if (!in || in->data_size != 1 || in->data[0] != 0x04) {
-				printf("File send error: Didn't get 04\n");
+				emuprintf("File send error: Didn't get 04\n");
 				goto fail;
 			}
 			put_file_state++;
@@ -100,7 +100,7 @@ void put_file_next(struct packet *in) {
 			put_file_state++;
 		send_data:
 			if (prev_seqno == 1)
-				printf("Sending file: %u bytes left\n", put_file_size);
+				emuprintf("Sending file: %u bytes left\n", put_file_size);
 			if (put_file_size > 0) {
 				/* Send data (05) */
 				u32 len = put_file_size;
@@ -117,7 +117,7 @@ void put_file_next(struct packet *in) {
 				usblink_send_packet();
 				break;
 			}
-			printf("Send complete\n");
+			emuprintf("Send complete\n");
 			put_file_state = DONE;
 			break;
 		case SENDING_05:
@@ -129,13 +129,13 @@ void put_file_next(struct packet *in) {
 			goto send_data;
 		case RECVING_FF_00: /* Got FF 00: OS header is valid */
 			if (!in || in->data_size != 2 || in->data[0] != 0xFF || in->data[1]) {
-				printf("File send error: Didn't get FF 00\n");
+				emuprintf("File send error: Didn't get FF 00\n");
 				goto fail;
 			}
 			put_file_state = ACKING_04_or_FF_00;
 			break;
 		fail:
-			printf("Send failed\n");
+			emuprintf("Send failed\n");
 		case DONE:
 			put_file_state = 0;
 			fclose(put_file);
@@ -162,7 +162,7 @@ void usblink_received_packet(u8 *data, u32 size) {
 		put_file_next(in);
 
 	if (in->src.service == BSWAP16(0x4003)) { /* Address request */
-		printf("usblink connected\n");
+		emuprintf("usblink connected\n");
 		out->src.service = BSWAP16(0x4003);
 		out->dst.service = BSWAP16(0x4003);
 		out->data_size = 4;

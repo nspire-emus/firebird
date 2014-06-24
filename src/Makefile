@@ -32,7 +32,7 @@ $(EXEC): $(OBJS)
 	$(CC) $(OBJS) -o $@ $(LIBS) -m32
 
 resource.o: gui/gui-windows-resource.rc gui/gui-windows-id.h
-	$(WINDRES) $< -o $@
+	$(WINDRES) -Fpe-i386 $< -o $@
 
 armsnippets.o: armsnippets.S
 	arm-none-eabi-gcc -fno-leading-underscore -c $< -o $@ -mcpu=arm7tdmi

@@ -39,6 +39,7 @@ enum { LOG_CPU, LOG_IO, LOG_FLASH, LOG_INTS, LOG_ICOUNT, LOG_USB, LOG_GDB, MAX_L
 #define LOG_TYPE_TBL "CIFQ#UG";
 extern int log_enabled[MAX_LOG];
 void logprintf(int type, char *str, ...);
+void emuprintf(char *format, ...);
 
 void warn(char *fmt, ...);
 __attribute__((noreturn)) void error(char *fmt, ...);

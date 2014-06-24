@@ -380,19 +380,19 @@ void flash_open(char *filename) {
 	else if (size == 132*1024*1024)
 		large = true;
 	else {
-		printf("%s not a flash image (wrong size)\n", filename);
+		emuprintf("%s not a flash image (wrong size)\n", filename);
 		exit(1);
 	}
 	nand_initialize(large);
 	if (!fread(nand_data, nand_metrics.page_size * nand_metrics.num_pages, 1, flash_file)) {
-		printf("Could not read flash image from %s\n", filename);
+		emuprintf("Could not read flash image from %s\n", filename);
 		exit(1);
 	}
 }
 
 void flash_save_changes() {
 	if (flash_file == NULL) {
-		printf("NAND flash: no file\n");
+		emuprintf("NAND flash: no file\n");
 		return;
 	}
 	u32 block, count = 0;
@@ -406,21 +406,21 @@ void flash_save_changes() {
 		}
 	}
 	fflush(flash_file);
-	printf("NAND flash: saved %d modified blocks to file\n", count);
+	emuprintf("NAND flash: saved %d modified blocks to file\n", count);
 }
 
 int flash_save_as(char *filename) {
 	FILE *f = fopen(filename, "wb");
 	if (!f) {
-		printf("NAND flash: could not open ");
+		emuprintf("NAND flash: could not open ");
 		perror(filename);
 		return 1;
 	}
-	printf("Saving flash image %s...", filename);
+	emuprintf("Saving flash image %s...", filename);
 	if (!fwrite(nand_data, nand_metrics.page_size * nand_metrics.num_pages, 1, f) || fflush(f)) {
 		fclose(f);
 		remove(filename);
-		printf("\nNAND flash: could not write to ");
+		printf("\n could not write to ");
 		perror(filename);
 		return 1;
 	}

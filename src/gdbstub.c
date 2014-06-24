@@ -130,7 +130,7 @@ static void set_nonblocking(int socket, bool nonblocking) {
 static void gdbstub_bind(int port) {
 	struct sockaddr_in sockaddr;
 	int r;
-	
+
 #ifdef __MINGW32__
 	WORD wVersionRequested = MAKEWORD(2, 0);
 	WSADATA wsaData;
@@ -588,7 +588,7 @@ void gdbstub_reset(void) {
 }
 
 static void gdbstub_disconnect(void) {
-	puts("GDB disconnected.");
+	emuprintf("GDB disconnected.");
 #ifdef __MINGW32__
 	closesocket(socket_fd);
 #else
@@ -623,7 +623,7 @@ void gdbstub_recv(void) {
 		if (ndls_is_installed())
 			armloader_load_snippet(SNIPPET_ndls_debug_alloc, NULL, 0, gdb_connect_ndls_cb);
 		gdb_connected = true;
-		puts("GDB connected.");
+		emuprintf("GDB connected.");
 		return;
 	}
 	fd_set rfds;

@@ -61,7 +61,7 @@ void read_action(void *ptr) __asm__("read_action");
 void read_action(void *ptr) {
 	u32 addr = phys_mem_addr(ptr);
 	if (!gdb_connected)
-		printf("Hit read breakpoint at %08x. Entering debugger.\n", addr);
+		emuprintf("Hit read breakpoint at %08x. Entering debugger.\n", addr);
 	debugger(DBG_READ_BREAKPOINT, addr);
 }
 
@@ -72,7 +72,7 @@ void write_action(void *ptr) {
 	u32 *flags = &RAM_FLAGS((size_t)ptr & ~3);
 	if (*flags & RF_WRITE_BREAKPOINT) {
 		if (!gdb_connected)
-			printf("Hit write breakpoint at %08x. Entering debugger.\n", addr);
+			emuprintf("Hit write breakpoint at %08x. Entering debugger.\n", addr);
 		debugger(DBG_WRITE_BREAKPOINT, addr);
 	}
 	if (*flags & RF_CODE_TRANSLATED) {
@@ -209,7 +209,7 @@ void memory_initialize(u32 sdram_size) {
 	    !os_commit(&mem_and_flags[0], total_mem) ||
 	    !os_commit(&mem_and_flags[MEM_MAXSIZE], total_mem))
 	{
-		printf("Couldn't allocate memory\n");
+		emuprintf("Couldn't allocate memory\n");
 		exit(1);
 	}
 
