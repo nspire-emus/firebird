@@ -25,7 +25,7 @@ void cpu_int_check() {
 /* Access the Current Program Status Register.
  * The flag bits (NZCV) are stored separately since they are so
  * frequently written to independently. */
-uint32_t __attribute__((fastcall)) get_cpsr() {
+u32 __attribute__((fastcall)) get_cpsr() {
 	return arm.cpsr_n << 31
 	     | arm.cpsr_z << 30
 	     | arm.cpsr_c << 29
@@ -33,7 +33,7 @@ uint32_t __attribute__((fastcall)) get_cpsr() {
 	     | arm.cpsr_low28;
 }
 
-void set_cpsr_full(uint32_t cpsr) {
+void set_cpsr_full(u32 cpsr) {
 	if ((cpsr ^ arm.cpsr_low28) & 0x1F) {
 		/* Switching to a different processor mode. Swap out registers of old mode */
 		if ((arm.cpsr_low28 & 0x1F) == MODE_FIQ)
@@ -82,7 +82,7 @@ void set_cpsr_full(uint32_t cpsr) {
 	arm.cpsr_low28 = cpsr & 0x090000FF; /* Mask off reserved bits */
 	cpu_int_check();
 }
-void __attribute__((fastcall)) set_cpsr(uint32_t cpsr, uint32_t mask) {
+void __attribute__((fastcall)) set_cpsr(u32 cpsr, u32 mask) {
 	if (!(arm.cpsr_low28 & 0x0F)) {
 		/* User mode. Don't change privileged or execution state bits */
 		mask &= ~0x010000FF;
@@ -94,7 +94,7 @@ void __attribute__((fastcall)) set_cpsr(uint32_t cpsr, uint32_t mask) {
 }
 
 /* Access the Saved Program Status Register. */
-static uint32_t *ptr_spsr() {
+static u32 *ptr_spsr() {
 	switch (arm.cpsr_low28 & 0x1F) {
 		case MODE_FIQ: return &arm.spsr_fiq;
 		case MODE_IRQ: return &arm.spsr_irq;
@@ -104,31 +104,31 @@ static uint32_t *ptr_spsr() {
 	}
 	error("Attempted to access SPSR from user or system mode");
 }
-inline uint32_t __attribute__((fastcall)) get_spsr() {
+inline u32 __attribute__((fastcall)) get_spsr() {
 	return *ptr_spsr();
 }
-inline void set_spsr_full(uint32_t spsr) {
+inline void set_spsr_full(u32 spsr) {
 	*ptr_spsr() = spsr;
 }
-inline void __attribute__((fastcall))  set_spsr(uint32_t spsr, uint32_t mask) {
+inline void __attribute__((fastcall))  set_spsr(u32 spsr, u32 mask) {
 	*ptr_spsr() ^= (*ptr_spsr() ^ spsr) & mask;
 }
 
 /* Retrieve an ARM register. Deal with the annoying effect of the CPU pipeline
  * that accessing R15 (PC) gives you the next instruction plus 4 (8 for str/stm) */
-static uint32_t get_reg_pc(int rn) {
+static u32 get_reg_pc(int rn) {
 	return arm.reg[rn] + ((rn == 15) ? 4 : 0);
 }
-static uint32_t get_reg_pc_store(int rn) {
+static u32 get_reg_pc_store(int rn) {
 	return arm.reg[rn] + ((rn == 15) ? 8 : 0);
 }
-static uint32_t get_reg_pc_thumb(int rn) {
+static u32 get_reg_pc_thumb(int rn) {
 	return arm.reg[rn] + ((rn == 15) ? 2 : 0);
 }
-static inline void set_reg_pc(int rn, uint32_t value) {
+static inline void set_reg_pc(int rn, u32 value) {
 	arm.reg[rn] = value;
 }
-static inline void set_reg_pc_bx(int rn, uint32_t value) {
+static inline void set_reg_pc_bx(int rn, u32 value) {
 	if (rn == 15 && (value & 1)) {
 		arm.reg[15] = value - 1;
 		arm.cpsr_low28 |= 0x20; /* Enter THUMB mode */
@@ -136,32 +136,32 @@ static inline void set_reg_pc_bx(int rn, uint32_t value) {
 	}
 	arm.reg[rn] = value;
 }
-static uint32_t get_reg(int rn) {
+static u32 get_reg(int rn) {
 	if (rn == 15) error("Invalid use of R15");
 	return arm.reg[rn];
 }
-static void set_reg(int rn, uint32_t value) {
+static void set_reg(int rn, u32 value) {
 	if (rn == 15) error("Invalid use of R15");
 	arm.reg[rn] = value;
 }
 
-static inline void set_nz_flags(uint32_t value) {
+static inline void set_nz_flags(u32 value) {
 	arm.cpsr_n = value >> 31;
 	arm.cpsr_z = value == 0;
 }
 
-static inline void set_nz_flags_64(uint64_t value) {
+static inline void set_nz_flags_64(u64 value) {
 	arm.cpsr_n = value >> 63;
 	arm.cpsr_z = value == 0;
 }
 
 /* Detect overflow after an addition or subtraction. */
-#define ADD_OVERFLOW(left, right, sum) ((int32_t)(((left) ^ (sum)) & ((right) ^ (sum))) < 0)
-#define SUB_OVERFLOW(left, right, sum) ((int32_t)(((left) ^ (right)) & ((left) ^ (sum))) < 0)
+#define ADD_OVERFLOW(left, right, sum) ((s32)(((left) ^ (sum)) & ((right) ^ (sum))) < 0)
+#define SUB_OVERFLOW(left, right, sum) ((s32)(((left) ^ (right)) & ((left) ^ (sum))) < 0)
 
 /* Do an addition, setting C/V flags accordingly. */
-static uint32_t add(uint32_t left, uint32_t right, int carry, int setcc) {
-	uint32_t sum = left + right + carry;
+static u32 add(u32 left, u32 right, int carry, int setcc) {
+	u32 sum = left + right + carry;
 	if (setcc) {
 		if (sum < left) carry = 1;
 		if (sum > left) carry = 0;
@@ -173,14 +173,14 @@ static uint32_t add(uint32_t left, uint32_t right, int carry, int setcc) {
 
 static int get_shifted_immed(int insn, int setcc) {
 	int count = insn >> 7 & 30;
-	int32_t val = insn & 0xFF;
+	s32 val = insn & 0xFF;
 	val = val >> count | val << (32 - count);
 	if (count != 0 && setcc)
 		arm.cpsr_c = val < 0;
 	return val;
 }
 
-static uint32_t shift(int type, uint32_t res, uint32_t count, int setcc) {
+static u32 shift(int type, u32 res, u32 count, int setcc) {
 	if (count == 0) {
 		/* For all types, a count of 0 does nothing and does not affect carry. */
 		return res;
@@ -209,7 +209,7 @@ static uint32_t shift(int type, uint32_t res, uint32_t count, int setcc) {
 			} else {
 				if (setcc) arm.cpsr_c = res >> (count - 1) & 1;
 			}
-			return (int32_t)res >> count;
+			return (s32)res >> count;
 		case 3: /* ROR */
 			count &= 31;
 			res = res >> count | res << (32 - count);
@@ -219,7 +219,7 @@ static uint32_t shift(int type, uint32_t res, uint32_t count, int setcc) {
 }
 
 static int get_shifted_reg(int insn, int setcc) {
-	uint32_t res = get_reg_pc(insn & 15);
+	u32 res = get_reg_pc(insn & 15);
 	int type = insn >> 5 & 3;
 	int count; 
 
@@ -235,7 +235,7 @@ static int get_shifted_reg(int insn, int setcc) {
 				case 1: /* LSR #32 */ count = 32; break;
 				case 2: /* ASR #32 */ count = 32; break;
 				case 3: /* RRX */ {
-					uint32_t ret = arm.cpsr_c << 31 | res >> 1;
+					u32 ret = arm.cpsr_c << 31 | res >> 1;
 					if (setcc) arm.cpsr_c = res & 1;
 					return ret;
 				}
@@ -246,7 +246,7 @@ static int get_shifted_reg(int insn, int setcc) {
 }
 
 void cpu_exception(int type) {
-	static const uint8_t flags[] = {
+	static const u8 flags[] = {
 		MODE_SVC | 0xC0, /* Reset */
 		MODE_UND | 0x80, /* Undefined instruction */
 		MODE_SVC | 0x80, /* Software interrupt */
@@ -258,7 +258,7 @@ void cpu_exception(int type) {
 	};
 
 	/* Switch mode, disable interrupts */
-	uint32_t old_cpsr = get_cpsr();
+	u32 old_cpsr = get_cpsr();
 	set_cpsr_full((old_cpsr & ~0x3F) | flags[type]);
 	set_spsr_full(old_cpsr);
 
@@ -269,7 +269,7 @@ void cpu_exception(int type) {
 		arm.reg[15] += 0xFFFF0000;
 }
 
-void cpu_interpret_instruction(uint32_t insn) {
+void cpu_interpret_instruction(u32 insn) {
 	int exec;
 	switch (insn >> 29) {
 		case 0:  /* EQ/NE */ exec = arm.cpsr_z; break;
@@ -286,7 +286,7 @@ void cpu_interpret_instruction(uint32_t insn) {
 				} else if ((insn & 0xFE000000) == 0xFA000000) {
 					/* BLX: Branch, link, and exchange T bit */
 					arm.reg[14] = arm.reg[15];
-					arm.reg[15] += 4 + ((int32_t)insn << 8 >> 6) + (insn >> 23 & 2);
+					arm.reg[15] += 4 + ((s32)insn << 8 >> 6) + (insn >> 23 & 2);
 					arm.cpsr_low28 |= 0x20; /* Enter THUMB mode */
 				} else {
 					error("Invalid condition code");
@@ -302,7 +302,7 @@ void cpu_interpret_instruction(uint32_t insn) {
 		if (type == 0) {
 			if ((insn & 0xFC000F0) == 0x0000090) {
 				/* MUL, MLA: 32x32 to 32 multiplications */
-				uint32_t res = get_reg(insn & 15)
+				u32 res = get_reg(insn & 15)
 				        * get_reg(insn >> 8 & 15);
 				if (insn & 0x0200000)
 					res += get_reg(insn >> 12 & 15);
@@ -311,20 +311,20 @@ void cpu_interpret_instruction(uint32_t insn) {
 				if (insn & 0x0100000) set_nz_flags(res);
 			} else if ((insn & 0xF8000F0) == 0x0800090) {
 				/* UMULL, UMLAL, SMULL, SMLAL: 32x32 to 64 multiplications */
-				uint32_t left   = get_reg(insn & 15);
-				uint32_t right  = get_reg(insn >> 8 & 15);
-				uint32_t reg_lo = insn >> 12 & 15;
-				uint32_t reg_hi = insn >> 16 & 15;
+				u32 left   = get_reg(insn & 15);
+				u32 right  = get_reg(insn >> 8 & 15);
+				u32 reg_lo = insn >> 12 & 15;
+				u32 reg_hi = insn >> 16 & 15;
 
 				if (reg_lo == reg_hi)
 					error("RdLo and RdHi cannot be same for 64-bit multiply");
 
-				uint64_t res;
-				if (insn & 0x0400000) res = (int64_t)(int32_t)left * (int32_t)right;
-				else                  res = (uint64_t)left * right;
+				u64 res;
+				if (insn & 0x0400000) res = (s64)(s32)left * (s32)right;
+				else                  res = (u64)left * right;
 				if (insn & 0x0200000) {
 					/* Accumulate */
-					res += (uint64_t)get_reg(reg_hi) << 32 | get_reg(reg_lo);
+					res += (u64)get_reg(reg_hi) << 32 | get_reg(reg_lo);
 				}
 
 				set_reg(reg_lo, res);
@@ -332,8 +332,8 @@ void cpu_interpret_instruction(uint32_t insn) {
 				if (insn & 0x0100000) set_nz_flags_64(res);
 			} else if ((insn & 0xFB00FF0) == 0x1000090) {
 				/* SWP, SWPB */
-				uint32_t addr = get_reg(insn >> 16 & 15);
-				uint32_t ld, st = get_reg(insn & 15);
+				u32 addr = get_reg(insn >> 16 & 15);
+				u32 ld, st = get_reg(insn & 15);
 				if (insn & 0x0400000) {
 					ld = read_byte(addr); write_byte(addr, st);
 				} else {
@@ -351,7 +351,7 @@ void cpu_interpret_instruction(uint32_t insn) {
 				? (insn & 0x0F) | (insn >> 4 & 0xF0)
 				: get_reg(insn & 15);
 			bool writeback;
-			uint32_t addr = get_reg_pc(base_reg);
+			u32 addr = get_reg_pc(base_reg);
 
 			if (!(insn & (1 << 23))) // Subtracted offset
 				offset = -offset;
@@ -367,12 +367,12 @@ void cpu_interpret_instruction(uint32_t insn) {
 			}
 
 			if (insn & (1 << 20)) {
-				uint32_t data;
+				u32 data;
 				if (base_reg == data_reg && writeback)
 					error("Load instruction modifies base register twice");
 				if      (type == 1) data =      read_half(addr); /* LDRH  */
-				else if (type == 2) data = (int8_t) read_byte(addr); /* LDRSB */
-				else                data = (int16_t)read_half(addr); /* LDRSH */
+				else if (type == 2) data = (s8) read_byte(addr); /* LDRSB */
+				else                data = (s16)read_half(addr); /* LDRSH */
 				set_reg(data_reg, data);
 			} else if (type == 1) { /* STRH */
 				write_half(addr, get_reg(data_reg));
@@ -381,8 +381,8 @@ void cpu_interpret_instruction(uint32_t insn) {
 				if (type == 2) { /* LDRD */
 					if ((base_reg & ~1) == data_reg && writeback)
 						error("Load instruction modifies base register twice");
-					uint32_t low  = read_word(addr);
-					uint32_t high = read_word(addr + 4);
+					u32 low  = read_word(addr);
+					u32 high = read_word(addr + 4);
 					set_reg(data_reg,     low);
 					set_reg(data_reg + 1, high);
 				} else { /* STRD */
@@ -397,7 +397,7 @@ void cpu_interpret_instruction(uint32_t insn) {
 		/* Miscellaneous */
 		if ((insn & 0xFFFFFD0) == 0x12FFF10) {
 			/* B(L)X: Branch(, link,) and exchange T bit */
-			uint32_t target = get_reg_pc(insn & 15);
+			u32 target = get_reg_pc(insn & 15);
 			if (insn & 0x20)
 				arm.reg[14] = arm.reg[15];
 			set_reg_pc_bx(15, target);
@@ -407,7 +407,7 @@ void cpu_interpret_instruction(uint32_t insn) {
 		} else if ((insn & 0xFB0FFF0) == 0x120F000 ||
 		           (insn & 0xFB0F000) == 0x320F000) {
 			/* MSR: Move status <- reg/imm */
-			uint32_t val, mask = 0;
+			u32 val, mask = 0;
 			if (insn & 0x2000000)
 				val = get_shifted_immed(insn, 0);
 			else
@@ -421,34 +421,34 @@ void cpu_interpret_instruction(uint32_t insn) {
 			else
 				set_cpsr(val, mask);
 		} else if ((insn & 0xF900090) == 0x1000080) {
-			int32_t left = get_reg(insn & 15);
-			int16_t right = get_reg(insn >> 8 & 15) >> (insn & 0x40 ? 16 : 0);
-			int32_t product;
+			s32 left = get_reg(insn & 15);
+			s16 right = get_reg(insn >> 8 & 15) >> (insn & 0x40 ? 16 : 0);
+			s32 product;
 			int type = insn >> 21 & 3;
 
 			if (type == 1) {
 				/* SMULW<y>, SMLAW<y>: Signed 32x16 to 48 multiply, uses only top 32 bits */
-				product = (int64_t)left * right >> 16;
+				product = (s64)left * right >> 16;
 				if (!(insn & 0x20))
 					goto accumulate;
 			} else {
 				/* SMUL<x><y>, SMLA<x><y>, SMLAL<x><y>: Signed 16x16 to 32 multiply */
-				product = (int16_t)(left >> (insn & 0x20 ? 16 : 0)) * right;
+				product = (s16)(left >> (insn & 0x20 ? 16 : 0)) * right;
 			}
 			if (type == 2) {
 				/* SMLAL<x><y>: 64-bit accumulate */
-				uint32_t reg_lo = insn >> 12 & 15;
-				uint32_t reg_hi = insn >> 16 & 15;
-				int64_t sum;
+				u32 reg_lo = insn >> 12 & 15;
+				u32 reg_hi = insn >> 16 & 15;
+				s64 sum;
 				if (reg_lo == reg_hi)
 					error("RdLo and RdHi cannot be same for 64-bit accumulate");
-				sum = product + ((uint64_t)get_reg(reg_hi) << 32 | get_reg(reg_lo));
+				sum = product + ((u64)get_reg(reg_hi) << 32 | get_reg(reg_lo));
 				set_reg(reg_lo, sum);
 				set_reg(reg_hi, sum >> 32);
 			} else if (type == 0) accumulate: {
 				/* SMLA<x><y>, SMLAW<y>: 32-bit accumulate */
-				int32_t acc = get_reg(insn >> 12 & 15);
-				int32_t sum = product + acc;
+				s32 acc = get_reg(insn >> 12 & 15);
+				s32 sum = product + acc;
 				/* Set Q flag on overflow */
 				arm.cpsr_low28 |= ADD_OVERFLOW(product, acc, sum) << 27;
 				set_reg(insn >> 16 & 15, sum);
@@ -458,9 +458,9 @@ void cpu_interpret_instruction(uint32_t insn) {
 			}
 		} else if ((insn & 0xF900FF0) == 0x1000050) {
 			/* QADD, QSUB, QDADD, QDSUB: Saturated arithmetic */
-			int32_t left  = get_reg(insn       & 15);
-			int32_t right = get_reg(insn >> 16 & 15);
-			int32_t res, overflow;
+			s32 left  = get_reg(insn       & 15);
+			s32 right = get_reg(insn >> 16 & 15);
+			s32 res, overflow;
 			if (insn & 0x400000) {
 				/* Doubled right operand */
 				res = right << 1;
@@ -486,8 +486,8 @@ void cpu_interpret_instruction(uint32_t insn) {
 			set_reg(insn >> 12 & 15, res);
 		} else if ((insn & 0xFFF0FF0) == 0x16F0F10) {
 			/* CLZ: Count leading zeros */
-			int32_t value = get_reg(insn & 15);
-			uint32_t zeros;
+			s32 value = get_reg(insn & 15);
+			u32 zeros;
 			for (zeros = 0; zeros < 32 && value >= 0; zeros++)
 				value <<= 1;
 			set_reg(insn >> 12 & 15, zeros);
@@ -500,12 +500,12 @@ void cpu_interpret_instruction(uint32_t insn) {
 		}
 	} else if ((insn & 0xC000000) == 0) {
 		/* Data processing instructions */
-		uint32_t left, right, res;
+		u32 left, right, res;
 		int setcc = insn >> 20 & 1;
 		int opcode = insn >> 21 & 15;
 		int dest_reg = insn >> 12 & 15;
 
-		uint8_t c = arm.cpsr_c;
+		u8 c = arm.cpsr_c;
 
 		left = get_reg_pc(insn >> 16 & 15);
 		if (insn & (1 << 25))
@@ -549,7 +549,7 @@ void cpu_interpret_instruction(uint32_t insn) {
 		int base_reg = insn >> 16 & 15;
 		int data_reg = insn >> 12 & 15;
 
-		uint32_t offset;
+		u32 offset;
 		if (insn & (1 << 25)) {
 			if (insn & (1 << 4))
 				error("Cannot shift memory offset by register");
@@ -559,7 +559,7 @@ void cpu_interpret_instruction(uint32_t insn) {
 		}
 
 		bool writeback;
-		uint32_t addr = get_reg_pc(base_reg);
+		u32 addr = get_reg_pc(base_reg);
 
 		if (!(insn & (1 << 23))) // Subtracted offset
 			offset = -offset;
@@ -588,8 +588,8 @@ void cpu_interpret_instruction(uint32_t insn) {
 	} else if ((insn & 0xE000000) == 0x8000000) {
 		/* LDM, STM: Load/store multiple */
 		int base_reg = insn >> 16 & 15;
-		uint32_t addr = get_reg(base_reg);
-		uint32_t new_base = addr;
+		u32 addr = get_reg(base_reg);
+		u32 new_base = addr;
 		int i, count = 0;
 		for (i = 0; i < 16; i++)
 			count += (insn >> i & 1);
@@ -609,7 +609,7 @@ void cpu_interpret_instruction(uint32_t insn) {
 
 		for (i = 0; i < 15; i++) {
 			if (insn >> i & 1) {
-				uint32_t *reg_ptr = &arm.reg[i];
+				u32 *reg_ptr = &arm.reg[i];
 				if (insn & (1 << 22) && ~insn & ((1 << 20) | (1 << 15))) {
 					/* User-mode registers */
 					int mode = arm.cpsr_low28 & 0x1F;
@@ -645,13 +645,13 @@ void cpu_interpret_instruction(uint32_t insn) {
 		/* B, BL: Branch, branch-and-link */
 		if (insn & (1 << 24))
 			arm.reg[14] = arm.reg[15];
-		arm.reg[15] += 4 + ((int32_t)insn << 8 >> 6);
+		arm.reg[15] += 4 + ((s32)insn << 8 >> 6);
 	} else if ((insn & 0xF100F10) == 0xE000F10) {
 		/* MCR p15 */
-		uint32_t value = get_reg(insn >> 12 & 15);
+		u32 value = get_reg(insn >> 12 & 15);
 		switch (insn & 0xEF00EF) {
 			case 0x010000: { /* MCR p15, 0, <Rd>, c1, c0, 0: Control Register */
-				uint32_t change = value ^ arm.control;
+				u32 change = value ^ arm.control;
 				if ((value & 0xFFFF8CF8) != 0x00050078)
 					error("Bad or unimplemented control register value: %x\n", value);
 				arm.control = value;
@@ -703,7 +703,7 @@ void cpu_interpret_instruction(uint32_t insn) {
 		}
 	} else if ((insn & 0xF100F10) == 0xE100F10) {
 		/* MRC p15 */
-		uint32_t value;
+		u32 value;
 		switch (insn & 0xEF00EF) {
 			case 0x000000: /* MRC p15, 0, <Rd>, c0, c0, 0: ID Code Register */
 				value = 0x41069264; /* ARM926EJ-S revision 4 */
@@ -764,11 +764,11 @@ bad_insn:
 	}
 }
 
-static inline void *get_pc_ptr(uint32_t align) {
+static inline void *get_pc_ptr(u32 align) {
 again:;
-	uint32_t pc = arm.reg[15];
+	u32 pc = arm.reg[15];
 	void *ptr = &addr_cache[(pc >> 10) << 1][pc];
-	if ((uint32_t)ptr & (AC_NOT_PTR | (align - 1))) {
+	if ((u32)ptr & (AC_NOT_PTR | (align - 1))) {
 		if (pc & (align - 1)) {
 			// Handle misaligned PC by truncating low bits; gpsp-nspire 
 			arm.reg[15] = pc & -align;
@@ -783,8 +783,8 @@ again:;
 
 void cpu_arm_loop() {
 	while (cycle_count_delta < 0 && !(arm.cpsr_low28 & 0x20)) {
-		uint32_t *insnp = get_pc_ptr(4);
-		uint32_t *flags = &RAM_FLAGS(insnp);
+		u32 *insnp = get_pc_ptr(4);
+		u32 *flags = &RAM_FLAGS(insnp);
 
 		if (cpu_events != 0) {
 			if (cpu_events & ~EVENT_DEBUG_STEP)
@@ -825,8 +825,8 @@ enter_debugger:
 
 void cpu_thumb_loop() {
 	while (cycle_count_delta < 0) {
-		uint16_t *insnp = get_pc_ptr(2);
-		uint16_t insn = *insnp;
+		u16 *insnp = get_pc_ptr(2);
+		u16 insn = *insnp;
 
 		if (cpu_events != 0) {
 			if (cpu_events & ~EVENT_DEBUG_STEP)
@@ -834,7 +834,7 @@ void cpu_thumb_loop() {
 			goto enter_debugger;
 		}
 
-		uint32_t flags = RAM_FLAGS((uint32_t)insnp & ~3);
+		u32 flags = RAM_FLAGS((u32)insnp & ~3);
 		if (flags & (RF_EXEC_BREAKPOINT | RF_EXEC_DEBUG_NEXT)) {
 			if (flags & RF_EXEC_BREAKPOINT)
 				printf("Hit breakpoint at %08X. Entering debugger.\n", arm.reg[15]);
@@ -867,9 +867,9 @@ enter_debugger:
 			CASE_x8(0x30): /* ADD Rd, #imm */ set_nz_flags(REG8 = add(REG8, insn & 0xFF, 0, true)); break;
 			CASE_x8(0x38): /* SUB Rd, #imm */ set_nz_flags(REG8 = add(REG8, ~(insn & 0xFF), 1, true)); break;
 			CASE_x4(0x40): {
-				uint32_t *dst = &REG0;
-				uint32_t res;
-				uint32_t src = REG3;
+				u32 *dst = &REG0;
+				u32 res;
+				u32 src = REG3;
 				switch (insn >> 6 & 15) {
 					default:
 					case 0x0: /* AND */ res = *dst &= src; break;
@@ -893,22 +893,22 @@ enter_debugger:
 				break;
 			}
 			case 0x44: { /* ADD Rd, Rm (high registers allowed) */
-				uint32_t left = (insn >> 4 & 8) | (insn & 7), right = insn >> 3 & 15;
+				u32 left = (insn >> 4 & 8) | (insn & 7), right = insn >> 3 & 15;
 				set_reg_pc(left, get_reg_pc_thumb(left) + get_reg_pc_thumb(right));
 				break;
 			}
 			case 0x45: { /* CMP Rn, Rm (high registers allowed) */
-				uint32_t left = (insn >> 4 & 8) | (insn & 7), right = insn >> 3 & 15;
+				u32 left = (insn >> 4 & 8) | (insn & 7), right = insn >> 3 & 15;
 				set_nz_flags(add(get_reg(left), ~get_reg_pc_thumb(right), 1, true));
 				break;
 			}
 			case 0x46: { /* MOV Rd, Rm (high registers allowed) */
-				uint32_t left = (insn >> 4 & 8) | (insn & 7), right = insn >> 3 & 15;
+				u32 left = (insn >> 4 & 8) | (insn & 7), right = insn >> 3 & 15;
 				set_reg_pc(left, get_reg_pc_thumb(right));
 				break;
 			}
 			case 0x47: { /* BX/BLX Rm (high register allowed) */
-				uint32_t target = get_reg_pc_thumb(insn >> 3 & 15);
+				u32 target = get_reg_pc_thumb(insn >> 3 & 15);
 				if (insn & 0x80)
 					arm.reg[14] = arm.reg[15] + 1;
 				arm.reg[15] = target & ~1;
@@ -922,11 +922,11 @@ enter_debugger:
 			CASE_x2(0x50): /* STR   Rd, [Rn, Rm] */ write_word(REG3 + REG6, REG0); break;
 			CASE_x2(0x52): /* STRH  Rd, [Rn, Rm] */ write_half(REG3 + REG6, REG0); break;
 			CASE_x2(0x54): /* STRB  Rd, [Rn, Rm] */ write_byte(REG3 + REG6, REG0); break;
-			CASE_x2(0x56): /* LDRSB Rd, [Rn, Rm] */ REG0 = (int8_t)read_byte(REG3 + REG6); break;
+			CASE_x2(0x56): /* LDRSB Rd, [Rn, Rm] */ REG0 = (s8)read_byte(REG3 + REG6); break;
 			CASE_x2(0x58): /* LDR   Rd, [Rn, Rm] */ REG0 = read_word_ldr(REG3 + REG6); break;
 			CASE_x2(0x5A): /* LDRH  Rd, [Rn, Rm] */ REG0 = read_half(REG3 + REG6); break;
 			CASE_x2(0x5C): /* LDRB  Rd, [Rn, Rm] */ REG0 = read_byte(REG3 + REG6); break;
-			CASE_x2(0x5E): /* LDRSH Rd, [Rn, Rm] */ REG0 = (int16_t)read_half(REG3 + REG6); break;
+			CASE_x2(0x5E): /* LDRSH Rd, [Rn, Rm] */ REG0 = (s16)read_half(REG3 + REG6); break;
 			CASE_x8(0x60): /* STR  Rd, [Rn, #imm] */ write_word(REG3 + (insn >> 4 & 124), REG0); break;
 			CASE_x8(0x68): /* LDR  Rd, [Rn, #imm] */ REG0 = read_word_ldr(REG3 + (insn >> 4 & 124)); break;
 			CASE_x8(0x70): /* STRB Rd, [Rn, #imm] */ write_byte(REG3 + (insn >> 6 & 31), REG0); break;
@@ -943,10 +943,10 @@ enter_debugger:
 
 			CASE_x2(0xB4): { /* PUSH {reglist[,LR]} */
 				int i;
-				uint32_t addr = arm.reg[13];
+				u32 addr = arm.reg[13];
 				for (i = 8; i >= 0; i--)
 					addr -= (insn >> i & 1) * 4;
-				uint32_t sp = addr;
+				u32 sp = addr;
 				for (i = 0; i < 8; i++)
 					if (insn >> i & 1)
 						write_word(addr, arm.reg[i]), addr += 4;
@@ -958,12 +958,12 @@ enter_debugger:
 
 			CASE_x2(0xBC): { /* POP {reglist[,PC]} */
 				int i;
-				uint32_t addr = arm.reg[13];
+				u32 addr = arm.reg[13];
 				for (i = 0; i < 8; i++)
 					if (insn >> i & 1)
 						arm.reg[i] = read_word(addr), addr += 4;
 				if (insn & 0x100) {
-					uint32_t target = read_word(addr); addr += 4;
+					u32 target = read_word(addr); addr += 4;
 					arm.reg[15] = target & ~1;
 					if (!(target & 1)) {
 						arm.cpsr_low28 &= ~0x20;
@@ -981,7 +981,7 @@ enter_debugger:
 
 			CASE_x8(0xC0): { /* STMIA Rn!, {reglist} */
 				int i;
-				uint32_t addr = REG8;
+				u32 addr = REG8;
 				for (i = 0; i < 8; i++)
 					if (insn >> i & 1)
 						write_word(addr, arm.reg[i]), addr += 4;
@@ -990,8 +990,8 @@ enter_debugger:
 			}
 			CASE_x8(0xC8): { /* LDMIA Rn!, {reglist} */
 				int i;
-				uint32_t addr = REG8;
-				uint32_t tmp = 0; // value not used, just suppressing uninitialized variable warning
+				u32 addr = REG8;
+				u32 tmp = 0; // value not used, just suppressing uninitialized variable warning
 				for (i = 0; i < 8; i++) {
 					if (insn >> i & 1) {
 						if (i == (insn >> 8 & 7))
@@ -1007,7 +1007,7 @@ enter_debugger:
 					REG8 = tmp;
 				break;
 			}
-#define BRANCH_IF(cond) if (cond) arm.reg[15] += 2 + ((int8_t)insn << 1); break;
+#define BRANCH_IF(cond) if (cond) arm.reg[15] += 2 + ((s8)insn << 1); break;
 			case 0xD0: /* BEQ */ BRANCH_IF(arm.cpsr_z)
 			case 0xD1: /* BNE */ BRANCH_IF(!arm.cpsr_z)
 			case 0xD2: /* BCS */ BRANCH_IF(arm.cpsr_c)
@@ -1027,19 +1027,19 @@ enter_debugger:
 				cpu_exception(EX_SWI);
 				return; /* Exits THUMB mode */
 
-			CASE_x8(0xE0): /* B */ arm.reg[15] += 2 + ((int32_t)insn << 21 >> 20); break;
+			CASE_x8(0xE0): /* B */ arm.reg[15] += 2 + ((s32)insn << 21 >> 20); break;
 			CASE_x8(0xE8): { /* Second half of BLX */
-				uint32_t target = (arm.reg[14] + ((insn & 0x7FF) << 1)) & ~3;
+				u32 target = (arm.reg[14] + ((insn & 0x7FF) << 1)) & ~3;
 				arm.reg[14] = arm.reg[15] + 1;
 				arm.reg[15] = target;
 				arm.cpsr_low28 &= ~0x20; /* Exit THUMB mode */
 				return;
 			}
 			CASE_x8(0xF0): /* First half of BL/BLX */
-				arm.reg[14] = arm.reg[15] + 2 + ((int32_t)insn << 21 >> 9);
+				arm.reg[14] = arm.reg[15] + 2 + ((s32)insn << 21 >> 9);
 				break;
 			CASE_x8(0xF8): { /* Second half of BL */
-				uint32_t target = arm.reg[14] + ((insn & 0x7FF) << 1);
+				u32 target = arm.reg[14] + ((insn & 0x7FF) << 1);
 				arm.reg[14] = arm.reg[15] + 1;
 				arm.reg[15] = target;
 				break;

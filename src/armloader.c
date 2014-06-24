@@ -40,7 +40,7 @@ int armloader_load_snippet(enum SNIPPETS snippet, struct armloader_load_params p
 	unsigned int i;
 	int code_size;
 	void *code_ptr;
-	uint32_t orig_pc;
+	u32 orig_pc;
 	
 	code_size = binary_snippets_bin_end - binary_snippets_bin_start;
 	if (code_size % 4)
@@ -64,7 +64,7 @@ int armloader_load_snippet(enum SNIPPETS snippet, struct armloader_load_params p
 	
 	orig_pc = arm.reg[15];
 	arm.reg[14] = arm.reg[15]; // return address
-	arm.reg[15] = arm.reg[13] + *(uint32_t*)code_ptr; // load_snippet
+	arm.reg[15] = arm.reg[13] + *(u32*)code_ptr; // load_snippet
 	arm.reg[12] = snippet;
 	
 	for (i = 0; i < params_num; i++) {
@@ -87,12 +87,12 @@ int armloader_load_snippet(enum SNIPPETS snippet, struct armloader_load_params p
 		}
 	}
 	armloader_cb_ptr = callback;
-	uint32_t *flags = &RAM_FLAGS(virt_mem_ptr(orig_pc, 4));
+	u32 *flags = &RAM_FLAGS(virt_mem_ptr(orig_pc, 4));
 	if (*flags & RF_CODE_TRANSLATED) flush_translations();
 	*flags |= RF_ARMLOADER_CB;
 
 // TODO for debugging
-//	uint32_t *flags = &RAM_FLAGS(virt_mem_ptr(arm.reg[15], 4));
+//	u32 *flags = &RAM_FLAGS(virt_mem_ptr(arm.reg[15], 4));
 //	if (*flags & RF_CODE_TRANSLATED) flush_translations();
 //	*flags |= RF_EXEC_BREAKPOINT;
 	

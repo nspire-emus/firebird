@@ -1,11 +1,10 @@
 #ifndef _H_EMU
 #define _H_EMU
 
-#include <stdint.h>
-#include <stdbool.h>
+#include "types.h"
 
-static inline uint16_t BSWAP16(uint16_t x) { return x << 8 | x >> 8; }
-static inline uint32_t BSWAP32(uint32_t x) {
+static inline u16 BSWAP16(u16 x) { return x << 8 | x >> 8; }
+static inline u32 BSWAP32(u32 x) {
 	if (__builtin_constant_p(x)) return x << 24 | (x << 8 & 0xFF0000) | (x >> 8 & 0xFF00) | x >> 24;
 	asm ("bswap %0" : "=r" (x) : "0" (x)); return x;
 }
@@ -16,7 +15,7 @@ extern int cycle_count_delta __asm__("cycle_count_delta");
 
 extern int throttle_delay;
 
-extern uint32_t cpu_events __asm__("cpu_events");
+extern u32 cpu_events __asm__("cpu_events");
 #define EVENT_IRQ 1
 #define EVENT_FIQ 2
 #define EVENT_RESET 4
@@ -45,7 +44,7 @@ __attribute__((noreturn)) void error(char *fmt, ...);
 void throttle_timer_on();
 void throttle_timer_off();
 int exec_hack();
-typedef void fault_proc(uint32_t mva, uint8_t status);
+typedef void fault_proc(u32 mva, u8 status);
 fault_proc prefetch_abort, data_abort __asm__("data_abort");
 void add_reset_proc(void (*proc)(void));
 

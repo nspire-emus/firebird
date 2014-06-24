@@ -6,35 +6,35 @@
 
 extern volatile int keypad_type;
 
-extern volatile uint16_t key_map[16];
+extern volatile u16 key_map[16];
 
-extern volatile uint8_t touchpad_proximity;
+extern volatile u8 touchpad_proximity;
 
-extern volatile uint16_t touchpad_x;
+extern volatile u16 touchpad_x;
 
-extern volatile uint16_t touchpad_y;
+extern volatile u16 touchpad_y;
 
-extern volatile uint8_t touchpad_down;
+extern volatile u8 touchpad_down;
 
 
 
 extern struct keypad_controller_state {
 
-	uint32_t control;
+	u32 control;
 
-	uint32_t size;
+	u32 size;
 
-	uint8_t  current_row;
+	u8  current_row;
 
-	uint8_t  int_active;
+	u8  int_active;
 
-	uint8_t  int_enable;
+	u8  int_enable;
 
-	uint16_t data[16];
+	u16 data[16];
 
-	uint32_t gpio_int_enable;
+	u32 gpio_int_enable;
 
-	uint32_t gpio_int_active;
+	u32 gpio_int_active;
 
 } kpc;
 
@@ -42,15 +42,15 @@ void keypad_reset();
 
 void keypad_int_check();
 
-uint32_t keypad_read(uint32_t addr);
+u32 keypad_read(u32 addr);
 
-void keypad_write(uint32_t addr, uint32_t value);
+void keypad_write(u32 addr, u32 value);
 
 void touchpad_cx_reset(void);
 
-uint32_t touchpad_cx_read(uint32_t addr);
+u32 touchpad_cx_read(u32 addr);
 
-void touchpad_cx_write(uint32_t addr, uint32_t value);
+void touchpad_cx_write(u32 addr, u32 value);
 
 
 
@@ -58,7 +58,7 @@ void touchpad_cx_write(uint32_t addr, uint32_t value);
 
 #define TOUCHPAD_Y_MAX 0x069B
 
-void touchpad_set(uint8_t proximity, uint16_t x, uint16_t y, uint8_t down);
+void touchpad_set(u8 proximity, u16 x, u16 y, u8 down);
 
 void touchpad_gpio_reset(void);
 
