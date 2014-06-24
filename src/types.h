@@ -10,6 +10,4 @@ typedef signed short       s16;
 typedef signed int         s32;
 typedef signed long long   s64;
 
-typedef enum { false, true } bool;
-
 #endif

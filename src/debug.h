@@ -1,8 +1,9 @@
 /* Declarations for debug.c */
-#include "types.h"
-
 #ifndef _H_DEBUG
 #define _H_DEBUG
+
+#include <stdbool.h>
+#include "types.h"
 
 #ifdef EOF // following is only meaningful if stdio.h included
 extern FILE *debugger_input;

@@ -1,6 +1,7 @@
 #ifndef _H_EMU
 #define _H_EMU
 
+#include <stdbool.h>
 #include "types.h"
 
 static inline u16 BSWAP16(u16 x) { return x << 8 | x >> 8; }

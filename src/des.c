@@ -1,3 +1,4 @@
+#include <stdbool.h>
 #include <string.h>
 #include "types.h"
 #include "memory.h"

@@ -1,5 +1,6 @@
 /* Declarations for casplus.c */
 
+#include <stdbool.h>
 #include "types.h"
 
 void casplus_lcd_draw_frame(u8 buffer[240][160]);

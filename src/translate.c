@@ -1,3 +1,4 @@
+#include <stdbool.h>
 #include <stdio.h>
 #include "emu.h"
 #include "memory.h"
