@@ -598,6 +598,8 @@ static void gdbstub_disconnect(void) {
 	gdb_connected = false;
 	if (ndls_is_installed())
 		armloader_load_snippet(SNIPPET_ndls_debug_free, NULL, 0, NULL);
+	else
+		emuprintf("Ndless not detected or too old. Debugging of applications not available!\n");
 }
 
 /* Non-blocking poll. Enter the debugger loop if a message is received. */
