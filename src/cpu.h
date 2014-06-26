@@ -3,6 +3,8 @@
 #ifndef _H_CPU
 #define _H_CPU
 
+#include <string.h>
+
 struct arm_state {  // Remember to update asmcode.S if this gets rearranged
 	u32 reg[16];    // Registers for current mode.
 
