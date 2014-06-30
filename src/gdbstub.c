@@ -598,8 +598,6 @@ static void gdbstub_disconnect(void) {
 	gdb_connected = false;
 	if (ndls_is_installed())
 		armloader_load_snippet(SNIPPET_ndls_debug_free, NULL, 0, NULL);
-	else
-		emuprintf("Ndless not detected or too old. Debugging of applications not available!\n");
 }
 
 /* Non-blocking poll. Enter the debugger loop if a message is received. */
@@ -620,12 +618,14 @@ void gdbstub_recv(void) {
 #endif
 		if (ret == -1)
 			log_socket_error("setsockopt(TCP_NODELAY) failed for GDB stub socket");
-		
+
 		/* Interface with Ndless */
 		if (ndls_is_installed())
 			armloader_load_snippet(SNIPPET_ndls_debug_alloc, NULL, 0, gdb_connect_ndls_cb);
+		else
+			emuprintf("Ndless not detected or too old. Debugging of applications not available!\n");
 		gdb_connected = true;
-		emuprintf("GDB connected.");
+		emuprintf("GDB connected.\n");
 		return;
 	}
 	fd_set rfds;
