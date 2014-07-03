@@ -10,8 +10,10 @@
 #else
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <netinet/tcp.h>
 #endif
-
 #include "debug.h"
 #include "types.h"
 #include "interrupt.h"
@@ -658,12 +660,16 @@ void rdebug_recv(void) {
 	ret = select(socket_fd + 1, &rfds, NULL, NULL, &(struct timeval) {0, 0});
 	if (ret == -1 && errno == EBADF) {
 		puts("Remote debug: connection closed.");
+#ifdef __MINGW32__
 		closesocket(socket_fd);
+#else
+		close(socket_fd);
+#endif
 		socket_fd = 0;
 	}
 	else if (!ret)
 		return; // nothing receivable
-	
+
 	size_t buf_remain = sizeof(rdebug_inbuf) - rdebug_inbuf_used;
 	if (!buf_remain) {
 		puts("Remote debug: command is too long");
@@ -673,7 +679,11 @@ void rdebug_recv(void) {
 	ssize_t rv = recv(socket_fd, (void*)&rdebug_inbuf[rdebug_inbuf_used], buf_remain, 0);
 	if (!rv) {
 		puts("Remote debug: connection closed.");
+#ifdef __MINGW32__
 		closesocket(socket_fd);
+#else
+		close(socket_fd);
+#endif
 		socket_fd = 0;
 		return;
 	}
