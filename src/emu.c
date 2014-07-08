@@ -86,7 +86,7 @@ void error(char *fmt, ...) {
 	backtrace(arm.reg[11]);
 	debugger(DBG_EXCEPTION, 0);
 	cpu_events |= EVENT_RESET;
-	longjmp(restart_after_exception, 0);
+	__builtin_longjmp(restart_after_exception, 0);
 }
 
 int exec_hack() {
@@ -106,7 +106,7 @@ void prefetch_abort(u32 mva, u8 status) {
 	cpu_exception(EX_PREFETCH_ABORT);
 	if (mva == arm.reg[15])
 		error("Abort occurred with exception vectors unmapped");
-	longjmp(restart_after_exception, 0);
+	__builtin_longjmp(restart_after_exception, 0);
 }
 
 void data_abort(u32 mva, u8 status) {
@@ -116,7 +116,7 @@ void data_abort(u32 mva, u8 status) {
 	arm.fault_address = mva;
 	arm.data_fault_status = status;
 	cpu_exception(EX_DATA_ABORT);
-	longjmp(restart_after_exception, 0);
+	__builtin_longjmp(restart_after_exception, 0);
 }
 
 os_frequency_t perffreq;
@@ -545,7 +545,7 @@ reset:
 
 	sched_update_next_event(0);
 
-	setjmp(restart_after_exception);
+	__builtin_setjmp(restart_after_exception);
 
 	while (!exiting) {
 		sched_process_pending_events();
