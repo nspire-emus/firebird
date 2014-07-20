@@ -19,6 +19,8 @@
 #include "misc.h"
 #include "os/os.h"
 
+#include <stdint.h>
+
 /* cycle_count_delta is a (usually negative) number telling what the time is relative
  * to the next scheduled event. See sched.c */
 int cycle_count_delta = 0;
@@ -86,7 +88,7 @@ void error(char *fmt, ...) {
 	backtrace(arm.reg[11]);
 	debugger(DBG_EXCEPTION, 0);
 	cpu_events |= EVENT_RESET;
-	__builtin_longjmp(restart_after_exception, 0);
+	longjmp(restart_after_exception, 0);
 }
 
 int exec_hack() {
@@ -106,7 +108,7 @@ void prefetch_abort(u32 mva, u8 status) {
 	cpu_exception(EX_PREFETCH_ABORT);
 	if (mva == arm.reg[15])
 		error("Abort occurred with exception vectors unmapped");
-	__builtin_longjmp(restart_after_exception, 0);
+	longjmp(restart_after_exception, 0);
 }
 
 void data_abort(u32 mva, u8 status) {
@@ -116,7 +118,7 @@ void data_abort(u32 mva, u8 status) {
 	arm.fault_address = mva;
 	arm.data_fault_status = status;
 	cpu_exception(EX_DATA_ABORT);
-	__builtin_longjmp(restart_after_exception, 0);
+	longjmp(restart_after_exception, 0);
 }
 
 os_frequency_t perffreq;
@@ -247,193 +249,67 @@ bool reload_state(void) {
 }
 #endif
 
-void add_reset_proc(void (*proc)(void)) {
+void add_reset_proc(void (*proc)(void))
+{
 	if (reset_proc_count == sizeof(reset_procs)/sizeof(*reset_procs))
 		abort();
 	reset_procs[reset_proc_count++] = proc;
 }
 
-int main(int argc, char **argv) {
-	int i;
+int emulate(int flag_debug, int flag_large_nand, int flag_large_sdram, int flag_debug_on_warn, int flag_verbosity, int port_gdb, int port_rgdb, int keypad, int product, uint32_t addr_boot2, char *path_boot1,
+		char *path_boot2, char *path_flash, char *path_commands, char *path_log, char *pre_boot2, char *pre_diags, char *pre_os)
+{
 	static FILE *boot2_file = NULL;
-	static char *boot1_filename = NULL, *boot2_filename = NULL, *flash_filename = NULL;
-	char *preload_filename[4] = { NULL };
-	bool preload = false;
-	volatile u32 boot2_base = 0x11800000;
-	u32 sdram_size;
-	bool large_sdram = false;
-	bool large_flash = false;
+	uint32_t sdram_size;
+	char *preload_filename[4] = {pre_boot2, pre_diags, pre_os, NULL}; // TODO: what is arg 4??
+	int i;
 
-	for (i = 1; i < argc; i++) {
-		char *arg = argv[i];
-		if (*arg == '/' || *arg == '-') {
-			arg++;
-			switch (toupper(*arg++)) {
-				case '1':
-					if (*arg == '=') arg++;
-					boot1_filename = arg;
-					break;
-				case 'B':
-					if (*arg == '@') {
-						boot2_base = strtoul(arg + 1, &arg, 16);
-						if (boot2_base == 0) boot2_base = 0x10000000;
-					}
-					if (*arg == '=') arg++;
-					boot2_filename = arg;
-					boot2_file = fopen(boot2_filename, "rb");
-					if (!boot2_file) {
-						perror(boot2_filename);
-						return 1;
-					}
-					break;
-				case 'C':
-					if (*arg == '=') arg++;
-					rdebug_port = atoi(arg);
-					if (!rdebug_port) {
-						printf("Invalid listen port for remote debugging%s%s\n", *arg ? ": " : "", arg);
-						exit(1);
-					}
-					break;
-				case 'D':
-					if (cpu_events & EVENT_DEBUG_STEP) goto usage;
-					cpu_events |= EVENT_DEBUG_STEP;
-					if (*arg) {
-						if (*arg == '=')
-							arg++;
-						debugger_input = fopen(arg, "rt");
-						if (!debugger_input) {
-							perror(arg);
-							return 1;
-						}
-					}
-					break;
-				case 'F':
-					if (*arg == '=') arg++;
-					flash_filename = arg;
-					break;
-				case 'G':
-					if (*arg == '=') arg++;
-					gdb_port = atoi(arg);
-					if (!gdb_port) {
-						printf("Invalid listen port for GDB stub%s%s\n", *arg ? ": " : "", arg);
-						exit(1);
-					}
-					break;
-				case 'K':
-					keypad_type = 2;
-					if (*arg) {
-						keypad_type = atoi(arg);
-						if (keypad_type < 0 || keypad_type >= NUM_KEYPAD_TYPES)
-							goto usage;
-					}
-					break;
-				case 'L': {
-					char *p = strchr(log_type_tbl, toupper(*arg++));
-					int type = p - log_type_tbl;
-					if (!p) goto usage;
-					log_enabled[type] = 1;
-					if (arg[0] == '=') {
-						char *p2 = strchr(log_type_tbl, toupper(arg[1]));
-						int type2 = p2 - log_type_tbl;
-						if (!p2) goto usage;
-						log_file[type] = log_file[type2];
-					} else if (strcmp(arg, "-") == 0) {
-						log_file[type] = stdout;
-					} else {
-						log_file[type] = fopen(arg, "wb");
-					}
-					if (!log_file[type]) {
-						perror(arg);
-						exit(1);
-					}
-					break;
-				}
-				case 'M':
-					switch (toupper(*arg)) {
-						case 'P': product = 0x0C0; arg++; goto nocas;
-						case 'L': product = 0x0D0; arg++; goto nocas;
-						case 'X': product = 0x100; arg++; break;
-						case 'M': product = 0x120; arg++; break;
-					}
-					if (toupper(*arg) == 'C') { // CAS
-						product = (product == 0x0E0 ? 0x0C1 : (product - 0x10));
-						arg++;
-					}
-				nocas:
-					if (*arg) goto usage;
-					break;
-				case 'N':
-					if (*arg) goto usage;
-					large_flash = true;
-					break;
-				case 'P': {
-					static const char tbl[] = "MBDO";
-					char *p = strchr(tbl, toupper(*arg++));
-					if (!p) goto usage;
-					if (*arg == '=') arg++;
-					preload_filename[p - tbl] = arg;
-					preload = true;
-					break;
-				}
-				case 'R':
-					if (*arg) goto usage;
-					large_sdram = true;
-					break;
-				case 'W':
-					break_on_warn = true;
-					break;
-				default:
-usage:
-					printf(
-						"nspire emulator v0.70[+Ndless-SDK patches]\n"
-						"  /1=boot1	- location of BOOT1 image\n"
-						"  /B=boot2	- location of decompressed BOOT2 image\n"
-						"  /D[=cmdfile]	- enter debugger on startup (optionally read from file)\n"
-						"  /F=file	- flash image filename\n"
-						"  /G=port	- enable GDB remote protocol through the TCP port\n"
-						"  /Kn		- set keypad type (2 = TI-84 Plus, 4 = Touchpad)\n"
-						"  /M[P|X|M][C]	- set model (original/CAS+/CX/CM, non-CAS/CAS)\n"
-						"  /N		- large NAND flash size\n"
-						"  /PB=boot2.img	- preload flash with BOOT2 (.img file)\n"
-						"  /PD=diags.img	- preload flash with DIAGS image\n"
-						"  /PO=osfile	- preload flash with OS (.tnc/.tno file)\n"
-						"  /R		- large SDRAM size\n"
-						"  /W		- enter debugger on warning\n");
-					return 1;
-			}
-		} else {
-			goto usage;
-		}
-	}
+	// Debug on warn?
+	break_on_warn = flag_debug_on_warn;
 
-	switch ((boot1_filename != NULL) + (boot2_filename != NULL)) {
-		case 0: goto usage;
-		case 1: break;
-		default: printf("Must use exactly one of /1 or /B.\n"); return 0;
-	}
+	// Keypad...
+	keypad_type = keypad;
 
-	if (flash_filename) {
-		if (preload) {
-			printf("Can't preload to an existing flash image\n");
+	// Enter debug mode?
+	if(flag_debug)
+		cpu_events |= EVENT_DEBUG_STEP;
+
+	// Set boot2 base addr...
+	volatile u32 boot2_base = addr_boot2;
+
+	// Is boot2 file provided?
+	if(path_boot2)
+	{
+		boot2_file = fopen(path_boot2, "rb");
+		if(!boot2_file)
+		{
+			perror(path_boot2);
 			return 1;
 		}
-		flash_open(flash_filename);
+	}
+
+	// Logging...
+	FILE *log = (!path_log || strcmp(path_log, "-")) ? stdout : fopen(path_log, "wb");
+	if(!log)
+	{
+		printf("Could not open log file.\n");
+		perror(path_log);
+		return 1;
+	}
+	for(i = 0; i <= flag_verbosity; i++)
+	{
+		log_enabled[i] = 1;
+		log_file[i] = log;
+	}
+
+	if (path_flash) {
+		flash_open(path_flash);
 	} else {
-		nand_initialize(large_flash);
-		flash_create_new(preload_filename, product, large_sdram);
+		nand_initialize(flag_large_nand);
+		flash_create_new(preload_filename, product, flag_large_sdram);
 	}
 
 	flash_read_settings(&sdram_size);
-
-	// If /K not used, pick a default keypad type appropriate for the model
-	if (keypad_type == -1) {
-		if (emulate_casplus)
-			keypad_type = 0;
-		else if (emulate_cx)
-			keypad_type = 4;
-		else
-			keypad_type = 1;
-	}
 
 	memory_initialize(sdram_size);
 
@@ -442,19 +318,28 @@ usage:
 	for (i = 0x00000; i < 0x80000; i += 4) {
 		RAM_FLAGS(&rom[i]) = RF_READ_ONLY;
 	}
-	if (boot1_filename) {
+	if (path_boot1) {
 		/* Load the ROM */
-		FILE *f = fopen(boot1_filename, "rb");
+		FILE *f = fopen(path_boot1, "rb");
 		if (!f) {
-			perror(boot1_filename);
+			perror(path_boot1);
 			return 1;
 		}
 		fread(rom, 1, 0x80000, f);
 		fclose(f);
 	}
 
-	if (!debugger_input)
+	if (!path_commands)
 		debugger_input = stdin;
+	else
+	{
+		debugger_input = fopen(path_commands, "rb");
+		if(!debugger_input)
+		{
+			perror(path_commands);
+			return 1;
+		}
+	}
 
 	insn_buffer = os_alloc_executable(INSN_BUFFER_SIZE);
 	insn_bufptr = insn_buffer;
@@ -469,18 +354,18 @@ usage:
 	throttle_timer_on();
 	atexit(throttle_timer_off);
 
-	if (gdb_port)
-		gdbstub_init(gdb_port);
+	if(port_gdb)
+		gdbstub_init(port_gdb);
 
-	if (rdebug_port)
-		rdebug_bind(rdebug_port);
+	if (port_rgdb)
+		rdebug_bind(port_rgdb);
 
 reset:
 	memset(&arm, 0, sizeof arm);
 	arm.control = 0x00050078;
 	arm.cpsr_low28 = MODE_SVC | 0xC0;
 	cpu_events &= EVENT_DEBUG_STEP;
-	if (gdb_port)
+	if (port_gdb)
 		gdbstub_reset();
 	if (boot2_file) {
 		/* Start from BOOT2. (needs to be re-loaded on each reset since
@@ -496,7 +381,7 @@ reset:
 		fread(boot2_ptr, 1, boot2_size, boot2_file);
 		arm.reg[15] = boot2_base;
 		if (boot2_ptr[3] < 0xE0) {
-			printf("%s does not appear to be an uncompressed BOOT2 image.\n", boot2_filename);
+			printf("%s does not appear to be an uncompressed BOOT2 image.\n", path_boot2);
 			return 1;
 		}
 
@@ -545,7 +430,7 @@ reset:
 
 	sched_update_next_event(0);
 
-	__builtin_setjmp(restart_after_exception);
+	setjmp(restart_after_exception);
 
 	while (!exiting) {
 		sched_process_pending_events();
