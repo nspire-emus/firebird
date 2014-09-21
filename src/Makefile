@@ -51,7 +51,7 @@ clean:
 	rm -f $(OBJS) $(EXEC)
 
 test: all
-	$(WINE) ./$(EXEC) -1=Boot1cx.img -F=Flash.bin
+	$(WINE) ./$(EXEC) -1 Boot1cx.img -f Flash.bin
 
 debug: all
-	gdb $(EXEC) -ex "run -1=Boot1cx.img -F=Flash.bin"
+	gdb $(EXEC) -ex "run -1 Boot1cx.img -f Flash.bin"
