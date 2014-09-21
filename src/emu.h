@@ -2,6 +2,7 @@
 #define _H_EMU
 
 #include <stdbool.h>
+#include <stdint.h>
 #include "types.h"
 
 static inline u16 BSWAP16(u16 x) { return x << 8 | x >> 8; }
@@ -49,5 +50,11 @@ int exec_hack();
 typedef void fault_proc(u32 mva, u8 status);
 fault_proc prefetch_abort, data_abort __asm__("data_abort");
 void add_reset_proc(void (*proc)(void));
+
+
+
+int emulate(int flag_debug, int flag_large_nand, int flag_large_sdram, int flag_debug_on_warn, int flag_verbosity, int port_gdb, int port_rgdb, int keypad, int product, uint32_t addr_boot2, char *path_boot1,
+                char *path_boot2, char *path_flash, char *path_commands, char *path_log, char *pre_boot2, char *pre_diags, char *pre_os);
+
 
 #endif

@@ -7,6 +7,7 @@
  *
  */
 
+#include "emu.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <getopt.h>
@@ -128,8 +129,15 @@ int main(int argc, char **argv)
 			return 1;
 		}
 		else
-			switch(long_options[option_index].val)
+		{
+			if(i == 0 && long_options[option_index].flag != 0)
+				i = long_options[option_index].val;
+
+			switch(i)
 			{
+			case 0:
+				// This is a flag case. Do nothing...
+				break;
 			case '1':
 				path_boot1 = optarg;
 				break;
@@ -230,6 +238,7 @@ int main(int argc, char **argv)
 				print_help(long_options, help);
 				return 1;
 			}
+		}
 
 	// Check for boot1 or boot2...
 	if(!path_boot1 && !path_boot2)
