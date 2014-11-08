@@ -45,7 +45,7 @@ void sched_update_next_event(u32 cputick) {
 			next_index = i;
 		}
 	}
-	//printf("Next event: (%8d,%d)\n", next_cputick, next_index);
+    //printf("Next event: (%8d,%d)\n", next_cputick, next_index);
 	cycle_count_delta = cputick - next_cputick;
 }
 
@@ -53,7 +53,7 @@ u32 sched_process_pending_events() {
 	u32 cputick = next_cputick + cycle_count_delta;
 	while (cputick >= next_cputick) {
 		if (next_index < 0) {
-			//printf("[%8d] New second\n", cputick);
+            //printf("[%8d] New second\n", cputick);
 			int i;
 			for (i = 0; i < SCHED_NUM_ITEMS; i++) {
 				if (sched_items[i].second >= 0)
@@ -61,7 +61,7 @@ u32 sched_process_pending_events() {
 			}
 			cputick -= clock_rates[CLOCK_CPU];
 		} else {
-			//printf("[%8d/%8d] Event %d\n", cputick, next_cputick, next_index);
+            //printf("[%8d/%8d] Event %d\n", cputick, next_cputick, next_index);
 			sched_items[next_index].second = -1;
 			sched_items[next_index].proc(next_index);
 		}

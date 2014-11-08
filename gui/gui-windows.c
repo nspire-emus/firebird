@@ -36,7 +36,7 @@ void gui_redraw()
 	InvalidateRect(hwndGfx, NULL, FALSE);
 }
 
-void gui_set_tittle(char *buf)
+void gui_set_title(char *buf)
 {
 	SetWindowText(hwndMain, buf);
 }

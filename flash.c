@@ -3,6 +3,7 @@
 #include <string.h>
 #include "emu.h"
 #include "memory.h"
+#include "cpu.h"
 
 struct nand_metrics {
 	u8 chip_manuf, chip_model;
@@ -35,7 +36,7 @@ void nand_initialize(bool large) {
 }
 
 void nand_write_command_byte(u8 command) {
-	//printf("\n[%08X] Command %02X", arm.reg[15], command);
+    //printf("\n[%08X] Command %02X", arm.reg[15], command);
 	switch (command) {
 		case 0x01: case 0x50:
 			if (nand_metrics.page_size >= 0x800)

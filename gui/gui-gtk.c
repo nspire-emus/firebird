@@ -11,7 +11,7 @@ void gui_redraw()
 {
 }
 
-void gui_set_tittle(char *buf)
+void gui_set_title(char *buf)
 {
 }
 

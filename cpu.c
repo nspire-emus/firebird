@@ -793,8 +793,8 @@ void cpu_arm_loop() {
 		}
 
 		if (*flags & RF_CODE_TRANSLATED) {
-			translation_enter();
-			continue;
+            translation_enter();
+            continue;
 		}
 
 		if (*flags & (RF_EXEC_BREAKPOINT | RF_EXEC_DEBUG_NEXT | RF_ARMLOADER_CB | RF_EXEC_HACK)) {
@@ -808,14 +808,14 @@ void cpu_arm_loop() {
 enter_debugger:
 				debugger(DBG_EXEC_BREAKPOINT, 0);
 			}
-			if (*flags & RF_EXEC_HACK)
+            if (*flags & RF_EXEC_HACK)
 				if (exec_hack())
 					continue;
 		} else {
 			if (do_translate && !(*flags & (RF_CODE_NO_TRANSLATE))) {
-				translate(arm.reg[15], insnp);
-				continue;
-			}
+                translate(arm.reg[15], insnp);
+                continue;
+            }
 		}
 		arm.reg[15] += 4;
 		cycle_count_delta++;

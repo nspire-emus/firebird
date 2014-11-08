@@ -37,10 +37,10 @@ int main(int argc, char **argv)
 	int i;	// Argument iteration...
 	int option_index = 0;
 	static int flag_debug = 0;
-	static int flag_large_nand = 0;
-	static int flag_large_sdram = 0;
+    static int flag_large_nand = 1;
+    static int flag_large_sdram = 1;
 	static int flag_debug_on_warn = 0;
-	static int flag_verbosity = 0;
+    static int flag_verbosity = 0;
 	int port_gdb = 0;
 	int port_rgdb = 0;
 	int keypad_type = -1;

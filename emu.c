@@ -172,7 +172,7 @@ void throttle_interval_event(int index) {
 			double speed = (double)os_frequency_hz(perffreq) * (intervals - prev_intervals) / time;
 			char buf[40];
 			sprintf(buf, "nspire_emu - %.1f%%", speed);
-			gui_set_tittle(buf);
+            gui_set_title(buf);
 			prev_intervals = intervals;
 			prev = interval_end;
 		}
@@ -375,13 +375,13 @@ reset:
 		fseek(boot2_file, 0, SEEK_SET);
 		u8 *boot2_ptr = phys_mem_ptr(boot2_base, boot2_size);
 		if (!boot2_ptr) {
-			printf("Address %08X is not in RAM.\n", boot2_base);
+            emuprintf("Address %08X is not in RAM.\n", boot2_base);
 			return 1;
 		}
 		fread(boot2_ptr, 1, boot2_size, boot2_file);
 		arm.reg[15] = boot2_base;
 		if (boot2_ptr[3] < 0xE0) {
-			printf("%s does not appear to be an uncompressed BOOT2 image.\n", path_boot2);
+            emuprintf("%s does not appear to be an uncompressed BOOT2 image.\n", path_boot2);
 			return 1;
 		}
 
@@ -436,7 +436,7 @@ reset:
 		sched_process_pending_events();
 		while (cycle_count_delta < 0) {
 			if (cpu_events & EVENT_RESET) {
-				printf("Reset\n");
+                emuprintf("Reset\n");
 				goto reset;
 			}
 
@@ -449,7 +449,7 @@ reset:
 
 				if (cpu_events & EVENT_WAITING)
 					arm.reg[15] += 4; // Skip over wait instruction
-				logprintf(LOG_INTS, "Dispatching an interrupt\n");
+                logprintf(LOG_INTS, "Dispatching an interrupt\n");
 				arm.reg[15] += 4;
 				cpu_exception((cpu_events & EVENT_FIQ) ? EX_FIQ : EX_IRQ);
 			}

@@ -107,12 +107,12 @@ void keypad_reset() {
 u8 touchpad_page = 0x04;
 
 void touchpad_write(u8 addr, u8 value) {
-	//printf("touchpad write: %02x %02x\n", addr, value);
+    //printf("touchpad write: %02x %02x\n", addr, value);
 	if (addr == 0xFF)
 		touchpad_page = value;
 }
 u8 touchpad_read(u8 addr) {
-	//printf("touchpad read:  %02x\n", addr);
+    //printf("touchpad read:  %02x\n", addr);
 	if (addr == 0xFF)
 		return touchpad_page;
 

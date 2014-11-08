@@ -42,23 +42,23 @@ int os_getch()
 
 void *os_reserve(size_t size)
 {
-	void *ptr = mmap((void*)0x10000000, size, PROT_READ|PROT_WRITE, MAP_FIXED|MAP_PRIVATE|MAP_ANON, -1, 0);
+    void *ptr = mmap((void*)0x70000000, size, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANON, -1, 0);
 	msync(ptr, size, MS_SYNC|MS_INVALIDATE);
 	return ptr;
 }
 
 void *os_commit(void *addr, size_t size)
 {
-	void *ptr = mmap(addr, size, PROT_READ|PROT_WRITE, MAP_FIXED|MAP_SHARED|MAP_ANON, -1, 0);
+    void *ptr = mmap(addr, size, PROT_READ|PROT_WRITE, MAP_FIXED|MAP_SHARED|MAP_ANON, -1, 0);
 	msync(addr, size, MS_SYNC|MS_INVALIDATE);
-	return ptr;
+    return ptr;
 }
 
 void *os_sparse_commit(void *page, size_t size)
 {
-	void *ptr = mmap(page, size, PROT_READ|PROT_WRITE, MAP_FIXED|MAP_SHARED|MAP_ANON, -1, 0);
+    void *ptr = mmap(page, size, PROT_READ|PROT_WRITE, MAP_FIXED|MAP_SHARED|MAP_ANON, -1, 0);
 	msync(page, size, MS_SYNC|MS_INVALIDATE);
-	return ptr;
+    return ptr;
 }
 
 void os_sparse_decommit(void *page, size_t size)
@@ -66,8 +66,8 @@ void os_sparse_decommit(void *page, size_t size)
 	// instead of unmapping the address, we're just gonna trick
 	// the TLB to mark this as a new mapped area which, due to
 	// demand paging, will not be committed until used.
-	mmap(page, size, PROT_NONE, MAP_FIXED|MAP_PRIVATE|MAP_ANON, -1, 0);
-	msync(page, size, MS_SYNC|MS_INVALIDATE);
+    mmap(page, size, PROT_NONE, MAP_FIXED|MAP_PRIVATE|MAP_ANON, -1, 0);
+    msync(page, size, MS_SYNC|MS_INVALIDATE);
 }
 
 void *os_alloc_executable(size_t size)
@@ -169,7 +169,9 @@ void make_writable(void *addr)
 void addr_cache_init(os_exception_frame_t *frame)
 {
     (void) frame;
-    addr_cache = mmap((void*)0x20000000, AC_NUM_ENTRIES * sizeof(ac_entry), PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANON, -1, 0);
+    addr_cache = mmap((void*)0xC0000000, AC_NUM_ENTRIES * sizeof(ac_entry), PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANON, -1, 0);
+
+    setbuf(stdout, NULL);
 
     struct sigaction sa;
 
