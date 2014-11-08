@@ -47,7 +47,7 @@ void __attribute__((fastcall)) mmio_write_byte(u32 addr, u32 value) __asm__("mmi
 void __attribute__((fastcall)) mmio_write_half(u32 addr, u32 value) __asm__("mmio_write_half");
 void __attribute__((fastcall)) mmio_write_word(u32 addr, u32 value) __asm__("mmio_write_word");
 
-void memory_initialize();
+void memory_initialize(u32 sdram_size);
 void *memory_save_state(size_t *size);
 void memory_reload_state(void *state);
 

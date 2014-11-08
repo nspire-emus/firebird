@@ -1,9 +1,5 @@
-src/*.o
-src/*/*.o
-src/*~
-src/*/*~
-src/*.exe
-src/*.bat
-src/nspire_emu
-src/Boot1cx.img
-src/Flash.bin
+*.o
+*.o
+*.exe
+*.bat
+nspire_emu

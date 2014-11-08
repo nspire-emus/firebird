@@ -24,9 +24,9 @@ void print_help(struct option *opt, char **help)
 	while(opt[i].name)
 	{
 		if(opt[i].flag)
-			printf("-%s\t\t\t- %s\n", opt[i].name, help[i]);
+			printf("-%-20s - %s\n", opt[i].name, help[i]);
 		else
-			printf("-%c,\t--%s\t- %s\n", opt[i].val, opt[i].name, help[i]);
+			printf("-%c, --%-15s - %s\n", opt[i].val, opt[i].name, help[i]);
 		i++;
 	}
 }
@@ -63,13 +63,6 @@ int main(int argc, char **argv)
 		{ "r",		no_argument,	&flag_large_sdram,	1 },
 		{ "w",		no_argument,	&flag_debug_on_warn,	1 },
 		{ "v",		no_argument,	&flag_verbosity,	1 },
-		{ "vv",		no_argument,	&flag_verbosity,	2 },
-		{ "vvv",	no_argument,	&flag_verbosity,	3 },
-		{ "vvvv",	no_argument,	&flag_verbosity,	4 },
-		{ "vvvvv",	no_argument,	&flag_verbosity,	5 },
-		{ "vvvvvv",	no_argument,	&flag_verbosity,	6 },
-		{ "vvvvvvv",	no_argument,	&flag_verbosity,	7 },
-		{ "vvvvvvvv",	no_argument,	&flag_verbosity,	8 },
 
 		/* Non flag options... */
 		{ "boot1",	required_argument,	0,	'1'},
@@ -97,13 +90,6 @@ int main(int argc, char **argv)
 		"large sdram size",
 		"enter debugger on warning",
 		"verbose",
-		"very verbose",
-		"very very verbose",
-		"...",
-		"...",
-		"...",
-		"...",
-		"...",
 		"location of boot1 image",
 		"location of decompressed boot2 image",
 		"boot2 image base address",
@@ -120,8 +106,9 @@ int main(int argc, char **argv)
 	};
 
 	// Print header and parse options...
-	printf("nSpire emu v0.7+Ndless patches\n");
+	printf("nspire_emu v0.8\n");
 	while((i = getopt_long(argc, argv, "1:2:b:f:g:a:c:k:m:l:", long_options, &option_index)) != -1)
+	{
 		if(i == '?')
 		{
 			// Getopt already printed a message.
@@ -239,6 +226,7 @@ int main(int argc, char **argv)
 				return 1;
 			}
 		}
+	}
 
 	// Check for boot1 or boot2...
 	if(!path_boot1 && !path_boot2)
