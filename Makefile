@@ -11,7 +11,9 @@ ifeq ($(OS),Windows_NT)
 	LDFLAGS += -mi386pe
 	LIBS += -lgdi32 -lcomdlg32 -lwinmm -lws2_32
 else
+	CFLAGS += -DUSE_READLINE
 	LDFLAGS += -melf_i386
+	LIBS += -lreadline
 endif
 ifneq (,$(findstring mingw, $(OPTS)))
 	OBJS += resource.o
