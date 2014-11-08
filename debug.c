@@ -105,6 +105,11 @@ static u32 parse_expr(char *str) {
 			sign = 1;
 		} else if (*str == 'r') {
 			reg = strtoul(str + 1, &str, 10);
+            if(reg > 15)
+            {
+                printf("Reg number out of range!\n");
+                return 0;
+            }
 			sum += sign * arm.reg[reg];
 			sign = 1;
 		} else if (isxdigit(*str)) {
@@ -423,7 +428,7 @@ static int process_debug_cmd(char *cmdline) {
 		do_translate = 0;
 	//} else if (!stricmp(cmd, "q")) {
 	} else if (!strcasecmp(cmd, "q")) {
-		exit(1);
+        exit(0);
 	//} else if (!stricmp(cmd, "wm") || !stricmp(cmd, "wf")) {
 	} else if (!strcasecmp(cmd, "wm") || !strcasecmp(cmd, "wf")) {
 		bool frommem = cmd[1] != 'f';
@@ -453,11 +458,14 @@ static int process_debug_cmd(char *cmdline) {
 			size = ftell(f);
 			rewind(f);
 		}
-		// Use of |, not ||, is intentional. File should be closed regardless of read/write success.
-		if (!(frommem ? fwrite(ram, size, 1, f) : fread(ram, size, 1, f)) || fclose(f)) {
+
+        if (!(frommem ? fwrite(ram, size, 1, f) : fread(ram, size, 1, f))) {
+            fclose(f);
 			perror(filename);
 			return 0;
 		}
+        fclose(f);
+        return 0;
 	//} else if (!stricmp(cmd, "ss")) {
 	} else if (!strcasecmp(cmd, "ss")) {
 		char *addr_str = strtok(NULL, " \n");
@@ -477,19 +485,20 @@ static int process_debug_cmd(char *cmdline) {
 					ptr = memchr(ptr, *string, endptr - ptr);
 					if (!ptr) {
 						printf("String not found.\n");
-						return 1;
+                        return 0;
 					}
 					if (!memcmp(ptr, string, slen)) {
 						printf("Found at address %08X.\n", ptr - strptr + addr);
-						return 1;
+                        return 0;
 					}
 					if (ptr < endptr)
 						ptr++;
 				}
-			} else {
+            } else {
 				printf("Address range %08x-%08x is not in RAM.\n", addr, addr + len - 1);
-			}
+            }
 		}
+        return 0;
 	//} else if (!stricmp(cmd, "int")) {
 	} else if (!strcasecmp(cmd, "int")) {
 		printf("active		= %08x\n", intr.active);
@@ -560,7 +569,7 @@ static void native_debugger(void) {
 			debugger_input = stdin;
 		}
 		if (debugger_input != stdin)
-			printf("%s", line);
+            emuprintf("Remote debug cmd: %s", line);
 
 		if (process_debug_cmd(line))
 			break;
@@ -651,7 +660,7 @@ void rdebug_recv(void) {
 #endif
 		if (ret == -1)
 			log_socket_error("Remote debug: setsockopt(TCP_NODELAY) failed for socket");
-		puts("Remote debug: connected.");
+        emuprintf("Remote debug: connected.\n");
 		return;
 	}
 	fd_set rfds;
@@ -659,7 +668,7 @@ void rdebug_recv(void) {
 	FD_SET((unsigned)socket_fd, &rfds);
 	ret = select(socket_fd + 1, &rfds, NULL, NULL, &(struct timeval) {0, 0});
 	if (ret == -1 && errno == EBADF) {
-		puts("Remote debug: connection closed.");
+        emuprintf("Remote debug: connection closed.\n");
 #ifdef __MINGW32__
 		closesocket(socket_fd);
 #else
@@ -672,13 +681,13 @@ void rdebug_recv(void) {
 
 	size_t buf_remain = sizeof(rdebug_inbuf) - rdebug_inbuf_used;
 	if (!buf_remain) {
-		puts("Remote debug: command is too long");
+        emuprintf("Remote debug: command is too long\n");
 		return;
 	}
 
 	ssize_t rv = recv(socket_fd, (void*)&rdebug_inbuf[rdebug_inbuf_used], buf_remain, 0);
 	if (!rv) {
-		puts("Remote debug: connection closed.");
+        emuprintf("Remote debug: connection closed.\n");
 #ifdef __MINGW32__
 		closesocket(socket_fd);
 #else
@@ -692,7 +701,7 @@ void rdebug_recv(void) {
 		return;
 	}
 	if (rv < 0) {
-		log_socket_error("Remote debug: connection error");
+        log_socket_error("Remote debug: connection error");
 		return;
 	}
 	rdebug_inbuf_used += rv;

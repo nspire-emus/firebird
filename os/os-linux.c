@@ -19,7 +19,7 @@ int os_kbhit()
 	static const int STDIN = 0;
 	static int initialized = 0;
 
-	if (!initialized)
+    if (!initialized)
 	{
 		// Use termios to turn off line buffering
 		struct termios term;
@@ -28,11 +28,11 @@ int os_kbhit()
 		tcsetattr(STDIN, TCSANOW, &term);
 		setbuf(stdin, NULL);
 		initialized = 1;
-	}
+    }
 
 	int bytes_waiting;
 	ioctl(STDIN, FIONREAD, &bytes_waiting);
-	return bytes_waiting;
+    return bytes_waiting;
 }
 
 int os_getch()
@@ -139,6 +139,7 @@ static void user_interrupt(int sig, siginfo_t *si, void *unused)
     if(sig != SIGINT)
         return;
 
+    emuprintf("User interrupt. Quit with 'q'.\n");
     debugger(DBG_USER, 0);
 }
 
@@ -165,7 +166,6 @@ void addr_cache_init(os_exception_frame_t *frame)
 {
     (void) frame;
     addr_cache = mmap((void*)0x20000000, AC_NUM_ENTRIES * sizeof(ac_entry), PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANON, -1, 0);
-    emuprintf("addr_cache=%p\n", addr_cache);
 
     struct sigaction sa;
 
@@ -181,7 +181,7 @@ void addr_cache_init(os_exception_frame_t *frame)
     sa.sa_sigaction = user_interrupt;
     if(sigaction(SIGINT, &sa, NULL) == -1)
     {
-        emuprintf("Failed to initialize SEGV handler.\n");
+        emuprintf("Failed to initialize INT handler.\n");
         exit(1);
     }
 
