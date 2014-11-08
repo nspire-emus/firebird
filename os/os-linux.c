@@ -1,11 +1,17 @@
 #ifdef __unix__
 
+#define _GNU_SOURCE
+
 #include <sys/mman.h>
 #include <stdio.h>
 #include <termios.h>
 #include <sys/ioctl.h>
 #include <sys/time.h>
+#include <signal.h>
+#include <ucontext.h>
 #include "os.h"
+
+#include "../debug.h"
 #include "../mmu.h"
 
 int os_kbhit()
@@ -36,21 +42,21 @@ int os_getch()
 
 void *os_reserve(size_t size)
 {
-	void * ptr = mmap((void*)0, size, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANON, -1, 0);
+	void *ptr = mmap((void*)0x10000000, size, PROT_READ|PROT_WRITE, MAP_FIXED|MAP_PRIVATE|MAP_ANON, -1, 0);
 	msync(ptr, size, MS_SYNC|MS_INVALIDATE);
 	return ptr;
 }
 
 void *os_commit(void *addr, size_t size)
 {
-	void * ptr = mmap(addr, size, PROT_READ|PROT_WRITE, MAP_FIXED|MAP_SHARED|MAP_ANON, -1, 0);
+	void *ptr = mmap(addr, size, PROT_READ|PROT_WRITE, MAP_FIXED|MAP_SHARED|MAP_ANON, -1, 0);
 	msync(addr, size, MS_SYNC|MS_INVALIDATE);
 	return ptr;
 }
 
 void *os_sparse_commit(void *page, size_t size)
 {
-	void * ptr = mmap(page, size, PROT_READ|PROT_WRITE, MAP_FIXED|MAP_SHARED|MAP_ANON, -1, 0);
+	void *ptr = mmap(page, size, PROT_READ|PROT_WRITE, MAP_FIXED|MAP_SHARED|MAP_ANON, -1, 0);
 	msync(page, size, MS_SYNC|MS_INVALIDATE);
 	return ptr;
 }
@@ -66,7 +72,7 @@ void os_sparse_decommit(void *page, size_t size)
 
 void *os_alloc_executable(size_t size)
 {
-	void * ptr = mmap((void*)0, size, PROT_READ|PROT_WRITE|PROT_EXEC, MAP_FIXED|MAP_SHARED|MAP_ANON, -1, 0);
+    void *ptr = mmap((void*)0x30000000, size, PROT_READ|PROT_WRITE|PROT_EXEC, MAP_FIXED|MAP_SHARED|MAP_ANON, -1, 0);
 	msync(ptr, size, MS_SYNC|MS_INVALIDATE);
 	return ptr;
 }
@@ -86,10 +92,14 @@ double os_time_diff(os_time_t x, os_time_t y)
 
 long os_frequency_hz(os_frequency_t f)
 {
+    (void) f;
+    return 10;
 }
 
 void os_query_frequency(os_frequency_t *f)
 {
+    (void) f;
+    *f = 10;
 }
 
 void throttle_timer_on()
@@ -121,37 +131,74 @@ void throttle_timer_off()
 	*/
 }
 
-static int addr_cache_exception(/*PEXCEPTION_RECORD er, void *x, void *y, void *z*/)
+static void user_interrupt(int sig, siginfo_t *si, void *unused)
 {
-	//if(er->ExceptionCode == EXCEPTION_ACCESS_VIOLATION)
-	//{
-	//	if(addr_cache_pagefault((void *)er->ExceptionInformation[1]))
-	//		return 0; // Continue execution
-	//}
-	//return 1; // Continue search
+    (void) si;
+    (void) unused;
+
+    if(sig != SIGINT)
+        return;
+
+    debugger(DBG_USER, 0);
+}
+
+static void addr_cache_exception(int sig, siginfo_t *si, void *uctx)
+{
+    if(sig != SIGSEGV)
+        return;
+
+    ucontext_t *u = (ucontext_t*) uctx;
+    emuprintf("Got SIGSEGV trying to access 0x%lx (EIP=0x%x)\n", (long) si->si_addr, u->uc_mcontext.gregs[REG_EIP]);
+
+    if(!addr_cache_pagefault((u8*)si->si_addr))
+      exit(1);
+}
+
+void make_writable(void *addr)
+{
+    void *prev = (void*)((u32)(addr) & (~0xFFF));
+    if(mprotect(prev, 0x1000, PROT_READ | PROT_WRITE | PROT_EXEC) != 0)
+      emuprintf("mprotect failed.\n");
 }
 
 void addr_cache_init(os_exception_frame_t *frame)
 {
-	addr_cache = mmap((void*)0, AC_NUM_ENTRIES * sizeof(ac_entry), PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANON, -1, 0);
+    (void) frame;
+    addr_cache = mmap((void*)0x20000000, AC_NUM_ENTRIES * sizeof(ac_entry), PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANON, -1, 0);
+    emuprintf("addr_cache=%p\n", addr_cache);
 
-	frame->function = (void *)addr_cache_exception;
+    struct sigaction sa;
 
-	// TODO: Fix...
-	// http://feepingcreature.github.io/handling.html
-	//asm ("movl %%fs:(%1), %0" : "=r" (frame->prev) : "r" (0));
-	//asm ("movl %0, %%fs:(%1)" : : "r" (frame), "r" (0));
+    sa.sa_flags = SA_SIGINFO;
+    sigemptyset(&sa.sa_mask);
+    sa.sa_sigaction = addr_cache_exception;
+    if(sigaction(SIGSEGV, &sa, NULL) == -1)
+    {
+        emuprintf("Failed to initialize SEGV handler.\n");
+        exit(1);
+    }
+
+    sa.sa_sigaction = user_interrupt;
+    if(sigaction(SIGINT, &sa, NULL) == -1)
+    {
+        emuprintf("Failed to initialize SEGV handler.\n");
+        exit(1);
+    }
+
+    unsigned int i;
+    for(i = 0; i < AC_NUM_ENTRIES; ++i)
+    {
+        AC_SET_ENTRY_INVALID(addr_cache[i], i >> 1 << 10);
+    }
 
 	// Relocate the assembly code that wants addr_cache at a fixed address
-	//extern long *ac_reloc_start[], *ac_reloc_end[];
-	//long **reloc;
-	//for (reloc = ac_reloc_start; reloc != ac_reloc_end; reloc++)
-	//{
-	//	long prot;
-	//	mprotect(*reloc, 4, PROT_READ|PROT_WRITE|PROT_EXEC);
-	//	**reloc += (long)addr_cache;
-	//	mprotect(*reloc, 4, PROT_READ|PROT_WRITE|PROT_EXEC);
-	//}
+	extern long *ac_reloc_start[] __asm__("ac_reloc_start"), *ac_reloc_end[] __asm__("ac_reloc_end");
+	long **reloc;
+	for (reloc = ac_reloc_start; reloc != ac_reloc_end; reloc++)
+	{
+		make_writable(*reloc);
+		**reloc += (long)addr_cache;
+	}
 }
 
 #endif
