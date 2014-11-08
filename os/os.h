@@ -15,14 +15,12 @@ typedef LARGE_INTEGER os_time_t;
 typedef LARGE_INTEGER os_frequency_t;
 #else
 typedef struct timeval os_time_t;
-// TODO: os_frequency_t
 typedef long long os_frequency_t;
 #endif
 
 void os_query_time(os_time_t *t);
 double os_time_diff(os_time_t x, os_time_t y);
-// TODO Fix the following declaration...
-long os_frequency_hz(os_frequency_t f);
+long long os_frequency_hz(os_frequency_t f);
 void os_query_frequency(os_frequency_t *f);
 
 void throttle_timer_on();

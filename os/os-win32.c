@@ -51,7 +51,7 @@ double os_time_diff(os_time_t x, os_time_t y)
 }
 
 
-long os_frequency_hz(os_frequency_t f)
+long long os_frequency_hz(os_frequency_t f)
 {
 	return f.QuadPart;
 }

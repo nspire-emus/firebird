@@ -90,16 +90,20 @@ double os_time_diff(os_time_t x, os_time_t y)
 	return t;
 }
 
-long os_frequency_hz(os_frequency_t f)
+long long os_frequency_hz(os_frequency_t f)
 {
-    (void) f;
-    return 10;
+    return f;
 }
 
 void os_query_frequency(os_frequency_t *f)
 {
-    (void) f;
-    *f = 10;
+    *f = 2*1000*1000*1000; // 2GHz, good guess
+    FILE *freq = fopen("/sys/devices/system/cpu/cpu0/cpufreq/cpuinfo_max_freq", "r");
+    if(!freq)
+        return;
+
+    fscanf(freq, "%Lu", f);
+    fclose(freq);
 }
 
 void throttle_timer_on()
