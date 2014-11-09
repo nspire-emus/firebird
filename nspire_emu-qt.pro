@@ -12,7 +12,7 @@ linux|macx {
 }
 
 win32 {
-	SOURCES += os/os-windows.c
+	SOURCES += os/os-win32.c
 }
 
 #Dirty hack to compile arm snippets without qmake interfering
