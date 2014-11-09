@@ -2,26 +2,25 @@ nspire_emu
 ==========
 
 This project is currently the main TI-Nspire/CAS/Touchpad emulator started by Goplat.  
-The original piece of software can be found in the "mirror" branch or in the original repository located inside the https://github.com/OlivierA/Ndless repository.
 
 
 Building
 --------
 
-In windows mingw is needed along with the arm-none-eabi compiler suite:
-```bash
-cd src
+You need to install Qt5 with 32bit support.
+
+Run
+```
+mkdir -p build
+cd build
+qmake ..
 make
 ```
+You have to use "qmake -spec linux-g++-32 .." if you're building on a 32bit system.
 
-If someone wants to compile the windows executable in linux the mingw compiler suite is needed:
-```bash
-cd src
-OPTS=mingw make
-```
-For executing the previous wine is needed.
+For mac, use "qmake -spec macx-g++32 ..".
 
-Linux native binaries cannot be compiled yet but a simple ```make``` should do it in the future.
+TODO: Figure out whether that works and find a way to compile it for windows.
 
 
 Coding conventions
