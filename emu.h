@@ -36,7 +36,7 @@ extern bool is_halting;
 extern bool show_speed;
 
 enum { LOG_CPU, LOG_IO, LOG_FLASH, LOG_INTS, LOG_ICOUNT, LOG_USB, LOG_GDB, MAX_LOG };
-#define LOG_TYPE_TBL "CIFQ#UG";
+#define LOG_TYPE_TBL "CIFQ#UG"
 extern int log_enabled[MAX_LOG];
 void logprintf(int type, char *str, ...);
 void emuprintf(char *format, ...);
