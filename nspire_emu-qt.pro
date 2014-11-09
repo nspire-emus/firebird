@@ -1,14 +1,15 @@
 QT += core gui widgets
 CONFIG += c++11
 
-LIBS += -lreadline
-QMAKE_CFLAGS += -DUSE_READLINE -O3
+QMAKE_CFLAGS += -O3
 
 TEMPLATE = app
 TARGET = nspire_emu
 
 linux|macx {
 	SOURCES += os/os-linux.c
+	QMAKE_CFLAGS += -DUSE_READLINE
+	LIBS += -lreadline
 }
 
 win32 {
