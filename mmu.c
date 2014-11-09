@@ -132,7 +132,7 @@ ac_entry *ac_commit_list[AC_COMMIT_MAX];
 uint32_t ac_commit_index;
 
 bool addr_cache_pagefault(void *addr) {
-	ac_entry *page = (ac_entry *)((uint32_t)addr & -PAGE_SIZE);
+    ac_entry *page = (ac_entry *)((uintptr_t)addr & -PAGE_SIZE);
 	uint32_t offset = page - addr_cache;
 	if (offset >= AC_NUM_ENTRIES)
 		return false;
@@ -158,7 +158,7 @@ bool addr_cache_pagefault(void *addr) {
 
 void *addr_cache_miss(uint32_t virt, bool writing, fault_proc *fault) {
 	ac_entry entry;
-	uint32_t phys = mmu_translate(virt, writing, fault);
+    uintptr_t phys = mmu_translate(virt, writing, fault);
     uint8_t *ptr = phys_mem_ptr(phys, 1);
 	if (ptr && !(writing && (RAM_FLAGS((size_t)ptr & ~3) & RF_READ_ONLY))) {
 		AC_SET_ENTRY_PTR(entry, virt, ptr)

@@ -34,10 +34,10 @@ extern ac_entry *addr_cache;
 #define AC_NOT_PTR 0x80000000
 #define AC_SET_ENTRY_PHYS(entry, va, pa) \
         entry = (ac_entry)(((pa) - (va)) >> 10); \
-        entry += (~(uint32_t)((va) + entry) & AC_NOT_PTR);
+        entry += (~(uintptr_t)((va) + entry) & AC_NOT_PTR);
 #define AC_SET_ENTRY_INVALID(entry, va) \
         entry = (ac_entry)(1 << 22); \
-        entry += (~(uint32_t)((va) + entry) & AC_NOT_PTR);
+        entry += (~(uintptr_t)((va) + entry) & AC_NOT_PTR);
 
 bool addr_cache_pagefault(void *addr);
 void *addr_cache_miss(uint32_t addr, bool writing, fault_proc *fault) __asm__("addr_cache_miss");

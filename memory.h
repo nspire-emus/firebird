@@ -5,6 +5,8 @@
 
 #include <stdint.h>
 
+#include "emu.h"
+
 #define MEM_MAXSIZE (65*1024*1024) // also defined as RAM_FLAGS in asmcode.S
 
 // Must be allocated below 2GB (see comments for mmu.c)
@@ -42,12 +44,12 @@ void bad_write_byte(uint32_t addr, uint8_t value);
 void bad_write_half(uint32_t addr, uint16_t value);
 void bad_write_word(uint32_t addr, uint32_t value);
 
-uint32_t __attribute__((fastcall)) mmio_read_byte(uint32_t addr) __asm__("mmio_read_byte");
-uint32_t __attribute__((fastcall)) mmio_read_half(uint32_t addr) __asm__("mmio_read_half");
-uint32_t __attribute__((fastcall)) mmio_read_word(uint32_t addr) __asm__("mmio_read_word");
-void __attribute__((fastcall)) mmio_write_byte(uint32_t addr, uint32_t value) __asm__("mmio_write_byte");
-void __attribute__((fastcall)) mmio_write_half(uint32_t addr, uint32_t value) __asm__("mmio_write_half");
-void __attribute__((fastcall)) mmio_write_word(uint32_t addr, uint32_t value) __asm__("mmio_write_word");
+uint32_t FASTCALL mmio_read_byte(uint32_t addr) __asm__("mmio_read_byte");
+uint32_t FASTCALL mmio_read_half(uint32_t addr) __asm__("mmio_read_half");
+uint32_t FASTCALL mmio_read_word(uint32_t addr) __asm__("mmio_read_word");
+void FASTCALL mmio_write_byte(uint32_t addr, uint32_t value) __asm__("mmio_write_byte");
+void FASTCALL mmio_write_half(uint32_t addr, uint32_t value) __asm__("mmio_write_half");
+void FASTCALL mmio_write_word(uint32_t addr, uint32_t value) __asm__("mmio_write_word");
 
 void memory_initialize(uint32_t sdram_size);
 void *memory_save_state(size_t *size);

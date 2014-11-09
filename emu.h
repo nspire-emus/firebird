@@ -4,6 +4,13 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+// Needed for the assembler calling convention
+#ifdef __i386__
+    #define FASTCALL __attribute__((fastcall))
+#else
+    #define FASTCALL
+#endif
+
 static inline uint16_t BSWAP16(uint16_t x) { return x << 8 | x >> 8; }
 static inline uint32_t BSWAP32(uint32_t x) {
 	if (__builtin_constant_p(x)) return x << 24 | (x << 8 & 0xFF0000) | (x >> 8 & 0xFF00) | x >> 24;

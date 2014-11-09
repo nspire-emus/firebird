@@ -500,7 +500,7 @@ void gdbstub_loop(void) {
 						strcpy(remcomOutBuffer, "E03");
 						break;
 					}
-					if (range_translated((uint32_t)ramaddr, (uint32_t)((char *)ramaddr + length)))
+                    if (range_translated((uintptr_t)ramaddr, (uintptr_t)((char *)ramaddr + length)))
 						flush_translations();
 					if (hex2mem(ptr, ramaddr, length))
 						strcpy(remcomOutBuffer, "OK");

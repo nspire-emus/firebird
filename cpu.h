@@ -5,6 +5,8 @@
 
 #include <string.h>
 
+#include "emu.h"
+
 struct arm_state {  // Remember to update asmcode.S if this gets rearranged
 	uint32_t reg[16];    // Registers for current mode.
 
@@ -53,11 +55,11 @@ extern struct arm_state arm __asm__("arm");
 #define current_instr_size (arm.cpsr_low28 & 0x20 ? 2 /* thumb */ : 4)
 
 void cpu_int_check();
-uint32_t __attribute__((fastcall)) get_cpsr();
+uint32_t FASTCALL get_cpsr();
 void set_cpsr_full(uint32_t cpsr);
-void __attribute__((fastcall)) set_cpsr(uint32_t cpsr, uint32_t mask);
-uint32_t __attribute__((fastcall)) get_spsr();
-void __attribute__((fastcall)) set_spsr(uint32_t cpsr, uint32_t mask);
+void FASTCALL set_cpsr(uint32_t cpsr, uint32_t mask);
+uint32_t FASTCALL get_spsr();
+void FASTCALL set_spsr(uint32_t cpsr, uint32_t mask);
 void cpu_exception(int type);
 void cpu_interpret_instruction(uint32_t insn);
 void cpu_arm_loop();

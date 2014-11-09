@@ -164,22 +164,22 @@ void apb_write_word(uint32_t addr, uint32_t value) {
 	apb_map[addr >> 16 & 31].write(addr, value);
 }
 
-uint32_t __attribute__((fastcall)) mmio_read_byte(uint32_t addr) {
+uint32_t FASTCALL mmio_read_byte(uint32_t addr) {
 	return read_byte_map[addr >> 26](addr);
 }
-uint32_t __attribute__((fastcall)) mmio_read_half(uint32_t addr) {
+uint32_t FASTCALL mmio_read_half(uint32_t addr) {
 	return read_half_map[addr >> 26](addr);
 }
-uint32_t __attribute__((fastcall)) mmio_read_word(uint32_t addr) {
+uint32_t FASTCALL mmio_read_word(uint32_t addr) {
 	return read_word_map[addr >> 26](addr);
 }
-void __attribute__((fastcall)) mmio_write_byte(uint32_t addr, uint32_t value) {
+void FASTCALL mmio_write_byte(uint32_t addr, uint32_t value) {
 	write_byte_map[addr >> 26](addr, value);
 }
-void __attribute__((fastcall)) mmio_write_half(uint32_t addr, uint32_t value) {
+void FASTCALL mmio_write_half(uint32_t addr, uint32_t value) {
 	write_half_map[addr >> 26](addr, value);
 }
-void __attribute__((fastcall)) mmio_write_word(uint32_t addr, uint32_t value) {
+void FASTCALL mmio_write_word(uint32_t addr, uint32_t value) {
 	write_word_map[addr >> 26](addr, value);
 }
 

@@ -25,7 +25,7 @@ void cpu_int_check() {
 /* Access the Current Program Status Register.
  * The flag bits (NZCV) are stored separately since they are so
  * frequently written to independently. */
-uint32_t __attribute__((fastcall)) get_cpsr() {
+uint32_t FASTCALL get_cpsr() {
 	return arm.cpsr_n << 31
 	     | arm.cpsr_z << 30
 	     | arm.cpsr_c << 29
@@ -82,7 +82,7 @@ void set_cpsr_full(uint32_t cpsr) {
 	arm.cpsr_low28 = cpsr & 0x090000FF; /* Mask off reserved bits */
 	cpu_int_check();
 }
-void __attribute__((fastcall)) set_cpsr(uint32_t cpsr, uint32_t mask) {
+void FASTCALL set_cpsr(uint32_t cpsr, uint32_t mask) {
 	if (!(arm.cpsr_low28 & 0x0F)) {
 		/* User mode. Don't change privileged or execution state bits */
 		mask &= ~0x010000FF;
@@ -104,13 +104,13 @@ static uint32_t *ptr_spsr() {
 	}
 	error("Attempted to access SPSR from user or system mode");
 }
-inline uint32_t __attribute__((fastcall)) get_spsr() {
+inline uint32_t FASTCALL get_spsr() {
 	return *ptr_spsr();
 }
 static inline void set_spsr_full(uint32_t spsr) {
 	*ptr_spsr() = spsr;
 }
-inline void __attribute__((fastcall))  set_spsr(uint32_t spsr, uint32_t mask) {
+inline void FASTCALL  set_spsr(uint32_t spsr, uint32_t mask) {
 	*ptr_spsr() ^= (*ptr_spsr() ^ spsr) & mask;
 }
 
@@ -768,7 +768,7 @@ static inline void *get_pc_ptr(uint32_t align) {
 again:;
 	uint32_t pc = arm.reg[15];
 	void *ptr = &addr_cache[(pc >> 10) << 1][pc];
-	if ((uint32_t)ptr & (AC_NOT_PTR | (align - 1))) {
+    if ((uintptr_t)ptr & (AC_NOT_PTR | (align - 1))) {
 		if (pc & (align - 1)) {
 			// Handle misaligned PC by truncating low bits; gpsp-nspire 
 			arm.reg[15] = pc & -align;
@@ -792,10 +792,10 @@ void cpu_arm_loop() {
 			goto enter_debugger;
 		}
 
-		if (*flags & RF_CODE_TRANSLATED) {
+        if (*flags & RF_CODE_TRANSLATED) {
             translation_enter();
             continue;
-		}
+        }
 
 		if (*flags & (RF_EXEC_BREAKPOINT | RF_EXEC_DEBUG_NEXT | RF_ARMLOADER_CB | RF_EXEC_HACK)) {
 			if (*flags & RF_ARMLOADER_CB) {
@@ -835,7 +835,7 @@ void cpu_thumb_loop() {
 			goto enter_debugger;
 		}
 
-		uint32_t flags = RAM_FLAGS((uint32_t)insnp & ~3);
+        uintptr_t flags = RAM_FLAGS((uintptr_t)insnp & ~3);
 		if (flags & (RF_EXEC_BREAKPOINT | RF_EXEC_DEBUG_NEXT)) {
 			if (flags & RF_EXEC_BREAKPOINT)
 				printf("Hit breakpoint at %08X. Entering debugger.\n", arm.reg[15]);
