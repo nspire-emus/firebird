@@ -26,7 +26,7 @@ int cycle_count_delta = 0;
 
 int throttle_delay = 10; /* in milliseconds */
 
-u32 cpu_events;
+uint32_t cpu_events;
 
 bool exiting;
 bool do_translate = true;
@@ -79,7 +79,7 @@ void warn(char *fmt, ...) {
 __attribute__((noreturn))
 void error(char *fmt, ...) {
 	va_list va;
-	fprintf(stderr, "Error at PC=%08X: ", arm.reg[15]);
+    fprintf(stderr, "Error at PC=%08X: ", arm.reg[15]);
 	va_start(va, fmt);
 	vfprintf(stderr, fmt, va);
 	va_end(va);
@@ -99,7 +99,7 @@ int exec_hack() {
 	return 0;
 }
 
-void prefetch_abort(u32 mva, u8 status) {
+void prefetch_abort(uint32_t mva, uint8_t status) {
 	logprintf(LOG_CPU, "Prefetch abort: address=%08x status=%02x\n", mva, status);
 	arm.reg[15] += 4;
 	// Fault address register not changed
@@ -110,7 +110,7 @@ void prefetch_abort(u32 mva, u8 status) {
 	__builtin_longjmp(restart_after_exception, 1);
 }
 
-void data_abort(u32 mva, u8 status) {
+void data_abort(uint32_t mva, uint8_t status) {
 	logprintf(LOG_CPU, "Data abort: address=%08x status=%02x\n", mva, status);
 	fix_pc_for_fault();
 	arm.reg[15] += 8;
@@ -155,7 +155,7 @@ void throttle_interval_event(int index) {
 		// Show speed
 		static int prev_intervals;
 		static os_time_t prev;
-		s64 time = os_time_diff(interval_end, prev);
+		int64_t time = os_time_diff(interval_end, prev);
 		if (time >= os_frequency_hz(perffreq) >> 1) {
 			double speed = (double)os_frequency_hz(perffreq) * (intervals - prev_intervals) / time;
 			char buf[40];
@@ -263,7 +263,7 @@ int emulate(int flag_debug, int flag_large_nand, int flag_large_sdram, int flag_
 		cpu_events |= EVENT_DEBUG_STEP;
 
 	// Set boot2 base addr...
-	volatile u32 boot2_base = addr_boot2;
+	volatile uint32_t boot2_base = addr_boot2;
 
 	// Is boot2 file provided?
 	if(path_boot2)
@@ -301,7 +301,7 @@ int emulate(int flag_debug, int flag_large_nand, int flag_large_sdram, int flag_
 
 	memory_initialize(sdram_size);
 
-	u8 *rom = mem_areas[0].ptr;
+	uint8_t *rom = mem_areas[0].ptr;
 	memset(rom, -1, 0x80000);
 	for (i = 0x00000; i < 0x80000; i += 4) {
 		RAM_FLAGS(&rom[i]) = RF_READ_ONLY;
@@ -357,9 +357,9 @@ reset:
 		/* Start from BOOT2. (needs to be re-loaded on each reset since
 		 * it can get overwritten in memory) */
 		fseek(boot2_file, 0, SEEK_END);
-		u32 boot2_size = ftell(boot2_file);
+		uint32_t boot2_size = ftell(boot2_file);
 		fseek(boot2_file, 0, SEEK_SET);
-		u8 *boot2_ptr = phys_mem_ptr(boot2_base, boot2_size);
+		uint8_t *boot2_ptr = phys_mem_ptr(boot2_base, boot2_size);
 		if (!boot2_ptr) {
             emuprintf("Address %08X is not in RAM.\n", boot2_base);
 			return 1;
@@ -374,14 +374,14 @@ reset:
 		if (!emulate_casplus) {
 			/* To enter maintenance mode (home+enter+P), address A4012ECC
 			 * must contain an array indicating those keys before BOOT2 starts */
-			u8 *shared = phys_mem_ptr(0xA4012EB0, 0x200);
+			uint8_t *shared = phys_mem_ptr(0xA4012EB0, 0x200);
 			memcpy(&shared[0x1C], (void *)key_map, 0x12);
 
 			/* BOOT1 is expected to store the address of a function pointer table
 			 * to A4012EE8. OS 3.0 calls some of these functions... */
 			static const struct {
-				u32 ptrs[8];
-				u16 code[16];
+				uint32_t ptrs[8];
+				uint16_t code[16];
 			} stuff = { {
 				0x10020+0x01, // function 0: return *r0
 				0x10020+0x05, // function 1: *r0 = r1
@@ -400,7 +400,7 @@ reset:
 			} };
 			memcpy(&rom[0x10000], &stuff, sizeof stuff);
 			RAM_FLAGS(&rom[0x10040]) |= RF_EXEC_HACK;
-			*(u32 *)&shared[0x38] = 0x10000;
+			*(uint32_t *)&shared[0x38] = 0x10000;
 		}
 	}
 	addr_cache_flush();

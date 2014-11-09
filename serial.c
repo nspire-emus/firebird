@@ -7,7 +7,7 @@
 #include "casplus.h"
 
 FILE *xmodem_file;
-u8 xmodem_buf[0x84];
+uint8_t xmodem_buf[0x84];
 int xmodem_buf_pos;
 
 static void xmodem_next_char() {
@@ -48,7 +48,7 @@ void xmodem_send(char *filename) {
 	xmodem_next_packet();
 }
 
-void serial_byte_out(u8 byte) {
+void serial_byte_out(uint8_t byte) {
 	if (xmodem_file) {
 		if (byte == 6) {
 			emuprintf("\r%ld bytes sent", ftell(xmodem_file));
@@ -63,12 +63,12 @@ void serial_byte_out(u8 byte) {
 }
 
 struct {
-	u8 rx_char;
-	u8 interrupts;
-	u8 DLL;
-	u8 DLM;
-	u8 IER;
-	u8 LCR;
+	uint8_t rx_char;
+	uint8_t interrupts;
+	uint8_t DLL;
+	uint8_t DLM;
+	uint8_t IER;
+	uint8_t LCR;
 } serial;
 static void serial_int_check() {
 	if (emulate_casplus)
@@ -83,14 +83,14 @@ void serial_reset() {
 	}
 	memset(&serial, 0, sizeof serial);
 }
-u32 serial_read(u32 addr) {
+uint32_t serial_read(uint32_t addr) {
 	switch (addr & 0x3F) {
 		case 0x00:
 			if (serial.LCR & 0x80)
 				return serial.DLL; /* Divisor Latch LSB */
 			if (!(serial.interrupts & 1))
 				error("Attempted to read empty RBR");
-			u8 byte = serial.rx_char;
+			uint8_t byte = serial.rx_char;
 			serial.interrupts &= ~1;
 			serial_int_check();
 			xmodem_next_char();
@@ -116,7 +116,7 @@ u32 serial_read(u32 addr) {
 	}
 	return bad_read_word(addr);
 }
-void serial_write(u32 addr, u32 value) {
+void serial_write(uint32_t addr, uint32_t value) {
 	switch (addr & 0x3F) {
 		case 0x00:
 			if (serial.LCR & 0x80) {
@@ -147,10 +147,10 @@ void serial_write(u32 addr, u32 value) {
 }
 
 struct {
-	u8 rx_char;
-	u8 rx;
-	u16 int_status;
-	u16 int_mask;
+	uint8_t rx_char;
+	uint8_t rx;
+	uint16_t int_status;
+	uint16_t int_mask;
 } serial_cx;
 static inline void serial_cx_int_check() {
 	int_set(INT_SERIAL, serial_cx.int_status & serial_cx.int_mask);
@@ -162,12 +162,12 @@ void serial_cx_reset() {
 	}
 	memset(&serial_cx, 0, sizeof serial_cx);
 }
-u32 serial_cx_read(u32 addr) {
+uint32_t serial_cx_read(uint32_t addr) {
 	switch (addr & 0xFFFF) {
 		case 0x000:
 			if (!(serial_cx.rx & 1))
 				error("Attempted to read empty RBR");
-			u8 byte = serial_cx.rx_char;
+			uint8_t byte = serial_cx.rx_char;
 			serial_cx.rx = 0;
 			serial_cx.int_status &= ~0x10;
 			serial_cx_int_check();
@@ -182,7 +182,7 @@ u32 serial_cx_read(u32 addr) {
 	}
 	return bad_read_word(addr);
 }
-void serial_cx_write(u32 addr, u32 value) {
+void serial_cx_write(uint32_t addr, uint32_t value) {
 	switch (addr & 0xFFFF) {
 		case 0x000: serial_byte_out(value); return;
 		case 0x004: return;
@@ -203,7 +203,7 @@ void serial_cx_write(u32 addr, u32 value) {
 	bad_write_word(addr, value);
 }
 
-void serial_byte_in(u8 byte) {
+void serial_byte_in(uint8_t byte) {
 	if (!emulate_cx) {
 		serial.rx_char = byte;
 		serial.interrupts |= 1;

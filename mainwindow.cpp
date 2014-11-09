@@ -42,7 +42,7 @@ void MainWindow::refresh()
     {
         QByteArray framebuffer(320 * 240 * 2, 0);
         uint32_t useless[3];
-        lcd_cx_draw_frame(reinterpret_cast<u16*>(framebuffer.data()), useless);
+        lcd_cx_draw_frame(reinterpret_cast<uint16_t*>(framebuffer.data()), useless);
         QImage image(reinterpret_cast<const uchar*>(framebuffer.data()), 320, 240, 320 * 2, QImage::Format_RGB16);
 
         lcd_scene.addPixmap(QPixmap::fromImage(image));

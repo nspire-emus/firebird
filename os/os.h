@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <stdint.h>
 
 int os_kbhit();
 int os_getch();

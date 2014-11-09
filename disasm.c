@@ -46,11 +46,11 @@ enum operand {
 };
 
 static const struct arm_insn {
-	u32 mask;
-	u32 value;
+	uint32_t mask;
+	uint32_t value;
 	char name[7];
-	u8 suffix;
-	u8 op1, op2, op3, op4;
+	uint8_t suffix;
+	uint8_t op1, op2, op3, op4;
 } table[] = {
 	{0xFD70F000,0xF550F000, "pld",   0, MEM,   none,  none,  none  },
 	{0xFE000000,0xFA000000, "blx",   0, BRCHT, none,  none,  none  },
@@ -141,7 +141,7 @@ static const struct arm_insn {
 	{ 0x0000000, 0x0000000, "???",   0, none,  none,  none,  none  },
 };
 
-static char *do_shift(char *out, u32 insn) {
+static char *do_shift(char *out, uint32_t insn) {
 	static const char shifts[4][4] = { "lsl", "lsr", "asr", "ror" };
 	int shift = insn >> 7 & 31;
 	int stype = insn >> 5 & 3;
@@ -194,13 +194,13 @@ static char *do_reglist(char *out, int regs) {
 	return out;
 }
 
-u32 disasm_arm_insn(u32 pc) {
+uint32_t disasm_arm_insn(uint32_t pc) {
 	char buf[80];
-	u32 *pc_ptr = virt_mem_ptr(pc, 4);
+	uint32_t *pc_ptr = virt_mem_ptr(pc, 4);
 	if (!pc_ptr)
 		return 0;
 
-	u32 insn = *pc_ptr;
+	uint32_t insn = *pc_ptr;
 	char *out = buf + sprintf(buf, "%08x: %08x\t", pc, insn);
 
 	int i;
@@ -263,7 +263,7 @@ u32 disasm_arm_insn(u32 pc) {
 				}
 				/* fallthrough */
 			case IMMED: {
-				u32 imm = insn & 255, shift = insn >> 7 & 30;
+				uint32_t imm = insn & 255, shift = insn >> 7 & 30;
 				out += sprintf(out, "%08x", imm >> shift | imm << (32 - shift));
 				break;
 			}
@@ -288,7 +288,7 @@ u32 disasm_arm_insn(u32 pc) {
 					addr += pc + 8;
 					out -= 2;
 					out += sprintf(out, "%08x]", addr);
-					u32 *ptr = virt_mem_ptr(addr, 4);
+					uint32_t *ptr = virt_mem_ptr(addr, 4);
 					if (ptr)
 						out += sprintf(out, " = %08x", *ptr);
 				} else {
@@ -330,7 +330,7 @@ u32 disasm_arm_insn(u32 pc) {
 				*out++ = ' ';
 				if (insn & (1 << 22)) {
 					// immediate offset
-					u32 imm = (insn & 0x0F) | (insn >> 4 & 0xF0);
+					uint32_t imm = (insn & 0x0F) | (insn >> 4 & 0xF0);
 					if (imm || !(insn & (1 << 23)))
 						out += sprintf(out, "%03x", imm);
 					else
@@ -419,13 +419,13 @@ u32 disasm_arm_insn(u32 pc) {
 	return 4;
 }
 
-u32 disasm_thumb_insn(u32 pc) {
+uint32_t disasm_thumb_insn(uint32_t pc) {
 	char buf[80];
-	u16 *pc_ptr = virt_mem_ptr(pc, 2);
+	uint16_t *pc_ptr = virt_mem_ptr(pc, 2);
 	if (!pc_ptr)
 		return 0;
 
-	u16 insn = *pc_ptr;
+	uint16_t insn = *pc_ptr;
 	char *out = buf + sprintf(buf, "%08x: %04x    \t", pc, insn);
 
 	if (insn < 0x1800) {
@@ -461,7 +461,7 @@ u32 disasm_thumb_insn(u32 pc) {
 	} else if (insn < 0x5000) {
 		int addr = ((pc + 4) & -4) + ((insn & 0xFF) << 2);
 		out += sprintf(out, "ldr\tr%d,[%08x]", insn >> 8 & 7, addr);
-		u32 *ptr = virt_mem_ptr(addr, 4);
+		uint32_t *ptr = virt_mem_ptr(addr, 4);
 		if (ptr)
 			out += sprintf(out, " = %08x", *ptr);
 	} else if (insn < 0x6000) {
@@ -506,18 +506,18 @@ u32 disasm_thumb_insn(u32 pc) {
 		out += sprintf(out, "%smia\tr%d!,", (insn & 0x800) ? "ld" : "st", insn >> 8 & 7);
 		do_reglist(out, insn & 0xFF);
 	} else if (insn < 0xDE00) {
-		sprintf(out, "b%s\t%08x", condcode[insn >> 8 & 15], pc + 4 + ((s8)insn << 1));
+		sprintf(out, "b%s\t%08x", condcode[insn >> 8 & 15], pc + 4 + ((int8_t)insn << 1));
 	} else if (insn < 0xDF00) {
 	invalid:
 		sprintf(out, "???");
 	} else if (insn < 0xE000) {
 		sprintf(out, "swi\t%02x", insn & 0xFF);
 	} else if (insn < 0xE800) {
-		sprintf(out, "b\t%08x", pc + 4 + ((s32)insn << 21 >> 20));
+		sprintf(out, "b\t%08x", pc + 4 + ((int32_t)insn << 21 >> 20));
 	} else if (insn < 0xF000) {
 		sprintf(out, "(blx\tlr + %03x)", (insn & 0x7FF) << 1);
 	} else if (insn < 0xF800) {
-		s32 target = (s32)insn << 21 >> 9;
+		int32_t target = (int32_t)insn << 21 >> 9;
 		/* Check next instruction to see if this is part of a BL or BLX pair */
 		pc_ptr = virt_mem_ptr(pc + 2, 2);
 		if (pc_ptr && ((insn = *pc_ptr) & 0xE800) == 0xE800) {

@@ -3,7 +3,7 @@
 #define _H_DEBUG
 
 #include <stdbool.h>
-#include "types.h"
+#include <stdint.h>
 
 #ifdef EOF // following is only meaningful if stdio.h included
 extern FILE *debugger_input;
@@ -19,9 +19,9 @@ enum DBG_REASON {
 	DBG_WRITE_BREAKPOINT,
 };
 
-void *virt_mem_ptr(u32 addr, u32 size);
-void backtrace(u32 fp);
-void debugger(enum DBG_REASON reason, u32 addr);
+void *virt_mem_ptr(uint32_t addr, uint32_t size);
+void backtrace(uint32_t fp);
+void debugger(enum DBG_REASON reason, uint32_t addr);
 void rdebug_recv(void);
 void rdebug_bind(int port);
 void *debug_save_state(size_t *size);

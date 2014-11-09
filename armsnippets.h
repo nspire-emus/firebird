@@ -16,7 +16,7 @@ struct armloader_load_params {
                         void *ptr;
                         unsigned int size;
                 } p;
-                u32 v; // simple value
+                uint32_t v; // simple value
         };
 };
 void armloader_cb(void);

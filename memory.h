@@ -3,16 +3,18 @@
 #ifndef _H_MEMORY
 #define _H_MEMORY
 
+#include <stdint.h>
+
 #define MEM_MAXSIZE (65*1024*1024) // also defined as RAM_FLAGS in asmcode.S
 
 // Must be allocated below 2GB (see comments for mmu.c)
-extern u8 *mem_and_flags;
+extern uint8_t *mem_and_flags;
 struct mem_area_desc {
-	u32 base, size;
-	u8 *ptr;
+	uint32_t base, size;
+	uint8_t *ptr;
 };
 extern struct mem_area_desc mem_areas[4];
-void *phys_mem_ptr(u32 addr, u32 size);
+void *phys_mem_ptr(uint32_t addr, uint32_t size);
 
 /* Each word of memory has a flag word associated with it. For fast access,
  * flags are located at a constant offset from the memory data itself.
@@ -20,7 +22,7 @@ void *phys_mem_ptr(u32 addr, u32 size);
  * These can't be per-byte because a translation index wouldn't fit then.
  * This does mean byte/halfword accesses have to mask off the low bits to
  * check flags, but the alternative would be another 32MB of memory overhead. */
-#define RAM_FLAGS(memptr) (*(u32 *)((u8 *)(memptr) + MEM_MAXSIZE))
+#define RAM_FLAGS(memptr) (*(uint32_t *)((uint8_t *)(memptr) + MEM_MAXSIZE))
 
 #define RF_READ_BREAKPOINT   1
 #define RF_WRITE_BREAKPOINT  2
@@ -33,21 +35,21 @@ void *phys_mem_ptr(u32 addr, u32 size);
 #define RF_ARMLOADER_CB      256
 #define RFS_TRANSLATION_INDEX 9
 
-u8 bad_read_byte(u32 addr);
-u16 bad_read_half(u32 addr);
-u32 bad_read_word(u32 addr);
-void bad_write_byte(u32 addr, u8 value);
-void bad_write_half(u32 addr, u16 value);
-void bad_write_word(u32 addr, u32 value);
+uint8_t bad_read_byte(uint32_t addr);
+uint16_t bad_read_half(uint32_t addr);
+uint32_t bad_read_word(uint32_t addr);
+void bad_write_byte(uint32_t addr, uint8_t value);
+void bad_write_half(uint32_t addr, uint16_t value);
+void bad_write_word(uint32_t addr, uint32_t value);
 
-u32 __attribute__((fastcall)) mmio_read_byte(u32 addr) __asm__("mmio_read_byte");
-u32 __attribute__((fastcall)) mmio_read_half(u32 addr) __asm__("mmio_read_half");
-u32 __attribute__((fastcall)) mmio_read_word(u32 addr) __asm__("mmio_read_word");
-void __attribute__((fastcall)) mmio_write_byte(u32 addr, u32 value) __asm__("mmio_write_byte");
-void __attribute__((fastcall)) mmio_write_half(u32 addr, u32 value) __asm__("mmio_write_half");
-void __attribute__((fastcall)) mmio_write_word(u32 addr, u32 value) __asm__("mmio_write_word");
+uint32_t __attribute__((fastcall)) mmio_read_byte(uint32_t addr) __asm__("mmio_read_byte");
+uint32_t __attribute__((fastcall)) mmio_read_half(uint32_t addr) __asm__("mmio_read_half");
+uint32_t __attribute__((fastcall)) mmio_read_word(uint32_t addr) __asm__("mmio_read_word");
+void __attribute__((fastcall)) mmio_write_byte(uint32_t addr, uint32_t value) __asm__("mmio_write_byte");
+void __attribute__((fastcall)) mmio_write_half(uint32_t addr, uint32_t value) __asm__("mmio_write_half");
+void __attribute__((fastcall)) mmio_write_word(uint32_t addr, uint32_t value) __asm__("mmio_write_word");
 
-void memory_initialize(u32 sdram_size);
+void memory_initialize(uint32_t sdram_size);
 void *memory_save_state(size_t *size);
 void memory_reload_state(void *state);
 

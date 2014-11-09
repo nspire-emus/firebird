@@ -1,7 +1,7 @@
 QT += core gui widgets
 CONFIG += c++11
 
-QMAKE_CFLAGS += -O3
+QMAKE_CFLAGS += -O3 -std=gnu11 -Wall -Wextra
 
 TEMPLATE = app
 TARGET = nspire_emu

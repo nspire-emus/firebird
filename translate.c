@@ -10,7 +10,7 @@
 extern void translation_enter();
 extern void translation_next() __asm__("translation_next");
 extern void translation_next_bx() __asm__("translation_next_bx");
-extern u32 arm_shift_proc[2][4] __asm__("arm_shift_proc");
+extern uint32_t arm_shift_proc[2][4] __asm__("arm_shift_proc");
 void **in_translation_esp __asm__("in_translation_esp");
 void *in_translation_pc_ptr __asm__("in_translation_pc_ptr");
 
@@ -18,12 +18,12 @@ void *in_translation_pc_ptr __asm__("in_translation_pc_ptr");
 struct translation translation_table[MAX_TRANSLATIONS];
 
 static int next_index = 0;
-u8 *insn_buffer;
-u8 *insn_bufptr;
-static u8 *jtbl_buffer[500000];
-static u8 **jtbl_bufptr = jtbl_buffer;
-static u8 *out;
-static u8 **outj;
+uint8_t *insn_buffer;
+uint8_t *insn_bufptr;
+static uint8_t *jtbl_buffer[500000];
+static uint8_t **jtbl_bufptr = jtbl_buffer;
+static uint8_t *out;
+static uint8_t **outj;
 
 enum x86_reg { EAX, ECX, EDX, EBX, ESP, EBP, ESI, EDI };
 enum x86_reg8 { AL, CL, DL, BL, AH, CH, DH, BH };
@@ -35,18 +35,18 @@ enum group3 { NOT = 2, NEG, MUL, IMUL, DIV, IDIV };
 enum { JO = 0x70, JNO, JB,  JAE, JZ, JNZ, JBE, JA,
        JS = 0x78, JNS, JPE, JPO, JL, JGE, JLE, JG };
 
-static inline void emit_byte(u8 b)    { *out++ = b; }
-static inline void emit_word(u16 w)   { *(u16 *)out = w; out += 2; }
-static inline void emit_dword(u32 dw) { *(u32 *)out = dw; out += 4; }
+static inline void emit_byte(uint8_t b)    { *out++ = b; }
+static inline void emit_word(uint16_t w)   { *(uint16_t *)out = w; out += 2; }
+static inline void emit_dword(uint32_t dw) { *(uint32_t *)out = dw; out += 4; }
 
-static inline void emit_call(u32 target) {
+static inline void emit_call(uint32_t target) {
 	emit_byte(0xE8);
-	emit_dword(target - ((u32)out + 4));
+	emit_dword(target - ((uint32_t)out + 4));
 }
 
-static inline void emit_jump(u32 target) {
+static inline void emit_jump(uint32_t target) {
 	emit_byte(0xE9);
-	emit_dword(target - ((u32)out + 4));
+	emit_dword(target - ((uint32_t)out + 4));
 }
 
 // ----------------------------------------------------------------------
@@ -69,7 +69,7 @@ static void emit_modrm_base_offset(int r, int basex86reg, int offset) {
 
 static void emit_modrm_armreg(int r, int armreg) {
 	if (armreg < 0 || armreg > 14) error("translation f***up");
-	emit_modrm_base_offset(r, EBX, (u8 *)&arm.reg[armreg] - (u8 *)&arm);
+	emit_modrm_base_offset(r, EBX, (uint8_t *)&arm.reg[armreg] - (uint8_t *)&arm);
 }
 
 // ----------------------------------------------------------------------
@@ -207,20 +207,20 @@ static inline void emit_mov_x86reg8_immediate(int x86reg, int immediate) {
 }
 static inline void emit_cmp_flag_immediate(void *flagptr, int immediate) {
 	emit_byte(0x80);
-	emit_modrm_base_offset(CMP, EBX, (u8 *)flagptr - (u8 *)&arm);
+	emit_modrm_base_offset(CMP, EBX, (uint8_t *)flagptr - (uint8_t *)&arm);
 	emit_byte(immediate);
 }
 static inline void emit_mov_x86reg8_flag(int x86reg, void *flagptr) {
 	emit_byte(0x8A);
-	emit_modrm_base_offset(x86reg, EBX, (u8 *)flagptr - (u8 *)&arm);
+	emit_modrm_base_offset(x86reg, EBX, (uint8_t *)flagptr - (uint8_t *)&arm);
 }
 static inline void emit_alu_x86reg8_flag(int aluop, int x86reg, void *flagptr) {
 	emit_byte(0x02 | aluop << 3);
-	emit_modrm_base_offset(x86reg, EBX, (u8 *)flagptr - (u8 *)&arm);
+	emit_modrm_base_offset(x86reg, EBX, (uint8_t *)flagptr - (uint8_t *)&arm);
 }
 static inline void emit_mov_flag_immediate(void *flagptr, int imm) {
 	emit_byte(0xC6);
-	emit_modrm_base_offset(0, EBX, (u8 *)flagptr - (u8 *)&arm);
+	emit_modrm_base_offset(0, EBX, (uint8_t *)flagptr - (uint8_t *)&arm);
 	emit_byte(imm);
 }
 enum { SETO = 0x90, SETNO, SETB,  SETAE, SETZ, SETNZ, SETBE, SETA,
@@ -228,19 +228,19 @@ enum { SETO = 0x90, SETNO, SETB,  SETAE, SETZ, SETNZ, SETBE, SETA,
 static inline void emit_setcc_flag(int setcc, void *flagptr) {
 	emit_byte(0x0F);
 	emit_byte(setcc);
-	emit_modrm_base_offset(0, EBX, (u8 *)flagptr - (u8 *)&arm);
+	emit_modrm_base_offset(0, EBX, (uint8_t *)flagptr - (uint8_t *)&arm);
 }
 
-int translate(u32 start_pc, u32 *start_insnp) {
+int translate(uint32_t start_pc, uint32_t *start_insnp) {
 	out = insn_bufptr;
 	outj = jtbl_bufptr;
-	u32 pc = start_pc;
-	u32 *insnp = start_insnp;
+	uint32_t pc = start_pc;
+	uint32_t *insnp = start_insnp;
 
 	if (next_index >= MAX_TRANSLATIONS)
 		error("too many translations");
 
-	u8 *insn_start;
+	uint8_t *insn_start;
 	int stop_here = 0;
 	while (1) {
 		if (out >= &insn_buffer[INSN_BUFFER_SIZE - 1000])
@@ -258,12 +258,12 @@ int translate(u32 start_pc, u32 *start_insnp) {
 			//printf("stopping translation - at breakpoint %x (%x)\n", pc);
 			goto branch_conditional;
 		}
-		u32 insn = *insnp;
+		uint32_t insn = *insnp;
 
 		/* Condition code */
 		int cond = insn >> 28;
 		int jcc = JZ;
-		u8 *cond_jmp_offset = NULL;
+		uint8_t *cond_jmp_offset = NULL;
 		switch (cond >> 1) {
 			case 0: /* EQ (Z), NE (!Z) */
 				emit_cmp_flag_immediate(&arm.cpsr_z, 0);
@@ -328,10 +328,10 @@ no_condition:
 				}
 			} else if ((insn & 0xF8000F0) == 0x0800090) {
 				/* UMULL, UMLAL, SMULL, SMLAL: 32x32 to 64 multiplications */
-				u32 left_reg  = insn & 15;
-				u32 right_reg = insn >> 8  & 15;
-				u32 reg_lo    = insn >> 12 & 15;
-				u32 reg_hi    = insn >> 16 & 15;
+				uint32_t left_reg  = insn & 15;
+				uint32_t right_reg = insn >> 8  & 15;
+				uint32_t reg_lo    = insn >> 12 & 15;
+				uint32_t reg_hi    = insn >> 16 & 15;
 
 				if (left_reg == 15 || right_reg == 15 || reg_lo == 15 || reg_hi == 15)
 					goto unimpl;
@@ -392,12 +392,12 @@ no_condition:
 
 				if (is_load) {
 					if (type == SB) {
-						emit_call((u32)read_byte);
+						emit_call((uint32_t)read_byte);
 						// movsx eax,al
 						emit_word(0xBE0F);
 						emit_byte(0xC0);
 					} else {
-						emit_call((u32)read_half);
+						emit_call((uint32_t)read_half);
 						if (type == SH) {
 							// cwde
 							emit_byte(0x98); 
@@ -406,7 +406,7 @@ no_condition:
 					emit_mov_armreg_x86reg(data_reg, EAX);
 				} else {
 					emit_mov_x86reg_armreg(EDX, data_reg);
-					emit_call((u32)write_half);
+					emit_call((uint32_t)write_half);
 				}
 
 				if (post_index || pre_index)
@@ -421,21 +421,21 @@ no_condition:
 				emit_mov_x86reg_armreg(EAX, target_reg);
 				if (insn & 0x20)
 					emit_mov_armreg_immediate(14, pc + 4);
-				emit_jump((u32)translation_next_bx);
+				emit_jump((uint32_t)translation_next_bx);
 				stop_here = 1;
 			} else if ((insn & 0xFBF0FFF) == 0x10F0000) {
 				/* MRS - move reg <- status */
 				int target_reg = insn >> 12 & 15;
 				if (target_reg == 15)
 					break;
-				emit_call(insn & 0x0400000 ? (u32)get_spsr : (u32)get_cpsr);
+				emit_call(insn & 0x0400000 ? (uint32_t)get_spsr : (uint32_t)get_cpsr);
 				emit_mov_armreg_x86reg(target_reg, EAX);
 			} else if ((insn & 0xFB0FFF0) == 0x120F000 ||
 					   (insn & 0xFB0F000) == 0x320F000) {
 				/* MSR - move status <- reg/imm */
-				u32 mask = 0;
+				uint32_t mask = 0;
 				if (insn & 0x2000000) {
-					u32 imm = insn & 0xFF;
+					uint32_t imm = insn & 0xFF;
 					int rotate = insn >> 7 & 30;
 					imm = imm >> rotate | imm << (32 - rotate);
 					emit_mov_x86reg_immediate(ECX, imm);
@@ -450,11 +450,11 @@ no_condition:
 				if (insn & 0x0020000) mask |= 0x0000FF00;
 				if (insn & 0x0010000) mask |= 0x000000FF;
 				emit_mov_x86reg_immediate(EDX, mask);
-				emit_call(insn & 0x0400000 ? (u32)set_spsr : (u32)set_cpsr);
+				emit_call(insn & 0x0400000 ? (uint32_t)set_spsr : (uint32_t)set_cpsr);
 				// If cpsr_c changed, leave translation to check for interrupts
 				if ((insn & 0x0410000) == 0x0010000) {
 					emit_mov_x86reg_immediate(EAX, pc + 4);
-					emit_jump((u32)translation_next);
+					emit_jump((uint32_t)translation_next);
 				}
 			} else if ((insn & 0xFFF0FF0) == 0x16F0F10) {
 				/* CLZ: Count leading zeros */
@@ -486,7 +486,7 @@ no_condition:
 			int set_carry = -1;
 			int right_is_imm = insn >> 25 & 1;
 			int right_is_reg = 0;
-			u32 imm = 0; // value not used, just suppressing uninitialized variable warning
+			uint32_t imm = 0; // value not used, just suppressing uninitialized variable warning
 			if (right_is_imm) {
 				// Right operand is immediate
 				imm = insn & 0xFF;
@@ -501,7 +501,7 @@ no_condition:
 				right_is_imm = 1;
 			} else {
 				int shift_type = insn >> 5 & 3;
-				static const u8 shift_table[] = { SHL, SHR, SAR, ROR };
+				static const uint8_t shift_table[] = { SHL, SHR, SAR, ROR };
 				int x86_shift_type = shift_table[shift_type];
 
 				int count = insn >> 7 & 31;
@@ -749,7 +749,7 @@ no_condition:
 
 				int offset_reg = insn & 15;
 				int shift_type = insn >> 5 & 3;
-				static const u8 shift_table[] = { SHL, SHR, SAR, ROR };
+				static const uint8_t shift_table[] = { SHL, SHR, SAR, ROR };
 				int count;
 
 				if (insn & (1 << 4))
@@ -790,7 +790,7 @@ no_condition:
 
 			if (is_load) {
 				/* LDR/LDRB instruction */
-				emit_call(is_byteop ? (u32)read_byte : (u32)read_word_ldr);
+				emit_call(is_byteop ? (uint32_t)read_byte : (uint32_t)read_word_ldr);
 				if (data_reg != 15)
 					emit_mov_armreg_x86reg(data_reg, EAX);
 			} else {
@@ -799,7 +799,7 @@ no_condition:
 					emit_mov_x86reg_immediate(EDX, pc + 12);
 				else
 					emit_mov_x86reg_armreg(EDX, data_reg);
-				emit_call(is_byteop ? (u32)write_byte : (u32)write_word);
+				emit_call(is_byteop ? (uint32_t)write_byte : (uint32_t)write_word);
 			}
 
 			if (pre_index || post_index) { // Writeback
@@ -810,7 +810,7 @@ no_condition:
 			}
 
 			if (is_load && data_reg == 15) {
-				emit_jump((u32)translation_next_bx);
+				emit_jump((uint32_t)translation_next_bx);
 				stop_here = 1;
 			}
 		} else if ((insn & 0xE000000) == 0x8000000) {
@@ -852,7 +852,7 @@ no_condition:
 				emit_byte(0x8D); // LEA
 				emit_modrm_base_offset(ECX, ESI, offset);
 				if (load) {
-					emit_call((u32)read_word);
+					emit_call((uint32_t)read_word);
 					if (reg == addr_reg && (insn & -1 << reg & 0xFFFF)) {
 						// Loading the address register, but there are still more
 						// registers to go. In case they cause a data abort, don't
@@ -866,7 +866,7 @@ no_condition:
 						emit_mov_x86reg_immediate(EDX, pc + 12);
 					else
 						emit_mov_x86reg_armreg(EDX, reg);
-					emit_call((u32)write_word);
+					emit_call((uint32_t)write_word);
 				}
 				offset += 4;
 			}
@@ -879,15 +879,15 @@ no_condition:
 
 			if (insn & (1 << 15) && load) {
 				// LDM with PC
-				emit_jump((u32)translation_next_bx);
+				emit_jump((uint32_t)translation_next_bx);
 				stop_here = 1;
 			}
 		} else if ((insn & 0xE000000) == 0xA000000) {
 			/* Branch, branch-and-link */
 			if (insn & (1 << 24))
 				emit_mov_armreg_immediate(14, pc + 4);
-			emit_mov_x86reg_immediate(EAX, pc + 8 + ((s32)insn << 8 >> 6));
-			emit_jump((u32)translation_next);
+			emit_mov_x86reg_immediate(EAX, pc + 8 + ((int32_t)insn << 8 >> 6));
+			emit_jump((uint32_t)translation_next);
 			stop_here = 1;
 		} else {
 			break;
@@ -917,14 +917,14 @@ unimpl:
 	RAM_FLAGS(insnp) |= RF_CODE_NO_TRANSLATE;
 branch_conditional:
 	emit_mov_x86reg_immediate(EAX, pc);
-	emit_jump((u32)translation_next);
+	emit_jump((uint32_t)translation_next);
 branch_unconditional:
 
 	if (pc == start_pc)
 		return -1;
 
 	int index = next_index++;
-	translation_table[index].jump_table = (u32)jtbl_bufptr - (u32)start_insnp;
+	translation_table[index].jump_table = (uint32_t)jtbl_bufptr - (uint32_t)start_insnp;
 	translation_table[index].start_ptr  = start_insnp;
 	translation_table[index].end_ptr    = insnp;
 
@@ -937,8 +937,8 @@ branch_unconditional:
 void flush_translations() {
 	int index;
 	for (index = 0; index < next_index; index++) {
-		u32 *start = translation_table[index].start_ptr;
-		u32 *end   = translation_table[index].end_ptr;
+		uint32_t *start = translation_table[index].start_ptr;
+		uint32_t *end   = translation_table[index].end_ptr;
 		for (; start < end; start++)
 			RAM_FLAGS(start) &= ~(RF_CODE_TRANSLATED | (-1 << RFS_TRANSLATION_INDEX));
 	}
@@ -949,7 +949,7 @@ void flush_translations() {
 
 void invalidate_translation(int index) {
 	if (in_translation_esp) {
-		u32 flags = RAM_FLAGS(in_translation_pc_ptr);
+		uint32_t flags = RAM_FLAGS(in_translation_pc_ptr);
 		if ((flags & RF_CODE_TRANSLATED) && (int)(flags >> RFS_TRANSLATION_INDEX) == index)
 			error("Cannot modify currently executing code block.");
 	}
@@ -958,29 +958,29 @@ void invalidate_translation(int index) {
 
 void fix_pc_for_fault() {
 	if (in_translation_esp) {
-		u32 *insnp = in_translation_pc_ptr;
+		uint32_t *insnp = in_translation_pc_ptr;
 		void *ret_eip = in_translation_esp[-1];
-		u32 flags = RAM_FLAGS(insnp);
+		uint32_t flags = RAM_FLAGS(insnp);
 		if (!(flags & RF_CODE_TRANSLATED))
 			error("Couldn't get PC for fault");
 		int index = flags >> RFS_TRANSLATION_INDEX;
-		u32 start = (u32)translation_table[index].start_ptr;
-		u32 end = (u32)translation_table[index].end_ptr;
+		uint32_t start = (uint32_t)translation_table[index].start_ptr;
+		uint32_t end = (uint32_t)translation_table[index].end_ptr;
 		for (; start < end; start += 4) {
 			void *code = *(void **)(translation_table[index].jump_table + start);
 			if (code >= ret_eip)
 				break;
 		}
-		arm.reg[15] += (u32)start - (u32)insnp;
-		cycle_count_delta -= ((u32)end - (u32)insnp) >> 2;
+		arm.reg[15] += (uint32_t)start - (uint32_t)insnp;
+		cycle_count_delta -= ((uint32_t)end - (uint32_t)insnp) >> 2;
 		in_translation_esp = NULL;
 	}
 	arm.reg[15] -= (arm.cpsr_low28 & 0x20) ? 2 : 4;
 }
 
 // returns 1 if at least one instruction translated in the range
-int range_translated(u32 range_start, u32 range_end) {
-	u32 pc;
+int range_translated(uint32_t range_start, uint32_t range_end) {
+	uint32_t pc;
 	int translated = 0;
 	for (pc = range_start; pc < range_end;  pc += 4) {
 		void *pc_ram_ptr = virt_mem_ptr(pc, 4);
@@ -992,9 +992,9 @@ int range_translated(u32 range_start, u32 range_end) {
 }
 
 #if 0
-void translate_range(u32 range_start, u32 range_end, int dump) {
-	u32 pc = range_start;
-	u32 tcount = 0;
+void translate_range(uint32_t range_start, uint32_t range_end, int dump) {
+	uint32_t pc = range_start;
+	uint32_t tcount = 0;
 	while (pc < range_end) {
 		//printf("pc=%x\n", pc);
 		int index = translate(pc);
@@ -1016,7 +1016,7 @@ void translate_range(u32 range_start, u32 range_end, int dump) {
 			int start = translation_table[index].start_addr;
 			int end = translation_table[index].end_addr;
 			fprintf(f, "%08x (%08x,%08x) %d\n",
-				(u8 *)translation_table[index].code - insn_buffer,
+				(uint8_t *)translation_table[index].code - insn_buffer,
 				start, end, end - start);
 		}
 		fclose(f);

@@ -6,29 +6,29 @@
 #include <string.h>
 
 struct arm_state {  // Remember to update asmcode.S if this gets rearranged
-	u32 reg[16];    // Registers for current mode.
+	uint32_t reg[16];    // Registers for current mode.
 
-	u32 cpsr_low28; // CPSR bits 0-27
-	u8  cpsr_n;     // CPSR bit 31
-	u8  cpsr_z;     // CPSR bit 30
-	u8  cpsr_c;     // CPSR bit 29
-	u8  cpsr_v;     // CPSR bit 28
+	uint32_t cpsr_low28; // CPSR bits 0-27
+	uint8_t  cpsr_n;     // CPSR bit 31
+	uint8_t  cpsr_z;     // CPSR bit 30
+	uint8_t  cpsr_c;     // CPSR bit 29
+	uint8_t  cpsr_v;     // CPSR bit 28
 
 	/* CP15 registers */
-	u32 control;
-	u32 translation_table_base;
-	u32 domain_access_control;
-	u8  data_fault_status, instruction_fault_status;
-	u32 fault_address;
+	uint32_t control;
+	uint32_t translation_table_base;
+	uint32_t domain_access_control;
+	uint8_t  data_fault_status, instruction_fault_status;
+	uint32_t fault_address;
 
-	u32 r8_usr[5], r13_usr[2];
-	u32 r8_fiq[5], r13_fiq[2], spsr_fiq;
-	u32 r13_irq[2], spsr_irq;
-	u32 r13_svc[2], spsr_svc;
-	u32 r13_abt[2], spsr_abt;
-	u32 r13_und[2], spsr_und;
+	uint32_t r8_usr[5], r13_usr[2];
+	uint32_t r8_fiq[5], r13_fiq[2], spsr_fiq;
+	uint32_t r13_irq[2], spsr_irq;
+	uint32_t r13_svc[2], spsr_svc;
+	uint32_t r13_abt[2], spsr_abt;
+	uint32_t r13_und[2], spsr_und;
 
-	u8  interrupts;
+	uint8_t  interrupts;
 };
 extern struct arm_state arm __asm__("arm");
 
@@ -53,13 +53,13 @@ extern struct arm_state arm __asm__("arm");
 #define current_instr_size (arm.cpsr_low28 & 0x20 ? 2 /* thumb */ : 4)
 
 void cpu_int_check();
-u32 __attribute__((fastcall)) get_cpsr();
-void set_cpsr_full(u32 cpsr);
-void __attribute__((fastcall)) set_cpsr(u32 cpsr, u32 mask);
-u32 __attribute__((fastcall)) get_spsr();
-void __attribute__((fastcall)) set_spsr(u32 cpsr, u32 mask);
+uint32_t __attribute__((fastcall)) get_cpsr();
+void set_cpsr_full(uint32_t cpsr);
+void __attribute__((fastcall)) set_cpsr(uint32_t cpsr, uint32_t mask);
+uint32_t __attribute__((fastcall)) get_spsr();
+void __attribute__((fastcall)) set_spsr(uint32_t cpsr, uint32_t mask);
 void cpu_exception(int type);
-void cpu_interpret_instruction(u32 insn);
+void cpu_interpret_instruction(uint32_t insn);
 void cpu_arm_loop();
 void cpu_thumb_loop();
 void *cpu_save_state(size_t *size);

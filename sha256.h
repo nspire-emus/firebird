@@ -5,9 +5,9 @@
 
 void sha256_reset(void);
 
-u32 sha256_read_word(u32 addr);
+uint32_t sha256_read_word(uint32_t addr);
 
-void sha256_write_word(u32 addr, u32 value);
+void sha256_write_word(uint32_t addr, uint32_t value);
 
 void *sha256_save_state(size_t *size);
 

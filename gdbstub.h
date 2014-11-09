@@ -9,7 +9,7 @@ void gdbstub_reset(void);
 
 void gdbstub_recv(void);
 
-void gdbstub_debugger(enum DBG_REASON reason, u32 addr);
+void gdbstub_debugger(enum DBG_REASON reason, uint32_t addr);
 
 void *gdbstub_save_state(size_t *size);
 

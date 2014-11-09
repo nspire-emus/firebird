@@ -17,38 +17,38 @@
 #include "debug.h"
 #include "translate.h"
 
-u8   (*read_byte_map[64])(u32 addr);
-u16  (*read_half_map[64])(u32 addr);
-u32  (*read_word_map[64])(u32 addr);
-void (*write_byte_map[64])(u32 addr, u8 value);
-void (*write_half_map[64])(u32 addr, u16 value);
-void (*write_word_map[64])(u32 addr, u32 value);
+uint8_t   (*read_byte_map[64])(uint32_t addr);
+uint16_t  (*read_half_map[64])(uint32_t addr);
+uint32_t  (*read_word_map[64])(uint32_t addr);
+void (*write_byte_map[64])(uint32_t addr, uint8_t value);
+void (*write_half_map[64])(uint32_t addr, uint16_t value);
+void (*write_word_map[64])(uint32_t addr, uint32_t value);
 
 /* For invalid/unknown physical addresses */
-u8 bad_read_byte(u32 addr)               { warn("Bad read_byte: %08x", addr); return 0; }
-u16 bad_read_half(u32 addr)              { warn("Bad read_half: %08x", addr); return 0; }
-u32 bad_read_word(u32 addr)              { warn("Bad read_word: %08x", addr); return 0; }
-void bad_write_byte(u32 addr, u8 value)  { warn("Bad write_byte: %08x %02x", addr, value); }
-void bad_write_half(u32 addr, u16 value) { warn("Bad write_half: %08x %04x", addr, value); }
-void bad_write_word(u32 addr, u32 value) { warn("Bad write_word: %08x %08x", addr, value); }
+uint8_t bad_read_byte(uint32_t addr)               { warn("Bad read_byte: %08x", addr); return 0; }
+uint16_t bad_read_half(uint32_t addr)              { warn("Bad read_half: %08x", addr); return 0; }
+uint32_t bad_read_word(uint32_t addr)              { warn("Bad read_word: %08x", addr); return 0; }
+void bad_write_byte(uint32_t addr, uint8_t value)  { warn("Bad write_byte: %08x %02x", addr, value); }
+void bad_write_half(uint32_t addr, uint16_t value) { warn("Bad write_half: %08x %04x", addr, value); }
+void bad_write_word(uint32_t addr, uint32_t value) { warn("Bad write_word: %08x %08x", addr, value); }
 
-u8 *mem_and_flags;
+uint8_t *mem_and_flags;
 struct mem_area_desc mem_areas[4];
 
-void *phys_mem_ptr(u32 addr, u32 size) {
+void *phys_mem_ptr(uint32_t addr, uint32_t size) {
 	unsigned int i;
 	for (i = 0; i < sizeof(mem_areas)/sizeof(*mem_areas); i++) {
-		u32 offset = addr - mem_areas[i].base;
+		uint32_t offset = addr - mem_areas[i].base;
 		if (offset < mem_areas[i].size && size <= mem_areas[i].size - offset)
 			return mem_areas[i].ptr + offset;
 	}
 	return NULL;
 }
 
-u32 phys_mem_addr(void *ptr) {
+uint32_t phys_mem_addr(void *ptr) {
 	int i;
 	for (i = 0; i < 3; i++) {
-		u32 offset = (u8 *)ptr - mem_areas[i].ptr;
+		uint32_t offset = (uint8_t *)ptr - mem_areas[i].ptr;
 		if (offset < mem_areas[i].size)
 			return mem_areas[i].base + offset;
 	}
@@ -59,7 +59,7 @@ u32 phys_mem_addr(void *ptr) {
 #define DO_READ_ACTION (RF_READ_BREAKPOINT)
 void read_action(void *ptr) __asm__("read_action");
 void read_action(void *ptr) {
-	u32 addr = phys_mem_addr(ptr);
+	uint32_t addr = phys_mem_addr(ptr);
 	if (!gdb_connected)
 		emuprintf("Hit read breakpoint at %08x. Entering debugger.\n", addr);
 	debugger(DBG_READ_BREAKPOINT, addr);
@@ -68,8 +68,8 @@ void read_action(void *ptr) {
 #define DO_WRITE_ACTION (RF_WRITE_BREAKPOINT | RF_CODE_TRANSLATED | RF_CODE_NO_TRANSLATE)
 void write_action(void *ptr) __asm__("write_action");
 void write_action(void *ptr) {
-	u32 addr = phys_mem_addr(ptr);
-	u32 *flags = &RAM_FLAGS((size_t)ptr & ~3);
+	uint32_t addr = phys_mem_addr(ptr);
+	uint32_t *flags = &RAM_FLAGS((size_t)ptr & ~3);
 	if (*flags & RF_WRITE_BREAKPOINT) {
 		if (!gdb_connected)
 			emuprintf("Hit write breakpoint at %08x. Entering debugger.\n", addr);
@@ -84,44 +84,44 @@ void write_action(void *ptr) {
 }
 
 /* 00000000, 10000000, A4000000: ROM and RAM */
-u8 memory_read_byte(u32 addr) {
-	u8 *ptr = phys_mem_ptr(addr, 1);
+uint8_t memory_read_byte(uint32_t addr) {
+	uint8_t *ptr = phys_mem_ptr(addr, 1);
 	if (!ptr) return bad_read_byte(addr);
 	if (RAM_FLAGS((size_t)ptr & ~3) & DO_READ_ACTION) read_action(ptr);
 	return *ptr;
 }
-u16 memory_read_half(u32 addr) {
-	u16 *ptr = phys_mem_ptr(addr, 2);
+uint16_t memory_read_half(uint32_t addr) {
+	uint16_t *ptr = phys_mem_ptr(addr, 2);
 	if (!ptr) return bad_read_half(addr);
 	if (RAM_FLAGS((size_t)ptr & ~3) & DO_READ_ACTION) read_action(ptr);
 	return *ptr;
 }
-u32 memory_read_word(u32 addr) {
-	u32 *ptr = phys_mem_ptr(addr, 4);
+uint32_t memory_read_word(uint32_t addr) {
+	uint32_t *ptr = phys_mem_ptr(addr, 4);
 	if (!ptr) return bad_read_word(addr);
 	if (RAM_FLAGS(ptr) & DO_READ_ACTION) read_action(ptr);
 	return *ptr;
 }
-void memory_write_byte(u32 addr, u8 value) {
-	u8 *ptr = phys_mem_ptr(addr, 1);
+void memory_write_byte(uint32_t addr, uint8_t value) {
+	uint8_t *ptr = phys_mem_ptr(addr, 1);
 	if (!ptr) { bad_write_byte(addr, value); return; }
-	u32 flags = RAM_FLAGS((size_t)ptr & ~3);
+	uint32_t flags = RAM_FLAGS((size_t)ptr & ~3);
 	if (flags & RF_READ_ONLY) { bad_write_byte(addr, value); return; }
 	if (flags & DO_WRITE_ACTION) write_action(ptr);
 	*ptr = value;
 }
-void memory_write_half(u32 addr, u16 value) {
-	u16 *ptr = phys_mem_ptr(addr, 2);
+void memory_write_half(uint32_t addr, uint16_t value) {
+	uint16_t *ptr = phys_mem_ptr(addr, 2);
 	if (!ptr) { bad_write_half(addr, value); return; }
-	u32 flags = RAM_FLAGS((size_t)ptr & ~3);
+	uint32_t flags = RAM_FLAGS((size_t)ptr & ~3);
 	if (flags & RF_READ_ONLY) { bad_write_half(addr, value); return; }
 	if (flags & DO_WRITE_ACTION) write_action(ptr);
 	*ptr = value;
 }
-void memory_write_word(u32 addr, u32 value) {
-	u32 *ptr = phys_mem_ptr(addr, 4);
+void memory_write_word(uint32_t addr, uint32_t value) {
+	uint32_t *ptr = phys_mem_ptr(addr, 4);
 	if (!ptr) { bad_write_word(addr, value); return; }
-	u32 flags = RAM_FLAGS(ptr);
+	uint32_t flags = RAM_FLAGS(ptr);
 	if (flags & RF_READ_ONLY) { bad_write_word(addr, value); return; }
 	if (flags & DO_WRITE_ACTION) write_action(ptr);
 	*ptr = value;
@@ -132,58 +132,58 @@ void memory_write_word(u32 addr, u32 value) {
 /* The AMBA specification does not mention anything about transfer sizes in APB,
  * so probably all reads/writes are effectively 32 bit. */
 struct apb_map_entry {
-	u32 (*read)(u32 addr);
-	void (*write)(u32 addr, u32 value);
+	uint32_t (*read)(uint32_t addr);
+	void (*write)(uint32_t addr, uint32_t value);
 } apb_map[0x12];
-void apb_set_map(int entry, u32 (*read)(u32 addr), void (*write)(u32 addr, u32 value)) {
+void apb_set_map(int entry, uint32_t (*read)(uint32_t addr), void (*write)(uint32_t addr, uint32_t value)) {
 	apb_map[entry].read = read;
 	apb_map[entry].write = write;
 }
-u8 apb_read_byte(u32 addr) {
+uint8_t apb_read_byte(uint32_t addr) {
 	if (addr >= 0x90120000) return bad_read_byte(addr);
 	return apb_map[addr >> 16 & 31].read(addr & ~3) >> ((addr & 3) << 3);
 }
-u16 apb_read_half(u32 addr) {
+uint16_t apb_read_half(uint32_t addr) {
 	if (addr >= 0x90120000) return bad_read_half(addr);
 	return apb_map[addr >> 16 & 31].read(addr & ~2) >> ((addr & 2) << 3);
 }
-u32 apb_read_word(u32 addr) {
+uint32_t apb_read_word(uint32_t addr) {
 	if (addr >= 0x90120000) return bad_read_word(addr);
 	return apb_map[addr >> 16 & 31].read(addr);
 }
-void apb_write_byte(u32 addr, u8 value) {
+void apb_write_byte(uint32_t addr, uint8_t value) {
 	if (addr >= 0x90120000) { bad_write_byte(addr, value); return; }
 	apb_map[addr >> 16 & 31].write(addr & ~3, value * 0x01010101);
 }
-void apb_write_half(u32 addr, u16 value) {
+void apb_write_half(uint32_t addr, uint16_t value) {
 	if (addr >= 0x90120000) { bad_write_half(addr, value); return; }
 	apb_map[addr >> 16 & 31].write(addr & ~2, value * 0x00010001);
 }
-void apb_write_word(u32 addr, u32 value) {
+void apb_write_word(uint32_t addr, uint32_t value) {
 	if (addr >= 0x90120000) { bad_write_word(addr, value); return; }
 	apb_map[addr >> 16 & 31].write(addr, value);
 }
 
-u32 __attribute__((fastcall)) mmio_read_byte(u32 addr) {
+uint32_t __attribute__((fastcall)) mmio_read_byte(uint32_t addr) {
 	return read_byte_map[addr >> 26](addr);
 }
-u32 __attribute__((fastcall)) mmio_read_half(u32 addr) {
+uint32_t __attribute__((fastcall)) mmio_read_half(uint32_t addr) {
 	return read_half_map[addr >> 26](addr);
 }
-u32 __attribute__((fastcall)) mmio_read_word(u32 addr) {
+uint32_t __attribute__((fastcall)) mmio_read_word(uint32_t addr) {
 	return read_word_map[addr >> 26](addr);
 }
-void __attribute__((fastcall)) mmio_write_byte(u32 addr, u32 value) {
+void __attribute__((fastcall)) mmio_write_byte(uint32_t addr, uint32_t value) {
 	write_byte_map[addr >> 26](addr, value);
 }
-void __attribute__((fastcall)) mmio_write_half(u32 addr, u32 value) {
+void __attribute__((fastcall)) mmio_write_half(uint32_t addr, uint32_t value) {
 	write_half_map[addr >> 26](addr, value);
 }
-void __attribute__((fastcall)) mmio_write_word(u32 addr, u32 value) {
+void __attribute__((fastcall)) mmio_write_word(uint32_t addr, uint32_t value) {
 	write_word_map[addr >> 26](addr, value);
 }
 
-void memory_initialize(u32 sdram_size) {
+void memory_initialize(uint32_t sdram_size) {
 	mem_areas[0].size = 0x80000;
 	mem_areas[1].base = 0x10000000;
 	mem_areas[1].size = sdram_size;
@@ -195,7 +195,7 @@ void memory_initialize(u32 sdram_size) {
 		mem_areas[2].size = 0x20000;
 	}
 
-	u32 total_mem = 0;
+	uint32_t total_mem = 0;
 	int i;
 
 	mem_and_flags = os_reserve(MEM_MAXSIZE * 2);

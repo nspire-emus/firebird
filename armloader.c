@@ -93,7 +93,7 @@ int armloader_load_snippet(enum SNIPPETS snippet, struct armloader_load_params p
 	*flags |= RF_ARMLOADER_CB;
 
 // TODO for debugging
-//	u32 *flags = &RAM_FLAGS(virt_mem_ptr(arm.reg[15], 4));
+//	uint32_t *flags = &RAM_FLAGS(virt_mem_ptr(arm.reg[15], 4));
 //	if (*flags & RF_CODE_TRANSLATED) flush_translations();
 //	*flags |= RF_EXEC_BREAKPOINT;
 

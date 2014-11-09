@@ -116,13 +116,13 @@ static void addr_cache_exception(int sig, siginfo_t *si, void *uctx)
     ucontext_t *u = (ucontext_t*) uctx;
     emuprintf("Got SIGSEGV trying to access 0x%lx (EIP=0x%x)\n", (long) si->si_addr, u->uc_mcontext.gregs[REG_EIP]);
 
-    if(!addr_cache_pagefault((u8*)si->si_addr))
+    if(!addr_cache_pagefault((uint8_t*)si->si_addr))
       exit(1);
 }
 
 void make_writable(void *addr)
 {
-    void *prev = (void*)((u32)(addr) & (~0xFFF));
+    void *prev = (void*)((uint32_t)(addr) & (~0xFFF));
     if(mprotect(prev, 0x1000, PROT_READ | PROT_WRITE | PROT_EXEC) != 0)
       emuprintf("mprotect failed.\n");
 }

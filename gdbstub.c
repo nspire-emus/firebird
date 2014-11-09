@@ -37,10 +37,10 @@
 static void gdbstub_disconnect(void);
 
 bool ndls_is_installed(void) {
-	u32 *vectors = virt_mem_ptr(0x20, 0x20);
+	uint32_t *vectors = virt_mem_ptr(0x20, 0x20);
 	if (vectors) {
 		// The Ndless marker is 8 bytes before the SWI handler
-		u32 *sig = virt_mem_ptr(vectors[EX_SWI] - 8, 4);
+		uint32_t *sig = virt_mem_ptr(vectors[EX_SWI] - 8, 4);
 		if (sig) return *sig == 0x4E455854 /* 'NEXT' */;
 	}
 	return false;
@@ -163,7 +163,7 @@ static void gdbstub_bind(int port) {
 }
 
 // program block pre-allocated by Ndless, used for vOffsets queries
-static u32 ndls_debug_alloc_block = 0;
+static uint32_t ndls_debug_alloc_block = 0;
 
 static void gdb_connect_ndls_cb(struct arm_state *state) {
 	ndls_debug_alloc_block = state->reg[0]; // can be 0
@@ -405,11 +405,11 @@ static void send_stop_reply(int signal, const char *stop_reason, const char *r) 
 	}
 	append_hex_char(ptr, 13);
 	*ptr++ = ':';
-	ptr = mem2hex(&arm.reg[13], ptr, sizeof(u32));
+	ptr = mem2hex(&arm.reg[13], ptr, sizeof(uint32_t));
 	*ptr++ = ';';
 	append_hex_char(ptr, 15);
 	*ptr++ = ':';
-	ptr = mem2hex(&arm.reg[15], ptr, sizeof(u32));
+	ptr = mem2hex(&arm.reg[15], ptr, sizeof(uint32_t));
 	*ptr++ = ';';
 	*ptr = 0;
 	putpacket(remcomOutBuffer);
@@ -464,7 +464,7 @@ void gdbstub_loop(void) {
 					  && (ptr=strtok(NULL, ""))
 					  && (size_t)addr < sizeof(regbuf)
 					  // TODO hex2mem doesn't check the format
-					  && hex2mem((char*)ptr, &get_registers(regbuf)[addr], sizeof(u32))
+					  && hex2mem((char*)ptr, &get_registers(regbuf)[addr], sizeof(uint32_t))
 					  ) {
 					set_registers(regbuf);
 					strcpy(remcomOutBuffer, "OK");
@@ -500,7 +500,7 @@ void gdbstub_loop(void) {
 						strcpy(remcomOutBuffer, "E03");
 						break;
 					}
-					if (range_translated((u32)ramaddr, (u32)((char *)ramaddr + length)))
+					if (range_translated((uint32_t)ramaddr, (uint32_t)((char *)ramaddr + length)))
 						flush_translations();
 					if (hex2mem(ptr, ramaddr, length))
 						strcpy(remcomOutBuffer, "OK");
@@ -543,7 +543,7 @@ z:
 				ptr1 = ptr++;
 				ptr = strtok(ptr, ","); 
 				if (ptr && hexToInt(&ptr, &addr) && (ramaddr = virt_mem_ptr(addr & ~3, 4))) {
-					u32 *flags = &RAM_FLAGS(ramaddr);
+					uint32_t *flags = &RAM_FLAGS(ramaddr);
 					switch (*ptr1) {
 						case '0': // mem breakpoint
 						case '1': // hw breakpoint
@@ -640,7 +640,7 @@ void gdbstub_recv(void) {
 }
 
 /* addr is only required for read/write breakpoints */
-void gdbstub_debugger(enum DBG_REASON reason, u32 addr) {
+void gdbstub_debugger(enum DBG_REASON reason, uint32_t addr) {
 	cpu_events &= ~EVENT_DEBUG_STEP;
 	char addrstr[9]; // 8 digits
 	snprintf(addrstr, sizeof(addrstr), "%x", addr);

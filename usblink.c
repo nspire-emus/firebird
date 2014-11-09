@@ -6,45 +6,45 @@
 #include "usb.h"
 
 struct packet {
-	u16 constant;
-	struct { u16 addr, service; } src;
-	struct { u16 addr, service; } dst;
-	u16 data_check;
-	u8 data_size;
-	u8 ack;
-	u8 seqno;
-	u8 hdr_check;
-	u8 data[255];
+	uint16_t constant;
+	struct { uint16_t addr, service; } src;
+	struct { uint16_t addr, service; } dst;
+	uint16_t data_check;
+	uint8_t data_size;
+	uint8_t ack;
+	uint8_t seqno;
+	uint8_t hdr_check;
+	uint8_t data[255];
 };
 
 #define CONSTANT  BSWAP16(0x54FD)
 #define SRC_ADDR  BSWAP16(0x6400)
 #define DST_ADDR  BSWAP16(0x6401)
 
-u16 usblink_data_checksum(struct packet *packet) {
-	u16 check = 0;
+uint16_t usblink_data_checksum(struct packet *packet) {
+	uint16_t check = 0;
 	int i, size = packet->data_size;
 	for (i = 0; i < size; i++) {
-		u16 tmp = check << 12 ^ check << 8;
+		uint16_t tmp = check << 12 ^ check << 8;
 		check = (packet->data[i] << 8 | check >> 8)
 		      ^ tmp ^ tmp >> 5 ^ tmp >> 12;
 	}
 	return BSWAP16(check);
 }
 
-u8 usblink_header_checksum(struct packet *packet) {
-	u8 check = 0;
+uint8_t usblink_header_checksum(struct packet *packet) {
+	uint8_t check = 0;
 	int i;
-	for (i = 0; i < 15; i++) check += ((u8 *)packet)[i];
+	for (i = 0; i < 15; i++) check += ((uint8_t *)packet)[i];
 	return check;
 }
 
-static void dump_packet(char *type, void *data, u32 size) {
+static void dump_packet(char *type, void *data, uint32_t size) {
 	if (log_enabled[LOG_USB]) {
-		u32 i;
+		uint32_t i;
 		logprintf(LOG_USB, "%s", type);
 		for (i = 0; i < size && i < 24; i++)
-			logprintf(LOG_USB, " %02x", ((u8 *)data)[i]);
+			logprintf(LOG_USB, " %02x", ((uint8_t *)data)[i]);
 		if (size > 24)
 			logprintf(LOG_USB, "...");
 		logprintf(LOG_USB, "\n");
@@ -63,15 +63,15 @@ void usblink_send_packet() {
 	usblink_start_send();
 }
 
-u8 prev_seqno;
-u8 next_seqno() {
+uint8_t prev_seqno;
+uint8_t next_seqno() {
 	prev_seqno = (prev_seqno == 0xFF) ? 0x01 : prev_seqno + 1;
 	return prev_seqno;
 }
 
 FILE *put_file;
-u32 put_file_size;
-u16 put_file_port;
+uint32_t put_file_size;
+uint16_t put_file_port;
 enum {
 	SENDING_03         = 1,
 	RECVING_04         = 2,
@@ -103,7 +103,7 @@ void put_file_next(struct packet *in) {
 				emuprintf("Sending file: %u bytes left\n", put_file_size);
 			if (put_file_size > 0) {
 				/* Send data (05) */
-				u32 len = put_file_size;
+				uint32_t len = put_file_size;
 				if (len > 253)
 					len = 253;
 				put_file_size -= len;
@@ -147,13 +147,13 @@ void put_file_next(struct packet *in) {
 void usblink_sent_packet() {
 	if (usblink_send_buffer.ack) {
 		/* Received packet has been acked */
-		u16 service = usblink_send_buffer.dst.service;
+		uint16_t service = usblink_send_buffer.dst.service;
 		if (service == BSWAP16(0x4060) || service == BSWAP16(0x4080))
 			put_file_next(NULL);
 	}
 }
 
-void usblink_received_packet(u8 *data, u32 size) {
+void usblink_received_packet(uint8_t *data, uint32_t size) {
 	dump_packet("recv", data, size);
 	struct packet *in = (struct packet *)data;
 	struct packet *out = &usblink_send_buffer;
@@ -168,10 +168,10 @@ void usblink_received_packet(u8 *data, u32 size) {
 		out->data_size = 4;
 		out->ack = 0;
 		out->seqno = 1;
-		u16 tmp = DST_ADDR;
-		memcpy(&out->data[0], &tmp, sizeof(tmp)); // *(u16 *)&out->data[0] = DST_ADDR;
+		uint16_t tmp = DST_ADDR;
+		memcpy(&out->data[0], &tmp, sizeof(tmp)); // *(uint16_t *)&out->data[0] = DST_ADDR;
 		tmp = BSWAP16(0xFF00);
-		memcpy(&out->data[2], &tmp, sizeof(tmp)); // *(u16 *)&out->data[2] = BSWAP16(0xFF00);
+		memcpy(&out->data[2], &tmp, sizeof(tmp)); // *(uint16_t *)&out->data[2] = BSWAP16(0xFF00);
 		usblink_send_packet();
 	} else if (!in->ack) {
 		/* Send an ACK */
@@ -180,7 +180,7 @@ void usblink_received_packet(u8 *data, u32 size) {
 		out->data_size = 2;
 		out->ack = 0x0A;
 		out->seqno = in->seqno;
-		memcpy(&out->data[0], &in->dst.service, sizeof(in->dst.service)); // *(u16 *)&out->data[0] = in->dst.service;
+		memcpy(&out->data[0], &in->dst.service, sizeof(in->dst.service)); // *(uint16_t *)&out->data[0] = in->dst.service;
 		usblink_send_packet();
 	}
 }
@@ -211,11 +211,11 @@ bool usblink_put_file(char *filepath, char *folder) {
 	out->dst.service = put_file_port = BSWAP16(0x4060);
 	out->ack = 0;
 	out->seqno = next_seqno();
-	u8 *data = out->data;
+	uint8_t *data = out->data;
 	*data++ = 3;
 	*data++ = 1;
 	data += sprintf((char *)data, "/%s/%s", folder, filename) + 1;
-	*(u32 *)data = BSWAP32(put_file_size); data += 4;
+	*(uint32_t *)data = BSWAP32(put_file_size); data += 4;
 	out->data_size = data - out->data;
 	usblink_send_packet();
 	return 1;
@@ -239,9 +239,9 @@ void usblink_send_os(char *filepath) {
 	out->dst.service = put_file_port = BSWAP16(0x4080);
 	out->ack = 0;
 	out->seqno = next_seqno();
-	u8 *data = out->data;
+	uint8_t *data = out->data;
 	*data++ = 3;
-	*(u32 *)data = BSWAP32(put_file_size); data += 4;
+	*(uint32_t *)data = BSWAP32(put_file_size); data += 4;
 	out->data_size = data - out->data;
 	usblink_send_packet();
 }
@@ -252,14 +252,14 @@ int usblink_state;
 extern void usb_bus_reset_on(void);
 extern void usb_bus_reset_off(void);
 extern void usb_receive_setup_packet(int endpoint, void *packet);
-extern void usb_receive_packet(int endpoint, void *packet, u32 size);
+extern void usb_receive_packet(int endpoint, void *packet, uint32_t size);
 
 struct usb_setup {
-	u8 bmRequestType;
-	u8 bRequest;
-	u16 wValue;
-	u16 wIndex;
-	u16 wLength;
+	uint8_t bmRequestType;
+	uint8_t bRequest;
+	uint16_t wValue;
+	uint16_t wIndex;
+	uint16_t wLength;
 };
 
 void usblink_reset() {
@@ -295,7 +295,7 @@ void usblink_timer() {
 	}
 }
 
-void usblink_receive(int ep, void *buf, u32 size) {
+void usblink_receive(int ep, void *buf, uint32_t size) {
 	//printf("usblink_receive(%d,%p,%d)\n", ep, buf, size);
 	if (ep == 0) {
 		if (usblink_state == 3) {
@@ -312,7 +312,7 @@ void usblink_receive(int ep, void *buf, u32 size) {
 
 void usblink_complete_send(int ep) {
 	if (ep != 0 && usblink_sending) {
-		u32 size = 16 + usblink_send_buffer.data_size;
+		uint32_t size = 16 + usblink_send_buffer.data_size;
 		usb_receive_packet(ep, &usblink_send_buffer, size);
 		usblink_sending = false;
 		//printf("send complete\n");

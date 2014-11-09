@@ -204,7 +204,7 @@ ror_carry_mult_32:
 	sets	ARM_FLAG_C(%ebx)
 	ret
 
-// u32 __attribute__((fastcall)) read_byte(u32 addr);
+// uint32_t __attribute__((fastcall)) read_byte(uint32_t addr);
 //TODO: Original: .globl	@read_byte@4
 .globl	read_byte
 .align	16
@@ -239,7 +239,7 @@ rb_miss:
 //TODO:Original:	jmp	@read_byte@4
 	jmp read_byte
 
-// u32 __attribute__((fastcall)) read_half(u32 addr);
+// uint32_t __attribute__((fastcall)) read_half(uint32_t addr);
 // TODO: Original: .globl	@read_half@4
 .globl	read_half
 .align	16
@@ -282,7 +282,7 @@ rh_unaligned:
 // TODO:	jmp	@read_half@4
 	jmp read_half
 
-// u32 __attribute__((fastcall)) read_word(u32 addr);
+// uint32_t __attribute__((fastcall)) read_word(uint32_t addr);
 // TODO: Original: .globl	@read_word@4
 .globl read_word
 .align	16
@@ -323,7 +323,7 @@ rw_unaligned:
 // TODO:	jmp	@read_word@4
 	jmp read_word
 
-// u32 __attribute__((fastcall)) read_word_ldr(u32 addr);
+// uint32_t __attribute__((fastcall)) read_word_ldr(uint32_t addr);
 // TODO: .globl	@read_word_ldr@4
 .globl read_word_ldr
 .align	16
@@ -375,7 +375,7 @@ read_miss:
 	popl	%ecx
 	ret
 
-// void __attribute__((fastcall)) write_byte(u32 addr, u8 value);
+// void __attribute__((fastcall)) write_byte(uint32_t addr, uint8_t value);
 // TODO: .globl	@write_byte@8
 .globl write_byte
 .align	16
@@ -410,7 +410,7 @@ wb_miss:
 // TODO:	jmp	@write_byte@8
 	jmp write_byte
 
-// void __attribute__((fastcall)) write_half(u32 addr, u16 value);
+// void __attribute__((fastcall)) write_half(uint32_t addr, uint16_t value);
 // TODO: .globl	@write_half@8
 .globl write_half
 .align	16
@@ -453,7 +453,7 @@ wh_unaligned:
 // TODO:	jmp	@write_half@8
 	jmp write_half
 
-// void __attribute__((fastcall)) write_word(u32 addr, u32 value);
+// void __attribute__((fastcall)) write_word(uint32_t addr, uint32_t value);
 //TODO: .globl	@write_word@8
 .globl write_word
 .align	16

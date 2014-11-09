@@ -3,13 +3,13 @@
 #ifndef _H_MISC
 #define _H_MISC
 
-void sdramctl_write_word(u32 addr, u32 value);
+void sdramctl_write_word(uint32_t addr, uint32_t value);
 
 void memctl_cx_reset(void);
-u32 memctl_cx_read_word(u32 addr);
-void memctl_cx_write_word(u32 addr, u32 value);
+uint32_t memctl_cx_read_word(uint32_t addr);
+void memctl_cx_write_word(uint32_t addr, uint32_t value);
 
-union gpio_reg { u32 w; u8 b[4]; };
+union gpio_reg { uint32_t w; uint8_t b[4]; };
 extern struct gpio_state {
         union gpio_reg direction;
         union gpio_reg output;
@@ -19,90 +19,90 @@ extern struct gpio_state {
         union gpio_reg unknown_24;
 } gpio;
 void gpio_reset();
-u32 gpio_read(u32 addr);
-void gpio_write(u32 addr, u32 value);
+uint32_t gpio_read(uint32_t addr);
+void gpio_write(uint32_t addr, uint32_t value);
 
 extern struct timerpair {
         struct timer {
-                u16 ticks;
-                u16 start_value;     /* Write value of +00 */
-                u16 value;           /* Read value of +00  */
-                u16 divider;         /* Value of +04 */
-                u16 control;         /* Value of +08 */
+                uint16_t ticks;
+                uint16_t start_value;     /* Write value of +00 */
+                uint16_t value;           /* Read value of +00  */
+                uint16_t divider;         /* Value of +04 */
+                uint16_t control;         /* Value of +08 */
         } timers[2];
-        u16 completion_value[6];
-        u8 int_mask;
-        u8 int_status;
+        uint16_t completion_value[6];
+        uint8_t int_mask;
+        uint8_t int_status;
 } timerpairs[3];
-u32 timer_read(u32 addr);
-void timer_write(u32 addr, u32 value);
+uint32_t timer_read(uint32_t addr);
+void timer_write(uint32_t addr, uint32_t value);
 void timer_reset(void);
 
 void xmodem_send(char *filename);
 void serial_reset(void);
-u32 serial_read(u32 addr);
-void serial_write(u32 addr, u32 value);
+uint32_t serial_read(uint32_t addr);
+void serial_write(uint32_t addr, uint32_t value);
 void serial_cx_reset(void);
-u32 serial_cx_read(u32 addr);
-void serial_cx_write(u32 addr, u32 value);
-void serial_byte_in(u8 byte);
+uint32_t serial_cx_read(uint32_t addr);
+void serial_cx_write(uint32_t addr, uint32_t value);
+void serial_byte_in(uint8_t byte);
 
-u32 unknown_cx_read(u32 addr);
-void unknown_cx_write(u32 addr, u32 value);
+uint32_t unknown_cx_read(uint32_t addr);
+void unknown_cx_write(uint32_t addr, uint32_t value);
 
 void watchdog_reset();
-u32 watchdog_read(u32 addr);
-void watchdog_write(u32 addr, u32 value);
+uint32_t watchdog_read(uint32_t addr);
+void watchdog_write(uint32_t addr, uint32_t value);
 
-void unknown_9008_write(u32 addr, u32 value);
+void unknown_9008_write(uint32_t addr, uint32_t value);
 
-u32 rtc_read(u32 addr);
-void rtc_write(u32 addr, u32 value);
-u32 rtc_cx_read(u32 addr);
-void rtc_cx_write(u32 addr, u32 value);
+uint32_t rtc_read(uint32_t addr);
+void rtc_write(uint32_t addr, uint32_t value);
+uint32_t rtc_cx_read(uint32_t addr);
+void rtc_cx_write(uint32_t addr, uint32_t value);
 
-u32 misc_read(u32 addr);
-void misc_write(u32 addr, u32 value);
+uint32_t misc_read(uint32_t addr);
+void misc_write(uint32_t addr, uint32_t value);
 
 extern struct pmu_state {
-        u32 clocks_load;
-        u32 wake_mask;
-        u32 disable;
-        u32 disable2;
-        u32 clocks;
+        uint32_t clocks_load;
+        uint32_t wake_mask;
+        uint32_t disable;
+        uint32_t disable2;
+        uint32_t clocks;
 } pmu;
 void pmu_reset(void);
-u32 pmu_read(u32 addr);
-void pmu_write(u32 addr, u32 value);
+uint32_t pmu_read(uint32_t addr);
+void pmu_write(uint32_t addr, uint32_t value);
 
-u32 timer_cx_read(u32 addr);
-void timer_cx_write(u32 addr, u32 value);
+uint32_t timer_cx_read(uint32_t addr);
+void timer_cx_write(uint32_t addr, uint32_t value);
 void timer_cx_reset(void);
 
 void hdq1w_reset(void);
-u32 hdq1w_read(u32 addr);
-void hdq1w_write(u32 addr, u32 value);
+uint32_t hdq1w_read(uint32_t addr);
+void hdq1w_write(uint32_t addr, uint32_t value);
 
-u32 unknown_9011_read(u32 addr);
-void unknown_9011_write(u32 addr, u32 value);
+uint32_t unknown_9011_read(uint32_t addr);
+void unknown_9011_write(uint32_t addr, uint32_t value);
 
-u32 spi_read_word(u32 addr);
-void spi_write_word(u32 addr, u32 value);
+uint32_t spi_read_word(uint32_t addr);
+void spi_write_word(uint32_t addr, uint32_t value);
 
-u8 sdio_read_byte(u32 addr);
-u16 sdio_read_half(u32 addr);
-u32 sdio_read_word(u32 addr);
-void sdio_write_byte(u32 addr, u8 value);
-void sdio_write_half(u32 addr, u16 value);
-void sdio_write_word(u32 addr, u32 value);
+uint8_t sdio_read_byte(uint32_t addr);
+uint16_t sdio_read_half(uint32_t addr);
+uint32_t sdio_read_word(uint32_t addr);
+void sdio_write_byte(uint32_t addr, uint8_t value);
+void sdio_write_half(uint32_t addr, uint16_t value);
+void sdio_write_word(uint32_t addr, uint32_t value);
 
-u32 sramctl_read_word(u32 addr);
-void sramctl_write_word(u32 addr, u32 value);
+uint32_t sramctl_read_word(uint32_t addr);
+void sramctl_write_word(uint32_t addr, uint32_t value);
 
-u32 unknown_BC_read_word(u32 addr);
+uint32_t unknown_BC_read_word(uint32_t addr);
 
 void adc_reset();
-u32 adc_read_word(u32 addr);
-void adc_write_word(u32 addr, u32 value);
+uint32_t adc_read_word(uint32_t addr);
+void adc_write_word(uint32_t addr, uint32_t value);
 
 #endif

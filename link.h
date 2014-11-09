@@ -9,9 +9,9 @@ void send_file(char *filename);
 
 void ti84_io_link_reset(void);
 
-u32 ti84_io_link_read(u32 addr);
+uint32_t ti84_io_link_read(uint32_t addr);
 
-void ti84_io_link_write(u32 addr, u32 value);
+void ti84_io_link_write(uint32_t addr, uint32_t value);
 
 void *link_save_state(size_t *size);
 
