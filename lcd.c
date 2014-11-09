@@ -16,9 +16,9 @@ struct {
 	u16 palette[256];
 } lcd;
 
-/* Draw the current screen into a 4bpp upside-down bitmap. (SetDIBitsToDevice
+/* Draw the current screen into a 4bpp bitmap. (SetDIBitsToDevice
  * supports either orientation, but some programs can't paste right-side-up bitmaps) */
-void lcd_draw_frame(u8 buffer[240][160]) {
+void lcd_draw_frame(u8 *buffer) {
 	u32 bpp = 1 << (lcd.control >> 1 & 7);
 	u32 *in = (u32 *)(intptr_t)phys_mem_ptr(lcd.framebuffer, (320 * 240) / 8 * bpp);
 	if (!in || bpp > 32) {
@@ -26,10 +26,10 @@ void lcd_draw_frame(u8 buffer[240][160]) {
 		return;
 	}
 	int row;
-	for (row = 239; row >= 0; row--) {
+    for (row = 0; row < 230; ++row) {
 		u32 pal_shift = lcd.control & (1 << 8) ? 11 : 1;
 		int words = (320 / 32) * bpp;
-		u8 *out = buffer[row];
+        u8 *out = buffer + (row * 160);
 		if (bpp < 16) {
 			u32 mask = (1 << bpp) - 1;
 			u32 bi = (lcd.control & (1 << 9)) ? 0 : 24;
@@ -66,7 +66,7 @@ void lcd_draw_frame(u8 buffer[240][160]) {
 }
 
 /* Draw the current screen into a 16bpp upside-down bitmap. */
-void lcd_cx_draw_frame(u16 buffer[240][320], u32 bitfields[3]) {
+void lcd_cx_draw_frame(u16 *buffer, u32 *bitfields) {
 	u32 mode = lcd.control >> 1 & 7;
 	u32 bpp;
 	if (mode <= 5)
@@ -93,13 +93,13 @@ void lcd_cx_draw_frame(u16 buffer[240][320], u32 bitfields[3]) {
 	}
 
 	u32 *in = (u32 *)(intptr_t)phys_mem_ptr(lcd.framebuffer, (320 * 240) / 8 * bpp);
-	if (!in) {
+    if (!in || !lcd.framebuffer) {
 		memset(buffer, 0, 320 * 240 * 2);
 		return;
 	}
 	int row;
-	for (row = 239; row >= 0; row--) {
-		u16 *out = buffer[row];
+    for (row = 0; row < 230; ++row) {
+        u16 *out = buffer + (row * 320);
 		u32 words = (320 / 32) * bpp;
 		if (bpp < 16) {
 			u32 mask = (1 << bpp) - 1;

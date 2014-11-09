@@ -1,5 +1,4 @@
 *.o
 *.o
 *.exe
-*.bat
-nspire_emu
+*.user

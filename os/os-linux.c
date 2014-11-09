@@ -43,8 +43,8 @@ int os_getch()
 void *os_reserve(size_t size)
 {
     void *ptr = mmap((void*)0x70000000, size, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANON, -1, 0);
-	msync(ptr, size, MS_SYNC|MS_INVALIDATE);
-	return ptr;
+    msync(ptr, size, MS_SYNC|MS_INVALIDATE);
+    return ptr;
 }
 
 void *os_commit(void *addr, size_t size)
@@ -137,11 +137,9 @@ void throttle_timer_off()
 
 static void user_interrupt(int sig, siginfo_t *si, void *unused)
 {
+    (void) sig;
     (void) si;
     (void) unused;
-
-    if(sig != SIGINT)
-        return;
 
     emuprintf("User interrupt. Quit with 'q'.\n");
     debugger(DBG_USER, 0);
@@ -149,8 +147,7 @@ static void user_interrupt(int sig, siginfo_t *si, void *unused)
 
 static void addr_cache_exception(int sig, siginfo_t *si, void *uctx)
 {
-    if(sig != SIGSEGV)
-        return;
+    (void) sig;
 
     ucontext_t *u = (ucontext_t*) uctx;
     emuprintf("Got SIGSEGV trying to access 0x%lx (EIP=0x%x)\n", (long) si->si_addr, u->uc_mcontext.gregs[REG_EIP]);
@@ -185,7 +182,7 @@ void addr_cache_init(os_exception_frame_t *frame)
     }
 
     sa.sa_sigaction = user_interrupt;
-    if(sigaction(SIGINT, &sa, NULL) == -1)
+    if(sigaction(SIGUSR1, &sa, NULL) == -1)
     {
         emuprintf("Failed to initialize INT handler.\n");
         exit(1);

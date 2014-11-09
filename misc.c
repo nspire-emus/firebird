@@ -211,9 +211,12 @@ void timer_reset() {
 
 /* 90030000 and 90040000 */
 u32 unknown_cx_read(u32 addr) {
+    (void) addr;
 	return 0;
 }
 void unknown_cx_write(u32 addr, u32 value) {
+    (void) addr;
+    (void) value;
 }
 
 /* 90060000 */
@@ -232,6 +235,8 @@ static void watchdog_reload() {
 	}
 }
 static void watchdog_event(int index) {
+    (void) index;
+
 	if (watchdog.control >> 1 & watchdog.interrupt) {
 		warn("Resetting due to watchdog timeout");
 		cpu_events |= EVENT_RESET;

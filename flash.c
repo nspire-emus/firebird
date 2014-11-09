@@ -366,7 +366,7 @@ void nand_cx_write_word(u32 addr, u32 value) {
 
 FILE *flash_file;
 
-void flash_open(char *filename) {
+void flash_open(const char *filename) {
 	bool large = false;
 	flash_file = fopen(filename, "r+b");
 	if (!flash_file) {
@@ -476,7 +476,7 @@ static u32 load_file_part(u32 offset, FILE *f, u32 length) {
 	return offset - start;
 }
 
-static u32 load_file(u32 offset, char *filename) {
+static u32 load_file(u32 offset, const char *filename) {
 	FILE *f = fopen(filename, "rb");
 	if (!f) {
 		perror(filename);
@@ -520,7 +520,7 @@ static u32 load_zip_entry(u32 offset, FILE *f, char *name) {
 	exit(1);
 }
 
-static u32 preload(u32 offset, char *name, char *filename) {
+static u32 preload(u32 offset, char *name, const char *filename) {
 	u32 page_data_size = (nand_metrics.page_size & ~0x7F);
 	u32 page = offset / page_data_size;
 	u32 manifest_size, image_size;
@@ -597,7 +597,7 @@ struct manuf_data_804 {
 };
 
 
-void flash_create_new(char **preload_file, int product, bool large_sdram) {
+void flash_create_new(const char **preload_file, int product, bool large_sdram) {
 	memset(nand_data, 0xFF, nand_metrics.page_size * nand_metrics.num_pages);
 
 	if (preload_file[0]) {

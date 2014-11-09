@@ -12,7 +12,6 @@
 #include "keypad.h"
 #include "translate.h"
 #include "debug.h"
-#include "gui/gui.h"
 #include "mmu.h"
 #include "gdbstub.h"
 #include "flash.h"
@@ -149,19 +148,8 @@ void throttle_interval_event(int index) {
 	if (rdebug_port)
 		rdebug_recv();
 
-	get_messages();
-
 	os_time_t interval_end;
 	os_query_time(&interval_end);
-
-	{	// Update graphics (frame rate is arbitrary)
-		static os_time_t prev;
-		s64 time = os_time_diff(interval_end, prev);
-		if (time >= os_frequency_hz(perffreq) >> 5) {
-			gui_redraw();
-			prev = interval_end;
-		}
-	}
 
 	if (show_speed) {
 		// Show speed
@@ -172,7 +160,7 @@ void throttle_interval_event(int index) {
 			double speed = (double)os_frequency_hz(perffreq) * (intervals - prev_intervals) / time;
 			char buf[40];
 			sprintf(buf, "nspire_emu - %.1f%%", speed);
-            gui_set_title(buf);
+            //gui_set_title(buf);
 			prev_intervals = intervals;
 			prev = interval_end;
 		}
@@ -256,12 +244,12 @@ void add_reset_proc(void (*proc)(void))
 	reset_procs[reset_proc_count++] = proc;
 }
 
-int emulate(int flag_debug, int flag_large_nand, int flag_large_sdram, int flag_debug_on_warn, int flag_verbosity, int port_gdb, int port_rgdb, int keypad, int product, uint32_t addr_boot2, char *path_boot1,
-		char *path_boot2, char *path_flash, char *path_commands, char *path_log, char *pre_boot2, char *pre_diags, char *pre_os)
+int emulate(int flag_debug, int flag_large_nand, int flag_large_sdram, int flag_debug_on_warn, int flag_verbosity, int port_gdb, int port_rgdb, int keypad, int product, uint32_t addr_boot2, const char *path_boot1,
+        const char *path_boot2, const char *path_flash, const char *path_commands, const char *path_log, const char *pre_boot2, const char *pre_diags, const char *pre_os)
 {
 	static FILE *boot2_file = NULL;
 	uint32_t sdram_size;
-	char *preload_filename[4] = {pre_boot2, pre_diags, pre_os, NULL}; // TODO: what is arg 4??
+    const char *preload_filename[4] = {pre_boot2, pre_diags, pre_os};
 	int i;
 
 	// Debug on warn?
@@ -348,8 +336,6 @@ int emulate(int flag_debug, int flag_large_nand, int flag_large_sdram, int flag_
 	addr_cache_init(&frame);
 
 	os_query_frequency(&perffreq);
-
-	gui_initialize();
 
 	throttle_timer_on();
 	atexit(throttle_timer_off);

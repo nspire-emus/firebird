@@ -53,8 +53,8 @@ void add_reset_proc(void (*proc)(void));
 
 
 
-int emulate(int flag_debug, int flag_large_nand, int flag_large_sdram, int flag_debug_on_warn, int flag_verbosity, int port_gdb, int port_rgdb, int keypad, int product, uint32_t addr_boot2, char *path_boot1,
-                char *path_boot2, char *path_flash, char *path_commands, char *path_log, char *pre_boot2, char *pre_diags, char *pre_os);
+int emulate(int flag_debug, int flag_large_nand, int flag_large_sdram, int flag_debug_on_warn, int flag_verbosity, int port_gdb, int port_rgdb, int keypad, int product, uint32_t addr_boot2, const char *path_boot1,
+                const char *path_boot2, const char *path_flash, const char *path_commands, const char *path_log, const char *pre_boot2, const char *pre_diags, const char *pre_os);
 
 
 #endif

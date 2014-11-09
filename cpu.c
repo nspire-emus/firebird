@@ -812,11 +812,12 @@ enter_debugger:
 				if (exec_hack())
 					continue;
 		} else {
-			if (do_translate && !(*flags & (RF_CODE_NO_TRANSLATE))) {
+            if (do_translate && !(*flags & (RF_CODE_NO_TRANSLATE))) {
                 translate(arm.reg[15], insnp);
                 continue;
             }
 		}
+
 		arm.reg[15] += 4;
 		cycle_count_delta++;
 		cpu_interpret_instruction(*insnp);

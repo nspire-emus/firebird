@@ -23,7 +23,6 @@
 #include "emu.h"
 #include "cpu.h"
 #include "memory.h"
-#include "gui/gui.h"
 #include "disasm.h"
 #include "mmu.h"
 #include "translate.h"
