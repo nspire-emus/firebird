@@ -159,7 +159,7 @@ bool addr_cache_pagefault(void *addr) {
 void *addr_cache_miss(u32 virt, bool writing, fault_proc *fault) {
 	ac_entry entry;
 	u32 phys = mmu_translate(virt, writing, fault);
-	u8 *ptr = phys_mem_ptr(phys, 1);
+    u8 *ptr = phys_mem_ptr(phys, 1);
 	if (ptr && !(writing && (RAM_FLAGS((size_t)ptr & ~3) & RF_READ_ONLY))) {
 		AC_SET_ENTRY_PTR(entry, virt, ptr)
         //printf("addr_cache_miss VA=%08x ptr=%p entry=%p\n", virt, ptr, entry);
@@ -169,12 +169,12 @@ void *addr_cache_miss(u32 virt, bool writing, fault_proc *fault) {
 	}
 	u32 oldoffset = ac_valid_list[ac_valid_index];
 	u32 offset = (virt >> 10) * 2 + writing;
-	if (ac_commit_map[oldoffset / (PAGE_SIZE / sizeof(ac_entry))])
+    //if (ac_commit_map[oldoffset / (PAGE_SIZE / sizeof(ac_entry))])
 		addr_cache_invalidate(oldoffset);
     addr_cache[offset] = entry;
     ac_valid_list[ac_valid_index] = offset;
     ac_valid_index = (ac_valid_index + 1) % AC_VALID_MAX;
-	return ptr;
+    return ptr;
 }
 
 void addr_cache_flush() {
@@ -187,9 +187,9 @@ void addr_cache_flush() {
 		memcpy(mmu_translation_table, table, 0x4000);
 	}
 
-	for (i = 0; i < AC_VALID_MAX; i++) {
+    for (i = 0; i < AC_VALID_MAX; i++) {
 		u32 offset = ac_valid_list[i];
-		if (ac_commit_map[offset / (PAGE_SIZE / sizeof(ac_entry))])
+    //	if (ac_commit_map[offset / (PAGE_SIZE / sizeof(ac_entry))])
 			addr_cache_invalidate(offset);
     }
 }
