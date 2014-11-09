@@ -9,12 +9,20 @@ class EmuThread : public QThread
 public:
     explicit EmuThread(QObject *parent = 0);
 
+    void doStuff();
+
 signals:
     void exited(int retcode);
+    void putchar(char c);
 
 public slots:
     virtual void run() override;
+    void enterDebugger();
 
+private:
+    bool enter_debugger = false;
 };
+
+extern EmuThread *emu_thread;
 
 #endif // EMUTHREAD_H

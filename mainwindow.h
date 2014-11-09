@@ -21,6 +21,14 @@ public:
 
 public slots:
     void refresh();
+    void putchar(char c);
+    void debugCommand();
+
+signals:
+    void debuggerCommand();
+
+public:
+    QByteArray debug_command;
 
 private:
     Ui::MainWindow *ui;
@@ -29,5 +37,7 @@ private:
     QGraphicsScene lcd_scene;
     EmuThread emu;
 };
+
+extern MainWindow *main_window;
 
 #endif // MAINWINDOW_H

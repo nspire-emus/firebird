@@ -14,32 +14,6 @@
 #include "../debug.h"
 #include "../mmu.h"
 
-int os_kbhit()
-{
-	static const int STDIN = 0;
-	static int initialized = 0;
-
-    if (!initialized)
-	{
-		// Use termios to turn off line buffering
-		struct termios term;
-		tcgetattr(STDIN, &term);
-		term.c_lflag &= ~ICANON;
-		tcsetattr(STDIN, TCSANOW, &term);
-		setbuf(stdin, NULL);
-		initialized = 1;
-    }
-
-	int bytes_waiting;
-	ioctl(STDIN, FIONREAD, &bytes_waiting);
-    return bytes_waiting;
-}
-
-int os_getch()
-{
-	return getchar();
-}
-
 void *os_reserve(size_t size)
 {
     void *ptr = mmap((void*)0x70000000, size, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANON, -1, 0);
@@ -135,16 +109,6 @@ void throttle_timer_off()
 	*/
 }
 
-static void user_interrupt(int sig, siginfo_t *si, void *unused)
-{
-    (void) sig;
-    (void) si;
-    (void) unused;
-
-    emuprintf("User interrupt. Quit with 'q'.\n");
-    debugger(DBG_USER, 0);
-}
-
 static void addr_cache_exception(int sig, siginfo_t *si, void *uctx)
 {
     (void) sig;
@@ -178,13 +142,6 @@ void addr_cache_init(os_exception_frame_t *frame)
     if(sigaction(SIGSEGV, &sa, NULL) == -1)
     {
         emuprintf("Failed to initialize SEGV handler.\n");
-        exit(1);
-    }
-
-    sa.sa_sigaction = user_interrupt;
-    if(sigaction(SIGUSR1, &sa, NULL) == -1)
-    {
-        emuprintf("Failed to initialize INT handler.\n");
         exit(1);
     }
 

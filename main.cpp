@@ -13,6 +13,8 @@ int main(int argc, char **argv)
 
     MainWindow mw;
 
+    main_window = &mw;
+
     mw.show();
 
     return app.exec();

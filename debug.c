@@ -14,9 +14,6 @@
 #include <fcntl.h>
 #include <netinet/tcp.h>
 #endif
-#ifdef USE_READLINE
-#include <readline/readline.h>
-#endif
 #include "debug.h"
 #include "types.h"
 #include "interrupt.h"
@@ -560,19 +557,15 @@ static void native_debugger(void) {
 
 	throttle_timer_off();
 	while (1) {
-#ifdef USE_READLINE
-        if(debugger_input == stdin)
+        char *cmd = gui_debug_prompt();
+        if(process_debug_cmd(cmd))
         {
-            char *cmd = readline("debug> ");
-            if(process_debug_cmd(cmd))
-            {
-                free(cmd);
-                break;
-            }
-            free(cmd);
-            continue;
+            //free(cmd);
+            break;
         }
-#endif
+        //free(cmd);
+        continue;
+
 		printf("debug> ");
 		fflush(stdout);
 		fflush(stderr);

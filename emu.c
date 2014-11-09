@@ -134,12 +134,10 @@ void throttle_interval_event(int index) {
 	extern void usblink_timer();
 	usblink_timer();
 
-	if (os_kbhit()) {
-		char c = os_getch();
-		if (c == 4)
-			debugger(DBG_USER, 0);
-		else
-			serial_byte_in(c);
+    int c = gui_getchar();
+    if(c != -1) {
+        char ch = c;
+        serial_byte_in(ch);
 	}
 
 	if (gdb_port)
@@ -147,6 +145,8 @@ void throttle_interval_event(int index) {
 
 	if (rdebug_port)
 		rdebug_recv();
+
+    gui_do_stuff();
 
 	os_time_t interval_end;
 	os_query_time(&interval_end);

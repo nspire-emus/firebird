@@ -59,7 +59,7 @@ void serial_byte_out(u8 byte) {
 			xmodem_file = NULL;
 		}
 	}
-	putchar(byte);
+    gui_putchar(byte);
 }
 
 struct {
