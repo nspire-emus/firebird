@@ -13,7 +13,7 @@
 #include "usblink.h"
 #include "usb.h"
 #include "casplus.h"
-#include "memory.h"
+#include "mem.h"
 #include "debug.h"
 #include "translate.h"
 

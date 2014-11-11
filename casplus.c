@@ -9,7 +9,7 @@
 #include "flash.h"
 #include "emu.h"
 #include "misc.h"
-#include "memory.h"
+#include "mem.h"
 
 static uint16_t lcd_framebuffer[2];
 static uint32_t lcd_control;

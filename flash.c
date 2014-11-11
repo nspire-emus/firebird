@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "emu.h"
-#include "memory.h"
+#include "mem.h"
 #include "cpu.h"
 
 struct nand_metrics {
@@ -366,12 +366,12 @@ void nand_cx_write_word(uint32_t addr, uint32_t value) {
 
 FILE *flash_file;
 
-void flash_open(const char *filename) {
+bool flash_open(const char *filename) {
 	bool large = false;
 	flash_file = fopen(filename, "r+b");
 	if (!flash_file) {
 		perror(filename);
-		exit(1);
+        return false;
 	}
 	fseek(flash_file, 0, SEEK_END);
 	uint32_t size = ftell(flash_file);
@@ -382,13 +382,15 @@ void flash_open(const char *filename) {
 		large = true;
 	else {
 		emuprintf("%s not a flash image (wrong size)\n", filename);
-		exit(1);
+        return false;
 	}
 	nand_initialize(large);
 	if (!fread(nand_data, nand_metrics.page_size * nand_metrics.num_pages, 1, flash_file)) {
 		emuprintf("Could not read flash image from %s\n", filename);
-		exit(1);
+        return false;
 	}
+
+    return true;
 }
 
 void flash_save_changes() {

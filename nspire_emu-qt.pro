@@ -1,54 +1,30 @@
 QT += core gui widgets
 CONFIG += c++11
 
-QMAKE_CFLAGS += -Ofast -std=gnu11 -Wall -Wextra -fomit-frame-pointer -march=native
+QMAKE_CFLAGS += -O3 -std=gnu11 -Wall -Wextra
 
 TEMPLATE = app
 TARGET = nspire_emu
 
+#This does also apply to android
 linux|macx {
 	SOURCES += os/os-linux.c
-	QMAKE_CFLAGS += -DUSE_READLINE
-	LIBS += -lreadline
 }
 
 win32 {
 	SOURCES += os/os-win32.c
 	LIBS += -lwinmm -lws32_2
-
-	#TODO: armsnippets.o generation
-
-	SOURCES += asmcode.S
 }
 
-macx {
-	#TODO: armsnippets.o generation
+#A platform-independant implementation of lowlevel access
+ASMCODE_IMPL = asmcode.c
+
+#On x86 asmcode.S can be used, it's faster
+win32|linux-g++-32 {
+	ASMCODE_IMPL = asmcode.S
 }
 
-linux-g++-32 {
-	#Dirty hack to compile arm snippets without qmake interfering
-	QMAKE_PRE_LINK += arm-none-eabi-gcc -fno-leading-underscore -c $$PWD/armsnippets.S -o armsnippets.o -mcpu=arm926ej-s \
-					&& arm-none-eabi-objcopy -O binary armsnippets.o snippets.bin \
-					&& ld -melf_i386 -r -b binary -o armsnippets.o snippets.bin \
-					&& rm snippets.bin \
-					&& objcopy --rename-section .data=.rodata,alloc,load,readonly,data,contents armsnippets.o
-
-	SOURCES += asmcode.S
-}
-
-linux-g++|linux-clang {
-	#Dirty hack to compile arm snippets without qmake interfering
-	QMAKE_PRE_LINK += arm-none-eabi-gcc -fno-leading-underscore -c $$PWD/armsnippets.S -o armsnippets.o -mcpu=arm926ej-s \
-					&& arm-none-eabi-objcopy -O binary armsnippets.o snippets.bin \
-					&& ld -r -b binary -o armsnippets.o snippets.bin \
-					&& rm snippets.bin \
-					&& objcopy --rename-section .data=.rodata,alloc,load,readonly,data,contents armsnippets.o
-
-	SOURCES += asmcode.c
-}
-
-QMAKE_LFLAGS += armsnippets.o
-
+SOURCES += $$ASMCODE_IMPL
 SOURCES += mainwindow.cpp \
 		main.cpp \
 		armloader.c \
@@ -64,7 +40,7 @@ SOURCES += mainwindow.cpp \
         keypad.c \
         lcd.c \
         link.c \
-        memory.c \
+		mem.c \
         misc.c \
         mmu.c \
         schedule.c \
@@ -81,3 +57,11 @@ FORMS += \
 HEADERS += \
     mainwindow.h \
     emuthread.h
+
+#Generate the binary arm code into armcode_bin.h
+armsnippets.commands = arm-none-eabi-gcc -fno-leading-underscore -c $$PWD/armsnippets.S -o armsnippets.o -mcpu=arm926ej-s \
+						&& arm-none-eabi-objcopy -O binary armsnippets.o snippets.bin \
+						&& xxd -i snippets.bin > $$PWD/armcode_bin.h \
+						&& rm armsnippets.o
+
+QMAKE_EXTRA_TARGETS = armsnippets

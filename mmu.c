@@ -3,7 +3,7 @@
 #include "emu.h"
 #include "cpu.h"
 #include "mmu.h"
-#include "memory.h"
+#include "mem.h"
 #include "os/os.h"
 
 /* Copy of translation table in memory (hack to approximate effect of having a TLB) */

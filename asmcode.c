@@ -1,7 +1,10 @@
 #include "asmcode.h"
 #include "debug.h"
 #include "mmu.h"
-#include "memory.h"
+#include "mem.h"
+
+#define likely(x) (__builtin_expect(x, 1))
+#define unlikely(x) (__builtin_expect(x, 0))
 
 //TODO: Read and write breakpoints
 
@@ -13,7 +16,7 @@ uint32_t FASTCALL read_word_ldr(uint32_t addr)
     uintptr_t located_addr = entry + addr;
 
     //If the sum doesn't contain the address directly
-    if(located_addr & (AC_NOT_PTR | 0b11))
+    if(unlikely(located_addr & (AC_NOT_PTR | 0b11)))
     {
         if(entry & (1 << 22)) //Invalid entry
         {

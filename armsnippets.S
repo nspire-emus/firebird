@@ -1,8 +1,3 @@
-/*
- * This file is wrapped as host-side object file pointed to by the symbol binary_snippets_bin_start
- * and ending at binary_armsnippets_bin_end.
- */
-
 // From Ndless's include/syscalls.h
 #define __SYSCALLS_ISEMU 0x400000
 #define NDLSEMU_DEBUG_ALLOC (__SYSCALLS_ISEMU | 0)

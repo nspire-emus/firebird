@@ -18,7 +18,7 @@
 #include "interrupt.h"
 #include "emu.h"
 #include "cpu.h"
-#include "memory.h"
+#include "mem.h"
 #include "disasm.h"
 #include "mmu.h"
 #include "translate.h"
@@ -42,7 +42,7 @@ void backtrace(uint32_t fp) {
 			printf(" invalid address\n");
 			break;
 		}
-		vprintf(" %08X %08X %08X %08X\n", (void *)frame);
+        vprintf(" %08X %08X %08X %08X\n", (void *)frame);
 		if (frame[0] <= fp) /* don't get stuck in infinite loop :) */
 			break;
 		fp = frame[0];

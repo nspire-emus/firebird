@@ -1,7 +1,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include "emu.h"
-#include "memory.h"
+#include "mem.h"
 #include "cpu.h"
 #include "asmcode.h"
 #include "translate.h"

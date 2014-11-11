@@ -4,7 +4,7 @@
 
 #include "mainwindow.h"
 
-EmuThread *emu_thread;
+EmuThread *emu_thread = nullptr;
 
 extern "C" {
     #include "debug.h"
@@ -25,7 +25,10 @@ extern "C" {
 
     void gui_putchar(char c)
     {
-        emu_thread->putchar(c);
+        if(true)
+            emu_thread->serialChar(c);
+        else
+            putchar(c);
     }
 
     int gui_getchar()

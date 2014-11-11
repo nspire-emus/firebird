@@ -25,15 +25,21 @@
       </property>
       <property name="minimumSize">
        <size>
-        <width>320</width>
-        <height>240</height>
+        <width>322</width>
+        <height>232</height>
        </size>
       </property>
       <property name="maximumSize">
        <size>
-        <width>320</width>
-        <height>240</height>
+        <width>323</width>
+        <height>232</height>
        </size>
+      </property>
+      <property name="frameShape">
+       <enum>QFrame::NoFrame</enum>
+      </property>
+      <property name="lineWidth">
+       <number>0</number>
       </property>
       <property name="verticalScrollBarPolicy">
        <enum>Qt::ScrollBarAlwaysOff</enum>

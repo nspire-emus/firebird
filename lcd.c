@@ -3,7 +3,7 @@
 #include "emu.h"
 #include "interrupt.h"
 #include "schedule.h"
-#include "memory.h"
+#include "mem.h"
 
 struct {
 	uint32_t timing[4];

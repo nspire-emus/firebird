@@ -8,7 +8,7 @@
 #include "emu.h"
 #include "cpu.h"
 #include "schedule.h"
-#include "memory.h"
+#include "mem.h"
 #include "keypad.h"
 #include "translate.h"
 #include "debug.h"
@@ -291,7 +291,8 @@ int emulate(int flag_debug, int flag_large_nand, int flag_large_sdram, int flag_
 	}
 
 	if (path_flash) {
-		flash_open(path_flash);
+        if(!flash_open(path_flash))
+            return 1;
 	} else {
 		nand_initialize(flag_large_nand);
 		flash_create_new(preload_filename, product, flag_large_sdram);

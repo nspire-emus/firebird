@@ -28,7 +28,7 @@
 
 #include "emu.h"
 #include "debug.h"
-#include "memory.h"
+#include "mem.h"
 #include "cpu.h"
 #include "armsnippets.h"
 #include "gdbstub.h"
@@ -212,7 +212,7 @@ char *getpacket(void) {
 		/* wait around for the start character, ignore all other characters */
 		do {
 			ch = get_debug_char();
-			if (ch == -1) // disconnected
+//			if (ch == -1) // disconnected
 				return NULL;
 		} while (ch != '$');
 		

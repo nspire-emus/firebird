@@ -21,7 +21,7 @@ public:
 
 public slots:
     void refresh();
-    void putchar(char c);
+    void serialChar(char c);
     void debugCommand();
 
 signals:

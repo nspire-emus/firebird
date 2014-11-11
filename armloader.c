@@ -3,7 +3,7 @@
 #include "emu.h"
 #include "cpu.h"
 #include "armsnippets.h"
-#include "memory.h"
+#include "mem.h"
 #include "translate.h"
 #include "armsnippets.h"
 #include "debug.h"
@@ -11,6 +11,8 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdint.h>
+
+#include "armcode_bin.h"
 
 struct arm_state armloader_orig_arm_state;
 
@@ -39,11 +41,10 @@ void armloader_cb(void) {
  */
 int armloader_load_snippet(enum SNIPPETS snippet, struct armloader_load_params params[],  uint32_t params_num, void (*callback)(struct arm_state*)) {
 	uint32_t i;
-	uint32_t code_size;
+    uint32_t code_size = snippets_bin_len;
 	void *code_ptr;
 	uint32_t orig_pc;
 
-	code_size = binary_snippets_bin_end - binary_snippets_bin_start;
 	if(code_size % 4)
 		code_size += 4 - (code_size % 4); // word-aligned
 
@@ -61,7 +62,7 @@ int armloader_load_snippet(enum SNIPPETS snippet, struct armloader_load_params p
 		armloader_restore_state();
 		return -1;
 	}
-	memcpy(code_ptr, binary_snippets_bin_start, code_size);
+    memcpy(code_ptr, snippets_bin, code_size);
 
 	orig_pc = arm.reg[15];
 	arm.reg[14] = arm.reg[15]; // return address

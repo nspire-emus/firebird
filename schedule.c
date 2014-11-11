@@ -11,8 +11,14 @@ uint32_t next_cputick;
 int next_index; // -1 if no more events this second
 
 static inline uint32_t muldiv(uint32_t a, uint32_t b, uint32_t c) {
-	asm ("mull %1; divl %2" : "+a" (a) : "m" (b), "m" (c) : "edx");
-	return a;
+    #if defined(__i386__) || defined(__x86_64__)
+        asm ("mull %1; divl %2" : "+a" (a) : "m" (b), "m" (c) : "edx");
+        return a;
+    #else
+        uint64_t d = a;
+        d *= b;
+        return d / c;
+    #endif
 }
 
 void sched_reset(void) {

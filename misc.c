@@ -7,7 +7,7 @@
 #include "misc.h"
 #include "keypad.h"
 #include "flash.h"
-#include "memory.h"
+#include "mem.h"
 
 // Miscellaneous hardware modules deemed too trivial to get their own files
 

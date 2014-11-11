@@ -22,7 +22,7 @@ uint32_t nand_cx_read_word(uint32_t addr);
 void nand_cx_write_byte(uint32_t addr, uint8_t value);
 void nand_cx_write_word(uint32_t addr, uint32_t value);
 
-void flash_open(const char *filename);
+bool flash_open(const char *filename);
 void flash_save_changes();
 int flash_save_as(const char *filename);
 void flash_create_new(const char **preload, int product, bool large_sdram);

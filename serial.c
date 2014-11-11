@@ -3,7 +3,7 @@
 #include "emu.h"
 #include "interrupt.h"
 #include "misc.h"
-#include "memory.h"
+#include "mem.h"
 #include "casplus.h"
 
 FILE *xmodem_file;

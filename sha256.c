@@ -1,6 +1,6 @@
 #include <string.h>
 #include "emu.h"
-#include "memory.h"
+#include "mem.h"
 
 static uint32_t hash_state[8];
 static uint32_t hash_block[16];

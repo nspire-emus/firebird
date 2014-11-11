@@ -13,7 +13,7 @@ public:
 
 signals:
     void exited(int retcode);
-    void putchar(char c);
+    void serialChar(char c);
 
 public slots:
     virtual void run() override;

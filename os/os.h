@@ -15,6 +15,7 @@ void *os_alloc_executable(size_t size);
 typedef LARGE_INTEGER os_time_t;
 typedef LARGE_INTEGER os_frequency_t;
 #else
+#include <sys/time.h>
 typedef struct timeval os_time_t;
 typedef long long os_frequency_t;
 #endif

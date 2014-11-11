@@ -12,7 +12,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->setupUi(this);
 
     connect(&refresh_timer, SIGNAL(timeout()), this, SLOT(refresh()));
-    connect(&emu, SIGNAL(putchar(char)), this, SLOT(putchar(char)), Qt::QueuedConnection);
+    connect(&emu, SIGNAL(serialChar(char)), this, SLOT(serialChar(char)), Qt::QueuedConnection);
     connect(ui->actionDebugger, SIGNAL(triggered()), &emu, SLOT(enterDebugger()));
     connect(ui->lineEdit, SIGNAL(returnPressed()), this, SLOT(debugCommand()));
 
@@ -41,15 +41,16 @@ void MainWindow::refresh()
     if(emulate_cx)
     {
         QByteArray framebuffer(320 * 240 * 2, 0);
-        uint32_t useless[3];
-        lcd_cx_draw_frame(reinterpret_cast<uint16_t*>(framebuffer.data()), useless);
-        QImage image(reinterpret_cast<const uchar*>(framebuffer.data()), 320, 240, 320 * 2, QImage::Format_RGB16);
+        uint32_t bitfields[3];
+        lcd_cx_draw_frame(reinterpret_cast<uint16_t*>(framebuffer.data()), bitfields);
+        QImage::Format format = bitfields[0] == 0x00F ? QImage::Format_RGB444 : QImage::Format_RGB16;
+        QImage image(reinterpret_cast<const uchar*>(framebuffer.data()), 320, 240, 320 * 2, format);
 
         lcd_scene.addPixmap(QPixmap::fromImage(image));
     }
 }
 
-void MainWindow::putchar(char c)
+void MainWindow::serialChar(char c)
 {
     if(c == '\r')
         return;

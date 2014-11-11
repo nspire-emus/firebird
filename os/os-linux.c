@@ -1,6 +1,7 @@
-#ifdef __unix__
+#if defined(__unix__) || defined(__APPLE__)
 
 #define _GNU_SOURCE
+#define _XOPEN_SOURCE
 
 #include <sys/mman.h>
 #include <stdio.h>
@@ -54,15 +55,15 @@ void *os_alloc_executable(size_t size)
 
 void os_query_time(os_time_t *t)
 {
-	gettimeofday(t, NULL);
+    gettimeofday(t, NULL);
 }
 
 double os_time_diff(os_time_t x, os_time_t y)
 {
-	double t;
+    double t;
 	t = (y.tv_sec - x.tv_sec) * 1000.0;	// sec to ms
 	t += (y.tv_usec - x.tv_usec) / 1000.0;	// us to ms
-	return t;
+    return t;
 }
 
 long long os_frequency_hz(os_frequency_t f)

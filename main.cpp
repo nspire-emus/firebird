@@ -1,6 +1,7 @@
 #include <QApplication>
 
 #include "mainwindow.h"
+#include "emuthread.h"
 
 extern "C"
 {

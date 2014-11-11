@@ -1,6 +1,6 @@
 #include <stdbool.h>
 #include <string.h>
-#include "memory.h"
+#include "mem.h"
 
 static uint32_t des_block[2];
 static uint32_t des_key[6];
