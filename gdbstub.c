@@ -298,9 +298,10 @@ static volatile int mem_err = 0;
  */
 static char *mem2hex(void *mem, char *buf, int count) {
 	unsigned char ch;
+    unsigned char *memptr = mem;
 
 	while (count-- > 0) {
-		ch = *(unsigned char*)mem++;
+        ch = *memptr++;
 		if (mem_err)
 			return 0;
 		*buf++ = hexchars[ch >> 4];
@@ -371,17 +372,17 @@ __attribute__((unused)) static void binary_escape(char *in, int insize, char *ou
 }
 
 /* From emu to GDB. Returns regbuf. */
-static unsigned long *get_registers(unsigned long regbuf[NUMREGS]) {
+static uint32_t *get_registers(uint32_t regbuf[NUMREGS]) {
 	// GDB's format in arm-tdep.c/arm_register_names
-	memset(regbuf, 0, sizeof(unsigned long) * NUMREGS);
-	memcpy(regbuf, arm.reg, sizeof(unsigned long) * 16);
-	regbuf[NUMREGS-1] = (unsigned long)get_cpsr();
+    memset(regbuf, 0, sizeof(uint32_t) * NUMREGS);
+    memcpy(regbuf, arm.reg, sizeof(uint32_t) * 16);
+    regbuf[NUMREGS-1] = (uint32_t)get_cpsr();
 	return regbuf;
 }
 
 /* From GDB to emu */
-static void set_registers(const unsigned long regbuf[NUMREGS]) {
-	memcpy(arm.reg, regbuf, sizeof(unsigned long) * 16);
+static void set_registers(const uint32_t regbuf[NUMREGS]) {
+    memcpy(arm.reg, regbuf, sizeof(uint32_t) * 16);
 	set_cpsr_full(regbuf[NUMREGS-1]);
 }
 
@@ -420,7 +421,7 @@ void gdbstub_loop(void) {
 	int length;
 	char *ptr, *ptr1;
 	void *ramaddr;
-	unsigned long regbuf[NUMREGS];
+    uint32_t regbuf[NUMREGS];
 	bool reply, set;
 	
 	while (1) {
@@ -441,18 +442,18 @@ void gdbstub_loop(void) {
 			case 'g':  /* return the value of the CPU registers */
 				get_registers(regbuf);
 				ptr = remcomOutBuffer;
-				ptr = mem2hex(regbuf, ptr, NUMREGS * sizeof(unsigned long)); 
+                ptr = mem2hex(regbuf, ptr, NUMREGS * sizeof(uint32_t));
 				break;
 		
 			case 'G':  /* set the value of the CPU registers - return OK */
-				hex2mem(ptr, regbuf, NUMREGS * sizeof(unsigned long));
+                hex2mem(ptr, regbuf, NUMREGS * sizeof(uint32_t));
 				set_registers(regbuf);
 				strcpy(remcomOutBuffer,"OK");
 				break;
 				
 			case 'p': /* pn Read the value of register n */
 				if (hexToInt(&ptr, &addr) && (size_t)addr < sizeof(regbuf)) {
-					mem2hex(get_registers(regbuf) + addr, remcomOutBuffer, sizeof(unsigned long));
+                    mem2hex(get_registers(regbuf) + addr, remcomOutBuffer, sizeof(uint32_t));
 				} else {
 					strcpy(remcomOutBuffer,"E01");
 				}

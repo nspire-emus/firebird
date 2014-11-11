@@ -244,7 +244,7 @@ void add_reset_proc(void (*proc)(void))
 	reset_procs[reset_proc_count++] = proc;
 }
 
-int emulate(int flag_debug, int flag_large_nand, int flag_large_sdram, int flag_debug_on_warn, int flag_verbosity, int port_gdb, int port_rgdb, int keypad, int product, uint32_t addr_boot2, const char *path_boot1,
+int emulate(int flag_debug, int flag_large_nand, int flag_large_sdram, int flag_debug_on_warn, int flag_verbosity, int port_gdb, int port_rdbg, int keypad, int product, uint32_t addr_boot2, const char *path_boot1,
         const char *path_boot2, const char *path_flash, const char *path_commands, const char *path_log, const char *pre_boot2, const char *pre_diags, const char *pre_os)
 {
 	static FILE *boot2_file = NULL;
@@ -341,10 +341,16 @@ int emulate(int flag_debug, int flag_large_nand, int flag_large_sdram, int flag_
 	atexit(throttle_timer_off);
 
 	if(port_gdb)
-		gdbstub_init(port_gdb);
+    {
+        gdbstub_init(port_gdb);
+        gdb_port = port_gdb;
+    }
 
-	if (port_rgdb)
-		rdebug_bind(port_rgdb);
+    if (port_rdbg)
+    {
+        rdebug_bind(port_rdbg);
+        rdebug_port = port_rdbg;
+    }
 
 reset:
 	memset(&arm, 0, sizeof arm);

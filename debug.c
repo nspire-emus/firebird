@@ -288,9 +288,10 @@ static int process_debug_cmd(char *cmdline) {
 				uint32_t *flags_start = &RAM_FLAGS(mem_areas[area].ptr);
 				uint32_t *flags_end = &RAM_FLAGS(mem_areas[area].ptr + mem_areas[area].size);
 				for (flags = flags_start; flags != flags_end; flags++) {
+                    uint32_t addr = mem_areas[area].base + ((uint8_t *)flags - (uint8_t *)flags_start);
 					if (*flags & (RF_READ_BREAKPOINT | RF_WRITE_BREAKPOINT | RF_EXEC_BREAKPOINT)) {
-						printf("%08x %c%c%c\n",
-							mem_areas[area].base + ((uint8_t *)flags - (uint8_t *)flags_start),
+                        printf("%08x %c%c%c\n",
+                            addr,
 							(*flags & RF_READ_BREAKPOINT)  ? 'r' : ' ',
 							(*flags & RF_WRITE_BREAKPOINT) ? 'w' : ' ',
 							(*flags & RF_EXEC_BREAKPOINT)  ? 'x' : ' ');
@@ -488,7 +489,8 @@ static int process_debug_cmd(char *cmdline) {
                         return 0;
 					}
 					if (!memcmp(ptr, string, slen)) {
-						printf("Found at address %08X.\n", ptr - strptr + addr);
+                        uint32_t found_addr = ptr - strptr + addr;
+                        printf("Found at address %08x.\n", found_addr);
                         return 0;
 					}
 					if (ptr < endptr)
