@@ -15,11 +15,10 @@ uint32_t FASTCALL read_word_ldr(uint32_t addr)
     //If the sum doesn't contain the address directly
     if(located_addr & (AC_NOT_PTR | 0b11))
     {
-        if(entry & (1 << 22))
+        if(entry & (1 << 22)) //Invalid entry
         {
-            //Invalid entry
             addr_cache_miss(addr, false, data_abort);
-                return read_word_ldr(addr);
+            return read_word_ldr(addr);
         }
         else //Physical address
         {
@@ -40,14 +39,12 @@ uint32_t FASTCALL read_byte(uint32_t addr)
     //If the sum doesn't contain the address directly
     if(located_addr & AC_NOT_PTR)
     {
-        //Physical address
-        if(entry & (1 << 22))
+        if(entry & (1 << 22)) //Invalid entry
         {
-            //Invalid entry
             addr_cache_miss(addr, false, data_abort);
             return read_byte(addr);
         }
-        else
+        else //Physical address
         {
             entry <<= 10;
             located_addr = addr + entry;
@@ -66,14 +63,12 @@ uint32_t FASTCALL read_half(uint32_t addr)
     //If the sum doesn't contain the address directly
     if(located_addr & (AC_NOT_PTR | 0b01))
     {
-        //Physical address
-        if(entry & (1 << 22))
+        if(entry & (1 << 22)) //Invalid entry
         {
-            //Invalid entry
             addr_cache_miss(addr, false, data_abort);
             return read_half(addr);
         }
-        else
+        else //Physical address
         {
             entry <<= 10;
             located_addr = addr + entry;
@@ -97,14 +92,12 @@ void FASTCALL write_byte(uint32_t addr, uint32_t value)
     //If the sum doesn't contain the address directly
     if(located_addr & AC_NOT_PTR)
     {
-        //Physical address
-        if(entry & (1 << 22))
+        if(entry & (1 << 22)) //Invalid entry
         {
-            //Invalid entry
             addr_cache_miss(addr, false, data_abort);
             return write_byte(addr, value);
         }
-        else
+        else //Physical address
         {
             entry <<= 10;
             located_addr = addr + entry;
@@ -123,14 +116,12 @@ void FASTCALL write_half(uint32_t addr, uint32_t value)
     //If the sum doesn't contain the address directly
     if(located_addr & (AC_NOT_PTR | 0b01))
     {
-        //Physical address
-        if(entry & (1 << 22))
+        if(entry & (1 << 22)) //Invalid entry
         {
-            //Invalid entry
             addr_cache_miss(addr, false, data_abort);
             return write_half(addr, value);
         }
-        else
+        else //Physical address
         {
             entry <<= 10;
             located_addr = addr + entry;
@@ -149,14 +140,12 @@ void FASTCALL write_word(uint32_t addr, uint32_t value)
     //If the sum doesn't contain the address directly
     if(located_addr & (AC_NOT_PTR | 0b11))
     {
-        //Physical address
-        if(entry & (1 << 22))
+        if(entry & (1 << 22)) //Invalid entry
         {
-            //Invalid entry
             addr_cache_miss(addr, false, data_abort);
             return write_word(addr, value);
         }
-        else
+        else //Physical address
         {
             entry <<= 10;
             located_addr = addr + entry;
