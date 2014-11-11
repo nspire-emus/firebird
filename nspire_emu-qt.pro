@@ -14,20 +14,42 @@ linux|macx {
 
 win32 {
 	SOURCES += os/os-win32.c
+
+	#TODO: armsnippets.o generation
+
+	SOURCES += asmcode.S
 }
 
-#Dirty hack to compile arm snippets without qmake interfering
-QMAKE_PRE_LINK += arm-none-eabi-gcc -fno-leading-underscore -c $$PWD/armsnippets.S -o armsnippets.o -mcpu=arm926ej-s \
-				&& arm-none-eabi-objcopy -O binary armsnippets.o snippets.bin \
-				&& ld -melf_i386 -r -b binary -o armsnippets.o snippets.bin \
-				&& rm snippets.bin \
-				&& objcopy --rename-section .data=.rodata,alloc,load,readonly,data,contents armsnippets.o
+macx {
+	#TODO: armsnippets.o generation
+}
+
+linux-g++-32 {
+	#Dirty hack to compile arm snippets without qmake interfering
+	QMAKE_PRE_LINK += arm-none-eabi-gcc -fno-leading-underscore -c $$PWD/armsnippets.S -o armsnippets.o -mcpu=arm926ej-s \
+					&& arm-none-eabi-objcopy -O binary armsnippets.o snippets.bin \
+					&& ld -melf_i386 -r -b binary -o armsnippets.o snippets.bin \
+					&& rm snippets.bin \
+					&& objcopy --rename-section .data=.rodata,alloc,load,readonly,data,contents armsnippets.o
+
+	SOURCES += asmcode.S
+}
+
+linux-g++ {
+	#Dirty hack to compile arm snippets without qmake interfering
+	QMAKE_PRE_LINK += arm-none-eabi-gcc -fno-leading-underscore -c $$PWD/armsnippets.S -o armsnippets.o -mcpu=arm926ej-s \
+					&& arm-none-eabi-objcopy -O binary armsnippets.o snippets.bin \
+					&& ld -r -b binary -o armsnippets.o snippets.bin \
+					&& rm snippets.bin \
+					&& objcopy --rename-section .data=.rodata,alloc,load,readonly,data,contents armsnippets.o
+
+	SOURCES += asmcode.c
+}
 
 QMAKE_LFLAGS += armsnippets.o
 
 SOURCES += mainwindow.cpp \
 		main.cpp \
-		asmcode.S \
 		armloader.c \
         casplus.c \
         cpu.c \
@@ -47,10 +69,10 @@ SOURCES += mainwindow.cpp \
         schedule.c \
         serial.c \
         sha256.c \
-        translate.c \
+		translate.c \
         usb.c \
 		usblink.c \
-    emuthread.cpp
+	emuthread.cpp
 
 FORMS += \
     mainwindow.ui

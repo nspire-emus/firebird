@@ -376,7 +376,8 @@ static int process_debug_cmd(char *cmdline) {
 			printf("Stack size:	%08x\n", *(uint32_t *)&p[48]);
 			uint32_t sp = *(uint32_t *)&p[44];
 			uint32_t *psp = virt_mem_ptr(sp, 18 * 4);
-			if (psp) {
+            if (psp) {
+                #ifdef __i386__
 				printf("Stack type:	%d (%s)\n", psp[0], psp[0] ? "Interrupt" : "Normal");
 				if (psp[0]) {
                     vprintf("cpsr=%08x  r0=%08x r1=%08x r2=%08x r3=%08x  r4=%08x\n"
@@ -388,7 +389,8 @@ static int process_debug_cmd(char *cmdline) {
 							"  r9=%08x r10=%08x r11=%08x r12=%08x pc=%08x\n",
                         (va_list)&psp[1]);
 				}
-			}
+                #endif
+            }
 		}
 	//} else if (!stricmp(cmd, "tasklist")) {
 	} else if (!strcasecmp(cmd, "tasklist")) {

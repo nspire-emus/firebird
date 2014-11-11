@@ -4,6 +4,7 @@
 
 #include <stdbool.h>
 #include <stdint.h>
+#include <stddef.h>
 
 #ifdef EOF // following is only meaningful if stdio.h included
 extern FILE *debugger_input;

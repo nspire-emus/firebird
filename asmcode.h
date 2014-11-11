@@ -3,6 +3,8 @@
 #ifndef _H_ASMCODE
 #define _H_ASMCODE
 
+#include "emu.h"
+
 void translation_enter() __asm__("translation_enter");
 
 uint32_t FASTCALL  read_byte(uint32_t addr) __asm__("read_byte");

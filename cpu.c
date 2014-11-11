@@ -792,10 +792,12 @@ void cpu_arm_loop() {
 			goto enter_debugger;
 		}
 
+        #ifdef __i386__
         if (*flags & RF_CODE_TRANSLATED) {
             translation_enter();
             continue;
         }
+        #endif
 
 		if (*flags & (RF_EXEC_BREAKPOINT | RF_EXEC_DEBUG_NEXT | RF_ARMLOADER_CB | RF_EXEC_HACK)) {
 			if (*flags & RF_ARMLOADER_CB) {
@@ -812,10 +814,12 @@ enter_debugger:
 				if (exec_hack())
 					continue;
 		} else {
+            #ifdef __i386__
             if (do_translate && !(*flags & (RF_CODE_NO_TRANSLATE))) {
                 translate(arm.reg[15], insnp);
                 continue;
             }
+            #endif
 		}
 
 		arm.reg[15] += 4;
