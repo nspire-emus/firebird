@@ -1,7 +1,7 @@
 QT += core gui widgets
 CONFIG += c++11
 
-QMAKE_CFLAGS += -O3 -std=gnu11 -Wall -Wextra
+QMAKE_CFLAGS += -Ofast -std=gnu11 -Wall -Wextra -fomit-frame-pointer -march=native
 
 TEMPLATE = app
 TARGET = nspire_emu
@@ -14,6 +14,7 @@ linux|macx {
 
 win32 {
 	SOURCES += os/os-win32.c
+	LIBS += -lwinmm -lws32_2
 
 	#TODO: armsnippets.o generation
 
@@ -35,7 +36,7 @@ linux-g++-32 {
 	SOURCES += asmcode.S
 }
 
-linux-g++ {
+linux-g++|linux-clang {
 	#Dirty hack to compile arm snippets without qmake interfering
 	QMAKE_PRE_LINK += arm-none-eabi-gcc -fno-leading-underscore -c $$PWD/armsnippets.S -o armsnippets.o -mcpu=arm926ej-s \
 					&& arm-none-eabi-objcopy -O binary armsnippets.o snippets.bin \
