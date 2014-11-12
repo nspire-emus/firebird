@@ -39,7 +39,7 @@ bool show_speed;
 int gdb_port = 0;
 int rdebug_port = 0;
 
-jmp_buf restart_after_exception;
+void *restart_after_exception[32];
 
 void (*reset_procs[20])(void);
 int reset_proc_count;
@@ -59,19 +59,19 @@ void logprintf(int type, char *str, ...) {
 void emuprintf(char *format, ...) {
 	va_list va;
 	va_start(va, format);
-	printf("[nspire_emu] ");
-	vprintf(format, va);
+    gui_debug_printf("[nspire_emu] ");
+    gui_debug_vprintf(format, va);
 	va_end(va);
 }
 
 bool break_on_warn;
 void warn(char *fmt, ...) {
 	va_list va;
-	fprintf(stderr, "Warning at PC=%08X: ", arm.reg[15]);
-	va_start(va, fmt);
-	vfprintf(stderr, fmt, va);
-	va_end(va);
-	fprintf(stderr, "\n");
+    va_start(va, fmt);
+    gui_debug_printf("[nspire_emu] Warning (%08x): ", arm.reg[15]);
+    gui_debug_vprintf(fmt, va);
+    gui_debug_printf("\n");
+    va_end(va);
 	if (break_on_warn)
 		debugger(DBG_EXCEPTION, 0);
 }
@@ -79,12 +79,13 @@ void warn(char *fmt, ...) {
 __attribute__((noreturn))
 void error(char *fmt, ...) {
 	va_list va;
-    fprintf(stderr, "Error at PC=%08X: ", arm.reg[15]);
-	va_start(va, fmt);
-	vfprintf(stderr, fmt, va);
-	va_end(va);
-	fprintf(stderr, "\n\tBacktrace:\n");
-	backtrace(arm.reg[11]);
+    va_start(va, fmt);
+    gui_debug_printf("[nspire_emu] Error (%08x): ", arm.reg[15]);
+    gui_debug_vprintf(fmt, va);
+    gui_debug_printf("\n");
+    /*fprintf(stderr, "\n\tBacktrace:\n");
+    backtrace(arm.reg[11]);*/
+    va_end(va);
 	debugger(DBG_EXCEPTION, 0);
 	cpu_events |= EVENT_RESET;
 	__builtin_longjmp(restart_after_exception, 1);
@@ -271,7 +272,7 @@ int emulate(int flag_debug, int flag_large_nand, int flag_large_sdram, int flag_
 		boot2_file = fopen(path_boot2, "rb");
 		if(!boot2_file)
 		{
-			perror(path_boot2);
+			gui_perror(path_boot2);
 			return 1;
 		}
 	}
@@ -281,7 +282,7 @@ int emulate(int flag_debug, int flag_large_nand, int flag_large_sdram, int flag_
 	if(!log)
 	{
 		printf("Could not open log file.\n");
-		perror(path_log);
+		gui_perror(path_log);
 		return 1;
 	}
 	for(i = 0; i <= flag_verbosity; i++)
@@ -311,7 +312,7 @@ int emulate(int flag_debug, int flag_large_nand, int flag_large_sdram, int flag_
 		/* Load the ROM */
 		FILE *f = fopen(path_boot1, "rb");
 		if (!f) {
-			perror(path_boot1);
+			gui_perror(path_boot1);
 			return 1;
 		}
 		fread(rom, 1, 0x80000, f);
@@ -325,7 +326,7 @@ int emulate(int flag_debug, int flag_large_nand, int flag_large_sdram, int flag_
 		debugger_input = fopen(path_commands, "rb");
 		if(!debugger_input)
 		{
-			perror(path_commands);
+			gui_perror(path_commands);
 			return 1;
 		}
 	}

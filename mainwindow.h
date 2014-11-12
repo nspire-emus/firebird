@@ -21,8 +21,10 @@ public:
 
 public slots:
     void refresh();
-    void serialChar(char c);
+    void serialChar(const char c);
+    void debugStr(QString str);
     void debugCommand();
+    void closeEvent(QCloseEvent *) override;
 
 signals:
     void debuggerCommand();

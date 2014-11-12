@@ -34,15 +34,15 @@ void *virt_mem_ptr(uint32_t addr, uint32_t size) {
 
 void backtrace(uint32_t fp) {
 	uint32_t *frame;
-	printf("Frame     PrvFrame Self     Return   Start\n");
+	gui_debug_printf("Frame     PrvFrame Self     Return   Start\n");
 	do {
-		printf("%08X:", fp);
+		gui_debug_printf("%08X:", fp);
 		frame = virt_mem_ptr(fp - 12, 16);
 		if (!frame) {
-			printf(" invalid address\n");
+			gui_debug_printf(" invalid address\n");
 			break;
 		}
-        vprintf(" %08X %08X %08X %08X\n", (void *)frame);
+        //vgui_debug_printf(" %08X %08X %08X %08X\n", (void *)frame);
 		if (frame[0] <= fp) /* don't get stuck in infinite loop :) */
 			break;
 		fp = frame[0];
@@ -57,19 +57,19 @@ static void dump(uint32_t addr) {
 	for (row = start & ~0xF; row <= end; row += 0x10) {
 		uint8_t *ptr = virt_mem_ptr(row, 16);
 		if (!ptr) {
-			printf("Address %08X is not in RAM.\n", row);
+            gui_debug_printf("Address %08X is not in RAM.\n", row);
 			break;
 		}
-		printf("%08X  ", row);
+		gui_debug_printf("%08X  ", row);
 		for (col = 0; col < 0x10; col++) {
 			addr = row + col;
 			if (addr < start || addr > end)
-				printf("  ");
+				gui_debug_printf("  ");
 			else
-				printf("%02X", ptr[col]);
+				gui_debug_printf("%02X", ptr[col]);
 			putchar(col == 7 && addr >= start && addr < end ? '-' : ' ');
 		}
-		printf("  ");
+		gui_debug_printf("  ");
 		for (col = 0; col < 0x10; col++) {
 			addr = row + col;
 			if (addr < start || addr > end)
@@ -105,7 +105,7 @@ static uint32_t parse_expr(char *str) {
 			reg = strtoul(str + 1, &str, 10);
             if(reg > 15)
             {
-                printf("Reg number out of range!\n");
+                gui_debug_printf("Reg number out of range!\n");
                 return 0;
             }
 			sum += sign * arm.reg[reg];
@@ -122,7 +122,7 @@ static uint32_t parse_expr(char *str) {
 					goto ok;
 				}
 			}
-			printf("syntax error\n");
+			gui_debug_printf("syntax error\n");
 			return 0;
 			ok:;
 		}
@@ -141,7 +141,7 @@ static void disasm(uint32_t (*dis_func)(uint32_t pc)) {
 	for (i = 0; i < 16; i++) {
 		uint32_t len = dis_func(addr);
 		if (!len) {
-			printf("Address %08X is not in RAM.\n", addr);
+			gui_debug_printf("Address %08X is not in RAM.\n", addr);
 			break;
 		}
 		addr += len;
@@ -170,7 +170,7 @@ static int process_debug_cmd(char *cmdline) {
 		return 0;
 	//if (!stricmp(cmd, "?") || !stricmp(cmd, "h")) {
 	if (!strcasecmp(cmd, "?") || !strcasecmp(cmd, "h")) {
-		printf(
+		gui_debug_printf(
 			"Debugger commands:\n"
 			"b - stack backtrace\n"
 			"c - continue\n"
@@ -204,7 +204,7 @@ static int process_debug_cmd(char *cmdline) {
 		char *mode;
 		for (i = 0; i < 16; i++) {
 			int newline = ((1 << 5) | (1 << 11) | (1 << 15)) & (1 << i);
-			printf("%3s=%08x%c", reg_name[i], arm.reg[i], newline ? '\n' : ' ');
+			gui_debug_printf("%3s=%08x%c", reg_name[i], arm.reg[i], newline ? '\n' : ' ');
 		}
 		switch (cpsr & 0x1F) {
 			case MODE_USR: mode = "usr"; show_spsr = 0; break;
@@ -216,7 +216,7 @@ static int process_debug_cmd(char *cmdline) {
 			case MODE_UND: mode = "und"; show_spsr = 1; break;
 			default:       mode = "???"; show_spsr = 0; break;
 		}
-		printf("cpsr=%08x (N=%d Z=%d C=%d V=%d Q=%d IRQ=%s FIQ=%s T=%d Mode=%s)",
+		gui_debug_printf("cpsr=%08x (N=%d Z=%d C=%d V=%d Q=%d IRQ=%s FIQ=%s T=%d Mode=%s)",
 			cpsr,
 			arm.cpsr_n, arm.cpsr_z, arm.cpsr_c, arm.cpsr_v,
 			cpsr >> 27 & 1,
@@ -225,24 +225,24 @@ static int process_debug_cmd(char *cmdline) {
 			cpsr >> 5 & 1,
 			mode);
 		if (show_spsr)
-			printf(" spsr=%08x", get_spsr());
-		printf("\n");
+			gui_debug_printf(" spsr=%08x", get_spsr());
+		gui_debug_printf("\n");
 	//} else if (!stricmp(cmd, "rs")) {
 	} else if (!strcasecmp(cmd, "rs")) {
 		char *reg = strtok(NULL, " \n");
 		if (!reg) {
-			printf("Parameters are missing.\n");
+			gui_debug_printf("Parameters are missing.\n");
 		} else {
 			char *value = strtok(NULL, " \n");
 			if (!value) {
-				printf("Missing value parameter.\n");
+				gui_debug_printf("Missing value parameter.\n");
 			} else {
 				int regi = atoi(reg);
 				int valuei = parse_expr(value);
 				if (regi >= 0 && regi < 15)
 					arm.reg[regi] = valuei;
 				else
-					printf("Invalid register.\n");
+					gui_debug_printf("Invalid register.\n");
 			}
 		}
 	//} else if (!stricmp(cmd, "k")) {
@@ -279,7 +279,7 @@ static int process_debug_cmd(char *cmdline) {
 					}
 				}
 			} else {
-				printf("Address %08X is not in RAM.\n", addr);
+				gui_debug_printf("Address %08X is not in RAM.\n", addr);
 			}
 		} else {
 			unsigned int area;
@@ -290,7 +290,7 @@ static int process_debug_cmd(char *cmdline) {
 				for (flags = flags_start; flags != flags_end; flags++) {
                     uint32_t addr = mem_areas[area].base + ((uint8_t *)flags - (uint8_t *)flags_start);
 					if (*flags & (RF_READ_BREAKPOINT | RF_WRITE_BREAKPOINT | RF_EXEC_BREAKPOINT)) {
-                        printf("%08x %c%c%c\n",
+                        gui_debug_printf("%08x %c%c%c\n",
                             addr,
 							(*flags & RF_READ_BREAKPOINT)  ? 'r' : ' ',
 							(*flags & RF_WRITE_BREAKPOINT) ? 'w' : ' ',
@@ -314,7 +314,7 @@ static int process_debug_cmd(char *cmdline) {
 	} else if (!strcasecmp(cmd, "d")) {
 		char *arg = strtok(NULL, " \n");
 		if (!arg) {
-			printf("Missing address parameter.\n");
+			gui_debug_printf("Missing address parameter.\n");
 		} else {
 			uint32_t addr = parse_expr(arg);
 			dump(addr);
@@ -340,7 +340,7 @@ static int process_debug_cmd(char *cmdline) {
 		} else if (!strcasecmp(ln_cmd, "s")) {
 			char *file = strtok(NULL, "\n");
 			if (!file) {
-				printf("Missing file parameter.\n");
+				gui_debug_printf("Missing file parameter.\n");
 			} else {
 				// remove optional surrounding quotes
 				if (*file == '"') file++;
@@ -356,37 +356,37 @@ static int process_debug_cmd(char *cmdline) {
 			if (dir)
 				strncpy(target_folder, dir, sizeof(target_folder));
 			else
-				printf("Missing directory parameter.\n");
+				gui_debug_printf("Missing directory parameter.\n");
 		}
 	//} else if (!stricmp(cmd, "taskinfo")) {
 	} else if (!strcasecmp(cmd, "taskinfo")) {
 		uint32_t task = parse_expr(strtok(NULL, " \n"));
 		uint8_t *p = virt_mem_ptr(task, 52);
 		if (p) {
-			printf("Previous:	%08x\n", *(uint32_t *)&p[0]);
-			printf("Next:		%08x\n", *(uint32_t *)&p[4]);
-			printf("ID:		%c%c%c%c\n", p[15], p[14], p[13], p[12]);
-			printf("Name:		%.8s\n", &p[16]);
-			printf("Status:		%02x\n", p[24]);
-			printf("Delayed suspend:%d\n", p[25]);
-			printf("Priority:	%02x\n", p[26]);
-			printf("Preemption:	%d\n", p[27]);
-			printf("Stack start:	%08x\n", *(uint32_t *)&p[36]);
-			printf("Stack end:	%08x\n", *(uint32_t *)&p[40]);
-			printf("Stack pointer:	%08x\n", *(uint32_t *)&p[44]);
-			printf("Stack size:	%08x\n", *(uint32_t *)&p[48]);
+			gui_debug_printf("Previous:	%08x\n", *(uint32_t *)&p[0]);
+			gui_debug_printf("Next:		%08x\n", *(uint32_t *)&p[4]);
+			gui_debug_printf("ID:		%c%c%c%c\n", p[15], p[14], p[13], p[12]);
+			gui_debug_printf("Name:		%.8s\n", &p[16]);
+			gui_debug_printf("Status:		%02x\n", p[24]);
+			gui_debug_printf("Delayed suspend:%d\n", p[25]);
+			gui_debug_printf("Priority:	%02x\n", p[26]);
+			gui_debug_printf("Preemption:	%d\n", p[27]);
+			gui_debug_printf("Stack start:	%08x\n", *(uint32_t *)&p[36]);
+			gui_debug_printf("Stack end:	%08x\n", *(uint32_t *)&p[40]);
+			gui_debug_printf("Stack pointer:	%08x\n", *(uint32_t *)&p[44]);
+			gui_debug_printf("Stack size:	%08x\n", *(uint32_t *)&p[48]);
 			uint32_t sp = *(uint32_t *)&p[44];
 			uint32_t *psp = virt_mem_ptr(sp, 18 * 4);
             if (psp) {
                 #ifdef __i386__
-				printf("Stack type:	%d (%s)\n", psp[0], psp[0] ? "Interrupt" : "Normal");
+				gui_debug_printf("Stack type:	%d (%s)\n", psp[0], psp[0] ? "Interrupt" : "Normal");
 				if (psp[0]) {
-                    vprintf("cpsr=%08x  r0=%08x r1=%08x r2=%08x r3=%08x  r4=%08x\n"
+                    vgui_debug_printf("cpsr=%08x  r0=%08x r1=%08x r2=%08x r3=%08x  r4=%08x\n"
 							"  r5=%08x  r6=%08x r7=%08x r8=%08x r9=%08x r10=%08x\n"
 							" r11=%08x r12=%08x sp=%08x lr=%08x pc=%08x\n",
                         (va_list)&psp[1]);
 				} else {
-                    vprintf("cpsr=%08x  r4=%08x  r5=%08x  r6=%08x r7=%08x r8=%08x\n"
+                    vgui_debug_printf("cpsr=%08x  r4=%08x  r5=%08x  r6=%08x r7=%08x r8=%08x\n"
 							"  r9=%08x r10=%08x r11=%08x r12=%08x pc=%08x\n",
                         (va_list)&psp[1]);
 				}
@@ -400,12 +400,12 @@ static int process_debug_cmd(char *cmdline) {
 		if (p) {
 			uint32_t first = *(uint32_t *)p;
 			uint32_t task = first;
-			printf("Task      ID   Name     St D Pr P | StkStart StkEnd   StkPtr   StkSize\n");
+			gui_debug_printf("Task      ID   Name     St D Pr P | StkStart StkEnd   StkPtr   StkSize\n");
 			do {
 				p = virt_mem_ptr(task, 52);
 				if (!p)
 					return 1;
-				printf("%08X: %c%c%c%c %-8.8s %02x %d %02x %d | %08x %08x %08x %08x\n",
+				gui_debug_printf("%08X: %c%c%c%c %-8.8s %02x %d %02x %d | %08x %08x %08x %08x\n",
 					task, p[15], p[14], p[13], p[12],
 					&p[16], /* name */
 					p[24],  /* status */
@@ -437,7 +437,7 @@ static int process_debug_cmd(char *cmdline) {
 		char *start_str = strtok(NULL, " \n");
 		char *size_str = strtok(NULL, " \n");
 		if (!start_str) {
-			printf("Parameters are missing.\n");
+			gui_debug_printf("Parameters are missing.\n");
 			return 0;
 		}
 		uint32_t start = parse_expr(start_str);
@@ -446,12 +446,12 @@ static int process_debug_cmd(char *cmdline) {
 			size = parse_expr(size_str);
 		void *ram = phys_mem_ptr(start, size);
 		if (!ram) {
-			printf("Address range %08x-%08x is not in RAM.\n", start, start + size - 1);
+			gui_debug_printf("Address range %08x-%08x is not in RAM.\n", start, start + size - 1);
 			return 0;
 		}
 		FILE *f = fopen(filename, frommem ? "wb" : "rb");
 		if (!f) {
-			perror(filename);
+			gui_perror(filename);
 			return 0;
 		}
 		if (!size && !frommem) {
@@ -462,7 +462,7 @@ static int process_debug_cmd(char *cmdline) {
 
         if (!(frommem ? fwrite(ram, size, 1, f) : fread(ram, size, 1, f))) {
             fclose(f);
-			perror(filename);
+			gui_perror(filename);
 			return 0;
 		}
         fclose(f);
@@ -473,7 +473,7 @@ static int process_debug_cmd(char *cmdline) {
 		char *len_str = strtok(NULL, " \n");
 		char *string = strtok(NULL, " \n");
 		if (!addr_str || !len_str || !string) {
-			printf("Missing parameters.\n");
+			gui_debug_printf("Missing parameters.\n");
 		} else {
 			uint32_t addr = parse_expr(addr_str);
 			uint32_t len = parse_expr(len_str);
@@ -485,37 +485,37 @@ static int process_debug_cmd(char *cmdline) {
 				while (1) {
 					ptr = memchr(ptr, *string, endptr - ptr);
 					if (!ptr) {
-						printf("String not found.\n");
+						gui_debug_printf("String not found.\n");
                         return 0;
 					}
 					if (!memcmp(ptr, string, slen)) {
                         uint32_t found_addr = ptr - strptr + addr;
-                        printf("Found at address %08x.\n", found_addr);
+                        gui_debug_printf("Found at address %08x.\n", found_addr);
                         return 0;
 					}
 					if (ptr < endptr)
 						ptr++;
 				}
             } else {
-				printf("Address range %08x-%08x is not in RAM.\n", addr, addr + len - 1);
+				gui_debug_printf("Address range %08x-%08x is not in RAM.\n", addr, addr + len - 1);
             }
 		}
         return 0;
 	//} else if (!stricmp(cmd, "int")) {
 	} else if (!strcasecmp(cmd, "int")) {
-		printf("active		= %08x\n", intr.active);
-		printf("status		= %08x\n", intr.status);
-		printf("mask		= %08x %08x\n", intr.mask[0], intr.mask[1]);
-		printf("priority_limit	= %02x       %02x\n", intr.priority_limit[0], intr.priority_limit[1]);
-		printf("noninverted	= %08x\n", intr.noninverted);
-		printf("sticky		= %08x\n", intr.sticky);
-		printf("priority:\n");
+		gui_debug_printf("active		= %08x\n", intr.active);
+		gui_debug_printf("status		= %08x\n", intr.status);
+		gui_debug_printf("mask		= %08x %08x\n", intr.mask[0], intr.mask[1]);
+		gui_debug_printf("priority_limit	= %02x       %02x\n", intr.priority_limit[0], intr.priority_limit[1]);
+		gui_debug_printf("noninverted	= %08x\n", intr.noninverted);
+		gui_debug_printf("sticky		= %08x\n", intr.sticky);
+		gui_debug_printf("priority:\n");
 		int i, j;
 		for (i = 0; i < 32; i += 16) {
-			printf("\t");
+			gui_debug_printf("\t");
 			for (j = 0; j < 16; j++)
-				printf("%02x ", intr.priority[i+j]);
-			printf("\n");
+				gui_debug_printf("%02x ", intr.priority[i+j]);
+			gui_debug_printf("\n");
 		}
 	//} else if (!stricmp(cmd, "int+")) {
 	} else if (!strcasecmp(cmd, "int+")) {
@@ -528,7 +528,7 @@ static int process_debug_cmd(char *cmdline) {
 		// TODO: need to avoid entering debugger recursively
 		// also, where should error() go?
 		uint32_t addr = parse_expr(strtok(NULL, " \n"));
-		printf("%08x\n", mmio_read_word(addr));
+		gui_debug_printf("%08x\n", mmio_read_word(addr));
 	//} else if (!stricmp(cmd, "pw")) {
 	} else if (!strcasecmp(cmd, "pw")) {
 		// TODO: ditto
@@ -536,7 +536,7 @@ static int process_debug_cmd(char *cmdline) {
 		uint32_t value = parse_expr(strtok(NULL, " \n"));
 		mmio_write_word(addr, value);
 	} else {
-		printf("Unknown command %s\n", cmd);
+		gui_debug_printf("Unknown command %s\n", cmd);
 	}
 	return 0;
 }
@@ -569,7 +569,7 @@ static void native_debugger(void) {
         //free(cmd);
         continue;
 
-		printf("debug> ");
+		gui_debug_printf("debug> ");
 		fflush(stdout);
 		fflush(stderr);
         while (!fgets(line, sizeof line, debugger_input)) {
@@ -580,7 +580,7 @@ static void native_debugger(void) {
 			debugger_input = stdin;
 		}
 		if (debugger_input != stdin)
-            emuprintf("Remote debug cmd: %s", line);
+            gui_debug_printf("Remote debug cmd: %s", line);
 
 		if (process_debug_cmd(line))
 			break;
@@ -598,10 +598,10 @@ static void log_socket_error(const char *msg) {
 	int errCode = WSAGetLastError();
 	LPSTR errString = NULL;  // will be allocated and filled by FormatMessage
 	FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM, 0, errCode, 0, (LPSTR)&errString, 0, 0);
-	printf( "%s: %s (%i)\n", msg, errString, errCode);
+	gui_debug_printf( "%s: %s (%i)\n", msg, errString, errCode);
 	LocalFree( errString );
 #else
-	perror(msg);
+	gui_perror(msg);
 #endif
 }
 
@@ -671,7 +671,7 @@ void rdebug_recv(void) {
 #endif
 		if (ret == -1)
 			log_socket_error("Remote debug: setsockopt(TCP_NODELAY) failed for socket");
-        emuprintf("Remote debug: connected.\n");
+        gui_debug_printf("Remote debug: connected.\n");
 		return;
 	}
 	fd_set rfds;
@@ -679,7 +679,7 @@ void rdebug_recv(void) {
 	FD_SET((unsigned)socket_fd, &rfds);
 	ret = select(socket_fd + 1, &rfds, NULL, NULL, &(struct timeval) {0, 0});
 	if (ret == -1 && errno == EBADF) {
-        emuprintf("Remote debug: connection closed.\n");
+        gui_debug_printf("Remote debug: connection closed.\n");
 #ifdef __MINGW32__
 		closesocket(socket_fd);
 #else
@@ -692,13 +692,13 @@ void rdebug_recv(void) {
 
 	size_t buf_remain = sizeof(rdebug_inbuf) - rdebug_inbuf_used;
 	if (!buf_remain) {
-        emuprintf("Remote debug: command is too long\n");
+        gui_debug_printf("Remote debug: command is too long\n");
 		return;
 	}
 
 	ssize_t rv = recv(socket_fd, (void*)&rdebug_inbuf[rdebug_inbuf_used], buf_remain, 0);
 	if (!rv) {
-        emuprintf("Remote debug: connection closed.\n");
+        gui_debug_printf("Remote debug: connection closed.\n");
 #ifdef __MINGW32__
 		closesocket(socket_fd);
 #else

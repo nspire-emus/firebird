@@ -58,7 +58,7 @@ static void log_socket_error(const char *msg) {
 	printf( "%s: %s (%i)\n", msg, errString, errCode);
 	LocalFree( errString );
 #else
-	perror(msg);
+	gui_perror(msg);
 #endif
 }
 

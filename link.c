@@ -264,7 +264,7 @@ cleanup:
 void send_file(char *filename) {
 	FILE *f = fopen(filename, "rb");
 	if (!f) {
-		perror(filename);
+		gui_perror(filename);
 		return;
 	}
 

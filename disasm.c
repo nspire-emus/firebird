@@ -1,6 +1,8 @@
 #include <stdio.h>
+
 #include "debug.h"
 #include "disasm.h"
+#include "emu.h"
 
 static char *strcpy2(char *dest, const char *src) {
 	while ((*dest = *src)) { dest++; src++; }
@@ -415,7 +417,8 @@ uint32_t disasm_arm_insn(uint32_t pc) {
 		}
 	}
 	*out = '\0';
-	puts(buf);
+    gui_debug_printf(buf);
+    gui_debug_printf("\n");
 	return 4;
 }
 

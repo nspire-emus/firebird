@@ -1,10 +1,14 @@
 QT += core gui widgets
 CONFIG += c++11
 
-QMAKE_CFLAGS += -O3 -std=gnu11 -Wall -Wextra
-
 TEMPLATE = app
 TARGET = nspire_emu
+
+QMAKE_CFLAGS += -O3 -std=gnu11 -Wall -Wextra
+
+#Override bad default options
+QMAKE_CFLAGS_RELEASE = -O3
+QMAKE_CXXFLAGS_RELEASE = -O3
 
 #This does also apply to android
 linux|macx {

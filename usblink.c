@@ -194,7 +194,7 @@ bool usblink_put_file(char *filepath, char *folder) {
 
 	FILE *f = fopen(filepath, "rb");
 	if (!f) {
-		perror(filepath);
+		gui_perror(filepath);
 		return 0;
 	}
 	if (put_file)

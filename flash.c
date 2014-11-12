@@ -370,7 +370,7 @@ bool flash_open(const char *filename) {
 	bool large = false;
 	flash_file = fopen(filename, "r+b");
 	if (!flash_file) {
-		perror(filename);
+		gui_perror(filename);
         return false;
 	}
 	fseek(flash_file, 0, SEEK_END);
@@ -416,7 +416,7 @@ int flash_save_as(char *filename) {
 	FILE *f = fopen(filename, "wb");
 	if (!f) {
 		emuprintf("NAND flash: could not open ");
-		perror(filename);
+		gui_perror(filename);
 		return 1;
 	}
 	emuprintf("Saving flash image %s...", filename);
@@ -424,7 +424,7 @@ int flash_save_as(char *filename) {
 		fclose(f);
 		remove(filename);
 		printf("\n could not write to ");
-		perror(filename);
+		gui_perror(filename);
 		return 1;
 	}
 	memset(nand_block_modified, 0, nand_metrics.num_pages >> nand_metrics.log2_pages_per_block);
@@ -481,7 +481,7 @@ static uint32_t load_file_part(uint32_t offset, FILE *f, uint32_t length) {
 static uint32_t load_file(uint32_t offset, const char *filename) {
 	FILE *f = fopen(filename, "rb");
 	if (!f) {
-		perror(filename);
+		gui_perror(filename);
 		exit(1);
 	}
 	uint32_t size = load_file_part(offset, f, -1);
@@ -531,7 +531,7 @@ static uint32_t preload(uint32_t offset, char *name, const char *filename) {
 	if (emulate_casplus && strcmp(name, "IMAGE") == 0) {
 		FILE *f = fopen(filename, "rb");
 		if (!f) {
-			perror(filename);
+			gui_perror(filename);
 			exit(1);
 		}
 		manifest_size = load_zip_entry(offset, f, "manifest_img");

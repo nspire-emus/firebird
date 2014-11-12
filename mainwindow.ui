@@ -167,6 +167,7 @@
     </property>
     <addaction name="actionReset"/>
     <addaction name="actionDebugger"/>
+    <addaction name="actionQuit"/>
    </widget>
    <addaction name="menuEmulation"/>
   </widget>
@@ -181,7 +182,29 @@
     <string>Enter Debugger</string>
    </property>
   </action>
+  <action name="actionQuit">
+   <property name="text">
+    <string>Quit</string>
+   </property>
+  </action>
  </widget>
  <resources/>
- <connections/>
+ <connections>
+  <connection>
+   <sender>actionQuit</sender>
+   <signal>triggered()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>close()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>356</x>
+     <y>167</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
 </ui>

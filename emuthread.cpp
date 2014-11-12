@@ -1,5 +1,7 @@
 #include "emuthread.h"
 
+#include <cerrno>
+#include <cstdarg>
 #include <QEventLoop>
 
 #include "mainwindow.h"
@@ -13,6 +15,28 @@ extern "C" {
     void gui_do_stuff()
     {
         emu_thread->doStuff();
+    }
+
+    void gui_debug_printf(const char *fmt, ...)
+    {
+        va_list ap;
+        va_start(ap, fmt);
+
+        gui_debug_vprintf(fmt, ap);
+
+        va_end(ap);
+    }
+
+    void gui_debug_vprintf(const char *fmt, va_list ap)
+    {
+        QString str;
+        str.vsprintf(fmt, ap);
+        emu_thread->debugStr(str);
+    }
+
+    void gui_perror(const char *msg)
+    {
+        gui_debug_printf("%s: %s\n", msg, strerror(errno));
     }
 
     char *gui_debug_prompt()
@@ -54,7 +78,8 @@ void EmuThread::doStuff()
 void EmuThread::run()
 {
     int ret = emulate(0, 1, 1, 1, -1, 3333, 3334, 4, 0x0F0, 0,
-            "/home/fabian/Arbeitsfläche/Meine Projekte/nspire/nspire_emu/boot1.img", nullptr, "/home/fabian/Arbeitsfläche/Meine Projekte/nspire/nspire_emu/flash_3.9.img",
+            "/home/fabian/Arbeitsfläche/Meine Projekte/nspire/nspire_emu/boot1_classic.img", nullptr, "/home/fabian/Arbeitsfläche/Meine Projekte/nspire/nspire_emu/flash_3.9_nothing.img",
+            //"/sdcard1/boot1_classic.img", nullptr, "/sdcard1/flash_3.9_nothing.img",
             nullptr, nullptr, nullptr, nullptr, nullptr);
     emit exited(ret);
 }

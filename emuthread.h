@@ -14,6 +14,7 @@ public:
 signals:
     void exited(int retcode);
     void serialChar(char c);
+    void debugStr(QString str);
 
 public slots:
     virtual void run() override;

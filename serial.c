@@ -40,7 +40,7 @@ void xmodem_send(char *filename) {
 		fclose(xmodem_file);
 	xmodem_file = fopen(filename, "rb");
 	if (!xmodem_file) {
-		perror(filename);
+		gui_perror(filename);
 		return;
 	}
 	emuprintf("XMODEM: sending file %s...\n", filename);

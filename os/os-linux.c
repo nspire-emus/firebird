@@ -135,7 +135,7 @@ void make_writable(void *addr)
     uintptr_t ps = sysconf(_SC_PAGE_SIZE);
     void *prev = (void*)((uintptr_t)(addr) & (~(ps - 1)));
     if(mprotect(prev, 0x1000, PROT_READ | PROT_WRITE | PROT_EXEC) != 0)
-      emuprintf("mprotect failed.\n");
+        emuprintf("mprotect failed.\n");
 }
 
 void addr_cache_init(os_exception_frame_t *frame)

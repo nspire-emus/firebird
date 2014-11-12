@@ -1,6 +1,7 @@
 #ifndef _H_EMU
 #define _H_EMU
 
+#include <stdarg.h>
 #include <stdbool.h>
 #include <stdint.h>
 
@@ -67,6 +68,9 @@ void add_reset_proc(void (*proc)(void));
 void gui_do_stuff();
 int gui_getchar();
 void gui_putchar(char c);
+void gui_debug_printf(const char *fmt, ...);
+void gui_debug_vprintf(const char *fmt, va_list ap);
+void gui_perror(const char *msg);
 char *gui_debug_prompt();
 
 int emulate(int flag_debug, int flag_large_nand, int flag_large_sdram, int flag_debug_on_warn, int flag_verbosity, int port_gdb, int port_rdbg, int keypad, int product, uint32_t addr_boot2, const char *path_boot1,
