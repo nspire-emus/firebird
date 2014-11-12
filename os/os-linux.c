@@ -78,7 +78,7 @@ void os_query_frequency(os_frequency_t *f)
     if(!freq)
         return;
 
-    fscanf(freq, "%Lu", f);
+    fscanf(freq, "%llu", f);
     fclose(freq);
 }
 
