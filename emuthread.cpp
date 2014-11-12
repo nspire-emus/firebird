@@ -77,6 +77,8 @@ void EmuThread::doStuff()
 
 void EmuThread::run()
 {
+    // int emulate(int flag_debug, int flag_large_nand, int flag_large_sdram, int flag_debug_on_warn, int flag_verbosity, int port_gdb, int port_rdbg, int keypad, int product, uint32_t addr_boot2, const char *path_boot1, const char *path_boot2, const char *path_flash, const char *path_commands, const char *path_log, const char *pre_boot2, const char *pre_diags, const char *pre_os)
+
     int ret = emulate(0, 1, 1, 1, -1, 3333, 3334, 4, 0x0F0, 0,
             "/home/fabian/Arbeitsfläche/Meine Projekte/nspire/nspire_emu/boot1_classic.img", nullptr, "/home/fabian/Arbeitsfläche/Meine Projekte/nspire/nspire_emu/flash_3.9_nothing.img",
             //"/sdcard1/boot1_classic.img", nullptr, "/sdcard1/flash_3.9_nothing.img",
