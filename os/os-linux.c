@@ -115,15 +115,19 @@ static void addr_cache_exception(int sig, siginfo_t *si, void *uctx)
 {
     (void) sig;
 
-    #ifdef __linux__
-        ucontext_t *u = (ucontext_t*) uctx;
-
-        #ifdef __i386__
-            emuprintf("Got SIGSEGV trying to access 0x%lx (EIP=0x%x)\n", (long) si->si_addr, u->uc_mcontext.gregs[REG_EIP]);
-        #elif defined(__x86_64__)
-            emuprintf("Got SIGSEGV trying to access 0x%lx (RIP=0x%x)\n", (long) si->si_addr, u->uc_mcontext.gregs[REG_RIP]);
+    ucontext_t *u = (ucontext_t*) uctx;
+    #ifdef __i386__
+        #ifdef __linux__
+            emuprintf("Got SIGSEGV trying to access 0x%lx (RIP=0x%x)\n", (long) si->si_addr, u->uc_mcontext.gregs[REG_EIP]);
+        #else // Apple
+            emuprintf("Got SIGSEGV trying to access 0x%lx (RIP=0x%x)\n", (long) si->si_addr, u->uc_mcontext->__ss.__eip);
         #endif
-
+    #elif defined(__x86_64__)
+        #ifdef __linux__
+            emuprintf("Got SIGSEGV trying to access 0x%lx (RIP=0x%x)\n", (long) si->si_addr, u->uc_mcontext.gregs[REG_RIP]);
+        #else // Apple
+            emuprintf("Got SIGSEGV trying to access 0x%lx (RIP=0x%x)\n", (long) si->si_addr, u->uc_mcontext->__ss.__rip);
+        #endif
     #endif
 
     if(!addr_cache_pagefault((uint8_t*)si->si_addr))
