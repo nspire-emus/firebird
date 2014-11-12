@@ -30,8 +30,8 @@ win32|linux-g++-32 {
 
 SOURCES += $$ASMCODE_IMPL
 SOURCES += mainwindow.cpp \
-		main.cpp \
-		armloader.c \
+        main.cpp \
+        armloader.c \
         casplus.c \
         cpu.c \
         debug.c \
@@ -44,15 +44,15 @@ SOURCES += mainwindow.cpp \
         keypad.c \
         lcd.c \
         link.c \
-		mem.c \
+        mem.c \
         misc.c \
         mmu.c \
         schedule.c \
         serial.c \
         sha256.c \
-		translate.c \
+        translate.c \
         usb.c \
-		usblink.c \
+        usblink.c \
 	emuthread.cpp
 
 FORMS += \
