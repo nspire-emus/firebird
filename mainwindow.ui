@@ -58,7 +58,7 @@
     <item>
      <widget class="QTabWidget" name="tabWidget">
       <property name="currentIndex">
-       <number>3</number>
+       <number>1</number>
       </property>
       <widget class="QWidget" name="tabSerial">
        <attribute name="title">
@@ -67,6 +67,14 @@
        <layout class="QVBoxLayout" name="verticalLayout_3">
         <item>
          <widget class="QPlainTextEdit" name="serialConsole">
+          <property name="font">
+           <font>
+            <family>Droid Sans Mono</family>
+           </font>
+          </property>
+          <property name="lineWrapMode">
+           <enum>QPlainTextEdit::NoWrap</enum>
+          </property>
           <property name="readOnly">
            <bool>true</bool>
           </property>
@@ -81,13 +89,30 @@
        <layout class="QVBoxLayout" name="verticalLayout">
         <item>
          <widget class="QPlainTextEdit" name="debugConsole">
+          <property name="font">
+           <font>
+            <family>Droid Sans Mono</family>
+           </font>
+          </property>
+          <property name="lineWrapMode">
+           <enum>QPlainTextEdit::NoWrap</enum>
+          </property>
           <property name="readOnly">
            <bool>true</bool>
+          </property>
+          <property name="plainText">
+           <string notr="true"/>
           </property>
          </widget>
         </item>
         <item>
-         <widget class="QLineEdit" name="lineEdit"/>
+         <widget class="QLineEdit" name="lineEdit">
+          <property name="font">
+           <font>
+            <family>Droid Sans Mono</family>
+           </font>
+          </property>
+         </widget>
         </item>
        </layout>
       </widget>
@@ -158,8 +183,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>364</width>
-             <height>136</height>
+             <width>190</width>
+             <height>64</height>
             </rect>
            </property>
            <attribute name="label">
@@ -187,8 +212,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>98</width>
-             <height>28</height>
+             <width>100</width>
+             <height>30</height>
             </rect>
            </property>
            <attribute name="label">
@@ -209,7 +234,7 @@
      <x>0</x>
      <y>0</y>
      <width>732</width>
-     <height>22</height>
+     <height>19</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuEmulation">

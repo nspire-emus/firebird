@@ -164,7 +164,7 @@ void *addr_cache_miss(uint32_t virt, bool writing, fault_proc *fault) {
 		AC_SET_ENTRY_PTR(entry, virt, ptr)
         //printf("addr_cache_miss VA=%08x ptr=%p entry=%p\n", virt, ptr, entry);
 	} else {
-		AC_SET_ENTRY_PHYS(entry, virt, phys)
+        AC_SET_ENTRY_PHYS(entry, virt, phys)
         //printf("addr_cache_miss VA=%08x PA=%08x entry=%p\n", virt, phys, entry);
 	}
 	uint32_t oldoffset = ac_valid_list[ac_valid_index];

@@ -29,15 +29,29 @@ uint32_t mmu_translate(uint32_t addr, bool writing, fault_proc *fault);
 #define AC_NUM_ENTRIES (4194304*2)
 typedef uint8_t *ac_entry;
 extern ac_entry *addr_cache;
-#define AC_SET_ENTRY_PTR(entry, va, ptr) \
-        entry = (ptr) - (va);
-#define AC_NOT_PTR 0x80000000
-#define AC_SET_ENTRY_PHYS(entry, va, pa) \
-        entry = (ac_entry)(((pa) - (va)) >> 10); \
-        entry += (~(uintptr_t)((va) + entry) & AC_NOT_PTR);
-#define AC_SET_ENTRY_INVALID(entry, va) \
-        entry = (ac_entry)(1 << 22); \
-        entry += (~(uintptr_t)((va) + entry) & AC_NOT_PTR);
+
+#ifdef __i386__
+    #define AC_SET_ENTRY_PTR(entry, va, ptr) \
+            entry = (ptr) - (va);
+    #define AC_NOT_PTR 0x80000000
+    #define AC_INVALID (1 << 22)
+    #define AC_SET_ENTRY_PHYS(entry, va, pa) \
+            entry = (ac_entry)(((pa) - (va)) >> 10); \
+            entry += (~(uintptr_t)((va) + entry) & AC_NOT_PTR);
+    #define AC_SET_ENTRY_INVALID(entry, va) \
+            entry = (ac_entry)(AC_INVALID); \
+            entry += (~(uintptr_t)((va) + entry) & AC_NOT_PTR);
+#else
+    #define AC_SET_ENTRY_PTR(entry, va, ptr) \
+            entry = (ptr) - (va);
+    #define AC_NOT_PTR 0x1
+    #define AC_INVALID 0x2
+    #define AC_FLAGS 0x3
+    #define AC_SET_ENTRY_PHYS(entry, va, pa) \
+            entry = (ac_entry)(((pa) - (va)) | AC_NOT_PTR);
+    #define AC_SET_ENTRY_INVALID(entry, va) \
+            entry = (ac_entry)(AC_INVALID | AC_NOT_PTR);
+#endif
 
 bool addr_cache_pagefault(void *addr);
 void *addr_cache_miss(uint32_t addr, bool writing, fault_proc *fault) __asm__("addr_cache_miss");

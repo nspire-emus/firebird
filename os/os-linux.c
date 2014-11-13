@@ -18,8 +18,8 @@
 
 void *os_reserve(size_t size)
 {
-    #ifdef __i386__
-        void *ptr = mmap((void*)0x70000000, size, PROT_READ|PROT_WRITE, MAP_SHARED|MAP_ANON|MAP_FIXED, -1, 0);
+    #ifndef __x86_64__
+        void *ptr = mmap((void*)0x70000000, size, PROT_READ|PROT_WRITE, MAP_SHARED|MAP_ANON, -1, 0);
     #else
         void *ptr = mmap((void*)0, size, PROT_READ|PROT_WRITE, MAP_SHARED|MAP_ANON, -1, 0);
     #endif
@@ -52,7 +52,7 @@ void os_sparse_decommit(void *page, size_t size)
 
 void *os_alloc_executable(size_t size)
 {
-    void *ptr = mmap((void*)0x30000000, size, PROT_READ|PROT_WRITE|PROT_EXEC, MAP_FIXED|MAP_SHARED|MAP_ANON, -1, 0);
+    void *ptr = mmap((void*)0x30000000, size, PROT_READ|PROT_WRITE|PROT_EXEC, MAP_SHARED|MAP_ANON, -1, 0);
 	msync(ptr, size, MS_SYNC|MS_INVALIDATE);
 	return ptr;
 }
@@ -125,14 +125,16 @@ static void addr_cache_exception(int sig, siginfo_t *si, void *uctx)
         #ifdef __linux__
             emuprintf("Got SIGSEGV trying to access 0x%lx (RIP=0x%x)\n", (long) si->si_addr, u->uc_mcontext.gregs[REG_EIP]);
         #else // Apple
-            emuprintf("Got SIGSEGV trying to access 0x%lx (RIP=0x%x)\n", (long) si->si_addr, u->uc_mcontext->__ss.__eip);
+            emuprintf("Got SIGSEGV trying to access 0x%lx (EIP=0x%x)\n", (long) si->si_addr, u->uc_mcontext->__ss.__eip);
         #endif
     #elif defined(__x86_64__)
         #ifdef __linux__
-            emuprintf("Got SIGSEGV trying to access 0x%lx (RIP=0x%x)\n", (long) si->si_addr, u->uc_mcontext.gregs[REG_RIP]);
+            emuprintf("Got SIGSEGV trying to access 0x%lx (EIP=0x%x)\n", (long) si->si_addr, u->uc_mcontext.gregs[REG_RIP]);
         #else // Apple
-            emuprintf("Got SIGSEGV trying to access 0x%lx (RIP=0x%x)\n", (long) si->si_addr, u->uc_mcontext->__ss.__rip);
+            emuprintf("Got SIGSEGV trying to access 0x%lx (EIP=0x%x)\n", (long) si->si_addr, u->uc_mcontext->__ss.__rip);
         #endif
+    #elif defined(__arm__)
+        emuprintf("Got SIGSEGV (PC=0x%x)\n", u->uc_mcontext.arm_pc);
     #endif
 
     if(!addr_cache_pagefault((uint8_t*)si->si_addr))
@@ -168,7 +170,7 @@ void addr_cache_init(os_exception_frame_t *frame)
     unsigned int i;
     for(i = 0; i < AC_NUM_ENTRIES; ++i)
     {
-        AC_SET_ENTRY_INVALID(addr_cache[i], i >> 1 << 10);
+        AC_SET_ENTRY_INVALID(addr_cache[i], (i >> 1) << 10)
     }
 
 #ifdef __i386__

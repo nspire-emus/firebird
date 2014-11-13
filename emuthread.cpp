@@ -80,10 +80,12 @@ void EmuThread::doStuff()
 
 void EmuThread::run()
 {
+    setTerminationEnabled();
+
     int ret = emulate(
-      /* flag_debug         */   0,
-      /* flag_large_nand    */   1,
-      /* flag_large_sdram   */   1,
+      /* flag_debug         */   1,
+      /* flag_large_nand    */   0,
+      /* flag_large_sdram   */   0,
       /* flag_debug_on_warn */   1,
       /* flag_verbosity     */   -1,
       /* port_gdb           */   3333,
@@ -91,9 +93,12 @@ void EmuThread::run()
       /* keypad             */   4,
       /* product            */   0x0F0,
       /* addr_boot2         */   0,
-      /* path_boot1         */   "/home/fabian/Arbeitsfläche/Meine Projekte/nspire/nspire_emu/boot1.img",	// "/sdcard1/boot1_classic.img"
+      ///* path_boot1         */   "/home/fabian/Arbeitsfläche/Meine Projekte/nspire/nspire_emu/boot1.img",
+                                "/sdcard/boot1_classic.img",
       /* path_boot2         */   nullptr,
-      /* path_flash         */   "/home/fabian/Arbeitsfläche/Meine Projekte/nspire/nspire_emu/flash_3.9.img",	// "/sdcard1/flash_3.9_nothing.img",
+      ///* path_flash         */   "/home/fabian/Arbeitsfläche/Meine Projekte/nspire/nspire_emu/flash_3.9.img",	//
+                                "/sdcard/flash_3.9_nothing.img",
+      //                          nullptr,
       /* path_commands      */   nullptr,
       /* path_log           */   nullptr,
       /* pre_boot2          */   nullptr,
