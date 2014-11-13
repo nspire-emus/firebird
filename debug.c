@@ -381,12 +381,12 @@ static int process_debug_cmd(char *cmdline) {
                 #ifdef __i386__
 				gui_debug_printf("Stack type:	%d (%s)\n", psp[0], psp[0] ? "Interrupt" : "Normal");
 				if (psp[0]) {
-                    vgui_debug_printf("cpsr=%08x  r0=%08x r1=%08x r2=%08x r3=%08x  r4=%08x\n"
+                    gui_debug_vprintf("cpsr=%08x  r0=%08x r1=%08x r2=%08x r3=%08x  r4=%08x\n"
 							"  r5=%08x  r6=%08x r7=%08x r8=%08x r9=%08x r10=%08x\n"
 							" r11=%08x r12=%08x sp=%08x lr=%08x pc=%08x\n",
                         (va_list)&psp[1]);
 				} else {
-                    vgui_debug_printf("cpsr=%08x  r4=%08x  r5=%08x  r6=%08x r7=%08x r8=%08x\n"
+                    gui_debug_vprintf("cpsr=%08x  r4=%08x  r5=%08x  r6=%08x r7=%08x r8=%08x\n"
 							"  r9=%08x r10=%08x r11=%08x r12=%08x pc=%08x\n",
                         (va_list)&psp[1]);
 				}

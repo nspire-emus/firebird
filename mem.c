@@ -183,7 +183,7 @@ void FASTCALL mmio_write_word(uint32_t addr, uint32_t value) {
 	write_word_map[addr >> 26](addr, value);
 }
 
-void memory_initialize(uint32_t sdram_size) {
+bool memory_initialize(uint32_t sdram_size) {
 	mem_areas[0].size = 0x80000;
 	mem_areas[1].base = 0x10000000;
 	mem_areas[1].size = sdram_size;
@@ -199,18 +199,24 @@ void memory_initialize(uint32_t sdram_size) {
 	int i;
 
 	mem_and_flags = os_reserve(MEM_MAXSIZE * 2);
+    if((intptr_t) mem_and_flags == -1)
+    {
+        emuprintf("os_reserve failed!\n");
+        return false;
+    }
+
 	for (i = 0; i != sizeof(mem_areas)/sizeof(*mem_areas); i++) {
 		if (mem_areas[i].size) {
-			mem_areas[i].ptr = &mem_and_flags[total_mem];
+            mem_areas[i].ptr = mem_and_flags + total_mem;
 			total_mem += mem_areas[i].size;
 		}
 	}
 	if (!mem_and_flags || total_mem > MEM_MAXSIZE ||
-	    !os_commit(&mem_and_flags[0], total_mem) ||
-	    !os_commit(&mem_and_flags[MEM_MAXSIZE], total_mem))
+        !os_commit(mem_and_flags, total_mem) ||
+        !os_commit(mem_and_flags + MEM_MAXSIZE, total_mem))
 	{
 		emuprintf("Couldn't allocate memory\n");
-		exit(1);
+        return false;
 	}
 
 	if (product == 0x0D0) {
@@ -245,7 +251,7 @@ void memory_initialize(uint32_t sdram_size) {
 		write_word_map[0xFF >> 2] = omap_write_word;
 
 		add_reset_proc(casplus_reset);
-		return;
+        return true;
 	}
 
 	read_byte_map[0x90 >> 2] = apb_read_byte;
@@ -363,6 +369,8 @@ void memory_initialize(uint32_t sdram_size) {
 		write_word_map[0xDC >> 2] = int_cx_write_word;
 		add_reset_proc(int_reset);
 	}
+
+    return true;
 }
 
 #if 0

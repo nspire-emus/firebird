@@ -300,7 +300,8 @@ int emulate(int flag_debug, int flag_large_nand, int flag_large_sdram, int flag_
 
 	flash_read_settings(&sdram_size);
 
-	memory_initialize(sdram_size);
+    if(!memory_initialize(sdram_size))
+        return 1;
 
 	uint8_t *rom = mem_areas[0].ptr;
 	memset(rom, -1, 0x80000);

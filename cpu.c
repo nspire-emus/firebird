@@ -625,7 +625,7 @@ void cpu_interpret_instruction(uint32_t insn) {
 							error("Load instruction modifies base register twice");
 						reg_ptr = &new_base;
 					}
-					*reg_ptr = read_word(addr);
+                    *reg_ptr = read_word(addr);
 				} else { // Store
 					write_word(addr, *reg_ptr);
 				}

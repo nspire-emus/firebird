@@ -181,7 +181,7 @@ void addr_cache_flush() {
     uint32_t i;
 
 	if (arm.control & 1) {
-		uint32_t *table = (uint32_t*)(intptr_t)phys_mem_ptr(arm.translation_table_base, 0x4000);
+        void *table = phys_mem_ptr(arm.translation_table_base, 0x4000);
 		if (!table)
 			error("Bad translation table base register: %x", arm.translation_table_base);
 		memcpy(mmu_translation_table, table, 0x4000);

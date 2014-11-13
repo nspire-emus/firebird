@@ -12,7 +12,7 @@ void *translation_next, *translation_next_bx, *arm_shift_proc;
 
 uint32_t FASTCALL read_word_ldr(uint32_t addr)
 {
-    uint32_t entry = *(uint32_t*)(addr_cache + ((addr >> 10) << 1));
+    uintptr_t entry = *(uintptr_t*)(addr_cache + ((addr >> 10) << 1));
     uintptr_t located_addr = entry + addr;
 
     //If the sum doesn't contain the address directly
@@ -36,7 +36,7 @@ uint32_t FASTCALL read_word_ldr(uint32_t addr)
 
 uint32_t FASTCALL read_byte(uint32_t addr)
 {
-    uint32_t entry = *(uint32_t*)(addr_cache + ((addr >> 10) << 1));
+    uintptr_t entry = *(uintptr_t*)(addr_cache + ((addr >> 10) << 1));
     uintptr_t located_addr = entry + addr;
 
     //If the sum doesn't contain the address directly
@@ -60,7 +60,7 @@ uint32_t FASTCALL read_byte(uint32_t addr)
 
 uint32_t FASTCALL read_half(uint32_t addr)
 {
-    uint32_t entry = *(uint32_t*)(addr_cache + ((addr >> 10) << 1));
+    uintptr_t entry = *(uintptr_t*)(addr_cache + ((addr >> 10) << 1));
     uintptr_t located_addr = entry + addr;
 
     //If the sum doesn't contain the address directly
@@ -89,7 +89,7 @@ uint32_t FASTCALL read_word(uint32_t addr)
 
 void FASTCALL write_byte(uint32_t addr, uint32_t value)
 {
-    uint32_t entry = *(uint32_t*)(addr_cache + ((addr >> 10) << 1));
+    uintptr_t entry = *(uintptr_t*)(addr_cache + ((addr >> 10) << 1));
     uintptr_t located_addr = entry + addr;
 
     //If the sum doesn't contain the address directly
@@ -113,7 +113,7 @@ void FASTCALL write_byte(uint32_t addr, uint32_t value)
 
 void FASTCALL write_half(uint32_t addr, uint32_t value)
 {
-    uint32_t entry = *(uint32_t*)(addr_cache + ((addr >> 10) << 1));
+    uintptr_t entry = *(uintptr_t*)(addr_cache + ((addr >> 10) << 1));
     uintptr_t located_addr = entry + addr;
 
     //If the sum doesn't contain the address directly
@@ -137,7 +137,7 @@ void FASTCALL write_half(uint32_t addr, uint32_t value)
 
 void FASTCALL write_word(uint32_t addr, uint32_t value)
 {
-    uint32_t entry = *(uint32_t*)(addr_cache + ((addr >> 10) << 1));
+    uintptr_t entry = *(uintptr_t*)(addr_cache + ((addr >> 10) << 1));
     uintptr_t located_addr = entry + addr;
 
     //If the sum doesn't contain the address directly

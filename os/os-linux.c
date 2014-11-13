@@ -18,7 +18,11 @@
 
 void *os_reserve(size_t size)
 {
-    void *ptr = mmap((void*)0x70000000, size, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANON, -1, 0);
+    #ifdef __i386__
+        void *ptr = mmap((void*)0x70000000, size, PROT_READ|PROT_WRITE, MAP_SHARED|MAP_ANON|MAP_FIXED, -1, 0);
+    #else
+        void *ptr = mmap((void*)0, size, PROT_READ|PROT_WRITE, MAP_SHARED|MAP_ANON, -1, 0);
+    #endif
     msync(ptr, size, MS_SYNC|MS_INVALIDATE);
     return ptr;
 }
@@ -26,14 +30,14 @@ void *os_reserve(size_t size)
 void *os_commit(void *addr, size_t size)
 {
     void *ptr = mmap(addr, size, PROT_READ|PROT_WRITE, MAP_FIXED|MAP_SHARED|MAP_ANON, -1, 0);
-	msync(addr, size, MS_SYNC|MS_INVALIDATE);
+    msync(addr, size, MS_SYNC|MS_INVALIDATE);
     return ptr;
 }
 
 void *os_sparse_commit(void *page, size_t size)
 {
     void *ptr = mmap(page, size, PROT_READ|PROT_WRITE, MAP_FIXED|MAP_SHARED|MAP_ANON, -1, 0);
-	msync(page, size, MS_SYNC|MS_INVALIDATE);
+    msync(page, size, MS_SYNC|MS_INVALIDATE);
     return ptr;
 }
 
@@ -114,6 +118,7 @@ void throttle_timer_off()
 static void addr_cache_exception(int sig, siginfo_t *si, void *uctx)
 {
     (void) sig;
+    (void) uctx;
 
     ucontext_t *u = (ucontext_t*) uctx;
     #ifdef __i386__
@@ -145,7 +150,7 @@ void make_writable(void *addr)
 void addr_cache_init(os_exception_frame_t *frame)
 {
     (void) frame;
-    addr_cache = mmap((void*)0x40000000, AC_NUM_ENTRIES * sizeof(ac_entry), PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANON, -1, 0);
+    addr_cache = mmap((void*)0, AC_NUM_ENTRIES * sizeof(ac_entry), PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANON, -1, 0);
 
     setbuf(stdout, NULL);
 
