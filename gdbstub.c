@@ -206,13 +206,13 @@ char *getpacket(void) {
 	unsigned char checksum;
 	unsigned char xmitcsum;
 	int count;
-	char ch;
+    char ch;
 
 	while (1) {
 		/* wait around for the start character, ignore all other characters */
 		do {
 			ch = get_debug_char();
-//			if (ch == -1) // disconnected
+            if (ch == (char)-1) // disconnected
 				return NULL;
 		} while (ch != '$');
 		
@@ -283,7 +283,7 @@ static void putpacket(char *buffer) {
 		put_debug_char(hexchars[checksum & 0xf]);
 		flush_out_buffer();
 		ch = get_debug_char();
-	} while (ch != '+' && ch != -1);
+    } while (ch != '+' && ch != (char) -1);
 }
 
 /* Indicate to caller of mem2hex or hex2mem that there has been an
@@ -320,7 +320,7 @@ static void *hex2mem(char *buf, void *mem, int count) {
 
 	for (i = 0; i < count || !count; i++) {
 		ch = hex(*buf++);
-		if (ch == -1)
+        if (ch == (char) -1)
 			return mem;
 		ch <<= 4;
 		ch |= hex(*buf++);
@@ -589,7 +589,7 @@ void gdbstub_reset(void) {
 }
 
 static void gdbstub_disconnect(void) {
-	emuprintf("GDB disconnected.");
+    emuprintf("GDB disconnected.\n");
 #ifdef __MINGW32__
 	closesocket(socket_fd);
 #else
@@ -621,13 +621,14 @@ void gdbstub_recv(void) {
 			log_socket_error("setsockopt(TCP_NODELAY) failed for GDB stub socket");
 
 		/* Interface with Ndless */
-		if (ndls_is_installed())
+        if (ndls_is_installed())
 			armloader_load_snippet(SNIPPET_ndls_debug_alloc, NULL, 0, gdb_connect_ndls_cb);
 		else
-			emuprintf("Ndless not detected or too old. Debugging of applications not available!\n");
+            emuprintf("Ndless not detected or too old. Debugging of applications not available!\n");
+
 		gdb_connected = true;
-		emuprintf("GDB connected.\n");
-		return;
+        emuprintf("GDB connected.\n");
+        return;
 	}
 	fd_set rfds;
 	FD_ZERO(&rfds);
