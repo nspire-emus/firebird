@@ -86,9 +86,10 @@ void MainWindow::closeEvent(QCloseEvent *e)
     qDebug("Terminating emulator thread...");
 
     emu.terminate();
-    emu.wait();
-
-    qDebug("Successful!");
+    if(emu.wait(1000))
+        qDebug("Successful!");
+    else
+        qDebug("Failed.");
 
     QMainWindow::closeEvent(e);
 }
