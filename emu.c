@@ -340,7 +340,6 @@ int emulate(int flag_debug, int flag_large_nand, int flag_large_sdram, int flag_
 	os_query_frequency(&perffreq);
 
 	throttle_timer_on();
-	atexit(throttle_timer_off);
 
 	if(port_gdb)
     {
@@ -456,4 +455,13 @@ reset:
 		}
 	}
 	return 0;
+}
+
+
+void cleanup()
+{
+    if(debugger_input)
+        fclose(debugger_input);
+
+    flash_close();
 }

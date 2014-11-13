@@ -158,8 +158,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>346</width>
-             <height>174</height>
+             <width>364</width>
+             <height>136</height>
             </rect>
            </property>
            <attribute name="label">
@@ -187,8 +187,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>346</width>
-             <height>174</height>
+             <width>98</width>
+             <height>28</height>
             </rect>
            </property>
            <attribute name="label">
@@ -214,7 +214,7 @@
    </property>
    <widget class="QMenu" name="menuEmulation">
     <property name="title">
-     <string>Emulation</string>
+     <string>E&amp;mulation</string>
     </property>
     <addaction name="actionReset"/>
     <addaction name="actionDebugger"/>
@@ -223,19 +223,42 @@
    <addaction name="menuEmulation"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
+  <widget class="QToolBar" name="toolBar">
+   <property name="windowTitle">
+    <string>toolBar</string>
+   </property>
+   <attribute name="toolBarArea">
+    <enum>TopToolBarArea</enum>
+   </attribute>
+   <attribute name="toolBarBreak">
+    <bool>false</bool>
+   </attribute>
+   <addaction name="actionPause"/>
+  </widget>
   <action name="actionReset">
    <property name="text">
-    <string>Reset</string>
+    <string>&amp;Reset</string>
    </property>
   </action>
   <action name="actionDebugger">
    <property name="text">
-    <string>Enter Debugger</string>
+    <string>&amp;Enter Debugger</string>
    </property>
   </action>
   <action name="actionQuit">
    <property name="text">
-    <string>Quit</string>
+    <string>&amp;Quit</string>
+   </property>
+  </action>
+  <action name="actionPause">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Pause</string>
+   </property>
+   <property name="toolTip">
+    <string>Pause execution</string>
    </property>
   </action>
  </widget>

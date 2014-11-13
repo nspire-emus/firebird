@@ -13,8 +13,8 @@ struct nand_metrics {
 };
 
 struct nand_metrics nand_metrics;
-uint8_t *nand_data;
-uint8_t *nand_block_modified;
+uint8_t *nand_data = NULL;
+uint8_t *nand_block_modified = NULL;
 bool nand_writable;
 int nand_state = 0xFF;
 uint8_t nand_addr_state;
@@ -33,6 +33,12 @@ void nand_initialize(bool large) {
 	memcpy(&nand_metrics, &chips[large], sizeof(nand_metrics));
 	nand_data = malloc(nand_metrics.page_size * nand_metrics.num_pages);
 	nand_block_modified = calloc(nand_metrics.num_pages >> nand_metrics.log2_pages_per_block, 1);
+}
+
+void nand_deinitialize()
+{
+    free(nand_data);
+    free(nand_block_modified);
 }
 
 void nand_write_command_byte(uint8_t command) {
@@ -688,3 +694,12 @@ void flash_reload_state(void *state) {
 	(void)state;
 }
 #endif
+
+
+void flash_close()
+{
+    if(flash_file)
+        fclose(flash_file);
+
+    nand_deinitialize();
+}

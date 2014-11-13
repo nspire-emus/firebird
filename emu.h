@@ -74,6 +74,7 @@ void gui_perror(const char *msg);
 char *gui_debug_prompt();
 
 int emulate(int flag_debug, int flag_large_nand, int flag_large_sdram, int flag_debug_on_warn, int flag_verbosity, int port_gdb, int port_rdbg, int keypad, int product, uint32_t addr_boot2, const char *path_boot1, const char *path_boot2, const char *path_flash, const char *path_commands, const char *path_log, const char *pre_boot2, const char *pre_diags, const char *pre_os);
+void cleanup();
 
 
 #endif

@@ -11,6 +11,8 @@ public:
 
     void doStuff();
 
+    bool paused = false;
+
 signals:
     void exited(int retcode);
     void serialChar(char c);
@@ -19,6 +21,7 @@ signals:
 public slots:
     virtual void run() override;
     void enterDebugger();
+    void setPaused(bool paused);
 
 private:
     bool enter_debugger = false;

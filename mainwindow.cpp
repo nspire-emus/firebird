@@ -16,6 +16,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(&emu, SIGNAL(debugStr(QString)), this, SLOT(debugStr(QString)), Qt::QueuedConnection);
     connect(ui->actionDebugger, SIGNAL(triggered()), &emu, SLOT(enterDebugger()));
     connect(ui->lineEdit, SIGNAL(returnPressed()), this, SLOT(debugCommand()));
+    connect(ui->actionPause, SIGNAL(toggled(bool)), &emu, SLOT(setPaused(bool)));
 
     refresh_timer.setInterval(1000 / 60); //60 fps
     refresh_timer.start();

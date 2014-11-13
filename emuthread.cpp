@@ -73,6 +73,9 @@ void EmuThread::doStuff()
         enter_debugger = false;
         debugger(DBG_USER, 0);
     }
+
+    while(paused)
+        msleep(100);
 }
 
 void EmuThread::run()
@@ -88,9 +91,9 @@ void EmuThread::run()
       /* keypad             */   4,
       /* product            */   0x0F0,
       /* addr_boot2         */   0,
-      /* path_boot1         */   "/Users/adriweb/Documents/Nspire_Dev/CXCASDump/boot1.img.tns",	// "/sdcard1/boot1_classic.img"
+      /* path_boot1         */   "/home/fabian/Arbeitsfläche/Meine Projekte/nspire/nspire_emu/boot1.img",	// "/sdcard1/boot1_classic.img"
       /* path_boot2         */   nullptr,
-      /* path_flash         */   "/Users/adriweb/Documents/Nspire_Dev/CXCASDump/flashcxcas39",	// "/sdcard1/flash_3.9_nothing.img",
+      /* path_flash         */   "/home/fabian/Arbeitsfläche/Meine Projekte/nspire/nspire_emu/flash_3.9.img",	// "/sdcard1/flash_3.9_nothing.img",
       /* path_commands      */   nullptr,
       /* path_log           */   nullptr,
       /* pre_boot2          */   nullptr,
@@ -104,4 +107,9 @@ void EmuThread::run()
 void EmuThread::enterDebugger()
 {
     enter_debugger = true;
+}
+
+void EmuThread::setPaused(bool paused)
+{
+    this->paused = paused;
 }
