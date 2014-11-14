@@ -1,6 +1,8 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
+#include <QTextBlock>
+
 MainWindow *main_window;
 
 MainWindow::MainWindow(QWidget *parent) :
@@ -62,11 +64,32 @@ void MainWindow::refresh()
 
 void MainWindow::serialChar(const char c)
 {
-    if(c == '\r')
-        return;
-
     ui->serialConsole->moveCursor(QTextCursor::End);
-    ui->serialConsole->insertPlainText(QString(c));
+
+    static char previous = 0;
+
+    switch(c)
+    {
+    case 0:
+
+    case '\r':
+        previous = c;
+        break;
+
+    case '\b':
+        ui->serialConsole->textCursor().deletePreviousChar();
+        break;
+
+    default:
+        if(c != '\n' && previous == '\r')
+        {
+            ui->serialConsole->moveCursor(QTextCursor::StartOfLine, QTextCursor::MoveAnchor);
+            ui->serialConsole->moveCursor(QTextCursor::End, QTextCursor::KeepAnchor);
+            ui->serialConsole->textCursor().removeSelectedText();
+            previous = 0;
+        }
+        ui->serialConsole->insertPlainText(QString(c));
+    }
 }
 
 void MainWindow::debugStr(QString str)
