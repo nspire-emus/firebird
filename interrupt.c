@@ -161,14 +161,3 @@ void int_reset() {
 	intr.priority_limit[0] = 8;
 	intr.priority_limit[1] = 8;
 }
-
-#if 0
-void *int_save_state(size_t *size) {
-	(void)size;
-	return NULL;
-}
-
-void int_reload_state(void *state) {
-	(void)state;
-}
-#endif

@@ -18,8 +18,8 @@ void *in_translation_pc_ptr __asm__("in_translation_pc_ptr");
 struct translation translation_table[MAX_TRANSLATIONS];
 
 static int next_index = 0;
-uint8_t *insn_buffer;
-uint8_t *insn_bufptr;
+uint8_t *insn_buffer = NULL;
+uint8_t *insn_bufptr = NULL;
 static uint8_t *jtbl_buffer[500000];
 static uint8_t **jtbl_bufptr = jtbl_buffer;
 static uint8_t *out;
@@ -1024,16 +1024,5 @@ void translate_range(uint32_t range_start, uint32_t range_end, int dump) {
 		fwrite(insn_buffer, 1, insn_bufptr-insn_buffer, f);
 		fclose(f);
 	}
-}
-#endif
-
-#if 0
-void *translate_save_state(size_t *size) {
-	(void)size;
-	return NULL;
-}
-
-void translate_reload_state(void *state) {
-	(void)state;
 }
 #endif

@@ -23,8 +23,18 @@ void *os_reserve(size_t size)
     #else
         void *ptr = mmap((void*)0, size, PROT_READ|PROT_WRITE, MAP_SHARED|MAP_ANON, -1, 0);
     #endif
+
+    if((intptr_t)ptr == -1)
+        return NULL;
+
     msync(ptr, size, MS_SYNC|MS_INVALIDATE);
     return ptr;
+}
+
+void os_free(void *ptr, size_t size)
+{
+    if(ptr)
+        munmap(ptr, size);
 }
 
 void *os_commit(void *addr, size_t size)
@@ -53,6 +63,9 @@ void os_sparse_decommit(void *page, size_t size)
 void *os_alloc_executable(size_t size)
 {
     void *ptr = mmap((void*)0x30000000, size, PROT_READ|PROT_WRITE|PROT_EXEC, MAP_SHARED|MAP_ANON, -1, 0);
+    if((intptr_t)ptr == -1)
+        return NULL;
+
 	msync(ptr, size, MS_SYNC|MS_INVALIDATE);
 	return ptr;
 }
@@ -152,6 +165,14 @@ void make_writable(void *addr)
 void addr_cache_init(os_exception_frame_t *frame)
 {
     (void) frame;
+
+    // Only run this once
+    static bool initialized = false;
+    if(initialized)
+        return;
+
+    initialized = true;
+
     addr_cache = mmap((void*)0, AC_NUM_ENTRIES * sizeof(ac_entry), PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANON, -1, 0);
 
     setbuf(stdout, NULL);

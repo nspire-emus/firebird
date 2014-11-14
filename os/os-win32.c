@@ -19,6 +19,12 @@ void *os_reserve(size_t size)
 	return VirtualAlloc(NULL, size, MEM_RESERVE, PAGE_READWRITE);
 }
 
+void os_free(void *ptr, size_t size)
+{
+    //TODO: Test this
+    VirtualFree(ptr, 0, MEM_RELEASE);
+}
+
 void *os_commit(void *addr, size_t size)
 {
 	return VirtualAlloc(addr, size, MEM_COMMIT, PAGE_READWRITE);

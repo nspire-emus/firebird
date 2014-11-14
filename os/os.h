@@ -5,6 +5,7 @@ int os_kbhit();
 int os_getch();
 
 void *os_reserve(size_t size);
+void os_free(void *ptr, size_t size);
 void *os_commit(void *addr, size_t size);
 void *os_sparse_commit(void *page, size_t size);
 void os_sparse_decommit(void *page, size_t size);

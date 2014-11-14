@@ -18,6 +18,6 @@ struct armloader_load_params {
         };
 };
 void armloader_cb(void);
-int armloader_load_snippet(enum SNIPPETS snippet, struct armloader_load_params params[], unsigned params_num, void (*callback)(struct arm_state *));
+bool armloader_load_snippet(enum SNIPPETS snippet, struct armloader_load_params params[], unsigned params_num, void (*callback)(struct arm_state *));
 
 #endif

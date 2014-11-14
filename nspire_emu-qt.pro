@@ -4,11 +4,13 @@ CONFIG += c++11
 TEMPLATE = app
 TARGET = nspire_emu
 
-QMAKE_CFLAGS += -O3 -std=gnu11 -Wall -Wextra
+QMAKE_CFLAGS = -O3 -std=gnu11 -Wall -Wextra -flto -fno-fat-lto-objects
 
 #Override bad default options
 QMAKE_CFLAGS_RELEASE = -O3
 QMAKE_CXXFLAGS_RELEASE = -O3
+
+QMAKE_LFLAGS += -O3 -flto
 
 #This does also apply to android
 linux|macx {
@@ -60,7 +62,7 @@ FORMS += \
 
 HEADERS += \
     mainwindow.h \
-    emuthread.h
+	emuthread.h
 
 #Generate the binary arm code into armcode_bin.h
 armsnippets.commands = arm-none-eabi-gcc -fno-leading-underscore -c $$PWD/armsnippets.S -o armsnippets.o -mcpu=arm926ej-s \

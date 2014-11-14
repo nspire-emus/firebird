@@ -25,7 +25,7 @@
 #include "usblink.h"
 #include "gdbstub.h"
 
-extern char target_folder[256];
+char target_folder[256];
 
 void *virt_mem_ptr(uint32_t addr, uint32_t size) {
 	// Note: this is not guaranteed to be correct when range crosses page boundary
@@ -161,7 +161,7 @@ static void set_debug_next(uint32_t *next) {
 }
 
 bool gdb_connected = false;
-FILE *debugger_input;
+FILE *debugger_input = NULL;
 
 // return 1: break (should stop being feed with debugger commands), 0: continue (can be feed with other debugger commands)
 static int process_debug_cmd(char *cmdline) {
@@ -427,9 +427,6 @@ static int process_debug_cmd(char *cmdline) {
 	} else if (!strcasecmp(cmd, "t-")) {
 		flush_translations();
 		do_translate = 0;
-	//} else if (!stricmp(cmd, "q")) {
-	} else if (!strcasecmp(cmd, "q")) {
-        exit(0);
 	//} else if (!stricmp(cmd, "wm") || !stricmp(cmd, "wf")) {
 	} else if (!strcasecmp(cmd, "wm") || !strcasecmp(cmd, "wf")) {
 		bool frommem = cmd[1] != 'f';
@@ -560,27 +557,29 @@ static void native_debugger(void) {
 
 	throttle_timer_off();
 	while (1) {
-        char *cmd = gui_debug_prompt();
-        if(process_debug_cmd(cmd))
+        if(debugger_input == NULL)
         {
+            char *cmd = gui_debug_prompt();
+            if(process_debug_cmd(cmd))
+            {
+                //free(cmd);
+                break;
+            }
             //free(cmd);
-            break;
+            continue;
         }
-        //free(cmd);
-        continue;
-
-		gui_debug_printf("debug> ");
 		fflush(stdout);
 		fflush(stderr);
         while (!fgets(line, sizeof line, debugger_input)) {
-			if (debugger_input == stdin)
-				exit(1);
-			// switch to stdin and try again
+            // switch to GUI
 			fclose(debugger_input);
-			debugger_input = stdin;
+            debugger_input = NULL;
+            break;
 		}
-		if (debugger_input != stdin)
-            gui_debug_printf("Remote debug cmd: %s", line);
+        if(!debugger_input)
+            continue;
+
+        gui_debug_printf("Remote debug cmd: %s", line);
 
 		if (process_debug_cmd(line))
 			break;
@@ -615,7 +614,7 @@ static void set_nonblocking(int socket, bool nonblocking) {
 #endif
 }
 
-void rdebug_bind(int port) {
+bool rdebug_bind(int port) {
 	struct sockaddr_in sockaddr;
 	int r;
 	
@@ -624,14 +623,14 @@ void rdebug_bind(int port) {
 	WSADATA wsaData;
 	if (WSAStartup(wVersionRequested, &wsaData)) {
 		log_socket_error("WSAStartup failed");
-		exit(1);
+        return false;
 	}
 #endif
 
 	listen_socket_fd = socket(PF_INET, SOCK_STREAM, 0);
 	if (listen_socket_fd == -1) {
 		log_socket_error("Remote debug: Failed to create socket");
-		return;
+        return false;
 	}
 	set_nonblocking(listen_socket_fd, true);
 
@@ -642,13 +641,15 @@ void rdebug_bind(int port) {
 	r = bind(listen_socket_fd, (struct sockaddr *)&sockaddr, sizeof(sockaddr));
 	if (r == -1) {
 		log_socket_error("Remote debug: failed to bind socket. Check that nspire_emu is not already running!");
-		exit(1);
+        return false;
 	}
 	r = listen(listen_socket_fd, 0);
 	if (r == -1) {
 		log_socket_error("Remote debug: failed to listen on socket");
-		exit(1);
+        return false;
 	}
+
+    return true;
 }
 
 static char rdebug_inbuf[MAX_CMD_LEN];
@@ -736,13 +737,17 @@ void debugger(enum DBG_REASON reason, uint32_t addr) {
 		native_debugger();
 }
 
-#if 0
-void *debug_save_state(size_t *size) {
-	(void)size;
-	return NULL;
-}
+void rdebug_quit()
+{
+    if(socket_fd)
+    {
+        close(socket_fd);
+        socket_fd = 0;
+    }
 
-void debug_reload_state(void *state) {
-	(void)state;
+    if(listen_socket_fd)
+    {
+        close(listen_socket_fd);
+        listen_socket_fd = 0;
+    }
 }
-#endif

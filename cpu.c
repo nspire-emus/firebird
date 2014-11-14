@@ -1055,14 +1055,3 @@ enter_debugger:
 		}
 	}
 }
-
-#if 0
-void *cpu_save_state(size_t *size) {
-	(void)size;
-	return NULL;
-}
-
-void cpu_reload_state(void *state) {
-	(void)state;
-}
-#endif

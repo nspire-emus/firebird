@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>732</width>
-    <height>335</height>
+    <height>350</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -58,7 +58,7 @@
     <item>
      <widget class="QTabWidget" name="tabWidget">
       <property name="currentIndex">
-       <number>1</number>
+       <number>3</number>
       </property>
       <widget class="QWidget" name="tabSerial">
        <attribute name="title">
@@ -176,7 +176,7 @@
         <item>
          <widget class="QToolBox" name="toolBox">
           <property name="currentIndex">
-           <number>0</number>
+           <number>1</number>
           </property>
           <widget class="QWidget" name="page">
            <property name="geometry">
@@ -184,7 +184,7 @@
              <x>0</x>
              <y>0</y>
              <width>190</width>
-             <height>64</height>
+             <height>70</height>
             </rect>
            </property>
            <attribute name="label">
@@ -192,18 +192,31 @@
            </attribute>
            <layout class="QVBoxLayout" name="verticalLayout_7">
             <item>
-             <widget class="QCheckBox" name="checkBox">
+             <widget class="QCheckBox" name="checkWarning">
               <property name="text">
                <string>Enter debugger on warning</string>
               </property>
              </widget>
             </item>
             <item>
-             <widget class="QCheckBox" name="checkBox_2">
+             <widget class="QCheckBox" name="checkDebugger">
               <property name="text">
                <string>Enter debugger on startup</string>
               </property>
              </widget>
+            </item>
+            <item>
+             <spacer name="verticalSpacer">
+              <property name="orientation">
+               <enum>Qt::Vertical</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>20</width>
+                <height>40</height>
+               </size>
+              </property>
+             </spacer>
             </item>
            </layout>
           </widget>
@@ -212,13 +225,134 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>100</width>
-             <height>30</height>
+             <width>364</width>
+             <height>160</height>
             </rect>
            </property>
            <attribute name="label">
             <string>Nspire</string>
            </attribute>
+           <layout class="QVBoxLayout" name="verticalLayout_5">
+            <item>
+             <layout class="QHBoxLayout" name="horizontalLayout_2">
+              <item>
+               <widget class="QLabel" name="label">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="MinimumExpanding" vsizetype="Preferred">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="text">
+                 <string>Type:</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QComboBox" name="selectProduct">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <item>
+                 <property name="text">
+                  <string>CAS+</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>Classic</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>Classic CAS</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>CX</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>CX CAS</string>
+                 </property>
+                </item>
+               </widget>
+              </item>
+             </layout>
+            </item>
+            <item>
+             <layout class="QGridLayout" name="gridLayout">
+              <item row="0" column="0">
+               <layout class="QHBoxLayout" name="horizontalLayout_3">
+                <item>
+                 <widget class="QLabel" name="label_2">
+                  <property name="text">
+                   <string>Boot1:</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QLabel" name="filenameBoot1">
+                  <property name="text">
+                   <string>filename</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+              <item row="1" column="2">
+               <widget class="QPushButton" name="fileFlash">
+                <property name="text">
+                 <string>Select file</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="0">
+               <widget class="QPushButton" name="fileBoot1">
+                <property name="text">
+                 <string>Select file</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="2">
+               <layout class="QHBoxLayout" name="horizontalLayout_4">
+                <item>
+                 <widget class="QLabel" name="label_3">
+                  <property name="text">
+                   <string>Flash:</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QLabel" name="filenameFlash">
+                  <property name="text">
+                   <string>filename</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+             </layout>
+            </item>
+            <item>
+             <spacer name="verticalSpacer_2">
+              <property name="orientation">
+               <enum>Qt::Vertical</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>20</width>
+                <height>40</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+           </layout>
           </widget>
          </widget>
         </item>
@@ -242,6 +376,7 @@
      <string>E&amp;mulation</string>
     </property>
     <addaction name="actionReset"/>
+    <addaction name="actionRestart"/>
     <addaction name="actionDebugger"/>
     <addaction name="actionQuit"/>
    </widget>
@@ -258,6 +393,7 @@
    <attribute name="toolBarBreak">
     <bool>false</bool>
    </attribute>
+   <addaction name="actionReset"/>
    <addaction name="actionPause"/>
   </widget>
   <action name="actionReset">
@@ -284,6 +420,11 @@
    </property>
    <property name="toolTip">
     <string>Pause execution</string>
+   </property>
+  </action>
+  <action name="actionRestart">
+   <property name="text">
+    <string>Restart</string>
    </property>
   </action>
  </widget>

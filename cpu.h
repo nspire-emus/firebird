@@ -64,7 +64,5 @@ void cpu_exception(int type);
 void cpu_interpret_instruction(uint32_t insn);
 void cpu_arm_loop();
 void cpu_thumb_loop();
-void *cpu_save_state(size_t *size);
-void cpu_reload_state(void *state);
 
 #endif

@@ -55,7 +55,7 @@ static void log_socket_error(const char *msg) {
 	LPSTR errString = NULL;  // will be allocated and filled by FormatMessage
 	FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM, 
                   0, errCode, 0, (LPSTR)&errString, 0, 0);
-	printf( "%s: %s (%i)\n", msg, errString, errCode);
+    gui_debug_printf("%s: %s (%i)\n", msg, errString, errCode);
 	LocalFree( errString );
 #else
 	gui_perror(msg);
@@ -127,7 +127,7 @@ static void set_nonblocking(int socket, bool nonblocking) {
 #endif
 }
 
-static void gdbstub_bind(int port) {
+bool gdbstub_init(int port) {
 	struct sockaddr_in sockaddr;
 	int r;
 
@@ -136,14 +136,14 @@ static void gdbstub_bind(int port) {
 	WSADATA wsaData;
 	if (WSAStartup(wVersionRequested, &wsaData)) {
 		log_socket_error("WSAStartup failed");
-		exit(1);
+        return false;
 	}
 #endif
 
 	listen_socket_fd = socket(PF_INET, SOCK_STREAM, 0);
 	if (listen_socket_fd == -1) {
 		log_socket_error("Failed to create GDB stub socket");
-		exit(1);
+        return false;
 	}
 	set_nonblocking(listen_socket_fd, true);
 
@@ -154,12 +154,14 @@ static void gdbstub_bind(int port) {
 	r = bind(listen_socket_fd, (struct sockaddr *)&sockaddr, sizeof(sockaddr));
 	if (r == -1) {
 		log_socket_error("Failed to bind GDB stub socket. Check that nspire_emu is not already running");
-		exit(1);
+        return false;
 	}
 	r = listen(listen_socket_fd, 0);
 	if (r == -1) {
 		log_socket_error("Failed to listen on GDB stub socket");
 	}
+
+    return true;
 }
 
 // program block pre-allocated by Ndless, used for vOffsets queries
@@ -580,16 +582,12 @@ reply:
 	}
 }
 
-void gdbstub_init(int port) {
-	gdbstub_bind(port);
-}
-
 void gdbstub_reset(void) {
 	ndls_debug_alloc_block = 0; // the block is obvisouly freed by the OS on reset
 }
 
 static void gdbstub_disconnect(void) {
-    emuprintf("GDB disconnected.\n");
+    gui_status_printf("GDB disconnected.");
 #ifdef __MINGW32__
 	closesocket(socket_fd);
 #else
@@ -603,6 +601,9 @@ static void gdbstub_disconnect(void) {
 
 /* Non-blocking poll. Enter the debugger loop if a message is received. */
 void gdbstub_recv(void) {
+    if(listen_socket_fd == 0)
+        return;
+
 	int ret, on;
 	if (!socket_fd) {
 		ret = accept(listen_socket_fd, NULL, NULL);
@@ -627,7 +628,7 @@ void gdbstub_recv(void) {
             emuprintf("Ndless not detected or too old. Debugging of applications not available!\n");
 
 		gdb_connected = true;
-        emuprintf("GDB connected.\n");
+        gui_status_printf("GDB connected.");
         return;
 	}
 	fd_set rfds;
@@ -659,16 +660,18 @@ void gdbstub_debugger(enum DBG_REASON reason, uint32_t addr) {
 	gdbstub_loop();
 }
 
-struct gdbstub_saved_state {
-};
 
+void gdbstub_quit()
+{
+    if(listen_socket_fd)
+    {
+        close(listen_socket_fd);
+        listen_socket_fd = 0;
+    }
 
-void *gdbstub_save_state(size_t *size) {
-	*size = sizeof(struct gdbstub_saved_state);
-	struct gdbstub_saved_state *state = malloc(*size);
-	return state;
-}
-
-void gdbstub_reload_state(__attribute__((unused)) void *state) {
-	ndls_debug_alloc_block = 0;
+    if(socket_fd)
+    {
+        close(socket_fd);
+        socket_fd = 0;
+    }
 }

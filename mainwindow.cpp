@@ -1,6 +1,7 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
+#include <QFileDialog>
 #include <QTextBlock>
 
 MainWindow *main_window;
@@ -14,18 +15,36 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->setupUi(this);
 
     connect(&refresh_timer, SIGNAL(timeout()), this, SLOT(refresh()));
+
+    //Emu -> GUI
     connect(&emu, SIGNAL(serialChar(char)), this, SLOT(serialChar(char)), Qt::QueuedConnection);
     connect(&emu, SIGNAL(debugStr(QString)), this, SLOT(debugStr(QString)), Qt::QueuedConnection);
+    connect(&emu, SIGNAL(statusMsg(QString)), ui->statusbar, SLOT(showMessage(QString)), Qt::QueuedConnection);
+
+    //Menu
+    connect(ui->actionReset, SIGNAL(triggered()), &emu, SLOT(reset()));
+    connect(ui->actionRestart, SIGNAL(triggered()), this, SLOT(restart()));
     connect(ui->actionDebugger, SIGNAL(triggered()), &emu, SLOT(enterDebugger()));
-    connect(ui->lineEdit, SIGNAL(returnPressed()), this, SLOT(debugCommand()));
     connect(ui->actionPause, SIGNAL(toggled(bool)), &emu, SLOT(setPaused(bool)));
+
+    //Debugging
+    connect(ui->lineEdit, SIGNAL(returnPressed()), this, SLOT(debugCommand()));
+
+    //Settings
+    connect(ui->fileBoot1, SIGNAL(pressed()), this, SLOT(selectBoot1()));
+    connect(ui->fileFlash, SIGNAL(pressed()), this, SLOT(selectFlash()));
 
     refresh_timer.setInterval(1000 / 60); //60 fps
     refresh_timer.start();
 
     ui->lcdView->setScene(&lcd_scene);
 
-    emu.start();
+    //Load settings
+    selectBoot1(settings.value("boot1", "").toString());
+    selectFlash(settings.value("flash", "").toString());
+
+    if(emu.emu_path_boot1 != "" && emu.emu_path_flash != "")
+        emu.start();
 }
 
 MainWindow::~MainWindow()
@@ -96,6 +115,8 @@ void MainWindow::debugStr(QString str)
 {
     ui->debugConsole->moveCursor(QTextCursor::End);
     ui->debugConsole->insertPlainText(str);
+
+    ui->tabWidget->setCurrentWidget(ui->tabDebugger);
 }
 
 void MainWindow::debugCommand()
@@ -104,15 +125,56 @@ void MainWindow::debugCommand()
     emit debuggerCommand();
 }
 
+void MainWindow::selectBoot1(QString path)
+{
+    QFileInfo f(path);
+    emu.emu_path_boot1 = path.toStdString();
+    ui->filenameBoot1->setText(f.fileName());
+
+    settings.setValue("boot1", path);
+}
+
+void MainWindow::selectBoot1()
+{
+    QFileInfo f(QString::fromStdString(emu.emu_path_flash));
+    QString path = QFileDialog::getOpenFileName(this, "Select boot1 file", f.dir().absolutePath());
+    if(!path.isNull())
+        selectBoot1(path);
+}
+
+void MainWindow::selectFlash(QString path)
+{
+    QFileInfo f(path);
+    emu.emu_path_flash = path.toStdString();
+    ui->filenameFlash->setText(f.fileName());
+
+    settings.setValue("flash", path);
+}
+
+void MainWindow::selectFlash()
+{
+    QFileInfo f(QString::fromStdString(emu.emu_path_flash));
+    QString path = QFileDialog::getOpenFileName(this, "Select flash file", f.dir().absolutePath());
+    if(!path.isNull())
+        selectFlash(path);
+}
+
 void MainWindow::closeEvent(QCloseEvent *e)
 {
     qDebug("Terminating emulator thread...");
 
-    emu.terminate();
-    if(emu.wait(1000))
+    if(emu.stop())
         qDebug("Successful!");
     else
         qDebug("Failed.");
 
     QMainWindow::closeEvent(e);
+}
+
+void MainWindow::restart()
+{
+    if(emu.stop())
+        emu.start();
+    else
+        debugStr("Failed to restart emulator. Close and reopen this app.");
 }

@@ -39,7 +39,7 @@ void armloader_cb(void) {
  * callback() will be called once the snippet has finished its execution. Can be NULL.
  * returns 0 if success.
  */
-int armloader_load_snippet(enum SNIPPETS snippet, struct armloader_load_params params[],  uint32_t params_num, void (*callback)(struct arm_state*)) {
+bool armloader_load_snippet(enum SNIPPETS snippet, struct armloader_load_params params[],  uint32_t params_num, void (*callback)(struct arm_state*)) {
 	uint32_t i;
     uint32_t code_size = snippets_bin_len;
 	void *code_ptr;
@@ -51,16 +51,16 @@ int armloader_load_snippet(enum SNIPPETS snippet, struct armloader_load_params p
 	memcpy(&armloader_orig_arm_state, &arm, sizeof(arm));
 
 	if(!virt_mem_ptr(arm.reg[13] /* sp */, 4)) {
-		printf("sp points to an invalid address\n");
+        emuprintf("sp points to an invalid address\n");
 		armloader_restore_state();
-		return -1;
+        return false;
 	}
 	arm.reg[13] -= code_size;
 	code_ptr = virt_mem_ptr(arm.reg[13], code_size);
 	if(!code_ptr) {
-		printf("not enough stack space to run snippet\n");
+        emuprintf("not enough stack space to run snippet\n");
 		armloader_restore_state();
-		return -1;
+        return false;
 	}
     memcpy(code_ptr, snippets_bin, code_size);
 
@@ -81,9 +81,9 @@ int armloader_load_snippet(enum SNIPPETS snippet, struct armloader_load_params p
 			arm.reg[i] = arm.reg[13];
 			param_ptr = virt_mem_ptr(arm.reg[13], 4);
 			if (!param_ptr) {
-				printf("not enough stack space for snippet parameters\n");
+                emuprintf("not enough stack space for snippet parameters\n");
 				armloader_restore_state();
-				return -1;
+                return false;
 			}
 			memcpy(param_ptr, params[i].p.ptr, params[i].p.size);
 		}
@@ -98,5 +98,5 @@ int armloader_load_snippet(enum SNIPPETS snippet, struct armloader_load_params p
 //	if (*flags & RF_CODE_TRANSLATED) flush_translations();
 //	*flags |= RF_EXEC_BREAKPOINT;
 
-	return 0;
+    return true;
 }

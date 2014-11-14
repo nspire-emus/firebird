@@ -193,14 +193,3 @@ void addr_cache_flush() {
 			addr_cache_invalidate(offset);
     }
 }
-
-#if 0
-void *mmu_save_state(size_t *size) {
-	(void)size;
-	return NULL;
-}
-
-void mmu_reload_state(void *state) {
-	(void)state;
-}
-#endif

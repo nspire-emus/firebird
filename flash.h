@@ -27,9 +27,7 @@ bool flash_open(const char *filename);
 void flash_close();
 void flash_save_changes();
 int flash_save_as(const char *filename);
-void flash_create_new(const char **preload, int product, bool large_sdram);
+bool flash_create_new(bool large, const char **preload, int product, bool large_sdram);
 void flash_read_settings(uint32_t *sdram_size);
-void *flash_save_state(size_t *size);
-void flash_reload_state(void *state);
 
 #endif

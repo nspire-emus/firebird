@@ -34,6 +34,18 @@ extern "C" {
         emu_thread->debugStr(str);
     }
 
+    void gui_status_printf(const char *fmt, ...)
+    {
+        va_list ap;
+        va_start(ap, fmt);
+
+        QString str;
+        str.vsprintf(fmt, ap);
+        emu_thread->statusMsg(str);
+
+        va_end(ap);
+    }
+
     void gui_perror(const char *msg)
     {
         gui_debug_printf("%s: %s\n", msg, strerror(errno));
@@ -82,29 +94,10 @@ void EmuThread::run()
 {
     setTerminationEnabled();
 
-    int ret = emulate(
-      /* flag_debug         */   1,
-      /* flag_large_nand    */   0,
-      /* flag_large_sdram   */   0,
-      /* flag_debug_on_warn */   1,
-      /* flag_verbosity     */   -1,
-      /* port_gdb           */   3333,
-      /* port_rdbg          */   3334,
-      /* keypad             */   4,
-      /* product            */   0x0F0,
-      /* addr_boot2         */   0,
-      ///* path_boot1         */   "/home/fabian/Arbeitsfläche/Meine Projekte/nspire/nspire_emu/boot1.img",
-                                "/sdcard/boot1_classic.img",
-      /* path_boot2         */   nullptr,
-      ///* path_flash         */   "/home/fabian/Arbeitsfläche/Meine Projekte/nspire/nspire_emu/flash_3.9.img",	//
-                                "/sdcard/flash_3.9_nothing.img",
-      //                          nullptr,
-      /* path_commands      */   nullptr,
-      /* path_log           */   nullptr,
-      /* pre_boot2          */   nullptr,
-      /* pre_diags          */   nullptr,
-      /* pre_os             */   nullptr
-                );
+    path_boot1 = emu_path_boot1.c_str();
+    path_flash = emu_path_flash.c_str();
+
+    int ret = emulate();
 
     emit exited(ret);
 }
@@ -117,4 +110,20 @@ void EmuThread::enterDebugger()
 void EmuThread::setPaused(bool paused)
 {
     this->paused = paused;
+}
+
+bool EmuThread::stop()
+{
+    exiting = true;
+    paused = false;
+    if(!this->wait(1000))
+        return false;
+
+    cleanup();
+    return true;
+}
+
+void EmuThread::reset()
+{
+    cpu_events |= EVENT_RESET;
 }

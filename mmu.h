@@ -56,7 +56,5 @@ extern ac_entry *addr_cache;
 bool addr_cache_pagefault(void *addr);
 void *addr_cache_miss(uint32_t addr, bool writing, fault_proc *fault) __asm__("addr_cache_miss");
 void addr_cache_flush();
-void *mmu_save_state(size_t *size);
-void mmu_reload_state(void *state);
 
 #endif

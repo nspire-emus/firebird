@@ -13,15 +13,20 @@ public:
 
     bool paused = false;
 
+    std::string emu_path_boot1 = "", emu_path_flash = "";
+
 signals:
     void exited(int retcode);
     void serialChar(char c);
     void debugStr(QString str);
+    void statusMsg(QString str);
 
 public slots:
     virtual void run() override;
     void enterDebugger();
     void setPaused(bool paused);
+    bool stop();
+    void reset();
 
 private:
     bool enter_debugger = false;

@@ -5,12 +5,12 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <stddef.h>
+#include <stdio.h>
 
-#ifdef EOF // following is only meaningful if stdio.h included
 extern FILE *debugger_input;
-#endif
 
 extern bool gdb_connected;
+extern int rdbg_port;
 
 enum DBG_REASON {
 	DBG_USER,
@@ -24,8 +24,7 @@ void *virt_mem_ptr(uint32_t addr, uint32_t size);
 void backtrace(uint32_t fp);
 void debugger(enum DBG_REASON reason, uint32_t addr);
 void rdebug_recv(void);
-void rdebug_bind(int port);
-void *debug_save_state(size_t *size);
-void debug_reload_state(void *state);
+bool rdebug_bind(int port);
+void rdebug_quit();
 
 #endif

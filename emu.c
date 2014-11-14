@@ -28,16 +28,19 @@ int throttle_delay = 10; /* in milliseconds */
 
 uint32_t cpu_events;
 
-bool exiting;
 bool do_translate = true;
-int product = 0x0E0;
 int asic_user_flags;
 bool turbo_mode;
 bool is_halting;
 bool show_speed;
 
+bool exiting, debug_on_start, large_nand, large_sdram;
+int product = 0x0E0;
+uint32_t boot2_base;
+const char *path_boot1 = NULL, *path_boot2 = NULL, *path_flash = NULL, *pre_boot2 = NULL, *pre_diags = NULL, *pre_os = NULL;
+
 int gdb_port = 0;
-int rdebug_port = 0;
+int rdbg_port = 0;
 
 void *restart_after_exception[32];
 
@@ -141,163 +144,59 @@ void throttle_interval_event(int index) {
         serial_byte_in(ch);
 	}
 
-	if (gdb_port)
-		gdbstub_recv();
+    gdbstub_recv();
 
-	if (rdebug_port)
-		rdebug_recv();
+    rdebug_recv();
 
     gui_do_stuff();
 
 	os_time_t interval_end;
 	os_query_time(&interval_end);
 
-	if (show_speed) {
+    //TODO
+    /*if (show_speed) {
 		// Show speed
 		static int prev_intervals;
 		static os_time_t prev;
 		int64_t time = os_time_diff(interval_end, prev);
-		if (time >= os_frequency_hz(perffreq) >> 1) {
+        //if (time >= os_frequency_hz(perffreq) >> 1) {
 			double speed = (double)os_frequency_hz(perffreq) * (intervals - prev_intervals) / time;
-			char buf[40];
-			sprintf(buf, "nspire_emu - %.1f%%", speed);
             //gui_set_title(buf);
 			prev_intervals = intervals;
 			prev = interval_end;
-		}
-	}
+        }
+    }*/
 	if (!turbo_mode || is_halting)
 		throttle_timer_wait();
 	if (is_halting)
 		is_halting--;
 }
 
-#if 0
-void *emu_save_state(size_t *size) {
-	(void)size;
-	return NULL;
-}
-
-void emu_reload_state(void *state) {
-	(void)state;
-}
-
-void save_state(void) {
-	#define SAVE_STATE_WRITE_CHUNK(module) \
-		module##_save_state(NULL);
-	printf("Saving state...\n");
-	// ordered in reload order
-	SAVE_STATE_WRITE_CHUNK(emu);
-	flush_translations();
-	SAVE_STATE_WRITE_CHUNK(memory);
-	SAVE_STATE_WRITE_CHUNK(cpu);
-	SAVE_STATE_WRITE_CHUNK(apb);
-	SAVE_STATE_WRITE_CHUNK(debug);
-	SAVE_STATE_WRITE_CHUNK(flash);
-	SAVE_STATE_WRITE_CHUNK(gdbstub);
-	SAVE_STATE_WRITE_CHUNK(gui);
-	SAVE_STATE_WRITE_CHUNK(int);
-	SAVE_STATE_WRITE_CHUNK(keypad);
-	SAVE_STATE_WRITE_CHUNK(lcd);
-	SAVE_STATE_WRITE_CHUNK(link);
-	SAVE_STATE_WRITE_CHUNK(mmu);
-	SAVE_STATE_WRITE_CHUNK(sha256);
-	SAVE_STATE_WRITE_CHUNK(des);
-	SAVE_STATE_WRITE_CHUNK(translate);
-	SAVE_STATE_WRITE_CHUNK(usblink);
-	//flash_save_changes();
-	printf("State saved.\n");
-}
-
-// Returns true on success
-bool reload_state(void) {
-	#define RELOAD_STATE_READ_CHUNK(module) \
-		module##_reload_state(NULL);
-	printf("Reloading state...\n");
-	//flash_reload();
-	// ordered
-	RELOAD_STATE_READ_CHUNK(emu);
-	RELOAD_STATE_READ_CHUNK(memory);
-	RELOAD_STATE_READ_CHUNK(cpu);
-	RELOAD_STATE_READ_CHUNK(apb);
-	RELOAD_STATE_READ_CHUNK(debug);
-	RELOAD_STATE_READ_CHUNK(flash);
-	RELOAD_STATE_READ_CHUNK(gdbstub);
-	RELOAD_STATE_READ_CHUNK(gui);
-	RELOAD_STATE_READ_CHUNK(int);
-	RELOAD_STATE_READ_CHUNK(keypad);
-	RELOAD_STATE_READ_CHUNK(lcd);
-	RELOAD_STATE_READ_CHUNK(link);
-	RELOAD_STATE_READ_CHUNK(mmu);
-	RELOAD_STATE_READ_CHUNK(sha256);
-	RELOAD_STATE_READ_CHUNK(des);
-	RELOAD_STATE_READ_CHUNK(translate);
-	RELOAD_STATE_READ_CHUNK(usblink);
-	printf("State reloaded.\n");
-	return true;
-}
-#endif
-
 void add_reset_proc(void (*proc)(void))
 {
-	if (reset_proc_count == sizeof(reset_procs)/sizeof(*reset_procs))
-		abort();
+    if (reset_proc_count == sizeof(reset_procs)/sizeof(*reset_procs))
+        abort();
 	reset_procs[reset_proc_count++] = proc;
 }
 
-int emulate(int flag_debug, int flag_large_nand, int flag_large_sdram, int flag_debug_on_warn, int flag_verbosity, int port_gdb, int port_rdbg, int keypad, int product, uint32_t addr_boot2, const char *path_boot1, const char *path_boot2, const char *path_flash, const char *path_commands, const char *path_log, const char *pre_boot2, const char *pre_diags, const char *pre_os)
+int emulate()
 {
-	static FILE *boot2_file = NULL;
-	uint32_t sdram_size;
     const char *preload_filename[4] = {pre_boot2, pre_diags, pre_os};
 	int i;
 
-	// Debug on warn?
-	break_on_warn = flag_debug_on_warn;
-
-	// Keypad...
-	keypad_type = keypad;
-
 	// Enter debug mode?
-	if(flag_debug)
+    if(debug_on_start)
 		cpu_events |= EVENT_DEBUG_STEP;
-
-	// Set boot2 base addr...
-	volatile uint32_t boot2_base = addr_boot2;
-
-	// Is boot2 file provided?
-	if(path_boot2)
-	{
-		boot2_file = fopen(path_boot2, "rb");
-		if(!boot2_file)
-		{
-			gui_perror(path_boot2);
-			return 1;
-		}
-	}
-
-	// Logging...
-	FILE *log = (!path_log || strcmp(path_log, "-")) ? stdout : fopen(path_log, "wb");
-	if(!log)
-	{
-		printf("Could not open log file.\n");
-		gui_perror(path_log);
-		return 1;
-	}
-	for(i = 0; i <= flag_verbosity; i++)
-	{
-		log_enabled[i] = 1;
-		log_file[i] = log;
-	}
 
 	if (path_flash) {
         if(!flash_open(path_flash))
             return 1;
-	} else {
-		nand_initialize(flag_large_nand);
-		flash_create_new(preload_filename, product, flag_large_sdram);
+    } else {
+        if(!flash_create_new(large_nand, preload_filename, product, large_sdram))
+            return 1;
 	}
 
+    uint32_t sdram_size;
 	flash_read_settings(&sdram_size);
 
     if(!memory_initialize(sdram_size))
@@ -319,20 +218,14 @@ int emulate(int flag_debug, int flag_large_nand, int flag_large_sdram, int flag_
 		fclose(f);
 	}
 
-	if (!path_commands)
-		debugger_input = stdin;
-	else
-	{
-		debugger_input = fopen(path_commands, "rb");
-		if(!debugger_input)
-		{
-			gui_perror(path_commands);
-			return 1;
-		}
-	}
+    if(!insn_buffer)
+    {
+        insn_buffer = os_alloc_executable(INSN_BUFFER_SIZE);
+        insn_bufptr = insn_buffer;
+    }
 
-	insn_buffer = os_alloc_executable(INSN_BUFFER_SIZE);
-	insn_bufptr = insn_buffer;
+    if(!insn_buffer)
+        return false;
 
 	os_exception_frame_t frame;
 	addr_cache_init(&frame);
@@ -341,26 +234,28 @@ int emulate(int flag_debug, int flag_large_nand, int flag_large_sdram, int flag_
 
 	throttle_timer_on();
 
-	if(port_gdb)
-    {
-        gdbstub_init(port_gdb);
-        gdb_port = port_gdb;
-    }
+    if(gdb_port)
+        gdbstub_init(gdb_port);
 
-    if (port_rdbg)
-    {
-        rdebug_bind(port_rdbg);
-        rdebug_port = port_rdbg;
-    }
+    if(rdbg_port)
+        rdebug_bind(rdbg_port);
 
 reset:
 	memset(&arm, 0, sizeof arm);
 	arm.control = 0x00050078;
 	arm.cpsr_low28 = MODE_SVC | 0xC0;
 	cpu_events &= EVENT_DEBUG_STEP;
-	if (port_gdb)
-		gdbstub_reset();
-	if (boot2_file) {
+
+    gdbstub_reset();
+
+    if (path_boot2) {
+        FILE *boot2_file = fopen(path_boot2, "rb");
+        if(!boot2_file)
+        {
+            gui_perror(path_boot2);
+            return 1;
+        }
+
 		/* Start from BOOT2. (needs to be re-loaded on each reset since
 		 * it can get overwritten in memory) */
 		fseek(boot2_file, 0, SEEK_END);
@@ -373,10 +268,10 @@ reset:
 		}
 		fread(boot2_ptr, 1, boot2_size, boot2_file);
 		arm.reg[15] = boot2_base;
-		if (boot2_ptr[3] < 0xE0) {
+        if (boot2_ptr[3] < 0xE0)
             emuprintf("%s does not appear to be an uncompressed BOOT2 image.\n", path_boot2);
-			return 1;
-		}
+
+        fclose(boot2_file);
 
 		if (!emulate_casplus) {
 			/* To enter maintenance mode (home+enter+P), address A4012ECC
@@ -423,13 +318,15 @@ reset:
 
 	sched_update_next_event(0);
 
+    exiting = false;
+
 	__builtin_setjmp(restart_after_exception);
 
 	while (!exiting) {
 		sched_process_pending_events();
 		while (cycle_count_delta < 0) {
 			if (cpu_events & EVENT_RESET) {
-                emuprintf("Reset\n");
+                gui_status_printf("Reset");
 				goto reset;
 			}
 
@@ -442,7 +339,7 @@ reset:
 
 				if (cpu_events & EVENT_WAITING)
 					arm.reg[15] += 4; // Skip over wait instruction
-                logprintf(LOG_INTS, "Dispatching an interrupt\n");
+
 				arm.reg[15] += 4;
 				cpu_exception((cpu_events & EVENT_FIQ) ? EX_FIQ : EX_IRQ);
 			}
@@ -457,11 +354,14 @@ reset:
 	return 0;
 }
 
-
 void cleanup()
 {
     if(debugger_input)
         fclose(debugger_input);
 
+    memory_deinitialize();
     flash_close();
+
+    gdbstub_quit();
+    rdebug_quit();
 }

@@ -441,14 +441,3 @@ void ti84_io_link_write(uint32_t addr, uint32_t value) {
 	}
 	bad_write_word(addr, value);
 }
-
-#if 0
-void *link_save_state(size_t *size) {
-	(void)size;
-	return NULL;
-}
-
-void link_reload_state(void *state) {
-	(void)state;
-}
-#endif

@@ -29,16 +29,25 @@ static const struct nand_metrics chips[] = {
 	{ 0xEC, 0xA1, 0x840, 6, 0x10000 }, // Samsung 1 GBit
 };
 
-void nand_initialize(bool large) {
+bool nand_initialize(bool large) {
 	memcpy(&nand_metrics, &chips[large], sizeof(nand_metrics));
 	nand_data = malloc(nand_metrics.page_size * nand_metrics.num_pages);
+    if(!nand_data)
+        return false;
+
 	nand_block_modified = calloc(nand_metrics.num_pages >> nand_metrics.log2_pages_per_block, 1);
+    if(!nand_block_modified)
+        return false;
+
+    return true;
 }
 
 void nand_deinitialize()
 {
     free(nand_data);
+    nand_data = 0;
     free(nand_block_modified);
+    nand_block_modified = 0;
 }
 
 void nand_write_command_byte(uint8_t command) {
@@ -370,11 +379,12 @@ void nand_cx_write_word(uint32_t addr, uint32_t value) {
 	bad_write_word(addr, value);
 }
 
-FILE *flash_file;
+FILE *flash_file = NULL;
 
 bool flash_open(const char *filename) {
 	bool large = false;
-	flash_file = fopen(filename, "r+b");
+    flash_file = fopen(filename, "r+b");
+
 	if (!flash_file) {
 		gui_perror(filename);
         return false;
@@ -390,7 +400,9 @@ bool flash_open(const char *filename) {
 		emuprintf("%s not a flash image (wrong size)\n", filename);
         return false;
 	}
-	nand_initialize(large);
+    if(!nand_initialize(large))
+        return false;
+
 	if (!fread(nand_data, nand_metrics.page_size * nand_metrics.num_pages, 1, flash_file)) {
 		emuprintf("Could not read flash image from %s\n", filename);
         return false;
@@ -467,7 +479,7 @@ static uint32_t load_file_part(uint32_t offset, FILE *f, uint32_t length) {
 		uint32_t pageoff = offset % page_data_size;
 		if (page >= nand_metrics.num_pages) {
 			printf("Preload image(s) too large\n");
-			exit(1);
+            return 0;
 		}
 
 		uint32_t readsize = page_data_size - pageoff;
@@ -488,7 +500,7 @@ static uint32_t load_file(uint32_t offset, const char *filename) {
 	FILE *f = fopen(filename, "rb");
 	if (!f) {
 		gui_perror(filename);
-		exit(1);
+        return 0;
 	}
 	uint32_t size = load_file_part(offset, f, -1);
 	fclose(f);
@@ -525,7 +537,7 @@ static uint32_t load_zip_entry(uint32_t offset, FILE *f, char *name) {
 		fseek(f, zip_entry.extra_length + zip_entry.comp_size, SEEK_CUR);
 	}
 	fprintf(stderr, "Could not locate %s in CAS+ OS file\n", name);
-	exit(1);
+    return 0;
 }
 
 static uint32_t preload(uint32_t offset, char *name, const char *filename) {
@@ -538,16 +550,20 @@ static uint32_t preload(uint32_t offset, char *name, const char *filename) {
 		FILE *f = fopen(filename, "rb");
 		if (!f) {
 			gui_perror(filename);
-			exit(1);
+            return false;
 		}
 		manifest_size = load_zip_entry(offset, f, "manifest_img");
 		offset += manifest_size;
 		image_size = load_zip_entry(offset, f, "phoenix.img");
 		offset += image_size;
 		fclose(f);
+        if(!manifest_size || !image_size)
+            return false;
 	} else {
 		manifest_size = 0;
 		image_size = load_file(offset, filename);
+        if(!image_size)
+            return false;
 		offset += image_size;
 	}
 
@@ -605,7 +621,10 @@ struct manuf_data_804 {
 };
 
 
-void flash_create_new(const char **preload_file, int product, bool large_sdram) {
+bool flash_create_new(bool flag_large_nand, const char **preload_file, int product, bool large_sdram) {
+    if(!nand_initialize(flag_large_nand))
+        return false;
+
 	memset(nand_data, 0xFF, nand_metrics.page_size * nand_metrics.num_pages);
 
 	if (preload_file[0]) {
@@ -654,16 +673,18 @@ void flash_create_new(const char **preload_file, int product, bool large_sdram) 
 	if (preload_file[1]) load_file(nand_metrics.page_size < 0x800 ? 0x004000 : 0x020000, preload_file[1]);
 	if (preload_file[2]) load_file(nand_metrics.page_size < 0x800 ? 0x160000 : 0x320000, preload_file[2]);
 	if (preload_file[3]) block = preload(block, "IMAGE", preload_file[3]);
+
+    return true;
 }
 
-void flash_read_settings(uint32_t *sdram_size) {
+bool flash_read_settings(uint32_t *sdram_size) {
 	asic_user_flags = 0;
 	*sdram_size = 32 * 1024 * 1024;
 
 	if (*(uint32_t *)&nand_data[0] == 0xFFFFFFFF) {
 		// No manuf data = CAS+
 		product = 0x0C0;
-		return;
+        return true;
 	}
 
 	struct manuf_data_804 *manuf = (struct manuf_data_804 *)&nand_data[0x844];
@@ -677,24 +698,14 @@ void flash_read_settings(uint32_t *sdram_size) {
 		uint32_t cfg = manuf->ext.config_sdram;
 		int logsize = (cfg & 7) + (cfg >> 3 & 7);
 		if (logsize > 4) {
-			fprintf(stderr, "invalid SDRAM size\n");
-			exit(1);
+            emuprintf("Invalid SDRAM size in flash\n");
+            return false;
 		}
 		*sdram_size = (4 * 1024 * 1024) << logsize;
 	}
-}
 
-#if 0
-void *flash_save_state(size_t *size) {
-	(void)size;
-	return NULL;
+    return true;
 }
-
-void flash_reload_state(void *state) {
-	(void)state;
-}
-#endif
-
 
 void flash_close()
 {

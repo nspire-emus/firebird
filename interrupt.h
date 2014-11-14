@@ -35,7 +35,4 @@ void int_cx_write_word(uint32_t addr, uint32_t value);
 void int_set(uint32_t int_num, bool on);
 void int_reset();
 
-void *int_save_state(size_t *size);
-void int_reload_state(void *state);
-
 #endif

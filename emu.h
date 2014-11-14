@@ -37,10 +37,14 @@ extern uint32_t cpu_events __asm__("cpu_events");
 #define EVENT_DEBUG_STEP 8
 #define EVENT_WAITING 16
 
-extern bool exiting;
+// Settings
+extern bool exiting, debug_on_start, large_nand, large_sdram;
 extern bool do_translate;
 extern int product;
 extern int asic_user_flags;
+extern uint32_t boot2_base;
+extern const char *path_boot1, *path_boot2, *path_flash, *pre_boot2, *pre_diags, *pre_os;
+
 #define emulate_casplus (product == 0x0C0)
 // 0C-0E (CAS, lab cradle, plain Nspire) use old ASIC
 // 0F-12 (CX CAS, CX, CM CAS, CM) use new ASIC
@@ -72,8 +76,9 @@ void gui_debug_printf(const char *fmt, ...);
 void gui_debug_vprintf(const char *fmt, va_list ap);
 void gui_perror(const char *msg);
 char *gui_debug_prompt();
+void gui_status_printf(const char *fmt, ...);
 
-int emulate(int flag_debug, int flag_large_nand, int flag_large_sdram, int flag_debug_on_warn, int flag_verbosity, int port_gdb, int port_rdbg, int keypad, int product, uint32_t addr_boot2, const char *path_boot1, const char *path_boot2, const char *path_flash, const char *path_commands, const char *path_log, const char *pre_boot2, const char *pre_diags, const char *pre_os);
+int emulate();
 void cleanup();
 
 

@@ -752,7 +752,7 @@ static uint16_t adc_read_channel(int n) {
 	if (n == 3) {
 		// A value from 0 to 20 indicates normal TI-Nspire keypad.
 		// A value from 21 to 42 indicates TI-84+ keypad.
-		return 10 + ((keypad_type - 1) * 21);
+        return 10 + ((4 - 1) * 21);
 	} else {
 		return 930;
 	}

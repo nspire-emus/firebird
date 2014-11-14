@@ -184,6 +184,11 @@ void FASTCALL mmio_write_word(uint32_t addr, uint32_t value) {
 }
 
 bool memory_initialize(uint32_t sdram_size) {
+    static bool initialized = false;
+    if(initialized)
+        return true;
+    initialized = true;
+
 	mem_areas[0].size = 0x80000;
 	mem_areas[1].base = 0x10000000;
 	mem_areas[1].size = sdram_size;
@@ -199,7 +204,7 @@ bool memory_initialize(uint32_t sdram_size) {
 	int i;
 
 	mem_and_flags = os_reserve(MEM_MAXSIZE * 2);
-    if((intptr_t) mem_and_flags == -1)
+    if(!mem_and_flags)
     {
         emuprintf("os_reserve failed!\n");
         return false;
@@ -373,13 +378,7 @@ bool memory_initialize(uint32_t sdram_size) {
     return true;
 }
 
-#if 0
-void *memory_save_state(size_t *size) {
-	(void)size;
-	return NULL;
+void memory_deinitialize()
+{
+    // Do nothing
 }
-
-void memory_reload_state(void *state) {
-	(void)state;
-}
-#endif

@@ -19,7 +19,5 @@ void flush_translations();
 void invalidate_translation(int index);
 void fix_pc_for_fault();
 int range_translated(uint32_t range_start, uint32_t range_end);
-void *translate_save_state(size_t *size);
-void translate_reload_state(void *state);
 
 #endif

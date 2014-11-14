@@ -6,7 +6,6 @@
 #include "interrupt.h"
 #include "mem.h"
 
-volatile int keypad_type = -1;
 volatile uint16_t key_map[16];
 volatile uint16_t touchpad_x;
 volatile uint16_t touchpad_y;
@@ -288,14 +287,3 @@ void touchpad_cx_write(uint32_t addr, uint32_t value) {
 	}
 	//bad_write_word(addr, value);
 }
-
-#if 0
-void *keypad_save_state(size_t *size) {
-	(void)size;
-	return NULL;
-}
-
-void keypad_reload_state(void *state) {
-	(void)state;
-}
-#endif

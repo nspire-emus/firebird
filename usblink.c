@@ -331,14 +331,3 @@ void usblink_start_send() {
 		}
 	}
 }
-
-#if 0
-void *usblink_save_state(size_t *size) {
-	(void)size;
-	return NULL;
-}
-
-void usblink_reload_state(void *state) {
-	(void)state;
-}
-#endif
