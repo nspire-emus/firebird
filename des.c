@@ -146,43 +146,43 @@ static void des_process_block(uint32_t L, uint32_t R) {
 		temp = L; L = R; R = temp;
 	}
 
-	/* Reverse the initial permutation */
-	L = ROR(L, 1);
-	temp = (L       ^ R) & 0xAAAAAAAA; R ^= temp; L ^= temp;
-	R = ROR(R, 1);
-	temp = (R >>  8 ^ L) & 0x00FF00FF; L ^= temp; R ^= temp <<  8;
-	temp = (R >>  2 ^ L) & 0x33333333; L ^= temp; R ^= temp <<  2;
-	temp = (L >> 16 ^ R) & 0x0000FFFF; R ^= temp; L ^= temp << 16;
-	temp = (L >>  4 ^ R) & 0x0F0F0F0F; R ^= temp; L ^= temp <<  4;
+    /* Reverse the initial permutation */
+    L = ROR(L, 1);
+    temp = (L       ^ R) & 0xAAAAAAAA; R ^= temp; L ^= temp;
+    R = ROR(R, 1);
+    temp = (R >>  8 ^ L) & 0x00FF00FF; L ^= temp; R ^= temp <<  8;
+    temp = (R >>  2 ^ L) & 0x33333333; L ^= temp; R ^= temp <<  2;
+    temp = (L >> 16 ^ R) & 0x0000FFFF; R ^= temp; L ^= temp << 16;
+    temp = (L >>  4 ^ R) & 0x0F0F0F0F; R ^= temp; L ^= temp <<  4;
 
-	des_block[0] = R;
-	des_block[1] = L;
+    des_block[0] = R;
+    des_block[1] = L;
 }
 
 void des_reset(void) {
-	memset(des_block, 0, sizeof des_block);
-	memset(des_key, 0, sizeof des_key);
-	des_key_schedule_valid = false;
+    memset(des_block, 0, sizeof des_block);
+    memset(des_key, 0, sizeof des_key);
+    des_key_schedule_valid = false;
 }
 
 uint32_t des_read_word(uint32_t addr) {
-	switch (addr & 0x3FFFFFF) {
-		case 0x10000: return des_block[0];
-		case 0x10004: return des_block[1];
-	}
-	return bad_read_word(addr);
+    switch (addr & 0x3FFFFFF) {
+        case 0x10000: return des_block[0];
+        case 0x10004: return des_block[1];
+    }
+    return bad_read_word(addr);
 }
 
 void des_write_word(uint32_t addr, uint32_t value) {
-	switch (addr & 0x3FFFFFF) {
-		case 0x10000: des_block[0] = value; return;
-		case 0x10004: des_process_block(value, des_block[0]); return;
-		case 0x10008: case 0x1000C:
-		case 0x10010: case 0x10014:
-		case 0x10018: case 0x1001C:
-			des_key[(addr - 8) >> 2 & 7] = value;
-			des_key_schedule_valid = false;
-			return;
-	}
-	bad_write_word(addr, value);
+    switch (addr & 0x3FFFFFF) {
+        case 0x10000: des_block[0] = value; return;
+        case 0x10004: des_process_block(value, des_block[0]); return;
+        case 0x10008: case 0x1000C:
+        case 0x10010: case 0x10014:
+        case 0x10018: case 0x1001C:
+            des_key[(addr - 8) >> 2 & 7] = value;
+            des_key_schedule_valid = false;
+            return;
+    }
+    bad_write_word(addr, value);
 }
