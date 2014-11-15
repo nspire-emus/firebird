@@ -124,14 +124,14 @@ uint8_t touchpad_read(uint8_t addr) {
 		}
 	} else if (touchpad_page == 0x04) {
 		switch (addr) {
-			case 0x00: return touchpad_down; // contact
+            case 0x00: return touchpad_down; // contact
 			case 0x01: return touchpad_down ? 100 : 0; // proximity
 			case 0x02: return touchpad_x >> 8;
 			case 0x03: return touchpad_x & 0xFF;
 			case 0x04: return touchpad_y >> 8;
 			case 0x05: return touchpad_y & 0xFF;
 			case 0x06: return 0; // x velocity
-			case 0x07: return 0; // y velocity
+            case 0x07: return 0; // y velocity
 			case 0x08: return 0; // ?
 			case 0x09: return 0; // ?
 			case 0x0A: return touchpad_down;

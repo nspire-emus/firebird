@@ -38,7 +38,7 @@ extern uint32_t cpu_events __asm__("cpu_events");
 #define EVENT_WAITING 16
 
 // Settings
-extern bool exiting, debug_on_start, large_nand, large_sdram;
+extern bool exiting, debug_on_start, debug_on_warn, large_nand, large_sdram;
 extern bool do_translate;
 extern int product;
 extern int asic_user_flags;

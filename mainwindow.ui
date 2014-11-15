@@ -176,15 +176,15 @@
         <item>
          <widget class="QToolBox" name="toolBox">
           <property name="currentIndex">
-           <number>1</number>
+           <number>0</number>
           </property>
           <widget class="QWidget" name="page">
            <property name="geometry">
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>190</width>
-             <height>70</height>
+             <width>364</width>
+             <height>160</height>
             </rect>
            </property>
            <attribute name="label">
@@ -202,6 +202,13 @@
              <widget class="QCheckBox" name="checkDebugger">
               <property name="text">
                <string>Enter debugger on startup</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QCheckBox" name="checkAutostart">
+              <property name="text">
+               <string>Start emulation automatically</string>
               </property>
              </widget>
             </item>
@@ -225,8 +232,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>364</width>
-             <height>160</height>
+             <width>207</width>
+             <height>100</height>
             </rect>
            </property>
            <attribute name="label">

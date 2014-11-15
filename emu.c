@@ -34,7 +34,7 @@ bool turbo_mode;
 bool is_halting;
 bool show_speed;
 
-bool exiting, debug_on_start, large_nand, large_sdram;
+bool exiting, debug_on_start, debug_on_warn, large_nand, large_sdram;
 int product = 0x0E0;
 uint32_t boot2_base;
 const char *path_boot1 = NULL, *path_boot2 = NULL, *path_flash = NULL, *pre_boot2 = NULL, *pre_diags = NULL, *pre_os = NULL;
@@ -62,20 +62,18 @@ void logprintf(int type, char *str, ...) {
 void emuprintf(char *format, ...) {
 	va_list va;
 	va_start(va, format);
-    gui_debug_printf("[nspire_emu] ");
     gui_debug_vprintf(format, va);
 	va_end(va);
 }
 
-bool break_on_warn;
 void warn(char *fmt, ...) {
 	va_list va;
     va_start(va, fmt);
-    gui_debug_printf("[nspire_emu] Warning (%08x): ", arm.reg[15]);
+    gui_debug_printf("Warning (%08x): ", arm.reg[15]);
     gui_debug_vprintf(fmt, va);
     gui_debug_printf("\n");
     va_end(va);
-	if (break_on_warn)
+    if (debug_on_warn)
 		debugger(DBG_EXCEPTION, 0);
 }
 
@@ -83,7 +81,7 @@ __attribute__((noreturn))
 void error(char *fmt, ...) {
 	va_list va;
     va_start(va, fmt);
-    gui_debug_printf("[nspire_emu] Error (%08x): ", arm.reg[15]);
+    gui_debug_printf("Error (%08x): ", arm.reg[15]);
     gui_debug_vprintf(fmt, va);
     gui_debug_printf("\n");
     /*fprintf(stderr, "\n\tBacktrace:\n");

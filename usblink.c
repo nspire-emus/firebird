@@ -100,7 +100,7 @@ void put_file_next(struct packet *in) {
 			put_file_state++;
 		send_data:
 			if (prev_seqno == 1)
-				emuprintf("Sending file: %u bytes left\n", put_file_size);
+                gui_status_printf("Sending file: %u bytes left", put_file_size);
 			if (put_file_size > 0) {
 				/* Send data (05) */
 				uint32_t len = put_file_size;
@@ -117,7 +117,7 @@ void put_file_next(struct packet *in) {
 				usblink_send_packet();
 				break;
 			}
-			emuprintf("Send complete\n");
+            gui_status_printf("Send complete");
 			put_file_state = DONE;
 			break;
 		case SENDING_05:

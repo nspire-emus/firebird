@@ -2,6 +2,7 @@
 #include "ui_mainwindow.h"
 
 #include <QFileDialog>
+#include <QStandardPaths>
 #include <QTextBlock>
 
 MainWindow *main_window;
@@ -31,6 +32,9 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->lineEdit, SIGNAL(returnPressed()), this, SLOT(debugCommand()));
 
     //Settings
+    connect(ui->checkDebugger, SIGNAL(toggled(bool)), this, SLOT(setDebuggerOnStartup(bool)));
+    connect(ui->checkWarning, SIGNAL(toggled(bool)), this, SLOT(setDebuggerOnWarning(bool)));
+    connect(ui->checkAutostart, SIGNAL(toggled(bool)), this, SLOT(setAutostart(bool)));
     connect(ui->fileBoot1, SIGNAL(pressed()), this, SLOT(selectBoot1()));
     connect(ui->fileFlash, SIGNAL(pressed()), this, SLOT(selectFlash()));
 
@@ -39,16 +43,30 @@ MainWindow::MainWindow(QWidget *parent) :
 
     ui->lcdView->setScene(&lcd_scene);
 
-    //Load settings
-    selectBoot1(settings.value("boot1", "").toString());
-    selectFlash(settings.value("flash", "").toString());
+#ifdef Q_OS_ANDROID
+    //On android the settings file is deleted everytime you update or uninstall,
+    //so choose a better, safer, location
+    QString path = QStandardPaths::writableLocation(QStandardPaths::GenericDataLocation);
+    settings = new QSettings(path + "/nspire_emu.ini", QSettings::IniFormat);
+#else
+    settings = new QSettings();
+#endif
 
-    if(emu.emu_path_boot1 != "" && emu.emu_path_flash != "")
+    //Load settings
+    selectBoot1(settings->value("boot1", "").toString());
+    selectFlash(settings->value("flash", "").toString());
+    setDebuggerOnStartup(settings->value("debugOnStart", false).toBool());
+    setDebuggerOnWarning(settings->value("debugOnWarn", false).toBool());
+
+    bool autostart = settings->value("emuAutostart", false).toBool();
+    setAutostart(autostart);
+    if(emu.emu_path_boot1 != "" && emu.emu_path_flash != "" && autostart)
         emu.start();
 }
 
 MainWindow::~MainWindow()
 {
+    delete settings;
     delete ui;
 }
 
@@ -131,7 +149,7 @@ void MainWindow::selectBoot1(QString path)
     emu.emu_path_boot1 = path.toStdString();
     ui->filenameBoot1->setText(f.fileName());
 
-    settings.setValue("boot1", path);
+    settings->setValue("boot1", path);
 }
 
 void MainWindow::selectBoot1()
@@ -148,7 +166,7 @@ void MainWindow::selectFlash(QString path)
     emu.emu_path_flash = path.toStdString();
     ui->filenameFlash->setText(f.fileName());
 
-    settings.setValue("flash", path);
+    settings->setValue("flash", path);
 }
 
 void MainWindow::selectFlash()
@@ -157,6 +175,29 @@ void MainWindow::selectFlash()
     QString path = QFileDialog::getOpenFileName(this, "Select flash file", f.dir().absolutePath());
     if(!path.isNull())
         selectFlash(path);
+}
+
+void MainWindow::setDebuggerOnStartup(bool b)
+{
+    debug_on_start = b;
+    settings->setValue("debugOnStart", b);
+    if(ui->checkDebugger->isChecked() != b)
+        ui->checkDebugger->setChecked(b);
+}
+
+void MainWindow::setDebuggerOnWarning(bool b)
+{
+    debug_on_warn = b;
+    settings->setValue("debugOnWarn", b);
+    if(ui->checkWarning->isChecked() != b)
+        ui->checkWarning->setChecked(b);
+}
+
+void MainWindow::setAutostart(bool b)
+{
+    settings->setValue("emuAutostart", b);
+    if(ui->checkAutostart->isChecked() != b)
+        ui->checkAutostart->setChecked(b);
 }
 
 void MainWindow::closeEvent(QCloseEvent *e)

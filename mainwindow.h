@@ -39,6 +39,9 @@ public slots:
     //Settings
     void selectBoot1();
     void selectFlash();
+    void setDebuggerOnStartup(bool b);
+    void setDebuggerOnWarning(bool b);
+    void setAutostart(bool b);
 
 signals:
     void debuggerCommand();
@@ -55,7 +58,7 @@ private:
     QTimer refresh_timer;
     QGraphicsScene lcd_scene;
     EmuThread emu;
-    QSettings settings;
+    QSettings *settings;
 };
 
 extern MainWindow *main_window;

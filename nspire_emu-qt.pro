@@ -4,13 +4,11 @@ CONFIG += c++11
 TEMPLATE = app
 TARGET = nspire_emu
 
-QMAKE_CFLAGS = -O3 -std=gnu11 -Wall -Wextra -flto -fno-fat-lto-objects
+QMAKE_CFLAGS = -O3 -std=gnu11 -Wall -Wextra
 
 #Override bad default options
 QMAKE_CFLAGS_RELEASE = -O3
 QMAKE_CXXFLAGS_RELEASE = -O3
-
-QMAKE_LFLAGS += -O3 -flto
 
 #This does also apply to android
 linux|macx {
@@ -25,9 +23,8 @@ win32 {
 #A platform-independant implementation of lowlevel access
 ASMCODE_IMPL = asmcode.c
 
-#On x86 asmcode.S can be used, it's faster
 win32|linux-g++-32 {
-	ASMCODE_IMPL = asmcode.S
+	ASMCODE_IMPL = asmcode_x86.S
 }
 
 SOURCES += $$ASMCODE_IMPL
