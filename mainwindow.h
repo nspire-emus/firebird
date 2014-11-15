@@ -28,6 +28,7 @@ public slots:
 
     //Menu
     void restart();
+    void setThrottleTimerDeactivated(bool b);
 
     //Serial
     void serialChar(const char c);
@@ -43,11 +44,16 @@ public slots:
     void setDebuggerOnWarning(bool b);
     void setAutostart(bool b);
 
+    void showSpeed(double percent);
+
 signals:
     void debuggerCommand();
 
 public:
     QByteArray debug_command;
+
+    void setThrottleTimer(bool b);
+    void throttleTimerWait();
 
 private:
     void selectBoot1(QString path);
@@ -55,7 +61,7 @@ private:
 
     Ui::MainWindow *ui;
 
-    QTimer refresh_timer;
+    QTimer refresh_timer, throttle_timer;
     QGraphicsScene lcd_scene;
     EmuThread emu;
     QSettings *settings;

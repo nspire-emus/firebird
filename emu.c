@@ -151,19 +151,17 @@ void throttle_interval_event(int index) {
 	os_time_t interval_end;
 	os_query_time(&interval_end);
 
-    //TODO
-    /*if (show_speed) {
-		// Show speed
-		static int prev_intervals;
-		static os_time_t prev;
-		int64_t time = os_time_diff(interval_end, prev);
-        //if (time >= os_frequency_hz(perffreq) >> 1) {
-			double speed = (double)os_frequency_hz(perffreq) * (intervals - prev_intervals) / time;
-            //gui_set_title(buf);
-			prev_intervals = intervals;
-			prev = interval_end;
-        }
-    }*/
+    // Show speed
+    static int prev_intervals;
+    static os_time_t prev;
+    int64_t time = os_time_diff(interval_end, prev) / 4;
+    if (time >= os_frequency_hz(perffreq)) {
+        double speed = (double)os_frequency_hz(perffreq) * (intervals - prev_intervals) / time;
+        gui_show_speed(speed);
+        prev_intervals = intervals;
+        prev = interval_end;
+    }
+
 	if (!turbo_mode || is_halting)
 		throttle_timer_wait();
 	if (is_halting)

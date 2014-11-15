@@ -77,10 +77,7 @@ void os_query_time(os_time_t *t)
 
 double os_time_diff(os_time_t x, os_time_t y)
 {
-    double t;
-	t = (y.tv_sec - x.tv_sec) * 1000.0;	// sec to ms
-	t += (y.tv_usec - x.tv_usec) / 1000.0;	// us to ms
-    return t;
+    return (double)(x.tv_sec - y.tv_sec) * 10000000.0 + (x.tv_usec - y.tv_usec);
 }
 
 long long os_frequency_hz(os_frequency_t f)
@@ -97,35 +94,6 @@ void os_query_frequency(os_frequency_t *f)
 
     fscanf(freq, "%llu", f);
     fclose(freq);
-}
-
-void throttle_timer_on()
-{
-	/*
-	hTimerEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
-        uTimerID = timeSetEvent(throttle_delay, throttle_delay, (LPTIMECALLBACK)hTimerEvent, 0,
-                                TIME_PERIODIC | TIME_CALLBACK_EVENT_SET);
-        if (uTimerID == 0) {
-                printf("timeSetEvent failed\n");
-                exit(1);
-        }
-	*/
-}
-
-void throttle_timer_wait()
-{
-	//WaitForSingleObject(hTimerEvent, INFINITE);
-}
-
-void throttle_timer_off()
-{
-	/*
-        if (uTimerID != 0) {
-                timeKillEvent(uTimerID);
-                uTimerID = 0;
-                CloseHandle(hTimerEvent);
-        }
-	*/
 }
 
 static void addr_cache_exception(int sig, siginfo_t *si, void *uctx)

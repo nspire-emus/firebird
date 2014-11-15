@@ -27,6 +27,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->actionRestart, SIGNAL(triggered()), this, SLOT(restart()));
     connect(ui->actionDebugger, SIGNAL(triggered()), &emu, SLOT(enterDebugger()));
     connect(ui->actionPause, SIGNAL(toggled(bool)), &emu, SLOT(setPaused(bool)));
+    connect(ui->actionSpeed, SIGNAL(triggered(bool)), this, SLOT(setThrottleTimerDeactivated(bool)));
 
     //Debugging
     connect(ui->lineEdit, SIGNAL(returnPressed()), this, SLOT(debugCommand()));
@@ -198,6 +199,37 @@ void MainWindow::setAutostart(bool b)
     settings->setValue("emuAutostart", b);
     if(ui->checkAutostart->isChecked() != b)
         ui->checkAutostart->setChecked(b);
+}
+
+void MainWindow::showSpeed(double percent)
+{
+    ui->actionSpeed->setText(tr("Speed: %0 %").arg(percent, 1, 'f', 0));
+}
+
+void MainWindow::setThrottleTimerDeactivated(bool b)
+{
+    setThrottleTimer(!b);
+}
+
+void MainWindow::setThrottleTimer(bool b)
+{
+    if(b)
+    {
+        throttle_timer.setInterval(throttle_delay);
+        throttle_timer.start();
+    }
+    else
+        throttle_timer.stop();
+}
+
+void MainWindow::throttleTimerWait()
+{
+    if(!throttle_timer.isActive())
+        return;
+
+    QEventLoop e;
+    connect(&throttle_timer, SIGNAL(timeout()), &e, SLOT(quit()));
+    e.exec();
 }
 
 void MainWindow::closeEvent(QCloseEvent *e)

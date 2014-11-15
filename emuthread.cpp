@@ -71,6 +71,26 @@ extern "C" {
     {
         return -1;
     }
+
+    void gui_show_speed(double d)
+    {
+        main_window->showSpeed(d);
+    }
+
+    void throttle_timer_off()
+    {
+        main_window->setThrottleTimer(false);
+    }
+
+    void throttle_timer_on()
+    {
+        main_window->setThrottleTimer(true);
+    }
+
+    void throttle_timer_wait()
+    {
+        main_window->throttleTimerWait();
+    }
 }
 
 EmuThread::EmuThread(QObject *parent) :

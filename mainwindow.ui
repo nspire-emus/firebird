@@ -16,7 +16,7 @@
   <widget class="QWidget" name="centralwidget">
    <layout class="QHBoxLayout" name="horizontalLayout">
     <item>
-     <widget class="QGraphicsView" name="lcdView">
+     <widget class="LCDWidget" name="lcdView">
       <property name="sizePolicy">
        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
         <horstretch>0</horstretch>
@@ -402,6 +402,7 @@
    </attribute>
    <addaction name="actionReset"/>
    <addaction name="actionPause"/>
+   <addaction name="actionSpeed"/>
   </widget>
   <action name="actionReset">
    <property name="text">
@@ -434,7 +435,22 @@
     <string>Restart</string>
    </property>
   </action>
+  <action name="actionSpeed">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Speed</string>
+   </property>
+  </action>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>LCDWidget</class>
+   <extends>QGraphicsView</extends>
+   <header>lcdwidget.h</header>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections>
   <connection>

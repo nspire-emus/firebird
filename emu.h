@@ -77,6 +77,7 @@ void gui_debug_vprintf(const char *fmt, va_list ap);
 void gui_perror(const char *msg);
 char *gui_debug_prompt();
 void gui_status_printf(const char *fmt, ...);
+void gui_show_speed(double speed);
 
 int emulate();
 void cleanup();

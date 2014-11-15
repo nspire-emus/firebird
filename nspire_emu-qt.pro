@@ -5,6 +5,7 @@ TEMPLATE = app
 TARGET = nspire_emu
 
 QMAKE_CFLAGS = -O3 -std=gnu11 -Wall -Wextra -flto
+#QMAKE_LFLAGS += -flto
 
 #Override bad default options
 QMAKE_CFLAGS_RELEASE = -O3
@@ -27,7 +28,12 @@ win32|linux-g++-32 {
 	ASMCODE_IMPL = asmcode_x86.S
 }
 
-SOURCES += $$ASMCODE_IMPL
+linux-g++-32 {
+	QMAKE_CFLAGS += -m32
+}
+
+SOURCES += $$ASMCODE_IMPL \
+    lcdwidget.cpp
 SOURCES += mainwindow.cpp \
         main.cpp \
         armloader.c \
@@ -59,7 +65,9 @@ FORMS += \
 
 HEADERS += \
     mainwindow.h \
-	emuthread.h
+	emuthread.h \
+    keymap.h \
+    lcdwidget.h
 
 #Generate the binary arm code into armcode_bin.h
 armsnippets.commands = arm-none-eabi-gcc -fno-leading-underscore -c $$PWD/armsnippets.S -o armsnippets.o -mcpu=arm926ej-s \
