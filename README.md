@@ -1,31 +1,34 @@
 nspire_emu
 ==========
 
-This project is currently the main TI-Nspire/CAS/Touchpad emulator started by Goplat.  
+This project is currently the community TI-Nspire emulator, originally created by Goplat.
 
+Supported models : Prototypes CAS+, Clickpad/Touchpad/CX (non-CAS and CAS), LabStation.
+
+ 
+
+*The most updated branch (and the only one under dev.) is the Qt one.*
 
 Building
 --------
 
-You need to install Qt5 with 32bit support.
+First, you need to install Qt5.
 
-Run
+Then, you can either use Qt Creator directly (don't forget to configure your kits/compilers etc. !), or run :
+
 ```
 mkdir -p build
 cd build
 qmake ..
 make
 ```
-You have to use "qmake -spec linux-g++-32 .." if you're building on a 32bit system.
 
-For mac, use "qmake -spec macx-g++32 ..".
-
-TODO: Figure out whether that works and find a way to compile it for windows.
-
+You have to use "qmake -spec linux-g++-32 .." if you're building on a 32bit system (for mac, use "qmake -spec macx-g++32 ..").
 
 Coding conventions
 ------------------
 
 1. Line width: I don't believe in the 80 character limit as modern computers are capable of displaying that and more. Anyway if anyone feels that a line is way to long may want to split it.
-2. File headers: Each file should contain a header explaining the purpose of the code contained in it.
-3. Includes: Source includes should be before system includes. This will avoid duplicated includes and will ensure that when a header file is included in a new file less errors will be generated.
+2. Indents: by 4 spaces.
+3. File headers: Each file should contain a header explaining the purpose of the code contained in it.
+4. Includes: Source includes should be before system includes. This will avoid duplicated includes and will ensure that when a header file is included in a new file less errors will be generated.

@@ -18,11 +18,11 @@
 
 void *os_reserve(size_t size)
 {
-    #ifndef __x86_64__
-        void *ptr = mmap((void*)0x70000000, size, PROT_READ|PROT_WRITE, MAP_SHARED|MAP_ANON, -1, 0);
-    #else
-        void *ptr = mmap((void*)0, size, PROT_READ|PROT_WRITE, MAP_SHARED|MAP_ANON, -1, 0);
-    #endif
+#ifndef __x86_64__
+    void *ptr = mmap((void*)0x70000000, size, PROT_READ|PROT_WRITE, MAP_SHARED|MAP_ANON, -1, 0);
+#else
+    void *ptr = mmap((void*)0, size, PROT_READ|PROT_WRITE, MAP_SHARED|MAP_ANON, -1, 0);
+#endif
 
     if((intptr_t)ptr == -1)
         return NULL;
@@ -53,9 +53,9 @@ void *os_sparse_commit(void *page, size_t size)
 
 void os_sparse_decommit(void *page, size_t size)
 {
-	// instead of unmapping the address, we're just gonna trick
-	// the TLB to mark this as a new mapped area which, due to
-	// demand paging, will not be committed until used.
+    // instead of unmapping the address, we're just gonna trick
+    // the TLB to mark this as a new mapped area which, due to
+    // demand paging, will not be committed until used.
     mmap(page, size, PROT_NONE, MAP_FIXED|MAP_PRIVATE|MAP_ANON, -1, 0);
     msync(page, size, MS_SYNC|MS_INVALIDATE);
 }
@@ -66,8 +66,8 @@ void *os_alloc_executable(size_t size)
     if((intptr_t)ptr == -1)
         return NULL;
 
-	msync(ptr, size, MS_SYNC|MS_INVALIDATE);
-	return ptr;
+    msync(ptr, size, MS_SYNC|MS_INVALIDATE);
+    return ptr;
 }
 
 void os_query_time(os_time_t *t)
@@ -78,8 +78,8 @@ void os_query_time(os_time_t *t)
 double os_time_diff(os_time_t x, os_time_t y)
 {
     double t;
-	t = (y.tv_sec - x.tv_sec) * 1000.0;	// sec to ms
-	t += (y.tv_usec - x.tv_usec) / 1000.0;	// us to ms
+    t = (y.tv_sec - x.tv_sec) * 1000.0;	// sec to ms
+    t += (y.tv_usec - x.tv_usec) / 1000.0;	// us to ms
     return t;
 }
 
@@ -101,31 +101,31 @@ void os_query_frequency(os_frequency_t *f)
 
 void throttle_timer_on()
 {
-	/*
-	hTimerEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
+    /*
+    hTimerEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
         uTimerID = timeSetEvent(throttle_delay, throttle_delay, (LPTIMECALLBACK)hTimerEvent, 0,
                                 TIME_PERIODIC | TIME_CALLBACK_EVENT_SET);
         if (uTimerID == 0) {
                 printf("timeSetEvent failed\n");
                 exit(1);
         }
-	*/
+    */
 }
 
 void throttle_timer_wait()
 {
-	//WaitForSingleObject(hTimerEvent, INFINITE);
+    //WaitForSingleObject(hTimerEvent, INFINITE);
 }
 
 void throttle_timer_off()
 {
-	/*
+    /*
         if (uTimerID != 0) {
                 timeKillEvent(uTimerID);
                 uTimerID = 0;
                 CloseHandle(hTimerEvent);
         }
-	*/
+    */
 }
 
 static void addr_cache_exception(int sig, siginfo_t *si, void *uctx)
@@ -134,24 +134,24 @@ static void addr_cache_exception(int sig, siginfo_t *si, void *uctx)
     (void) uctx;
 
     ucontext_t *u = (ucontext_t*) uctx;
-    #ifdef __i386__
-        #ifdef __linux__
-            emuprintf("Got SIGSEGV trying to access 0x%lx (EIP=0x%x)\n", (long) si->si_addr, u->uc_mcontext.gregs[REG_EIP]);
-        #else // Apple
-            emuprintf("Got SIGSEGV trying to access 0x%lx (EIP=0x%x)\n", (long) si->si_addr, u->uc_mcontext->__ss.__eip);
-        #endif
-    #elif defined(__x86_64__)
-        #ifdef __linux__
-            emuprintf("Got SIGSEGV trying to access 0x%lx (RIP=0x%x)\n", (long) si->si_addr, u->uc_mcontext.gregs[REG_RIP]);
-        #else // Apple
-            emuprintf("Got SIGSEGV trying to access 0x%lx (RIP=0x%x)\n", (long) si->si_addr, u->uc_mcontext->__ss.__rip);
-        #endif
-    #elif defined(__arm__)
-        emuprintf("Got SIGSEGV (PC=0x%x)\n", u->uc_mcontext.arm_pc);
-    #endif
+#ifdef __i386__
+#ifdef __linux__
+    emuprintf("Got SIGSEGV trying to access 0x%lx (EIP=0x%x)\n", (long) si->si_addr, u->uc_mcontext.gregs[REG_EIP]);
+#else // Apple
+    emuprintf("Got SIGSEGV trying to access 0x%lx (EIP=0x%x)\n", (long) si->si_addr, u->uc_mcontext->__ss.__eip);
+#endif
+#elif defined(__x86_64__)
+#ifdef __linux__
+    emuprintf("Got SIGSEGV trying to access 0x%lx (RIP=0x%x)\n", (long) si->si_addr, u->uc_mcontext.gregs[REG_RIP]);
+#else // Apple
+    emuprintf("Got SIGSEGV trying to access 0x%lx (RIP=0x%x)\n", (long) si->si_addr, u->uc_mcontext->__ss.__rip);
+#endif
+#elif defined(__arm__)
+    emuprintf("Got SIGSEGV (PC=0x%x)\n", u->uc_mcontext.arm_pc);
+#endif
 
     if(!addr_cache_pagefault((uint8_t*)si->si_addr))
-      exit(1);
+        exit(1);
 }
 
 void make_writable(void *addr)
@@ -195,12 +195,12 @@ void addr_cache_init(os_exception_frame_t *frame)
     }
 
 #ifdef __i386__
-	// Relocate the assembly code that wants addr_cache at a fixed address
+    // Relocate the assembly code that wants addr_cache at a fixed address
     extern uint32_t *ac_reloc_start[] __asm__("ac_reloc_start"), *ac_reloc_end[] __asm__("ac_reloc_end");
     uint32_t **reloc;
     for(reloc = ac_reloc_start; reloc != ac_reloc_end; reloc++)
-	{
-		make_writable(*reloc);
+    {
+        make_writable(*reloc);
         **reloc += (uintptr_t)addr_cache;
     }
 #endif
