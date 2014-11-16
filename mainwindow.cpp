@@ -73,7 +73,7 @@ MainWindow::~MainWindow()
 
 extern "C"
 {
-    #include "lcd.h"
+#include "lcd.h"
 }
 
 void MainWindow::refresh()
@@ -108,25 +108,25 @@ void MainWindow::serialChar(const char c)
 
     switch(c)
     {
-    case 0:
+        case 0:
 
-    case '\r':
-        previous = c;
-        break;
+        case '\r':
+            previous = c;
+            break;
 
-    case '\b':
-        ui->serialConsole->textCursor().deletePreviousChar();
-        break;
+        case '\b':
+            ui->serialConsole->textCursor().deletePreviousChar();
+            break;
 
-    default:
-        if(c != '\n' && previous == '\r')
-        {
-            ui->serialConsole->moveCursor(QTextCursor::StartOfLine, QTextCursor::MoveAnchor);
-            ui->serialConsole->moveCursor(QTextCursor::End, QTextCursor::KeepAnchor);
-            ui->serialConsole->textCursor().removeSelectedText();
-            previous = 0;
-        }
-        ui->serialConsole->insertPlainText(QString(c));
+        default:
+            if(c != '\n' && previous == '\r')
+            {
+                ui->serialConsole->moveCursor(QTextCursor::StartOfLine, QTextCursor::MoveAnchor);
+                ui->serialConsole->moveCursor(QTextCursor::End, QTextCursor::KeepAnchor);
+                ui->serialConsole->textCursor().removeSelectedText();
+                previous = 0;
+            }
+            ui->serialConsole->insertPlainText(QString(c));
     }
 }
 

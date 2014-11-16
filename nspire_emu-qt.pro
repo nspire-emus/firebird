@@ -5,7 +5,6 @@ TEMPLATE = app
 TARGET = nspire_emu
 
 QMAKE_CFLAGS = -O3 -std=gnu11 -Wall -Wextra -flto
-#QMAKE_LFLAGS += -flto
 
 #Override bad default options
 QMAKE_CFLAGS_RELEASE = -O3

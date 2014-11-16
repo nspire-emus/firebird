@@ -9,88 +9,88 @@
 EmuThread *emu_thread = nullptr;
 
 extern "C" {
-    #include "debug.h"
-    #include "emu.h"
+#include "debug.h"
+#include "emu.h"
 
-    void gui_do_stuff()
-    {
-        emu_thread->doStuff();
-    }
+void gui_do_stuff()
+{
+    emu_thread->doStuff();
+}
 
-    void gui_debug_printf(const char *fmt, ...)
-    {
-        va_list ap;
-        va_start(ap, fmt);
+void gui_debug_printf(const char *fmt, ...)
+{
+    va_list ap;
+    va_start(ap, fmt);
 
-        gui_debug_vprintf(fmt, ap);
+    gui_debug_vprintf(fmt, ap);
 
-        va_end(ap);
-    }
+    va_end(ap);
+}
 
-    void gui_debug_vprintf(const char *fmt, va_list ap)
-    {
-        QString str;
-        str.vsprintf(fmt, ap);
-        emu_thread->debugStr(str);
-    }
+void gui_debug_vprintf(const char *fmt, va_list ap)
+{
+    QString str;
+    str.vsprintf(fmt, ap);
+    emu_thread->debugStr(str);
+}
 
-    void gui_status_printf(const char *fmt, ...)
-    {
-        va_list ap;
-        va_start(ap, fmt);
+void gui_status_printf(const char *fmt, ...)
+{
+    va_list ap;
+    va_start(ap, fmt);
 
-        QString str;
-        str.vsprintf(fmt, ap);
-        emu_thread->statusMsg(str);
+    QString str;
+    str.vsprintf(fmt, ap);
+    emu_thread->statusMsg(str);
 
-        va_end(ap);
-    }
+    va_end(ap);
+}
 
-    void gui_perror(const char *msg)
-    {
-        gui_debug_printf("%s: %s\n", msg, strerror(errno));
-    }
+void gui_perror(const char *msg)
+{
+    gui_debug_printf("%s: %s\n", msg, strerror(errno));
+}
 
-    char *gui_debug_prompt()
-    {
-        QEventLoop ev;
-        ev.connect(main_window, SIGNAL(debuggerCommand()), &ev, SLOT(quit()));
-        ev.exec();
-        return main_window->debug_command.data();
-    }
+char *gui_debug_prompt()
+{
+    QEventLoop ev;
+    ev.connect(main_window, SIGNAL(debuggerCommand()), &ev, SLOT(quit()));
+    ev.exec();
+    return main_window->debug_command.data();
+}
 
-    void gui_putchar(char c)
-    {
-        if(true)
-            emu_thread->serialChar(c);
-        else
-            putchar(c);
-    }
+void gui_putchar(char c)
+{
+    if(true)
+        emu_thread->serialChar(c);
+    else
+        putchar(c);
+}
 
-    int gui_getchar()
-    {
-        return -1;
-    }
+int gui_getchar()
+{
+    return -1;
+}
 
-    void gui_show_speed(double d)
-    {
-        main_window->showSpeed(d);
-    }
+void gui_show_speed(double d)
+{
+    main_window->showSpeed(d);
+}
 
-    void throttle_timer_off()
-    {
-        main_window->setThrottleTimer(false);
-    }
+void throttle_timer_off()
+{
+    main_window->setThrottleTimer(false);
+}
 
-    void throttle_timer_on()
-    {
-        main_window->setThrottleTimer(true);
-    }
+void throttle_timer_on()
+{
+    main_window->setThrottleTimer(true);
+}
 
-    void throttle_timer_wait()
-    {
-        main_window->throttleTimerWait();
-    }
+void throttle_timer_wait()
+{
+    main_window->throttleTimerWait();
+}
 }
 
 EmuThread::EmuThread(QObject *parent) :

@@ -12,8 +12,8 @@
 // Must be allocated below 2GB (see comments for mmu.c)
 extern uint8_t *mem_and_flags;
 struct mem_area_desc {
-	uint32_t base, size;
-	uint8_t *ptr;
+    uint32_t base, size;
+    uint8_t *ptr;
 };
 extern struct mem_area_desc mem_areas[4];
 void *phys_mem_ptr(uint32_t addr, uint32_t size);

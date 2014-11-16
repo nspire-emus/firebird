@@ -13,11 +13,11 @@ extern bool gdb_connected;
 extern int rdbg_port;
 
 enum DBG_REASON {
-	DBG_USER,
-	DBG_EXCEPTION,
-	DBG_EXEC_BREAKPOINT,
-	DBG_READ_BREAKPOINT,
-	DBG_WRITE_BREAKPOINT,
+    DBG_USER,
+    DBG_EXCEPTION,
+    DBG_EXEC_BREAKPOINT,
+    DBG_READ_BREAKPOINT,
+    DBG_WRITE_BREAKPOINT,
 };
 
 void *virt_mem_ptr(uint32_t addr, uint32_t size);

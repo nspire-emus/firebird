@@ -14,13 +14,13 @@
 
 static inline uint16_t BSWAP16(uint16_t x) { return x << 8 | x >> 8; }
 static inline uint32_t BSWAP32(uint32_t x) {
-    #if defined(__i386__) || defined(__x86_64__)
-        if (__builtin_constant_p(x))
-            return x << 24 | (x << 8 & 0xFF0000) | (x >> 8 & 0xFF00) | x >> 24;
-        asm ("bswap %0" : "=r" (x) : "0" (x)); return x;
-    #else
+#if defined(__i386__) || defined(__x86_64__)
+    if (__builtin_constant_p(x))
         return x << 24 | (x << 8 & 0xFF0000) | (x >> 8 & 0xFF00) | x >> 24;
-    #endif
+    asm ("bswap %0" : "=r" (x) : "0" (x)); return x;
+#else
+    return x << 24 | (x << 8 & 0xFF0000) | (x >> 8 & 0xFF00) | x >> 24;
+#endif
 
 }
 

@@ -8,29 +8,29 @@
 #include "emu.h"
 
 struct arm_state {  // Remember to update asmcode.S if this gets rearranged
-	uint32_t reg[16];    // Registers for current mode.
+    uint32_t reg[16];    // Registers for current mode.
 
-	uint32_t cpsr_low28; // CPSR bits 0-27
-	uint8_t  cpsr_n;     // CPSR bit 31
-	uint8_t  cpsr_z;     // CPSR bit 30
-	uint8_t  cpsr_c;     // CPSR bit 29
-	uint8_t  cpsr_v;     // CPSR bit 28
+    uint32_t cpsr_low28; // CPSR bits 0-27
+    uint8_t  cpsr_n;     // CPSR bit 31
+    uint8_t  cpsr_z;     // CPSR bit 30
+    uint8_t  cpsr_c;     // CPSR bit 29
+    uint8_t  cpsr_v;     // CPSR bit 28
 
-	/* CP15 registers */
-	uint32_t control;
-	uint32_t translation_table_base;
-	uint32_t domain_access_control;
-	uint8_t  data_fault_status, instruction_fault_status;
-	uint32_t fault_address;
+    /* CP15 registers */
+    uint32_t control;
+    uint32_t translation_table_base;
+    uint32_t domain_access_control;
+    uint8_t  data_fault_status, instruction_fault_status;
+    uint32_t fault_address;
 
-	uint32_t r8_usr[5], r13_usr[2];
-	uint32_t r8_fiq[5], r13_fiq[2], spsr_fiq;
-	uint32_t r13_irq[2], spsr_irq;
-	uint32_t r13_svc[2], spsr_svc;
-	uint32_t r13_abt[2], spsr_abt;
-	uint32_t r13_und[2], spsr_und;
+    uint32_t r8_usr[5], r13_usr[2];
+    uint32_t r8_fiq[5], r13_fiq[2], spsr_fiq;
+    uint32_t r13_irq[2], spsr_irq;
+    uint32_t r13_svc[2], spsr_svc;
+    uint32_t r13_abt[2], spsr_abt;
+    uint32_t r13_und[2], spsr_und;
 
-	uint8_t  interrupts;
+    uint8_t  interrupts;
 };
 extern struct arm_state arm __asm__("arm");
 
