@@ -219,7 +219,11 @@ void MainWindow::setThrottleTimer(bool b)
         throttle_timer.start();
     }
     else
+    {
         throttle_timer.stop();
+        //We abuse a signal here to quit the event loop whenever we want
+        throttle_timer.setObjectName(throttle_timer.objectName().isEmpty() ? "throttle_timer" : "");
+    }
 }
 
 void MainWindow::throttleTimerWait()
@@ -229,6 +233,7 @@ void MainWindow::throttleTimerWait()
 
     QEventLoop e;
     connect(&throttle_timer, SIGNAL(timeout()), &e, SLOT(quit()));
+    connect(&throttle_timer, SIGNAL(objectNameChanged(QString)), &e, SLOT(quit()));
     e.exec();
 }
 
