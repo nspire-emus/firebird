@@ -11,7 +11,7 @@ public:
 
     void doStuff();
 
-    bool paused = false;
+    volatile bool paused = false;
 
     std::string emu_path_boot1 = "", emu_path_flash = "";
 

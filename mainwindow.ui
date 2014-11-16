@@ -25,14 +25,14 @@
       </property>
       <property name="minimumSize">
        <size>
-        <width>322</width>
-        <height>232</height>
+        <width>320</width>
+        <height>240</height>
        </size>
       </property>
       <property name="maximumSize">
        <size>
-        <width>323</width>
-        <height>232</height>
+        <width>320</width>
+        <height>240</height>
        </size>
       </property>
       <property name="frameShape">
@@ -47,11 +47,11 @@
       <property name="horizontalScrollBarPolicy">
        <enum>Qt::ScrollBarAlwaysOff</enum>
       </property>
+      <property name="sizeAdjustPolicy">
+       <enum>QAbstractScrollArea::AdjustToContentsOnFirstShow</enum>
+      </property>
       <property name="interactive">
        <bool>false</bool>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
       </property>
      </widget>
     </item>
@@ -183,7 +183,7 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>364</width>
+             <width>366</width>
              <height>160</height>
             </rect>
            </property>

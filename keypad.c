@@ -7,9 +7,8 @@
 #include "mem.h"
 
 volatile uint16_t key_map[16];
-volatile uint16_t touchpad_x;
-volatile uint16_t touchpad_y;
-volatile uint8_t touchpad_down;
+volatile uint16_t touchpad_x, touchpad_y;
+volatile bool touchpad_down, touchpad_contact;
 
 /* 900E0000: Keypad controller */
 
@@ -104,9 +103,11 @@ void keypad_reset() {
 }
 
 uint8_t touchpad_page = 0x04;
+uint16_t touchpad_dest_x, touchpad_dest_y;
+int8_t touchpad_vel_x = 0, touchpad_vel_y = 0;
 
 void touchpad_write(uint8_t addr, uint8_t value) {
-    //printf("touchpad write: %02x %02x\n", addr, value);
+    //printf("touchpad write: %02x %02x %02x\n", touchpad_page, addr, value);
     if (addr == 0xFF)
         touchpad_page = value;
 }
@@ -123,23 +124,38 @@ uint8_t touchpad_read(uint8_t addr) {
             case 0x07: return TOUCHPAD_Y_MAX & 0xFF;
         }
     } else if (touchpad_page == 0x04) {
+        if(addr == 6)
+        {
+            int8_t val = touchpad_vel_x;
+            touchpad_vel_x = 0;
+            return val;
+        }
+
+        if(addr == 7)
+        {
+            int8_t val = touchpad_vel_y;
+            touchpad_vel_y = 0;
+            return val;
+        }
+
         switch (addr) {
-            case 0x00: return touchpad_down; // contact
-            case 0x01: return touchpad_down ? 100 : 0; // proximity
+            case 0x00: return touchpad_down || touchpad_contact; // contact
+            case 0x01: return touchpad_down ? 100 : touchpad_contact ? 0x2F : 0; // proximity
             case 0x02: return touchpad_x >> 8;
             case 0x03: return touchpad_x & 0xFF;
             case 0x04: return touchpad_y >> 8;
             case 0x05: return touchpad_y & 0xFF;
-            case 0x06: return 0; // x velocity
-            case 0x07: return 0; // y velocity
+            case 0x06: return touchpad_vel_x; // x velocity
+            case 0x07: return touchpad_vel_y; // y velocity
             case 0x08: return 0; // ?
             case 0x09: return 0; // ?
-            case 0x0A: return touchpad_down;
-            case 0x0B: return 0x4F; // status
+            case 0x0A: return touchpad_down; // down
+            case 0x0B: return 0x5F; // status
             case 0xE4: return 1; // firmware version
             case 0xE5: return 6; // firmware version
             case 0xE6: return 0; // firmware version
             case 0xE7: return 0; // firmware version
+            default: return 0;
         }
     }
     return 0;
@@ -258,7 +274,9 @@ uint32_t touchpad_cx_read(uint32_t addr) {
             if (!touchpad_cx.reading)
                 break;
             touchpad_cx.reading--;
-            return touchpad_read(touchpad_cx.port++);
+            uint32_t val = touchpad_read(touchpad_cx.port++);
+            //printf("Port %02x = %02x\n", touchpad_cx.port - 1, val);
+            return val;
         case 0x0070:
             return touchpad_cx.reading ? 12 : 4;
         default:

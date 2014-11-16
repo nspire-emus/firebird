@@ -6,9 +6,8 @@
 #define NUM_KEYPAD_TYPES 5
 extern volatile uint16_t key_map[16];
 extern volatile uint8_t touchpad_proximity;
-extern volatile uint16_t touchpad_x;
-extern volatile uint16_t touchpad_y;
-extern volatile uint8_t touchpad_down;
+extern volatile uint16_t touchpad_x, touchpad_y;
+extern volatile bool touchpad_down, touchpad_contact;
 
 extern struct keypad_controller_state {
 	uint32_t control;

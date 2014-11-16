@@ -98,7 +98,7 @@ void lcd_cx_draw_frame(uint16_t *buffer, uint32_t *bitfields) {
         return;
     }
     int row;
-    for (row = 0; row < 230; ++row) {
+    for (row = 0; row < 240; ++row) {
         uint16_t *out = buffer + (row * 320);
         uint32_t words = (320 / 32) * bpp;
         if (bpp < 16) {
