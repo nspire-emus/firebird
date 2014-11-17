@@ -4,6 +4,8 @@
 #include <QFileDialog>
 #include <QStandardPaths>
 #include <QTextBlock>
+#include <QMessageBox>
+#include <QGraphicsItem>
 
 MainWindow *main_window;
 
@@ -28,6 +30,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->actionDebugger, SIGNAL(triggered()), &emu, SLOT(enterDebugger()));
     connect(ui->actionPause, SIGNAL(toggled(bool)), &emu, SLOT(setPaused(bool)));
     connect(ui->actionSpeed, SIGNAL(triggered(bool)), this, SLOT(setThrottleTimerDeactivated(bool)));
+    connect(ui->actionScreenshot, SIGNAL(triggered()), this, SLOT(screenshot()));
 
     //Debugging
     connect(ui->lineEdit, SIGNAL(returnPressed()), this, SLOT(debugCommand()));
@@ -209,6 +212,20 @@ void MainWindow::showSpeed(double percent)
 void MainWindow::setThrottleTimerDeactivated(bool b)
 {
     setThrottleTimer(!b);
+}
+
+void MainWindow::screenshot()
+{
+    QImage image(320, 240, QImage::Format_RGB16);
+    QPainter painter(&image);
+    ui->lcdView->scene()->render(&painter);
+
+    QString filename = QFileDialog::getSaveFileName(this, tr("Save Screenshot"), QString(), "PNG images (*.png)");
+    if(filename.isNull())
+        return;
+
+    if(!image.save(filename, "PNG"))
+        QMessageBox::critical(this, tr("Screenshot failed"), tr("Failed to save screenshot!"));
 }
 
 void MainWindow::setThrottleTimer(bool b)

@@ -29,6 +29,7 @@ public slots:
     //Menu
     void restart();
     void setThrottleTimerDeactivated(bool b);
+    void screenshot();
 
     //Serial
     void serialChar(const char c);

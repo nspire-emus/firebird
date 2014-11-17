@@ -403,6 +403,7 @@
    <addaction name="actionReset"/>
    <addaction name="actionPause"/>
    <addaction name="actionSpeed"/>
+   <addaction name="actionScreenshot"/>
   </widget>
   <action name="actionReset">
    <property name="text">
@@ -441,6 +442,11 @@
    </property>
    <property name="text">
     <string>Speed</string>
+   </property>
+  </action>
+  <action name="actionScreenshot">
+   <property name="text">
+    <string>Screenshot</string>
    </property>
   </action>
  </widget>
