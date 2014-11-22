@@ -24,6 +24,7 @@ win32 {
 ASMCODE_IMPL = asmcode.c
 
 win32|linux-g++-32 {
+	SOURCES += translate.c
 	ASMCODE_IMPL = asmcode_x86.S
 }
 
@@ -54,7 +55,6 @@ SOURCES += mainwindow.cpp \
         schedule.c \
         serial.c \
         sha256.c \
-        translate.c \
         usb.c \
         usblink.c \
 	emuthread.cpp

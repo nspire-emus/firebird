@@ -19,15 +19,48 @@ LCDWidget::LCDWidget(QWidget *parent)
 void LCDWidget::keyPressEvent(QKeyEvent *event)
 {
     Qt::Key key = static_cast<Qt::Key>(event->key());
-    auto& keymap = keymap_tp;
-    for(unsigned int row = 0; row < sizeof(keymap)/sizeof(*keymap); ++row)
+
+    switch(key)
     {
-        for(unsigned int col = 0; col < sizeof(*keymap)/sizeof(**keymap); ++col)
+    case Qt::Key_Down:
+        touchpad_x = TOUCHPAD_X_MAX / 2;
+        touchpad_y = 0;
+        break;
+    case Qt::Key_Up:
+        touchpad_x = TOUCHPAD_X_MAX / 2;
+        touchpad_y = TOUCHPAD_Y_MAX;
+        break;
+    case Qt::Key_Left:
+        touchpad_y = TOUCHPAD_Y_MAX / 2;
+        touchpad_x = 0;
+        break;
+    case Qt::Key_Right:
+        touchpad_y = TOUCHPAD_Y_MAX / 2;
+        touchpad_x = TOUCHPAD_X_MAX;
+        break;
+    case Qt::Key_Return:
+        touchpad_x = TOUCHPAD_X_MAX / 2;
+        touchpad_y = TOUCHPAD_Y_MAX / 2;
+        break;
+    default:
+        auto& keymap = keymap_tp;
+        for(unsigned int row = 0; row < sizeof(keymap)/sizeof(*keymap); ++row)
         {
-            if(key == keymap[row][col].key)
-                key_map[row] |= 1 << col;
+            for(unsigned int col = 0; col < sizeof(*keymap)/sizeof(**keymap); ++col)
+            {
+                if(key == keymap[row][col].key)
+                {
+                    key_map[row] |= 1 << col;
+                    keypad_int_check();
+                    return;
+                }
+            }
         }
+        return;
     }
+
+    touchpad_contact = touchpad_down = true;
+    kpc.gpio_int_active |= 0x800;
 
     keypad_int_check();
 }
@@ -35,16 +68,52 @@ void LCDWidget::keyPressEvent(QKeyEvent *event)
 void LCDWidget::keyReleaseEvent(QKeyEvent *event)
 {
     Qt::Key key = static_cast<Qt::Key>(event->key());
-    auto& keymap = keymap_tp;
-    for(unsigned int row = 0; row < sizeof(keymap)/sizeof(*keymap); ++row)
+
+    switch(key)
     {
-        for(unsigned int col = 0; col < sizeof(*keymap)/sizeof(**keymap); ++col)
+    case Qt::Key_Down:
+        if(touchpad_x == TOUCHPAD_X_MAX / 2
+            && touchpad_y == 0)
+            touchpad_contact = touchpad_down = false;
+        break;
+    case Qt::Key_Up:
+        if(touchpad_x == TOUCHPAD_X_MAX / 2
+            && touchpad_y == TOUCHPAD_Y_MAX)
+            touchpad_contact = touchpad_down = false;
+        break;
+    case Qt::Key_Left:
+        if(touchpad_y == TOUCHPAD_Y_MAX / 2
+            && touchpad_x == 0)
+            touchpad_contact = touchpad_down = false;
+        break;
+    case Qt::Key_Right:
+        if(touchpad_y == TOUCHPAD_Y_MAX / 2
+            && touchpad_x == TOUCHPAD_X_MAX)
+            touchpad_contact = touchpad_down = false;
+        break;
+    case Qt::Key_Return:
+        if(touchpad_x == TOUCHPAD_X_MAX / 2
+            && touchpad_y == TOUCHPAD_Y_MAX / 2)
+            touchpad_contact = touchpad_down = false;
+        break;
+    default:
+        auto& keymap = keymap_tp;
+        for(unsigned int row = 0; row < sizeof(keymap)/sizeof(*keymap); ++row)
         {
-            if(key == keymap[row][col].key)
-                key_map[row] &= ~(1 << col);
+            for(unsigned int col = 0; col < sizeof(*keymap)/sizeof(**keymap); ++col)
+            {
+                if(key == keymap[row][col].key)
+                {
+                    key_map[row] &= ~(1 << col);
+                    keypad_int_check();
+                    return;
+                }
+            }
         }
+        return;
     }
 
+    kpc.gpio_int_active |= 0x800;
     keypad_int_check();
 }
 
@@ -80,11 +149,11 @@ void LCDWidget::mouseMoveEvent(QMouseEvent *event)
 
     int vel_x = new_x - touchpad_x;
     int vel_y = new_y - touchpad_y;
-    touchpad_vel_x = vel_x < -127 ? -127 : vel_x > 127 ? 127 : vel_x;
-    touchpad_vel_y = vel_y < -127 ? -127 : vel_y > 127 ? 127 : vel_y;
+    touchpad_vel_x = vel_x/2;
+    touchpad_vel_y = vel_y/2;
 
-    touchpad_x = new_x;
-    touchpad_y = new_y;
+    touchpad_x = new_x * 2;
+    touchpad_y = new_y * 2;
 
     kpc.gpio_int_active |= 0x800;
     keypad_int_check();

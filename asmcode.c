@@ -8,9 +8,9 @@
 
 //TODO: Read and write breakpoints
 
-void translation_next() {}
-void translation_next_bx() {}
-uint32_t arm_shift_proc[2][4];
+void flush_translations() {}
+void fix_pc_for_fault() {}
+bool range_translated(uintptr_t x, uintptr_t y) { return false; }
 
 uint32_t FASTCALL read_word_ldr(uint32_t addr)
 {
