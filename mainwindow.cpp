@@ -271,5 +271,5 @@ void MainWindow::restart()
     if(emu.stop())
         emu.start();
     else
-        debugStr("Failed to restart emulator. Close and reopen this app.");
+        debugStr("Failed to restart emulator. Close and reopen this app.\n");
 }

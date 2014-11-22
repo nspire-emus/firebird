@@ -402,8 +402,8 @@
    </attribute>
    <addaction name="actionReset"/>
    <addaction name="actionPause"/>
-   <addaction name="actionSpeed"/>
    <addaction name="actionScreenshot"/>
+   <addaction name="actionSpeed"/>
   </widget>
   <action name="actionReset">
    <property name="text">
