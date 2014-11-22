@@ -5,6 +5,11 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+// Can also be set manually
+#ifndef __i386__
+#define NO_TRANSLATION
+#endif
+
 // Needed for the assembler calling convention
 #ifdef __i386__
     #define FASTCALL __attribute__((fastcall))

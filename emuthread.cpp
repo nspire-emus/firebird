@@ -136,8 +136,13 @@ bool EmuThread::stop()
 {
     exiting = true;
     paused = false;
+    throttle_timer_off();
     if(!this->wait(1000))
-        return false;
+    {
+        terminate();
+        if(!this->wait(1000))
+            return false;
+    }
 
     cleanup();
     return true;

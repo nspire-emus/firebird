@@ -75,12 +75,14 @@ void write_action(void *ptr) {
             emuprintf("Hit write breakpoint at %08x. Entering debugger.\n", addr);
         debugger(DBG_WRITE_BREAKPOINT, addr);
     }
+#ifndef NO_TRANSLATION
     if (*flags & RF_CODE_TRANSLATED) {
         logprintf(LOG_CPU, "Wrote to translated code at %08x. Deleting translations.\n", addr);
         invalidate_translation(*flags >> RFS_TRANSLATION_INDEX);
     } else {
         *flags &= ~RF_CODE_NO_TRANSLATE;
     }
+#endif
 }
 
 /* 00000000, 10000000, A4000000: ROM and RAM */

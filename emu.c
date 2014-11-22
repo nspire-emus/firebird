@@ -214,6 +214,7 @@ int emulate()
         fclose(f);
     }
 
+#ifndef NO_TRANSLATION
     if(!insn_buffer)
     {
         insn_buffer = os_alloc_executable(INSN_BUFFER_SIZE);
@@ -222,6 +223,7 @@ int emulate()
 
     if(!insn_buffer)
         return false;
+#endif
 
     os_exception_frame_t frame;
     addr_cache_init(&frame);
