@@ -79,12 +79,12 @@ void gui_show_speed(double d)
 
 void throttle_timer_off()
 {
-    main_window->setThrottleTimer(false);
+    emu_thread->setThrottleTimer(false);
 }
 
 void throttle_timer_on()
 {
-    main_window->setThrottleTimer(true);
+    emu_thread->setThrottleTimer(true);
 }
 
 void throttle_timer_wait()

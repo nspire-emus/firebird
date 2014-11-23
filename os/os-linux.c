@@ -1,5 +1,3 @@
-#if defined(__unix__) || defined(__APPLE__)
-
 #define _GNU_SOURCE
 #define _XOPEN_SOURCE
 
@@ -173,5 +171,3 @@ void addr_cache_init(os_exception_frame_t *frame)
     }
 #endif
 }
-
-#endif

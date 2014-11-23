@@ -31,6 +31,9 @@ public slots:
     void setThrottleTimerDeactivated(bool b);
     void screenshot();
 
+    //Emu stuff (has to be a signal to execute it in this thread)
+    void setThrottleTimer(bool b);
+
     //Serial
     void serialChar(const char c);
 
@@ -53,7 +56,6 @@ signals:
 public:
     QByteArray debug_command;
 
-    void setThrottleTimer(bool b);
     void throttleTimerWait();
 
 private:

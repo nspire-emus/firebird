@@ -1,7 +1,5 @@
 #include "os.h"
 
-#if defined(_WIN32) || defined(_WIN64) || defined(__WIN32__) || defined(__TOS_WIN__) || defined(__WINDOWS__)
-
 #include <conio.h>
 
 int os_kbhit()
@@ -21,7 +19,7 @@ void *os_reserve(size_t size)
 
 void os_free(void *ptr, size_t size)
 {
-    //TODO: Test this
+    (void) size;
     VirtualFree(ptr, 0, MEM_RELEASE);
 }
 
@@ -100,27 +98,3 @@ void addr_cache_init(os_exception_frame_t *frame) {
         VirtualProtect(*reloc, 4, prot, &prot);
     }
 }
-
-HANDLE hTimerEvent;
-UINT uTimerID;
-void throttle_timer_on() {
-    hTimerEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
-    uTimerID = timeSetEvent(throttle_delay, throttle_delay, (LPTIMECALLBACK)hTimerEvent, 0,
-                            TIME_PERIODIC | TIME_CALLBACK_EVENT_SET);
-    if (uTimerID == 0) {
-        printf("timeSetEvent failed\n");
-        exit(1);
-    }
-}
-void throttle_timer_wait() {
-    WaitForSingleObject(hTimerEvent, INFINITE);
-}
-void throttle_timer_off() {
-    if (uTimerID != 0) {
-        timeKillEvent(uTimerID);
-        uTimerID = 0;
-        CloseHandle(hTimerEvent);
-    }
-}
-
-#endif

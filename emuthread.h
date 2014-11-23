@@ -20,6 +20,7 @@ signals:
     void serialChar(char c);
     void debugStr(QString str);
     void statusMsg(QString str);
+    void setThrottleTimer(bool state);
 
 public slots:
     virtual void run() override;

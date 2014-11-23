@@ -17,7 +17,7 @@ linux|macx {
 
 win32 {
 	SOURCES += os/os-win32.c
-	LIBS += -lwinmm -lws32_2
+        LIBS += -lwinmm -lws2_32
 }
 
 #A platform-independant implementation of lowlevel access
