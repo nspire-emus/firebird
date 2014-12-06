@@ -162,7 +162,7 @@ void usblink_received_packet(uint8_t *data, uint32_t size) {
         put_file_next(in);
 
     if (in->src.service == BSWAP16(0x4003)) { /* Address request */
-        emuprintf("usblink connected\n");
+        gui_status_printf("usblink connected.");
         out->src.service = BSWAP16(0x4003);
         out->dst.service = BSWAP16(0x4003);
         out->data_size = 4;
@@ -185,9 +185,9 @@ void usblink_received_packet(uint8_t *data, uint32_t size) {
     }
 }
 
-bool usblink_put_file(char *filepath, char *folder) {
-    char *filename = filepath;
-    char *p;
+bool usblink_put_file(const char *filepath, const char *folder) {
+    const char *filename = filepath;
+    const char *p;
     for (p = filepath; *p; p++)
         if (*p == ':' || *p == '/' || *p == '\\')
             filename = p + 1;
@@ -221,7 +221,7 @@ bool usblink_put_file(char *filepath, char *folder) {
     return 1;
 }
 
-void usblink_send_os(char *filepath) {
+void usblink_send_os(const char *filepath) {
     FILE *f = fopen(filepath, "rb");
     if (!f)
         return;

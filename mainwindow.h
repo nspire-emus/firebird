@@ -26,6 +26,10 @@ public slots:
     //Timer for LCD refreshing
     void refresh();
 
+    //Drag & Drop
+    void dropEvent(QDropEvent* event) override;
+    void dragEnterEvent(QDragEnterEvent *ev) override;
+
     //Menu
     void restart();
     void setThrottleTimerDeactivated(bool b);
@@ -47,6 +51,7 @@ public slots:
     void setDebuggerOnStartup(bool b);
     void setDebuggerOnWarning(bool b);
     void setAutostart(bool b);
+    void setUSBPath(QString path);
 
     void showSpeed(double percent);
 

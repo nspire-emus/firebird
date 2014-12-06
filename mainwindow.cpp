@@ -6,6 +6,8 @@
 #include <QTextBlock>
 #include <QMessageBox>
 #include <QGraphicsItem>
+#include <QDropEvent>
+#include <QMimeData>
 
 MainWindow *main_window;
 
@@ -42,6 +44,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->checkAutostart, SIGNAL(toggled(bool)), this, SLOT(setAutostart(bool)));
     connect(ui->fileBoot1, SIGNAL(pressed()), this, SLOT(selectBoot1()));
     connect(ui->fileFlash, SIGNAL(pressed()), this, SLOT(selectFlash()));
+    connect(ui->pathTransfer, SIGNAL(textEdited(QString)), this, SLOT(setUSBPath(QString)));
 
     refresh_timer.setInterval(1000 / 60); //60 fps
     refresh_timer.start();
@@ -62,6 +65,7 @@ MainWindow::MainWindow(QWidget *parent) :
     selectFlash(settings->value("flash", "").toString());
     setDebuggerOnStartup(settings->value("debugOnStart", false).toBool());
     setDebuggerOnWarning(settings->value("debugOnWarn", false).toBool());
+    setUSBPath(settings->value("usbdir", QString("ndless")).toString());
 
     bool autostart = settings->value("emuAutostart", false).toBool();
     setAutostart(autostart);
@@ -78,6 +82,7 @@ MainWindow::~MainWindow()
 extern "C"
 {
 #include "lcd.h"
+#include "usblink.h"
 }
 
 void MainWindow::refresh()
@@ -102,6 +107,20 @@ void MainWindow::refresh()
     QImage image(reinterpret_cast<const uchar*>(framebuffer.data()), 320, 240, 320 * 2, format);
 
     lcd_scene.addPixmap(QPixmap::fromImage(image));
+}
+
+void MainWindow::dropEvent(QDropEvent *e)
+{
+    const QMimeData* mime_data = e->mimeData();
+    if(!mime_data->hasUrls())
+        return;
+
+    usblink_put_file(mime_data->urls().at(0).toLocalFile().toLocal8Bit().data(), settings->value("usbdir", QString("ndless")).toString().toLocal8Bit().data());
+}
+
+void MainWindow::dragEnterEvent(QDragEnterEvent *e)
+{
+    e->accept();
 }
 
 void MainWindow::serialChar(const char c)
@@ -203,6 +222,13 @@ void MainWindow::setAutostart(bool b)
     settings->setValue("emuAutostart", b);
     if(ui->checkAutostart->isChecked() != b)
         ui->checkAutostart->setChecked(b);
+}
+
+void MainWindow::setUSBPath(QString path)
+{
+    settings->setValue("usbdir", path);
+    if(ui->pathTransfer->text() != path)
+        ui->pathTransfer->setText(path);
 }
 
 void MainWindow::showSpeed(double percent)
