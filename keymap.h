@@ -8,9 +8,11 @@
 struct HostKey {
     Qt::Key key;
     QString name;
+    bool alt;
 };
 
-#define KEY(x, y) HostKey x{Qt::Key_##y, #y}
+#define KEY(x, y) HostKey x{Qt::Key_##y, #y, false}
+#define ALT(x, y, z) HostKey x{Qt::Key_##y, z, true}
 
 KEY(enter, Enter);
 KEY(tab, Tab);
@@ -20,6 +22,7 @@ KEY(shift, Shift);
 KEY(ctrl, Control);
 KEY(backspace, Backspace);
 KEY(escape, Escape);
+KEY(dot, Period);
 
 KEY(aa, A);
 KEY(ab, B);
@@ -80,17 +83,36 @@ KEY(f10, F10);
 KEY(f11, F11);
 KEY(f12, F12);
 
-HostKey none{static_cast<Qt::Key>(0), ""};
+ALT(negative, Minus, "Negative");
+ALT(wtf, W, "?!");
+ALT(pi, P, "pi");
+ALT(trig, T, "trig");
+ALT(pow10_, 1, "10^x");
+ALT(ee, E, "EE");
+ALT(squ, 2, "x^2");
+ALT(exp_, X, "e^x");
+ALT(var, V, "var");
+ALT(flag, F, "flag");
+ALT(frac, O, "fracb");
+ALT(doc, D, "doc");
+ALT(menu, M, "menu");
+ALT(cat, C, "cat");
+ALT(scratch, S, "scratch");
+ALT(equ, Q, "=");
+ALT(ast, A, "*");
+ALT(pow_, P, "^");
+
+HostKey none{static_cast<Qt::Key>(0), "", false};
 
 HostKey keymap_tp[8][11] =
 {
-{ ret, enter, none, none, space, az, ay, n0, none, none, none },
-{ ax, aw, av, n3, au, at, as, n1, f1, f2, f3 },
-{ ar, aq, ap, n6, ao, an, am, n4, f4, f5, none },
-{ al, ak, aj, n9, ai, ah, ag, n7, f4, f5, none },
-{ af, ae, ad, none, ac, ab, aa, none, none, none, none },
-{ none, none, minus, none, none, none, n5, none, none, backspace, none },
-{ none, none, plus, none, n2, none, n8, escape, none, tab, none },
+{ ret, enter, none, negative, space, az, ay, n0, wtf, none, none },
+{ ax, aw, av, n3, au, at, as, n1, pi, trig, pow10_ },
+{ ar, aq, ap, n6, ao, an, am, n4, ee, squ, none },
+{ al, ak, aj, n9, ai, ah, ag, n7, f3, exp_, none },
+{ af, ae, ad, none, ac, ab, aa, equ, ast, pow_, none },
+{ none, var, minus, f1, dot, f2, n5, cat, frac, backspace, scratch },
+{ flag, none, plus, doc, n2, menu, n8, escape, none, tab, none },
 { none, none, none, none, none, none, none, none, shift, ctrl, comma }
 };
 

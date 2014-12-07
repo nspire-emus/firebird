@@ -48,7 +48,7 @@ void LCDWidget::keyPressEvent(QKeyEvent *event)
         {
             for(unsigned int col = 0; col < sizeof(*keymap)/sizeof(**keymap); ++col)
             {
-                if(key == keymap[row][col].key)
+                if(key == keymap[row][col].key && keymap[row][col].alt == bool(event->modifiers() & Qt::AltModifier))
                 {
                     key_map[row] |= 1 << col;
                     keypad_int_check();
@@ -102,7 +102,7 @@ void LCDWidget::keyReleaseEvent(QKeyEvent *event)
         {
             for(unsigned int col = 0; col < sizeof(*keymap)/sizeof(**keymap); ++col)
             {
-                if(key == keymap[row][col].key)
+                if(key == keymap[row][col].key && keymap[row][col].alt == bool(event->modifiers() & Qt::AltModifier))
                 {
                     key_map[row] &= ~(1 << col);
                     keypad_int_check();
