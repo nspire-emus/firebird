@@ -4,6 +4,7 @@
 
 #include "emu.h"
 #include "usb.h"
+#include "usblink.h"
 
 struct packet {
     uint16_t constant;
@@ -136,6 +137,8 @@ send_data:
             break;
 fail:
             emuprintf("Send failed\n");
+            usblink_connected = false;
+            gui_usblink_changed(false);
         case DONE:
             put_file_state = 0;
             fclose(put_file);
@@ -163,6 +166,8 @@ void usblink_received_packet(uint8_t *data, uint32_t size) {
 
     if (in->src.service == BSWAP16(0x4003)) { /* Address request */
         gui_status_printf("usblink connected.");
+        usblink_connected = true;
+        gui_usblink_changed(true);
         out->src.service = BSWAP16(0x4003);
         out->dst.service = BSWAP16(0x4003);
         out->data_size = 4;
@@ -246,7 +251,7 @@ void usblink_send_os(const char *filepath) {
     usblink_send_packet();
 }
 
-bool usblink_sending;
+bool usblink_sending, usblink_connected = false;
 int usblink_state;
 
 extern void usb_bus_reset_on(void);
@@ -268,6 +273,8 @@ void usblink_reset() {
         fclose(put_file);
         put_file = NULL;
     }
+    usblink_connected = false;
+    gui_usblink_changed(usblink_connected);
     usblink_state = 0;
     usblink_sending = false;
 }

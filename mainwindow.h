@@ -34,6 +34,8 @@ public slots:
     void restart();
     void setThrottleTimerDeactivated(bool b);
     void screenshot();
+    void connectUSB();
+    void usblinkChanged(bool state);
 
     //Emu stuff (has to be a signal to execute it in this thread)
     void setThrottleTimer(bool b);

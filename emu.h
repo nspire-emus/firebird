@@ -83,6 +83,7 @@ void gui_perror(const char *msg);
 char *gui_debug_prompt();
 void gui_status_printf(const char *fmt, ...);
 void gui_show_speed(double speed);
+void gui_usblink_changed(bool state);
 
 int emulate();
 void cleanup();

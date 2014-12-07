@@ -77,6 +77,11 @@ void gui_show_speed(double d)
     main_window->showSpeed(d);
 }
 
+void gui_usblink_changed(bool state)
+{
+    emu_thread->usblinkChanged(state);
+}
+
 void throttle_timer_off()
 {
     emu_thread->setThrottleTimer(false);

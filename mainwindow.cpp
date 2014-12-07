@@ -21,11 +21,12 @@ MainWindow::MainWindow(QWidget *parent) :
 
     connect(&refresh_timer, SIGNAL(timeout()), this, SLOT(refresh()));
 
-    //Emu -> GUI
+    //Emu -> GUI (QueuedConnection as they're different threads)
     connect(&emu, SIGNAL(serialChar(char)), this, SLOT(serialChar(char)), Qt::QueuedConnection);
     connect(&emu, SIGNAL(debugStr(QString)), this, SLOT(debugStr(QString)), Qt::QueuedConnection);
     connect(&emu, SIGNAL(statusMsg(QString)), ui->statusbar, SLOT(showMessage(QString)), Qt::QueuedConnection);
     connect(&emu, SIGNAL(setThrottleTimer(bool)), this, SLOT(setThrottleTimer(bool)), Qt::QueuedConnection);
+    connect(&emu, SIGNAL(usblinkChanged(bool)), this, SLOT(usblinkChanged(bool)), Qt::QueuedConnection);
 
     //Menu
     connect(ui->actionReset, SIGNAL(triggered()), &emu, SLOT(reset()));
@@ -34,6 +35,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->actionPause, SIGNAL(toggled(bool)), &emu, SLOT(setPaused(bool)));
     connect(ui->actionSpeed, SIGNAL(triggered(bool)), this, SLOT(setThrottleTimerDeactivated(bool)));
     connect(ui->actionScreenshot, SIGNAL(triggered()), this, SLOT(screenshot()));
+    connect(ui->actionConnect, SIGNAL(triggered()), this, SLOT(connectUSB()));
 
     //Debugging
     connect(ui->lineEdit, SIGNAL(returnPressed()), this, SLOT(debugCommand()));
@@ -253,6 +255,22 @@ void MainWindow::screenshot()
 
     if(!image.save(filename, "PNG"))
         QMessageBox::critical(this, tr("Screenshot failed"), tr("Failed to save screenshot!"));
+}
+
+void MainWindow::connectUSB()
+{
+    if(usblink_connected)
+        usblink_reset();
+    else
+        usblink_connect();
+
+    usblinkChanged(false);
+}
+
+void MainWindow::usblinkChanged(bool state)
+{
+    ui->actionConnect->setText(state ? tr("Disconnect USB") : tr("Connect USB"));
+    ui->actionConnect->setChecked(state);
 }
 
 void MainWindow::setThrottleTimer(bool b)

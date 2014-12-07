@@ -431,6 +431,7 @@
    <addaction name="actionReset"/>
    <addaction name="actionPause"/>
    <addaction name="actionScreenshot"/>
+   <addaction name="actionConnect"/>
    <addaction name="actionSpeed"/>
   </widget>
   <action name="actionReset">
@@ -475,6 +476,14 @@
   <action name="actionScreenshot">
    <property name="text">
     <string>Screenshot</string>
+   </property>
+  </action>
+  <action name="actionConnect">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Connect USB</string>
    </property>
   </action>
  </widget>

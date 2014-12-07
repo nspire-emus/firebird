@@ -21,6 +21,7 @@ signals:
     void debugStr(QString str);
     void statusMsg(QString str);
     void setThrottleTimer(bool state);
+    void usblinkChanged(bool state);
 
 public slots:
     virtual void run() override;
