@@ -10,7 +10,7 @@
 
 void flush_translations() {}
 void fix_pc_for_fault() {}
-bool range_translated(uintptr_t x, uintptr_t y) { return false; }
+bool range_translated(uintptr_t x, uintptr_t y) { (void) x; (void) y; return false; }
 
 uint32_t FASTCALL read_word_ldr(uint32_t addr)
 {
