@@ -9,6 +9,10 @@
 #include <QDropEvent>
 #include <QMimeData>
 
+#ifdef Q_OS_MAC
+#include "os/os-mac.h"
+#endif
+
 MainWindow *main_window;
 
 MainWindow::MainWindow(QWidget *parent) :
@@ -117,7 +121,13 @@ void MainWindow::dropEvent(QDropEvent *e)
     if(!mime_data->hasUrls())
         return;
 
-    usblink_put_file(mime_data->urls().at(0).toLocalFile().toLocal8Bit().data(), settings->value("usbdir", QString("ndless")).toString().toLocal8Bit().data());
+    QUrl url = mime_data->urls().at(0).toLocalFile();
+
+    // For Mac OS X Yosemite...
+    if (url.path().startsWith("/.file/id="))
+        url = get_good_url_from_fileid_url("file://" + url.toString());
+
+    usblink_put_file(url.toString().toStdString().c_str(), settings->value("usbdir", QString("ndless")).toString().toLocal8Bit().data());
 }
 
 void MainWindow::dragEnterEvent(QDragEnterEvent *e)

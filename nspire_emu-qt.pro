@@ -12,61 +12,71 @@ QMAKE_CXXFLAGS_RELEASE = -O3
 
 #This does also apply to android
 linux|macx {
-	SOURCES += os/os-linux.c
+    SOURCES += os/os-linux.c
+}
+
+macx {
+    CONFIG += objective_c
+    # automatially added
+    # OBJECTIVE_SOURCES = os/os-mac.mm
+    LIBS += -lobjc -framework Foundation
+    QMAKE_OBJECTIVE_CFLAGS += -fobjc-arc
+    QT += macextras
 }
 
 win32 {
-	SOURCES += os/os-win32.c
-        LIBS += -lwinmm -lws2_32
+    SOURCES += os/os-win32.c
+    LIBS += -lwinmm -lws2_32
 }
 
 #A platform-independant implementation of lowlevel access
 ASMCODE_IMPL = asmcode.c
 
 win32|linux-g++-32 {
-	SOURCES += translate.c
-	ASMCODE_IMPL = asmcode_x86.S
+    SOURCES += translate.c
+    ASMCODE_IMPL = asmcode_x86.S
 }
 
 linux-g++-32 {
-	QMAKE_CFLAGS += -m32
+    QMAKE_CFLAGS += -m32
 }
 
 SOURCES += $$ASMCODE_IMPL \
     lcdwidget.cpp
 SOURCES += mainwindow.cpp \
-        main.cpp \
-        armloader.c \
-        casplus.c \
-        cpu.c \
-        debug.c \
-        des.c \
-        disasm.c \
-        emu.c \
-        flash.c \
-        gdbstub.c \
-        interrupt.c \
-        keypad.c \
-        lcd.c \
-        link.c \
-        mem.c \
-        misc.c \
-        mmu.c \
-        schedule.c \
-        serial.c \
-        sha256.c \
-        usb.c \
-        usblink.c \
-	emuthread.cpp
+    main.cpp \
+    armloader.c \
+    casplus.c \
+    cpu.c \
+    debug.c \
+    des.c \
+    disasm.c \
+    emu.c \
+    flash.c \
+    gdbstub.c \
+    interrupt.c \
+    keypad.c \
+    lcd.c \
+    link.c \
+    mem.c \
+    misc.c \
+    mmu.c \
+    schedule.c \
+    serial.c \
+    sha256.c \
+    usb.c \
+    usblink.c \
+    emuthread.cpp
 
 FORMS += \
     mainwindow.ui
 
 HEADERS += \
     mainwindow.h \
-	emuthread.h \
+    emuthread.h \
     keymap.h \
-    lcdwidget.h
+    lcdwidget.h \
+    os/os-mac.h
 
 #Generate the binary arm code into armcode_bin.h
 armsnippets.commands = arm-none-eabi-gcc -fno-leading-underscore -c $$PWD/armsnippets.S -o armsnippets.o -mcpu=arm926ej-s \
@@ -75,3 +85,6 @@ armsnippets.commands = arm-none-eabi-gcc -fno-leading-underscore -c $$PWD/armsni
 						&& rm armsnippets.o
 
 QMAKE_EXTRA_TARGETS = armsnippets
+
+OBJECTIVE_SOURCES += \
+    os/os-mac.mm
