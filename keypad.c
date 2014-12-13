@@ -8,6 +8,9 @@
 
 volatile uint16_t key_map[16];
 volatile uint16_t touchpad_x, touchpad_y;
+volatile uint8_t touchpad_page = 0x04;
+volatile uint16_t touchpad_dest_x, touchpad_dest_y;
+volatile int8_t touchpad_vel_x = 0, touchpad_vel_y = 0;
 volatile bool touchpad_down, touchpad_contact;
 
 /* 900E0000: Keypad controller */
@@ -52,7 +55,7 @@ void keypad_write(uint32_t addr, uint32_t value) {
             }
             return;
         case 0x04: kpc.size = value; return;
-        case 0x08: kpc.int_active &= ~value; keypad_int_check(); return;
+        case 0x08: kpc.int_active &= ~value; keypad_int_check(); touchpad_vel_x = touchpad_vel_y = 0; return;
         case 0x0C: kpc.int_enable = value & 7; keypad_int_check(); return;
 
         case 0x30: return;
@@ -102,10 +105,6 @@ void keypad_reset() {
     sched_items[SCHED_KEYPAD].proc = keypad_scan_event;
 }
 
-uint8_t touchpad_page = 0x04;
-uint16_t touchpad_dest_x, touchpad_dest_y;
-int8_t touchpad_vel_x = 0, touchpad_vel_y = 0;
-
 void touchpad_write(uint8_t addr, uint8_t value) {
     //printf("touchpad write: %02x %02x %02x\n", touchpad_page, addr, value);
     if (addr == 0xFF)
@@ -124,20 +123,6 @@ uint8_t touchpad_read(uint8_t addr) {
             case 0x07: return TOUCHPAD_Y_MAX & 0xFF;
         }
     } else if (touchpad_page == 0x04) {
-        if(addr == 6)
-        {
-            int8_t val = touchpad_vel_x;
-            touchpad_vel_x = 0;
-            return val;
-        }
-
-        if(addr == 7)
-        {
-            int8_t val = touchpad_vel_y;
-            touchpad_vel_y = 0;
-            return val;
-        }
-
         switch (addr) {
             case 0x00: return touchpad_down || touchpad_contact; // contact
             case 0x01: return touchpad_down ? 100 : touchpad_contact ? 0x2F : 0; // proximity

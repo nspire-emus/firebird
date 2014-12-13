@@ -101,7 +101,10 @@ void put_file_next(struct packet *in) {
             put_file_state++;
 send_data:
             if (prev_seqno == 1)
+            {
                 gui_status_printf("Sending file: %u bytes left", put_file_size);
+                throttle_timer_off();
+            }
             if (put_file_size > 0) {
                 /* Send data (05) */
                 uint32_t len = put_file_size;
@@ -119,6 +122,7 @@ send_data:
                 break;
             }
             gui_status_printf("Send complete");
+            throttle_timer_on();
             put_file_state = DONE;
             break;
         case SENDING_05:

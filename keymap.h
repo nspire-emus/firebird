@@ -111,7 +111,7 @@ HostKey keymap_tp[8][11] =
 { ar, aq, ap, n6, ao, an, am, n4, ee, squ, none },
 { al, ak, aj, n9, ai, ah, ag, n7, f3, exp_, none },
 { af, ae, ad, none, ac, ab, aa, equ, ast, pow_, none },
-{ none, var, minus, f1, dot, f2, n5, cat, frac, backspace, scratch },
+{ none, var, minus, f2, dot, f1, n5, cat, frac, backspace, scratch },
 { flag, none, plus, doc, n2, menu, n8, escape, none, tab, none },
 { none, none, none, none, none, none, none, none, shift, ctrl, comma }
 };

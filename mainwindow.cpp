@@ -236,6 +236,7 @@ void MainWindow::setUSBPath(QString path)
 void MainWindow::showSpeed(double percent)
 {
     ui->actionSpeed->setText(tr("Speed: %0 %").arg(percent, 1, 'f', 0));
+    ui->actionSpeed->setChecked(!throttle_timer.isActive());
 }
 
 void MainWindow::setThrottleTimerDeactivated(bool b)

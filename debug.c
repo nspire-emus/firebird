@@ -67,19 +67,22 @@ static void dump(uint32_t addr) {
                 gui_debug_printf("  ");
             else
                 gui_debug_printf("%02X", ptr[col]);
-            putchar(col == 7 && addr >= start && addr < end ? '-' : ' ');
+            gui_debug_printf(col == 7 && addr >= start && addr < end ? "-" : " ");
         }
         gui_debug_printf("  ");
         for (col = 0; col < 0x10; col++) {
             addr = row + col;
             if (addr < start || addr > end)
-                putchar(' ');
+                gui_debug_printf(" ");
             else if (ptr[col] < 0x20)
-                putchar('.');
+                gui_debug_printf(".");
             else
-                putchar(ptr[col]);
+            {
+                char str[] = {ptr[col], 0};
+                gui_debug_printf(str);
+            }
         }
-        putchar('\n');
+        gui_debug_printf("\n");
     }
 }
 

@@ -41,14 +41,16 @@ void LCDWidget::keyPressEvent(QKeyEvent *event)
     case Qt::Key_Return:
         touchpad_x = TOUCHPAD_X_MAX / 2;
         touchpad_y = TOUCHPAD_Y_MAX / 2;
-        break;
+        touchpad_contact = touchpad_down = true;
+        kpc.gpio_int_active |= 0x800;
+        keypad_int_check();
     default:
         auto& keymap = keymap_tp;
         for(unsigned int row = 0; row < sizeof(keymap)/sizeof(*keymap); ++row)
         {
             for(unsigned int col = 0; col < sizeof(*keymap)/sizeof(**keymap); ++col)
             {
-                if(key == keymap[row][col].key && keymap[row][col].alt == bool(event->modifiers() & Qt::AltModifier))
+                if(key == keymap[row][col].key && keymap[row][col].alt == (bool(event->modifiers() & Qt::AltModifier) || bool(event->modifiers() & Qt::MetaModifier)))
                 {
                     key_map[row] |= 1 << col;
                     keypad_int_check();
@@ -94,15 +96,18 @@ void LCDWidget::keyReleaseEvent(QKeyEvent *event)
     case Qt::Key_Return:
         if(touchpad_x == TOUCHPAD_X_MAX / 2
             && touchpad_y == TOUCHPAD_Y_MAX / 2)
+        {
             touchpad_contact = touchpad_down = false;
-        break;
+            kpc.gpio_int_active |= 0x800;
+            keypad_int_check();
+        }
     default:
         auto& keymap = keymap_tp;
         for(unsigned int row = 0; row < sizeof(keymap)/sizeof(*keymap); ++row)
         {
             for(unsigned int col = 0; col < sizeof(*keymap)/sizeof(**keymap); ++col)
             {
-                if(key == keymap[row][col].key && keymap[row][col].alt == bool(event->modifiers() & Qt::AltModifier))
+                if(key == keymap[row][col].key && keymap[row][col].alt == (bool(event->modifiers() & Qt::AltModifier) || bool(event->modifiers() & Qt::MetaModifier)))
                 {
                     key_map[row] &= ~(1 << col);
                     keypad_int_check();
@@ -120,12 +125,16 @@ void LCDWidget::keyReleaseEvent(QKeyEvent *event)
 void LCDWidget::mousePressEvent(QMouseEvent *event)
 {
     if(event->button() == Qt::RightButton)
-        touchpad_down = true;
+        touchpad_down = touchpad_contact = true;
     else
         touchpad_contact = true;
 
-    touchpad_x = event->x() * TOUCHPAD_X_MAX/width();
-    touchpad_y = TOUCHPAD_Y_MAX - (event->y() * TOUCHPAD_Y_MAX/height());
+    if(event->x() >= 0 && event->x() < 320
+            && event->y() >= 0 && event->y() < 240)
+    {
+        touchpad_x = event->x() * TOUCHPAD_X_MAX/width();
+        touchpad_y = TOUCHPAD_Y_MAX - (event->y() * TOUCHPAD_Y_MAX/height());
+    }
 
     kpc.gpio_int_active |= 0x800;
     keypad_int_check();
@@ -134,7 +143,7 @@ void LCDWidget::mousePressEvent(QMouseEvent *event)
 void LCDWidget::mouseReleaseEvent(QMouseEvent *event)
 {
     if(event->button() == Qt::RightButton)
-        touchpad_down = false;
+        touchpad_down = touchpad_contact = false;
     else
         touchpad_contact = false;
 
@@ -146,6 +155,16 @@ void LCDWidget::mouseMoveEvent(QMouseEvent *event)
 {
     int new_x = event->x() * TOUCHPAD_X_MAX/width(),
             new_y = TOUCHPAD_Y_MAX - (event->y() * TOUCHPAD_Y_MAX/height());
+
+    if(new_x < 0)
+        new_x = 0;
+    if(new_x > TOUCHPAD_X_MAX)
+        new_x = TOUCHPAD_X_MAX;
+
+    if(new_y < 0)
+        new_y = 0;
+    if(new_y > TOUCHPAD_Y_MAX)
+        new_y = TOUCHPAD_Y_MAX;
 
     int vel_x = new_x - touchpad_x;
     int vel_y = new_y - touchpad_y;
