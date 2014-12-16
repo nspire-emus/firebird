@@ -17,8 +17,7 @@ linux|macx {
 
 macx {
     CONFIG += objective_c
-    # automatially added
-    # OBJECTIVE_SOURCES = os/os-mac.mm
+    OBJECTIVE_SOURCES = os/os-mac.mm
     LIBS += -lobjc -framework Foundation
     QMAKE_OBJECTIVE_CFLAGS += -fobjc-arc
     QT += macextras
@@ -85,6 +84,3 @@ armsnippets.commands = arm-none-eabi-gcc -fno-leading-underscore -c $$PWD/armsni
 						&& rm armsnippets.o
 
 QMAKE_EXTRA_TARGETS = armsnippets
-
-OBJECTIVE_SOURCES += \
-    os/os-mac.mm
