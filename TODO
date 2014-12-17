@@ -1,0 +1,4 @@
+-Add support for creating flash files (preloading etc.)
+-File transfer
+-GDB and RDBG integration
+-Better debugger integration
