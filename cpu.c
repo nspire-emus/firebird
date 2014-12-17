@@ -782,7 +782,7 @@ again:;
 }
 
 void cpu_arm_loop() {
-    while (cycle_count_delta < 0 && !(arm.cpsr_low28 & 0x20)) {
+    while (!exiting && cycle_count_delta < 0 && !(arm.cpsr_low28 & 0x20)) {
         uint32_t *insnp = get_pc_ptr(4);
         uint32_t *flags = &RAM_FLAGS(insnp);
 
@@ -829,7 +829,7 @@ enter_debugger:
 }
 
 void cpu_thumb_loop() {
-    while (cycle_count_delta < 0) {
+    while (!exiting && cycle_count_delta < 0) {
         uint16_t *insnp = get_pc_ptr(2);
         uint16_t insn = *insnp;
 

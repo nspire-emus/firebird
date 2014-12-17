@@ -322,7 +322,7 @@ reset:
 
     while (!exiting) {
         sched_process_pending_events();
-        while (cycle_count_delta < 0) {
+        while (!exiting && cycle_count_delta < 0) {
             if (cpu_events & EVENT_RESET) {
                 gui_status_printf("Reset");
                 goto reset;
