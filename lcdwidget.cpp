@@ -7,14 +7,11 @@ extern "C" {
 #include "keymap.h"
 
 LCDWidget::LCDWidget()
-{
-}
+{}
 
 LCDWidget::LCDWidget(QWidget *parent)
     : QGraphicsView(parent)
-{
-
-}
+{}
 
 void LCDWidget::keyPressEvent(QKeyEvent *event)
 {
@@ -52,6 +49,9 @@ void LCDWidget::keyPressEvent(QKeyEvent *event)
             {
                 if(key == keymap[row][col].key && keymap[row][col].alt == (bool(event->modifiers() & Qt::AltModifier) || bool(event->modifiers() & Qt::MetaModifier)))
                 {
+                    if(row == 0 && col == 9)
+                        keypad_on_pressed();
+
                     key_map[row] |= 1 << col;
                     keypad_int_check();
                     return;

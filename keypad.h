@@ -21,6 +21,7 @@ extern struct keypad_controller_state {
 } kpc;
 void keypad_reset();
 void keypad_int_check();
+void keypad_on_pressed();
 uint32_t keypad_read(uint32_t addr);
 void keypad_write(uint32_t addr, uint32_t value);
 void touchpad_cx_reset(void);

@@ -3,6 +3,8 @@
 #ifndef _H_MISC
 #define _H_MISC
 
+extern bool on_irq;
+
 void sdramctl_write_word(uint32_t addr, uint32_t value);
 
 void memctl_cx_reset(void);
@@ -70,6 +72,7 @@ extern struct pmu_state {
         uint32_t disable;
         uint32_t disable2;
         uint32_t clocks;
+        bool on_irq_enabled;
 } pmu;
 void pmu_reset(void);
 uint32_t pmu_read(uint32_t addr);

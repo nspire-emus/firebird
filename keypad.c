@@ -21,6 +21,12 @@ void keypad_int_check() {
     int_set(INT_KEYPAD, (kpc.int_enable & kpc.int_active)
                       | (kpc.gpio_int_enable & kpc.gpio_int_active));
 }
+
+void keypad_on_pressed() {
+    if(pmu.on_irq_enabled)
+        int_set(INT_POWER, true);
+}
+
 uint32_t keypad_read(uint32_t addr) {
     switch (addr & 0x7F) {
         case 0x00:

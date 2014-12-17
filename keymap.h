@@ -93,7 +93,7 @@ ALT(squ, 2, "x^2");
 ALT(exp_, X, "e^x");
 ALT(var, V, "var");
 ALT(flag, F, "flag");
-ALT(frac, O, "fracb");
+ALT(frac, O, "frac");
 ALT(doc, D, "doc");
 ALT(menu, M, "menu");
 ALT(cat, C, "cat");
@@ -101,12 +101,13 @@ ALT(scratch, S, "scratch");
 ALT(equ, Q, "=");
 ALT(ast, A, "*");
 ALT(pow_, P, "^");
+ALT(on, Escape, "On");
 
 HostKey none{static_cast<Qt::Key>(0), "", false};
 
 HostKey keymap_tp[8][11] =
 {
-{ ret, enter, none, negative, space, az, ay, n0, wtf, none, none },
+{ ret, enter, none, negative, space, az, ay, n0, wtf, on, none },
 { ax, aw, av, n3, au, at, as, n1, pi, trig, pow10_ },
 { ar, aq, ap, n6, ao, an, am, n4, ee, squ, none },
 { al, ak, aj, n9, ai, ah, ag, n7, f3, exp_, none },

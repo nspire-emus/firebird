@@ -473,6 +473,7 @@ void pmu_write(uint32_t addr, uint32_t value) {
                 int_set(INT_POWER, 1); // CX boot1 expects an interrupt
             }
             return;
+        case 0x10: pmu.on_irq_enabled = value; return;
         case 0x14: int_set(INT_POWER, 0); return;
         case 0x18: pmu.disable = value; return;
         case 0x20: pmu.disable2 = value; return;
