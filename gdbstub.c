@@ -53,7 +53,7 @@ static void log_socket_error(const char *msg) {
 #ifdef __MINGW32__
     int errCode = WSAGetLastError();
     LPSTR errString = NULL;  // will be allocated and filled by FormatMessage
-    FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM,
+    FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM,
                   0, errCode, 0, (LPSTR)&errString, 0, 0);
     gui_debug_printf("%s: %s (%i)\n", msg, errString, errCode);
     LocalFree( errString );

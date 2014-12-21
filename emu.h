@@ -12,6 +12,9 @@
 
 // Needed for the assembler calling convention
 #ifdef __i386__
+    #ifdef FASTCALL
+        #undef FASTCALL
+    #endif
     #define FASTCALL __attribute__((fastcall))
 #else
     #define FASTCALL
