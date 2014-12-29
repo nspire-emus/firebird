@@ -24,7 +24,7 @@ void *virt_mem_ptr(uint32_t addr, uint32_t size);
 void backtrace(uint32_t fp);
 void debugger(enum DBG_REASON reason, uint32_t addr);
 void rdebug_recv(void);
-bool rdebug_bind(int port);
+bool rdebug_bind(unsigned int port);
 void rdebug_quit();
 
 #endif
