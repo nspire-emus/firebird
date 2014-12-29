@@ -252,6 +252,7 @@ void MainWindow::setUSBPath(QString path)
 void MainWindow::setGDBPort(int port)
 {
     settings->setValue("gdbPort", port);
+    emu_thread->port_gdb = port;
     //valueChanged signal will only be emitted if the value actually changed
     ui->spinGDB->setValue(port);
 }
@@ -259,6 +260,7 @@ void MainWindow::setGDBPort(int port)
 void MainWindow::setRDBGPort(int port)
 {
     settings->setValue("rdbgPort", port);
+    emu_thread->port_rdbg = port;
     //valueChanged signal will only be emitted if the value actually changed
     ui->spinRDBG->setValue(port);
 }
