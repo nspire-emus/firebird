@@ -31,9 +31,18 @@ win32 {
 #A platform-independant implementation of lowlevel access
 ASMCODE_IMPL = asmcode.c
 
-win32|linux-g++-32 {
-    SOURCES += translate.c
-    ASMCODE_IMPL = asmcode_x86.S
+linux-g++:QMAKE_TARGET.arch = $$QMAKE_HOST.arch
+linux-g++-32:QMAKE_TARGET.arch = x86
+linux-g++-64:QMAKE_TARGET.arch = x86_64
+
+TRANSLATE = $$join(QMAKE_TARGET.arch, "", "translate_", ".c")
+exists($$TRANSLATE) {
+	SOURCES += $$TRANSLATE
+}
+
+ASMCODE = $$join(QMAKE_TARGET.arch, "", "asmcode_", ".S")
+exists($$ASMCODE) {
+	ASMCODE_IMPL = $$ASMCODE
 }
 
 linux-g++-32 {
