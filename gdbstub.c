@@ -127,7 +127,7 @@ static void set_nonblocking(int socket, bool nonblocking) {
 #endif
 }
 
-bool gdbstub_init(int port) {
+bool gdbstub_init(unsigned int port) {
     struct sockaddr_in sockaddr;
     int r;
 
