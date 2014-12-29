@@ -51,6 +51,8 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->fileBoot1, SIGNAL(pressed()), this, SLOT(selectBoot1()));
     connect(ui->fileFlash, SIGNAL(pressed()), this, SLOT(selectFlash()));
     connect(ui->pathTransfer, SIGNAL(textEdited(QString)), this, SLOT(setUSBPath(QString)));
+    connect(ui->spinGDB, SIGNAL(valueChanged(int)), this, SLOT(setGDBPort(int)));
+    connect(ui->spinRDBG, SIGNAL(valueChanged(int)), this, SLOT(setRDBGPort(int)));
 
     refresh_timer.setInterval(1000 / 60); //60 fps
     refresh_timer.start();
@@ -72,6 +74,8 @@ MainWindow::MainWindow(QWidget *parent) :
     setDebuggerOnStartup(settings->value("debugOnStart", false).toBool());
     setDebuggerOnWarning(settings->value("debugOnWarn", false).toBool());
     setUSBPath(settings->value("usbdir", QString("ndless")).toString());
+    setGDBPort(settings->value("gdbPort", 3333).toUInt());
+    setRDBGPort(settings->value("rdbgPort", 3334).toUInt());
 
     bool autostart = settings->value("emuAutostart", false).toBool();
     setAutostart(autostart);
@@ -245,9 +249,23 @@ void MainWindow::setUSBPath(QString path)
         ui->pathTransfer->setText(path);
 }
 
+void MainWindow::setGDBPort(int port)
+{
+    settings->setValue("gdbPort", port);
+    //valueChanged signal will only be emitted if the value actually changed
+    ui->spinGDB->setValue(port);
+}
+
+void MainWindow::setRDBGPort(int port)
+{
+    settings->setValue("rdbgPort", port);
+    //valueChanged signal will only be emitted if the value actually changed
+    ui->spinRDBG->setValue(port);
+}
+
 void MainWindow::showSpeed(double percent)
 {
-    ui->actionSpeed->setText(tr("Speed: %0 %").arg(percent, 1, 'f', 0));
+    ui->actionSpeed->setText(tr("Speed: %1 %").arg(percent, 1, 'f', 0));
     ui->actionSpeed->setChecked(!throttle_timer.isActive());
 }
 

@@ -54,6 +54,8 @@ public slots:
     void setDebuggerOnWarning(bool b);
     void setAutostart(bool b);
     void setUSBPath(QString path);
+    void setGDBPort(int port);
+    void setRDBGPort(int port);
 
     void showSpeed(double percent);
 

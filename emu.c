@@ -39,9 +39,6 @@ int product = 0x0E0;
 uint32_t boot2_base;
 const char *path_boot1 = NULL, *path_boot2 = NULL, *path_flash = NULL, *pre_boot2 = NULL, *pre_diags = NULL, *pre_os = NULL;
 
-int gdb_port = 0;
-int rdbg_port = 0;
-
 void *restart_after_exception[32];
 
 void (*reset_procs[20])(void);
@@ -175,7 +172,7 @@ void add_reset_proc(void (*proc)(void))
     reset_procs[reset_proc_count++] = proc;
 }
 
-int emulate()
+int emulate(unsigned int port_gdb, unsigned int port_rdbg)
 {
     const char *preload_filename[4] = {pre_boot2, pre_diags, pre_os};
     int i;
@@ -232,11 +229,11 @@ int emulate()
 
     throttle_timer_on();
 
-    if(gdb_port)
-        gdbstub_init(gdb_port);
+    if(port_gdb)
+        gdbstub_init(port_gdb);
 
-    if(rdbg_port)
-        rdebug_bind(rdbg_port);
+    if(port_rdbg)
+        rdebug_bind(port_rdbg);
 
 reset:
     memset(&arm, 0, sizeof arm);

@@ -84,3 +84,6 @@ armsnippets.commands = arm-none-eabi-gcc -fno-leading-underscore -c $$PWD/armsni
 						&& rm armsnippets.o
 
 QMAKE_EXTRA_TARGETS = armsnippets
+
+OTHER_FILES += \
+    TODO

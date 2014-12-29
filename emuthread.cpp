@@ -122,7 +122,7 @@ void EmuThread::run()
     path_boot1 = emu_path_boot1.c_str();
     path_flash = emu_path_flash.c_str();
 
-    int ret = emulate();
+    int ret = emulate(port_gdb, port_rdbg);
 
     emit exited(ret);
 }

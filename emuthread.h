@@ -14,6 +14,7 @@ public:
     volatile bool paused = false;
 
     std::string emu_path_boot1 = "", emu_path_flash = "";
+    unsigned int port_gdb = 0, port_rdbg = 0;
 
 signals:
     void exited(int retcode);
