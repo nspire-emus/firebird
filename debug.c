@@ -618,7 +618,7 @@ static void set_nonblocking(int socket, bool nonblocking) {
 #endif
 }
 
-bool rdebug_bind(int port) {
+bool rdebug_bind(unsigned int port) {
     struct sockaddr_in sockaddr;
     int r;
 

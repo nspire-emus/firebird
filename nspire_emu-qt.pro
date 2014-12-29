@@ -4,13 +4,14 @@ CONFIG += c++11
 TEMPLATE = app
 TARGET = nspire_emu
 
+# You may have to remove "-flto" if using clang
 QMAKE_CFLAGS = -O3 -std=gnu11 -Wall -Wextra -flto
 
-#Override bad default options
+# Override bad default options
 QMAKE_CFLAGS_RELEASE = -O3
 QMAKE_CXXFLAGS_RELEASE = -O3
 
-#This does also apply to android
+# This does also apply to android
 linux|macx {
     SOURCES += os/os-linux.c
 }
@@ -28,7 +29,7 @@ win32 {
     LIBS += -lwinmm -lws2_32
 }
 
-#A platform-independant implementation of lowlevel access
+# A platform-independant implementation of lowlevel access
 ASMCODE_IMPL = asmcode.c
 
 linux-g++:QMAKE_TARGET.arch = $$QMAKE_HOST.arch
@@ -37,12 +38,12 @@ linux-g++-64:QMAKE_TARGET.arch = x86_64
 
 TRANSLATE = $$join(QMAKE_TARGET.arch, "", "translate_", ".c")
 exists($$TRANSLATE) {
-	SOURCES += $$TRANSLATE
+    SOURCES += $$TRANSLATE
 }
 
 ASMCODE = $$join(QMAKE_TARGET.arch, "", "asmcode_", ".S")
 exists($$ASMCODE) {
-	ASMCODE_IMPL = $$ASMCODE
+    ASMCODE_IMPL = $$ASMCODE
 }
 
 linux-g++-32 {
@@ -86,7 +87,7 @@ HEADERS += \
     lcdwidget.h \
     os/os-mac.h
 
-#Generate the binary arm code into armcode_bin.h
+# Generate the binary arm code into armcode_bin.h
 armsnippets.commands = arm-none-eabi-gcc -fno-leading-underscore -c $$PWD/armsnippets.S -o armsnippets.o -mcpu=arm926ej-s \
 						&& arm-none-eabi-objcopy -O binary armsnippets.o snippets.bin \
 						&& xxd -i snippets.bin > $$PWD/armcode_bin.h \

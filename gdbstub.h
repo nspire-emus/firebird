@@ -3,7 +3,7 @@
 #ifndef _H_GDBSTUB
 #define _H_GDBSTUB
 
-bool gdbstub_init(int port);
+bool gdbstub_init(unsigned int port);
 void gdbstub_quit();
 void gdbstub_reset(void);
 void gdbstub_recv(void);
