@@ -235,7 +235,7 @@ bool memory_initialize(uint32_t sdram_size) {
     }
 
     for (i = 0; i < 64; i++) {
-        /* will fallback to bad_* on non-memory addresses */
+        // will fallback to bad_* on non-memory addresses
         read_byte_map[i] = memory_read_byte;
         read_half_map[i] = memory_read_half;
         read_word_map[i] = memory_read_word;
@@ -298,6 +298,12 @@ bool memory_initialize(uint32_t sdram_size) {
     write_word_map[0xB0 >> 2] = usb_write_word;
     add_reset_proc(usb_reset);
     add_reset_proc(usblink_reset);
+
+    //TODO: It's a different controller, but for now we use the same state
+    read_byte_map[0xB4 >> 2] = usb_read_byte;
+    read_half_map[0xB4 >> 2] = usb_read_half;
+    read_word_map[0xB4 >> 2] = usb_read_word;
+    write_word_map[0xB4 >> 2] = usb_write_word;
 
     read_word_map[0xC0 >> 2] = lcd_read_word;
     write_word_map[0xC0 >> 2] = lcd_write_word;

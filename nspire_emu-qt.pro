@@ -29,10 +29,11 @@ win32 {
     LIBS += -lwinmm -lws2_32
 }
 
-# A platform-independant implementation of lowlevel access
+# A platform-independant implementation of lowlevel access as default
 ASMCODE_IMPL = asmcode.c
 
 linux-g++:QMAKE_TARGET.arch = $$QMAKE_HOST.arch
+linux-clang:QMAKE_TARGET.arch = $$QMAKE_HOST.arch
 linux-g++-32:QMAKE_TARGET.arch = x86
 linux-g++-64:QMAKE_TARGET.arch = x86_64
 
@@ -44,6 +45,13 @@ exists($$TRANSLATE) {
 ASMCODE = $$join(QMAKE_TARGET.arch, "", "asmcode_", ".S")
 exists($$ASMCODE) {
     ASMCODE_IMPL = $$ASMCODE
+}
+
+# The x86_64 JIT uses asmcode.c for mem access
+contains(QMAKE_TARGET.arch, "x86_64") {
+	!contains(ASMCODE_IMPL, "asmcode.c") {
+		SOURCES += asmcode.c
+	}
 }
 
 linux-g++-32 {

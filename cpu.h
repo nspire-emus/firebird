@@ -31,7 +31,7 @@ struct arm_state {  // Remember to update asmcode.S if this gets rearranged
     uint32_t r13_und[2], spsr_und;
 
     uint8_t  interrupts;
-};
+} __attribute__((packed));
 extern struct arm_state arm __asm__("arm");
 
 #define MODE_USR 0x10

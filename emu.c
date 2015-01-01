@@ -1,4 +1,3 @@
-//#include <conio.h>
 #include <ctype.h>
 #include <setjmp.h>
 #include <stdarg.h>
@@ -120,6 +119,7 @@ void data_abort(uint32_t mva, uint8_t status) {
 }
 
 os_frequency_t perffreq;
+int intervals = 0, prev_intervals = 0;
 
 void throttle_interval_event(int index) {
     event_repeat(index, 27000000 / 100);
@@ -127,8 +127,7 @@ void throttle_interval_event(int index) {
     /* Throttle interval (defined arbitrarily as 100Hz) - used for
      * keeping the emulator speed down, and other miscellaneous stuff
      * that needs to be done periodically */
-    static int intervals;
-    intervals++;
+    intervals += 1;
 
     extern void usblink_timer();
     usblink_timer();
@@ -149,7 +148,6 @@ void throttle_interval_event(int index) {
     os_query_time(&interval_end);
 
     // Show speed
-    static int prev_intervals;
     static os_time_t prev;
     int64_t time = os_time_diff(interval_end, prev) / 4;
     if (time >= os_frequency_hz(perffreq)) {

@@ -529,13 +529,13 @@ invalid:
             if (!(insn & 0x1000)) target &= ~3;
             sprintf(out - 5, "%04x\t%s\t%08x", insn,
                     (insn & 0x1000) ? "bl" : "blx", target);
-            puts(buf);
+            gui_debug_printf("%s\n", buf);
             return 4;
         }
         sprintf(out, "(add\tlr,pc,%08x)", target);
     } else {
         sprintf(out, "(bl\tlr + %03x)", (insn & 0x7FF) << 1);
     }
-    puts(buf);
+    gui_debug_printf("%s\n", buf);
     return 2;
 }

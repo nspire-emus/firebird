@@ -4,11 +4,11 @@
 #define _H_TRANSLATE
 
 struct translation {
-    uint32_t unused;
-    uint32_t jump_table;
+    uintptr_t unused;
+    void** jump_table;
     uint32_t *start_ptr;
     uint32_t *end_ptr;
-};
+} __attribute__((packed));
 extern struct translation translation_table[] __asm__("translation_table");
 #define INSN_BUFFER_SIZE 10000000
 extern uint8_t *insn_buffer;

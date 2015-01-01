@@ -806,7 +806,7 @@ void cpu_arm_loop() {
             }
             if (*flags & (RF_EXEC_BREAKPOINT | RF_EXEC_DEBUG_NEXT)) {
                 if (*flags & RF_EXEC_BREAKPOINT)
-                    printf("Hit breakpoint at %08X. Entering debugger.\n",  arm.reg[15]);
+                    gui_debug_printf("Hit breakpoint at %08X. Entering debugger.\n", arm.reg[15]);
 enter_debugger:
                 debugger(DBG_EXEC_BREAKPOINT, 0);
             }

@@ -6,7 +6,7 @@
 #include <stdint.h>
 
 // Can also be set manually
-#ifndef __i386__
+#if !defined(__i386__) && !defined(__x86_64__)
 #define NO_TRANSLATION
 #endif
 
