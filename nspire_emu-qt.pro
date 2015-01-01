@@ -27,6 +27,8 @@ macx {
 win32 {
     SOURCES += os/os-win32.c
     LIBS += -lwinmm -lws2_32
+    # Somehow it's set to x86_64...
+    QMAKE_TARGET.arch = x86
 }
 
 # A platform-independant implementation of lowlevel access as default
