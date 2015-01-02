@@ -2,3 +2,4 @@
 -File transfer
 -Better debugger integration
 -Keypad, maybe with skin
+-Restore %r8 in asmcode_mac.S properly
