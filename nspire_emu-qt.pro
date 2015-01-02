@@ -38,6 +38,7 @@ linux-g++:QMAKE_TARGET.arch = $$QMAKE_HOST.arch
 linux-clang:QMAKE_TARGET.arch = $$QMAKE_HOST.arch
 linux-g++-32:QMAKE_TARGET.arch = x86
 linux-g++-64:QMAKE_TARGET.arch = x86_64
+macx-clang:QMAKE_TARGET.arch = $$QMAKE_HOST.arch
 
 TRANSLATE = $$join(QMAKE_TARGET.arch, "", "translate_", ".c")
 exists($$TRANSLATE) {
@@ -47,6 +48,10 @@ exists($$TRANSLATE) {
 ASMCODE = $$join(QMAKE_TARGET.arch, "", "asmcode_", ".S")
 exists($$ASMCODE) {
     ASMCODE_IMPL = $$ASMCODE
+}
+
+macx-clang {
+	ASMCODE_IMPL = asmcode_mac.S
 }
 
 # The x86_64 JIT uses asmcode.c for mem access
