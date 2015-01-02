@@ -46,7 +46,7 @@ translation_next:
 	jnz		return
 
 	mov		ARM_PC(%rbx), %edi
-	call	ptr
+	call	_ptr
 	cmp		$0, %rax
 	jz		return
 addr_ok:
