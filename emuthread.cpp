@@ -149,7 +149,7 @@ bool EmuThread::stop()
             return false;
     }
 
-    cleanup();
+    emu_cleanup();
     return true;
 }
 

@@ -347,7 +347,7 @@ reset:
     return 0;
 }
 
-void cleanup()
+void emu_cleanup()
 {
     if(debugger_input)
         fclose(debugger_input);

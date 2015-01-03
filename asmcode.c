@@ -8,7 +8,7 @@
 
 //TODO: Read and write breakpoints
 
-#ifdef NO_TRANSLATION
+#if !defined(__i386__) && !defined(__x86_64__)
 void flush_translations() {}
 void fix_pc_for_fault() {}
 bool range_translated(uintptr_t x, uintptr_t y) { (void) x; (void) y; return false; }

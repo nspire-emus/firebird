@@ -89,7 +89,7 @@ void gui_show_speed(double speed);
 void gui_usblink_changed(bool state);
 
 int emulate(unsigned int port_gdb, unsigned int port_rdbg);
-void cleanup();
+void emu_cleanup();
 
 
 #endif
