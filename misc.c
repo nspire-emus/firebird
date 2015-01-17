@@ -79,19 +79,19 @@ struct gpio_state gpio;
 
 void gpio_reset() {
     memset(&gpio, 0, sizeof gpio);
-    gpio.direction.w = 0xFFFFFFFF;
-    gpio.output.w    = 0x00000000;
+    gpio.direction.w = 0xFFFFFFFFFFFFFFFF;
+    gpio.output.w    = 0x0000000000000000;
 
-    gpio.input.w     = 0x0005010E;
+    gpio.input.w     = 0x00001000050F001B;
     touchpad_gpio_reset();
 }
 uint32_t gpio_read(uint32_t addr) {
-    int port = addr >> 6 & 3;
+    int port = addr >> 6 & 7;
     switch (addr & 0x3F) {
         case 0x04: return 0;
         case 0x10: return gpio.direction.b[port];
         case 0x14: return gpio.output.b[port];
-        case 0x18: return gpio.input.b[port];
+        case 0x18: return gpio.input.b[port] | gpio.output.b[port];
         case 0x1C: return gpio.invert.b[port];
         case 0x20: return gpio.sticky.b[port];
         case 0x24: return gpio.unknown_24.b[port];

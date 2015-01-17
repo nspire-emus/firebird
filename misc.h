@@ -11,7 +11,7 @@ void memctl_cx_reset(void);
 uint32_t memctl_cx_read_word(uint32_t addr);
 void memctl_cx_write_word(uint32_t addr, uint32_t value);
 
-union gpio_reg { uint32_t w; uint8_t b[4]; };
+union gpio_reg { uint64_t w; uint8_t b[8]; };
 extern struct gpio_state {
         union gpio_reg direction;
         union gpio_reg output;
