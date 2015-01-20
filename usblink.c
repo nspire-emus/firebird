@@ -82,6 +82,7 @@ enum {
     DONE               = 6,
     EXPECT_FF_00       = 16, // Sent to us after first OS data packet
 } put_file_state;
+
 void put_file_next(struct packet *in) {
     struct packet *out = &usblink_send_buffer;
     switch (put_file_state & 15) {
@@ -195,6 +196,16 @@ void usblink_received_packet(uint8_t *data, uint32_t size) {
 }
 
 bool usblink_put_file(const char *filepath, const char *folder) {
+    char *dot = strrchr(filepath, '.');
+    // TODO (thanks for the reminder, Excale :P) : Filter depending on which model is being emulated
+    if (dot && (!strcmp(dot, ".tno") || !strcmp(dot, ".tnc")
+             || !strcmp(dot, ".tco") || !strcmp(dot, ".tcc")
+             || !strcmp(dot, ".tmo") || !strcmp(dot, ".tmc")) ) {
+        emuprintf("File is an OS, calling usblink_send_os\n");
+        usblink_send_os(filepath);
+        return 1;
+    }
+
     const char *filename = filepath;
     const char *p;
     for (p = filepath; *p; p++)
