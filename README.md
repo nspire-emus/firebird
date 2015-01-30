@@ -23,8 +23,6 @@ qmake ..
 make
 ```
 
-You have to use "qmake -spec linux-g++-32 .." if you're building on a 32bit system (for mac, use "qmake -spec macx-g++32 ..").
-
 Coding conventions
 ------------------
 
