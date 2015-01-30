@@ -383,6 +383,9 @@ FILE *flash_file = NULL;
 
 bool flash_open(const char *filename) {
     bool large = false;
+    if(flash_file)
+        fclose(flash_file);
+
     flash_file = fopen(filename, "r+b");
 
     if (!flash_file) {
@@ -413,7 +416,7 @@ bool flash_open(const char *filename) {
 
 void flash_save_changes() {
     if (flash_file == NULL) {
-        emuprintf("NAND flash: no file\n");
+        gui_status_printf("No flash loaded!");
         return;
     }
     uint32_t block, count = 0;
@@ -427,7 +430,7 @@ void flash_save_changes() {
         }
     }
     fflush(flash_file);
-    emuprintf("NAND flash: saved %d modified blocks to file\n", count);
+    gui_status_printf("Flash: Saved %d modified blocks", count);
 }
 
 int flash_save_as(char *filename) {
@@ -440,6 +443,7 @@ int flash_save_as(char *filename) {
     emuprintf("Saving flash image %s...", filename);
     if (!fwrite(nand_data, nand_metrics.page_size * nand_metrics.num_pages, 1, f) || fflush(f)) {
         fclose(f);
+        f = NULL;
         remove(filename);
         printf("\n could not write to ");
         gui_perror(filename);
@@ -448,6 +452,7 @@ int flash_save_as(char *filename) {
     memset(nand_block_modified, 0, nand_metrics.num_pages >> nand_metrics.log2_pages_per_block);
     if (flash_file)
         fclose(flash_file);
+
     flash_file = f;
     printf("done\n");
     return 0;
@@ -710,7 +715,10 @@ bool flash_read_settings(uint32_t *sdram_size) {
 void flash_close()
 {
     if(flash_file)
+    {
         fclose(flash_file);
+        flash_file = NULL;
+    }
 
     nand_deinitialize();
 }
