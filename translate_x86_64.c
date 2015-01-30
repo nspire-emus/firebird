@@ -955,6 +955,8 @@ branch_unconditional:
 
     int index = next_index++;
 
+    //jump_table[0] is pointer to code on pc=start_ptr
+    //jump_table[1] is pointer to code on pc=start_ptr+4
     translation_table[index].jump_table = (void**) jtbl_bufptr;
     translation_table[index].start_ptr  = start_insnp;
     translation_table[index].end_ptr    = insnp;
@@ -988,30 +990,27 @@ void invalidate_translation(int index) {
 }
 
 void fix_pc_for_fault() {
-    //TODO: Due to the difference of pointer size, the old jump_table format doesn't work
-    //Adapt this function to the new format:
-    //jump_table[0] is pointer to code on pc=start_ptr
-    //jump_table[1] is pointer to code on pc=start_ptr+4
-    assert(false);
-    /*if (in_translation_rsp) {
-        uint32_t *insnp = in_translation_pc_ptr;
-        void *ret_eip = in_translation_rsp[-1];
-        uint32_t flags = RAM_FLAGS(insnp);
-        if (!(flags & RF_CODE_TRANSLATED))
-            error("Couldn't get PC for fault");
-        int index = flags >> RFS_TRANSLATION_INDEX;
-        uintptr_t start = (uintptr_t)translation_table[index].start_ptr;
-        uintptr_t end = (uintptr_t)translation_table[index].end_ptr;
-        for (; start < end; start += 4) {
-            void *code = *(void **)(translation_table[index].jump_table);
-            if (code >= ret_eip)
-                break;
-        }
-        arm.reg[15] += (uintptr_t)start - (uintptr_t)insnp;
-        cycle_count_delta -= ((uintptr_t)end - (uintptr_t)insnp) >> 2;
-        in_translation_rsp = NULL;
+    if (!in_translation_rsp)
+    {
+        arm.reg[15] -= (arm.cpsr_low28 & 0x20) ? 2 : 4;
+        return;
     }
-    arm.reg[15] -= (arm.cpsr_low28 & 0x20) ? 2 : 4;*/
+
+    uint32_t *insnp = in_translation_pc_ptr;
+    void *ret_eip = in_translation_rsp[-1];
+    uint32_t flags = RAM_FLAGS(insnp);
+    if (!(flags & RF_CODE_TRANSLATED))
+        error("Couldn't get PC for fault");
+    int index = flags >> RFS_TRANSLATION_INDEX;
+
+    for(unsigned int i = 0; ret_eip > translation_table[index].jump_table[i]; ++i)
+        arm.reg[15] += 4;
+
+    cycle_count_delta -= ((uintptr_t)translation_table[index].end_ptr - (uintptr_t)insnp) >> 2;
+    in_translation_rsp = NULL;
+
+    assert(!(arm.cpsr_low28 & 0x20));
+    arm.reg[15] -= 4;
 }
 
 // returns 1 if at least one instruction translated in the range

@@ -66,7 +66,8 @@ linux-g++-32 {
 }
 
 SOURCES += $$ASMCODE_IMPL \
-    lcdwidget.cpp
+    lcdwidget.cpp \
+    flashdialog.cpp
 SOURCES += mainwindow.cpp \
     main.cpp \
     armloader.c \
@@ -93,14 +94,40 @@ SOURCES += mainwindow.cpp \
     emuthread.cpp
 
 FORMS += \
-    mainwindow.ui
+    mainwindow.ui \
+    flashdialog.ui
 
 HEADERS += \
-    mainwindow.h \
-    emuthread.h \
-    keymap.h \
-    lcdwidget.h \
-    os/os-mac.h
+	keypad.h \
+	emu.h \
+	emuthread.h \
+	lcdwidget.h \
+	usb.h \
+	lcd.h \
+	disasm.h \
+	flash.h \
+	flashdialog.h \
+	interrupt.h \
+	armcode_bin.h \
+	mem.h \
+	mmu.h \
+	des.h \
+	armsnippets.h \
+	debug.h \
+	sha256.h \
+	usblink.h \
+	mainwindow.h \
+	keymap.h \
+	misc.h \
+	os/os.h \
+	os/os-mac.h \
+	gdbstub.h \
+	translate.h \
+	cpu.h \
+	casplus.h \
+	link.h \
+	asmcode.h \
+	schedule.h
 
 # Generate the binary arm code into armcode_bin.h
 armsnippets.commands = arm-none-eabi-gcc -fno-leading-underscore -c $$PWD/armsnippets.S -o armsnippets.o -mcpu=arm926ej-s \

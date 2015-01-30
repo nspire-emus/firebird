@@ -967,7 +967,7 @@ void fix_pc_for_fault() {
         uint32_t start = (uint32_t)translation_table[index].start_ptr;
         uint32_t end = (uint32_t)translation_table[index].end_ptr;
         for (; start < end; start += 4) {
-            void *code = *(void **)(translation_table[index].jump_table + start);
+            void *code = *(void **)((uintptr_t)(translation_table[index].jump_table) + start);
             if (code >= ret_eip)
                 break;
         }
