@@ -66,8 +66,8 @@ linux-g++-32 {
 }
 
 SOURCES += $$ASMCODE_IMPL \
-    lcdwidget.cpp \
-    flashdialog.cpp
+    lcdwidget.cpp
+
 SOURCES += mainwindow.cpp \
     main.cpp \
     armloader.c \
@@ -94,8 +94,7 @@ SOURCES += mainwindow.cpp \
     emuthread.cpp
 
 FORMS += \
-    mainwindow.ui \
-    flashdialog.ui
+    mainwindow.ui
 
 HEADERS += \
 	keypad.h \
@@ -106,7 +105,6 @@ HEADERS += \
 	lcd.h \
 	disasm.h \
 	flash.h \
-	flashdialog.h \
 	interrupt.h \
 	armcode_bin.h \
 	mem.h \
