@@ -6,7 +6,7 @@
 #define likely(x) (__builtin_expect(x, 1))
 #define unlikely(x) (__builtin_expect(x, 0))
 
-//TODO: Read and write breakpoints
+//TODO: Read breakpoints
 
 #if (!defined(__i386__) && !defined(__x86_64__)) || defined(NO_TRANSLATION)
 void flush_translations() {}
@@ -135,6 +135,7 @@ void FASTCALL write_byte(uint32_t addr, uint32_t value)
 
     entry += addr;
 
+    write_action((void*) entry);
     *(uint8_t*)entry = value;
 }
 
@@ -160,6 +161,7 @@ void FASTCALL write_half(uint32_t addr, uint32_t value)
 
     entry += addr;
 
+    write_action((void*) entry);
     *(uint16_t*)entry = value;
 }
 
@@ -182,8 +184,8 @@ void FASTCALL write_word(uint32_t addr, uint32_t value)
             return mmio_write_word(entry, value);
         }
     }
-
     entry += addr;
 
+    write_action((void*) entry);
     *(uint32_t*)entry = value;
 }

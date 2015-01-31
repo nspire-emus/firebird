@@ -44,6 +44,9 @@ void bad_write_byte(uint32_t addr, uint8_t value);
 void bad_write_half(uint32_t addr, uint16_t value);
 void bad_write_word(uint32_t addr, uint32_t value);
 
+void write_action(void *ptr);
+void read_action(void *ptr);
+
 uint32_t FASTCALL mmio_read_byte(uint32_t addr) __asm__("mmio_read_byte");
 uint32_t FASTCALL mmio_read_half(uint32_t addr) __asm__("mmio_read_half");
 uint32_t FASTCALL mmio_read_word(uint32_t addr) __asm__("mmio_read_word");
