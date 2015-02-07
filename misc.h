@@ -82,6 +82,7 @@ uint32_t timer_cx_read(uint32_t addr);
 void timer_cx_write(uint32_t addr, uint32_t value);
 void timer_cx_reset(void);
 
+extern uint8_t lcd_contrast;
 void hdq1w_reset(void);
 uint32_t hdq1w_read(uint32_t addr);
 void hdq1w_write(uint32_t addr, uint32_t value);
