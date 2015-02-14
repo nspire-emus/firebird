@@ -408,7 +408,7 @@ static int process_debug_cmd(char *cmdline) {
             do {
                 p = virt_mem_ptr(task, 52);
                 if (!p)
-                    return 1;
+                    return 0;
                 gui_debug_printf("%08X: %c%c%c%c %-8.8s %02x %d %02x %d | %08x %08x %08x %08x\n",
                                  task, p[15], p[14], p[13], p[12],
                         &p[16], /* name */

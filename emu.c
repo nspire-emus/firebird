@@ -36,7 +36,7 @@ bool show_speed;
 bool exiting, debug_on_start, debug_on_warn, large_nand, large_sdram;
 int product = 0x0E0;
 uint32_t boot2_base;
-const char *path_boot1 = NULL, *path_boot2 = NULL, *path_flash = NULL, *pre_boot2 = NULL, *pre_diags = NULL, *pre_os = NULL;
+const char *path_boot1 = NULL, *path_boot2 = NULL, *path_flash = NULL, *pre_manuf = NULL, *pre_boot2 = NULL, *pre_diags = NULL, *pre_os = NULL;
 
 void *restart_after_exception[32];
 
@@ -172,7 +172,7 @@ void add_reset_proc(void (*proc)(void))
 
 int emulate(unsigned int port_gdb, unsigned int port_rdbg)
 {
-    const char *preload_filename[4] = {pre_boot2, pre_diags, pre_os};
+    const char *preload_filename[4] = {pre_manuf, pre_boot2, pre_diags, pre_os};
     int i;
 
     // Enter debug mode?
@@ -256,6 +256,7 @@ reset:
         fseek(boot2_file, 0, SEEK_SET);
         uint8_t *boot2_ptr = phys_mem_ptr(boot2_base, boot2_size);
         if (!boot2_ptr) {
+            fclose(boot2_file);
             emuprintf("Address %08X is not in RAM.\n", boot2_base);
             return 1;
         }

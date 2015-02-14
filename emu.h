@@ -51,7 +51,7 @@ extern bool do_translate;
 extern int product;
 extern int asic_user_flags;
 extern uint32_t boot2_base;
-extern const char *path_boot1, *path_boot2, *path_flash, *pre_boot2, *pre_diags, *pre_os;
+extern const char *path_boot1, *path_boot2, *path_flash, *pre_manuf, *pre_boot2, *pre_diags, *pre_os;
 
 #define emulate_casplus (product == 0x0C0)
 // 0C-0E (CAS, lab cradle, plain Nspire) use old ASIC

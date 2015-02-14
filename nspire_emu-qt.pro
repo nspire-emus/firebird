@@ -1,11 +1,15 @@
+TRANSLATION_ENABLED = true
+
 QT += core gui widgets
 CONFIG += c++11
 
 TEMPLATE = app
 TARGET = nspire_emu
 
-# You may have to remove "-flto" if using clang
-QMAKE_CFLAGS = -O3 -std=gnu11 -Wall -Wextra -flto
+QMAKE_CFLAGS = -O3 -std=gnu11 -Wall -Wextra
+
+# Clang's LTO has some bugs
+!macx-clang: QMAKE_CFLAGS += -flto
 
 # Override bad default options
 QMAKE_CFLAGS_RELEASE = -O3
@@ -16,6 +20,7 @@ linux|macx {
     SOURCES += os/os-linux.c
 }
 
+# 10.10 uses a new "file id" format for drag+drop
 macx {
     CONFIG += objective_c
     OBJECTIVE_SOURCES = os/os-mac.mm
@@ -40,19 +45,17 @@ linux-g++-32:QMAKE_TARGET.arch = x86
 linux-g++-64:QMAKE_TARGET.arch = x86_64
 macx-clang:QMAKE_TARGET.arch = $$QMAKE_HOST.arch
 
-TRANSLATE = $$join(QMAKE_TARGET.arch, "", "translate_", ".c")
-exists($$TRANSLATE) {
-    SOURCES += $$TRANSLATE
-}
+equals(TRANSLATION_ENABLED, true) {
+	TRANSLATE = $$join(QMAKE_TARGET.arch, "", "translate_", ".c")
+	exists($$TRANSLATE) {
+		SOURCES += $$TRANSLATE
+	}
 
-ASMCODE = $$join(QMAKE_TARGET.arch, "", "asmcode_", ".S")
-exists($$ASMCODE) {
-    ASMCODE_IMPL = $$ASMCODE
+	ASMCODE = $$join(QMAKE_TARGET.arch, "", "asmcode_", ".S")
+	exists($$ASMCODE): ASMCODE_IMPL = $$ASMCODE
+	macx-clang: ASMCODE_IMPL = asmcode_mac.S
 }
-
-macx-clang {
-	ASMCODE_IMPL = asmcode_mac.S
-}
+else: DEFINES += NO_TRANSLATION
 
 # The x86_64 JIT uses asmcode.c for mem access
 contains(QMAKE_TARGET.arch, "x86_64") {
@@ -78,6 +81,7 @@ SOURCES += mainwindow.cpp \
     disasm.c \
     emu.c \
     flash.c \
+    flashdialog.cpp \
     gdbstub.c \
     interrupt.c \
     keypad.c \
@@ -94,7 +98,8 @@ SOURCES += mainwindow.cpp \
     emuthread.cpp
 
 FORMS += \
-    mainwindow.ui
+    mainwindow.ui \
+    flashdialog.ui
 
 HEADERS += \
 	keypad.h \
@@ -105,6 +110,7 @@ HEADERS += \
 	lcd.h \
 	disasm.h \
 	flash.h \
+	flashdialog.h \
 	interrupt.h \
 	armcode_bin.h \
 	mem.h \

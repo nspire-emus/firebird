@@ -83,7 +83,7 @@ KEY(f10, F10);
 KEY(f11, F11);
 KEY(f12, F12);
 
-ALT(negative, Minus, "Negative");
+ALT(negative, Minus, "(-)");
 ALT(wtf, W, "?!");
 ALT(pi, P, "pi");
 ALT(trig, T, "trig");

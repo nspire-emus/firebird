@@ -3,6 +3,7 @@
 #include <stdint.h>
 #include "emu.h"
 #include "usb.h"
+#include "usblink.h"
 #include "interrupt.h"
 #include "mem.h"
 
@@ -39,6 +40,7 @@ void usb_reset() {
     usb.portsc = 0xEC000004;
     usb.otgsc = 0x0F20; // 1120 if nothing plugged in
     usb_int_check();
+    usblink_reset();
 }
 
 void usb_bus_reset_on() {

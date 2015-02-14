@@ -7,6 +7,7 @@
 #include <QSettings>
 
 #include "emuthread.h"
+#include "flashdialog.h"
 
 namespace Ui {
 class MainWindow;
@@ -30,12 +31,16 @@ public slots:
     void dropEvent(QDropEvent* event) override;
     void dragEnterEvent(QDragEnterEvent *ev) override;
 
-    //Menu
+    //Menu "Emulator"
     void restart();
     void setThrottleTimerDeactivated(bool b);
     void screenshot();
     void connectUSB();
     void usblinkChanged(bool state);
+
+    //Menu "Flash"
+    void saveFlash();
+    void createFlash();
 
     //Emu stuff (has to be a signal to execute it in this thread)
     void setThrottleTimer(bool b);
@@ -77,6 +82,7 @@ private:
     QGraphicsScene lcd_scene;
     EmuThread emu;
     QSettings *settings;
+    FlashDialog flash_dialog;
 };
 
 extern MainWindow *main_window;

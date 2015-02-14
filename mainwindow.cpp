@@ -32,7 +32,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(&emu, SIGNAL(setThrottleTimer(bool)), this, SLOT(setThrottleTimer(bool)), Qt::QueuedConnection);
     connect(&emu, SIGNAL(usblinkChanged(bool)), this, SLOT(usblinkChanged(bool)), Qt::QueuedConnection);
 
-    //Menu
+    //Menu "Emulator"
     connect(ui->actionReset, SIGNAL(triggered()), &emu, SLOT(reset()));
     connect(ui->actionRestart, SIGNAL(triggered()), this, SLOT(restart()));
     connect(ui->actionDebugger, SIGNAL(triggered()), &emu, SLOT(enterDebugger()));
@@ -40,6 +40,10 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->actionSpeed, SIGNAL(triggered(bool)), this, SLOT(setThrottleTimerDeactivated(bool)));
     connect(ui->actionScreenshot, SIGNAL(triggered()), this, SLOT(screenshot()));
     connect(ui->actionConnect, SIGNAL(triggered()), this, SLOT(connectUSB()));
+
+    //Menu "Flash"
+    connect(ui->actionSave, SIGNAL(triggered()), this, SLOT(saveFlash()));
+    connect(ui->actionCreate_flash, SIGNAL(triggered()), this, SLOT(createFlash()));
 
     //Debugging
     connect(ui->lineEdit, SIGNAL(returnPressed()), this, SLOT(debugCommand()));
@@ -91,6 +95,7 @@ MainWindow::~MainWindow()
 
 extern "C"
 {
+#include "flash.h"
 #include "lcd.h"
 #include "usblink.h"
 #include "misc.h"
@@ -129,7 +134,6 @@ void MainWindow::refresh()
 
     lcd_scene.addPixmap(QPixmap::fromImage(image));
 }
-
 
 void MainWindow::dropEvent(QDropEvent *e)
 {
@@ -316,6 +320,17 @@ void MainWindow::usblinkChanged(bool state)
 {
     ui->actionConnect->setText(state ? tr("Disconnect USB") : tr("Connect USB"));
     ui->actionConnect->setChecked(state);
+}
+
+void MainWindow::saveFlash()
+{
+    flash_save_changes();
+}
+
+void MainWindow::createFlash()
+{
+    flash_dialog.show();
+    flash_dialog.exec();
 }
 
 void MainWindow::setThrottleTimer(bool b)
