@@ -67,7 +67,7 @@ void read_action(void *ptr) {
 #define DO_WRITE_ACTION (RF_WRITE_BREAKPOINT | RF_CODE_TRANSLATED | RF_CODE_NO_TRANSLATE)
 void write_action(void *ptr) {
     uint32_t addr = phys_mem_addr(ptr);
-    uint32_t *flags = &RAM_FLAGS((size_t)ptr & ~3);
+    volatile uint32_t *flags = &RAM_FLAGS((size_t)ptr & ~3);
     if (*flags & RF_WRITE_BREAKPOINT) {
         if (!gdb_connected)
             emuprintf("Hit write breakpoint at %08x. Entering debugger.\n", addr);
