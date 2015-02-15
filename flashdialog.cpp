@@ -40,7 +40,7 @@ void FlashDialog::selectBoot2()
     if(!boot2.open(QFile::ReadOnly) || !boot2.seek(32) || (header = boot2.read(16)).isEmpty())
         return;
 
-    if(header.at(7 == 0x80))
+    if(header.at(7) == static_cast<char>(0x80))
         ui->labelBoot2->setText(QString::fromUtf8(header.data(), 6));
 }
 
