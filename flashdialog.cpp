@@ -32,6 +32,8 @@ void FlashDialog::selectBoot2()
         return;
     }
 
+    boot2_path = path;
+
     ui->labelBoot2->setText("Unknown");
 
     //Ugly way to display version
@@ -54,6 +56,8 @@ void FlashDialog::selectManuf()
         return;
     }
 
+    manuf_path = path;
+
     ui->labelManuf->setText("OK");
 }
 
@@ -63,8 +67,14 @@ const QString os_ext[] = { "*.tno", "*.tnc", "*.tco", "*.tcc" };
 void FlashDialog::selectOS()
 {
     QString path = QFileDialog::getOpenFileName(this, trUtf8("Select OS file"), QString(), os_ext[ui->selectModel->currentIndex()]);
-    if(!path.isEmpty() && QFile(path).exists())
-        os_path = path;
+    if(path.isEmpty() || !QFile(path).exists())
+    {
+        os_path = "";
+        ui->labelOS->setText("None");
+        return;
+    }
+
+    os_path = path;
 
     ui->labelOS->setText("Unknown");
 
