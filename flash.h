@@ -4,7 +4,7 @@
 #define _H_FLASH
 
 extern bool nand_writable;
-void nand_initialize(bool large);
+bool nand_initialize(bool large);
 void nand_deinitialize();
 void nand_write_command_byte(uint8_t command);
 void nand_write_address_byte(uint8_t byte);
@@ -27,7 +27,7 @@ bool flash_open(const char *filename);
 void flash_close();
 void flash_save_changes();
 int flash_save_as(const char *filename);
-bool flash_create_new(bool large, const char **preload, int product, bool large_sdram);
-void flash_read_settings(uint32_t *sdram_size);
+bool flash_create_new(bool flag_large_nand, const char **preload_file, int product, bool large_sdram, uint8_t **nand_data_ptr, size_t *size);
+bool flash_read_settings(uint32_t *sdram_size);
 
 #endif

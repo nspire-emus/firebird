@@ -172,7 +172,6 @@ void add_reset_proc(void (*proc)(void))
 
 int emulate(unsigned int port_gdb, unsigned int port_rdbg)
 {
-    const char *preload_filename[4] = {pre_manuf, pre_boot2, pre_diags, pre_os};
     int i;
 
     // Enter debug mode?
@@ -183,7 +182,8 @@ int emulate(unsigned int port_gdb, unsigned int port_rdbg)
         if(!flash_open(path_flash))
             return 1;
     } else {
-        if(!flash_create_new(large_nand, preload_filename, product, large_sdram))
+        //const char *preload_filename[4] = {pre_manuf, pre_boot2, pre_diags, pre_os};
+        //if(!flash_create_new(large_nand, preload_filename, product, large_sdram))
             return 1;
     }
 

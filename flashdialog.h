@@ -15,8 +15,16 @@ public:
     explicit FlashDialog(QWidget *parent = 0);
     ~FlashDialog();
 
+public slots:
+    void selectBoot2();
+    void selectManuf();
+    void selectOS();
+    void saveAs();
+
 private:
     Ui::FlashDialog *ui;
+
+    QString boot2_path, manuf_path, os_path;
 };
 
 #endif // FLASHDIALOG_H
