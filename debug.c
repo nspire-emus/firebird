@@ -15,6 +15,7 @@
 #include <fcntl.h>
 #include <netinet/tcp.h>
 #endif
+#include "armsnippets.h"
 #include "debug.h"
 #include "interrupt.h"
 #include "emu.h"
@@ -139,7 +140,7 @@ uint32_t disasm_insn(uint32_t pc) {
 }
 
 static void disasm(uint32_t (*dis_func)(uint32_t pc)) {
-    char *arg = strtok(NULL, " \n");
+    char *arg = strtok(NULL, " \n\r");
     uint32_t addr = arg ? parse_expr(arg) : arm.reg[15];
     int i;
     for (i = 0; i < 16; i++) {
@@ -169,10 +170,10 @@ FILE *debugger_input = NULL;
 
 // return 1: break (should stop being feed with debugger commands), 0: continue (can be feed with other debugger commands)
 static int process_debug_cmd(char *cmdline) {
-    char *cmd = strtok(cmdline, " \n");
+    char *cmd = strtok(cmdline, " \n\r");
     if (!cmd)
         return 0;
-    //if (!stricmp(cmd, "?") || !stricmp(cmd, "h")) {
+
     if (!strcasecmp(cmd, "?") || !strcasecmp(cmd, "h")) {
         gui_debug_printf(
                     "Debugger commands:\n"
@@ -196,12 +197,11 @@ static int process_debug_cmd(char *cmdline) {
                     "t- - disable instruction translation\n"
                     "u[a|t] [address] - disassemble memory\n"
                     "wm <file> <start> <size> - write memory to file\n"
-                    "wf <file> <start> [size] - write file to memory\n");
-        //} else if (!stricmp(cmd, "b")) {
+                    "wf <file> <start> [size] - write file to memory\n"
+                    "exec <path> - exec file with ndless\n");
     } else if (!strcasecmp(cmd, "b")) {
-        char *fp = strtok(NULL, " \n");
+        char *fp = strtok(NULL, " \n\r");
         backtrace(fp ? parse_expr(fp) : arm.reg[11]);
-        //} else if (!stricmp(cmd, "r")) {
     } else if (!strcasecmp(cmd, "r")) {
         int i, show_spsr;
         uint32_t cpsr = get_cpsr();
@@ -231,13 +231,12 @@ static int process_debug_cmd(char *cmdline) {
         if (show_spsr)
             gui_debug_printf(" spsr=%08x", get_spsr());
         gui_debug_printf("\n");
-        //} else if (!stricmp(cmd, "rs")) {
     } else if (!strcasecmp(cmd, "rs")) {
-        char *reg = strtok(NULL, " \n");
+        char *reg = strtok(NULL, " \n\r");
         if (!reg) {
             gui_debug_printf("Parameters are missing.\n");
         } else {
-            char *value = strtok(NULL, " \n");
+            char *value = strtok(NULL, " \n\r");
             if (!value) {
                 gui_debug_printf("Missing value parameter.\n");
             } else {
@@ -249,10 +248,9 @@ static int process_debug_cmd(char *cmdline) {
                     gui_debug_printf("Invalid register.\n");
             }
         }
-        //} else if (!stricmp(cmd, "k")) {
     } else if (!strcasecmp(cmd, "k")) {
-        char *addr_str = strtok(NULL, " \n");
-        char *flag_str = strtok(NULL, " \n");
+        char *addr_str = strtok(NULL, " \n\r");
+        char *flag_str = strtok(NULL, " \n\r");
         if (!flag_str)
             flag_str = "+x";
         if (addr_str) {
@@ -303,44 +301,34 @@ static int process_debug_cmd(char *cmdline) {
                 }
             }
         }
-        //} else if (!stricmp(cmd, "c")) {
     } else if (!strcasecmp(cmd, "c")) {
         return 1;
-        //} else if (!stricmp(cmd, "s")) {
     } else if (!strcasecmp(cmd, "s")) {
         cpu_events |= EVENT_DEBUG_STEP;
         return 1;
-        //} else if (!stricmp(cmd, "n")) {
     } else if (!strcasecmp(cmd, "n")) {
         set_debug_next(virt_mem_ptr(arm.reg[15] & ~3, 4) + 1);
         return 1;
-        //} else if (!stricmp(cmd, "d")) {
     } else if (!strcasecmp(cmd, "d")) {
-        char *arg = strtok(NULL, " \n");
+        char *arg = strtok(NULL, " \n\r");
         if (!arg) {
             gui_debug_printf("Missing address parameter.\n");
         } else {
             uint32_t addr = parse_expr(arg);
             dump(addr);
         }
-        //} else if (!stricmp(cmd, "u")) {
     } else if (!strcasecmp(cmd, "u")) {
         disasm(disasm_insn);
-        //} else if (!stricmp(cmd, "ua")) {
     } else if (!strcasecmp(cmd, "ua")) {
         disasm(disasm_arm_insn);
-        //} else if (!stricmp(cmd, "ut")) {
     } else if (!strcasecmp(cmd, "ut")) {
         disasm(disasm_thumb_insn);
-        //} else if (!stricmp(cmd, "ln")) {
     } else if (!strcasecmp(cmd, "ln")) {
-        char *ln_cmd = strtok(NULL, " \n");
+        char *ln_cmd = strtok(NULL, " \n\r");
         if (!ln_cmd) return 0;
-        //if (!stricmp(ln_cmd, "c")) {
         if (!strcasecmp(ln_cmd, "c")) {
             usblink_connect();
             return 1; // and continue, ARM code needs to be run
-            //} else if (!stricmp(ln_cmd, "s")) {
         } else if (!strcasecmp(ln_cmd, "s")) {
             char *file = strtok(NULL, "\n");
             if (!file) {
@@ -354,17 +342,15 @@ static int process_debug_cmd(char *cmdline) {
                 if (usblink_put_file(file, target_folder))
                     return 1; // and continue
             }
-            //} else if (!stricmp(ln_cmd, "st")) {
         } else if (!strcasecmp(ln_cmd, "st")) {
-            char *dir = strtok(NULL, " \n");
+            char *dir = strtok(NULL, " \n\r");
             if (dir)
                 strncpy(target_folder, dir, sizeof(target_folder));
             else
                 gui_debug_printf("Missing directory parameter.\n");
         }
-        //} else if (!stricmp(cmd, "taskinfo")) {
     } else if (!strcasecmp(cmd, "taskinfo")) {
-        uint32_t task = parse_expr(strtok(NULL, " \n"));
+        uint32_t task = parse_expr(strtok(NULL, " \n\r"));
         uint8_t *p = virt_mem_ptr(task, 52);
         if (p) {
             gui_debug_printf("Previous:	%08x\n", *(uint32_t *)&p[0]);
@@ -397,9 +383,8 @@ static int process_debug_cmd(char *cmdline) {
 #endif
             }
         }
-        //} else if (!stricmp(cmd, "tasklist")) {
     } else if (!strcasecmp(cmd, "tasklist")) {
-        uint32_t tasklist = parse_expr(strtok(NULL, " \n"));
+        uint32_t tasklist = parse_expr(strtok(NULL, " \n\r"));
         uint8_t *p = virt_mem_ptr(tasklist, 4);
         if (p) {
             uint32_t first = *(uint32_t *)p;
@@ -424,19 +409,16 @@ static int process_debug_cmd(char *cmdline) {
                 task = *(uint32_t *)&p[4]; /* next */
             } while (task != first);
         }
-        //} else if (!stricmp(cmd, "t+")) {
     } else if (!strcasecmp(cmd, "t+")) {
         do_translate = 1;
-        //} else if (!stricmp(cmd, "t-")) {
     } else if (!strcasecmp(cmd, "t-")) {
         flush_translations();
         do_translate = 0;
-        //} else if (!stricmp(cmd, "wm") || !stricmp(cmd, "wf")) {
     } else if (!strcasecmp(cmd, "wm") || !strcasecmp(cmd, "wf")) {
         bool frommem = cmd[1] != 'f';
-        char *filename = strtok(NULL, " \n");
-        char *start_str = strtok(NULL, " \n");
-        char *size_str = strtok(NULL, " \n");
+        char *filename = strtok(NULL, " \n\r");
+        char *start_str = strtok(NULL, " \n\r");
+        char *size_str = strtok(NULL, " \n\r");
         if (!start_str) {
             gui_debug_printf("Parameters are missing.\n");
             return 0;
@@ -468,11 +450,10 @@ static int process_debug_cmd(char *cmdline) {
         }
         fclose(f);
         return 0;
-        //} else if (!stricmp(cmd, "ss")) {
     } else if (!strcasecmp(cmd, "ss")) {
-        char *addr_str = strtok(NULL, " \n");
-        char *len_str = strtok(NULL, " \n");
-        char *string = strtok(NULL, " \n");
+        char *addr_str = strtok(NULL, " \n\r");
+        char *len_str = strtok(NULL, " \n\r");
+        char *string = strtok(NULL, " \n\r");
         if (!addr_str || !len_str || !string) {
             gui_debug_printf("Missing parameters.\n");
         } else {
@@ -502,7 +483,6 @@ static int process_debug_cmd(char *cmdline) {
             }
         }
         return 0;
-        //} else if (!stricmp(cmd, "int")) {
     } else if (!strcasecmp(cmd, "int")) {
         gui_debug_printf("active		= %08x\n", intr.active);
         gui_debug_printf("status		= %08x\n", intr.status);
@@ -518,24 +498,33 @@ static int process_debug_cmd(char *cmdline) {
                 gui_debug_printf("%02x ", intr.priority[i+j]);
             gui_debug_printf("\n");
         }
-        //} else if (!stricmp(cmd, "int+")) {
     } else if (!strcasecmp(cmd, "int+")) {
-        int_set(atoi(strtok(NULL, " \n")), 1);
-        //} else if (!stricmp(cmd, "int-")) {
+        int_set(atoi(strtok(NULL, " \n\r")), 1);
     } else if (!strcasecmp(cmd, "int-")) {
-        int_set(atoi(strtok(NULL, " \n")), 0);
-        //} else if (!stricmp(cmd, "pr")) {
+        int_set(atoi(strtok(NULL, " \n\r")), 0);
     } else if (!strcasecmp(cmd, "pr")) {
         // TODO: need to avoid entering debugger recursively
         // also, where should error() go?
-        uint32_t addr = parse_expr(strtok(NULL, " \n"));
+        uint32_t addr = parse_expr(strtok(NULL, " \n\r"));
         gui_debug_printf("%08x\n", mmio_read_word(addr));
-        //} else if (!stricmp(cmd, "pw")) {
     } else if (!strcasecmp(cmd, "pw")) {
         // TODO: ditto
-        uint32_t addr = parse_expr(strtok(NULL, " \n"));
-        uint32_t value = parse_expr(strtok(NULL, " \n"));
+        uint32_t addr = parse_expr(strtok(NULL, " \n\r"));
+        uint32_t value = parse_expr(strtok(NULL, " \n\r"));
         mmio_write_word(addr, value);
+    } else if(!strcasecmp(cmd, "exec")) {
+        char *path = strtok(NULL, " \n\r");
+        if(!path)
+        {
+            gui_debug_printf("You need to supply a path!\n");
+            return 0;
+        }
+
+        struct armloader_load_params arg_zero = {.t = ARMLOADER_PARAM_VAL, .v = 0},
+                                            arg_path = {.t = ARMLOADER_PARAM_PTR, .p = {.ptr = path, .size = strlen(path) + 1}};
+        struct armloader_load_params params[3] = {arg_path, arg_zero, arg_zero};
+        armloader_load_snippet(SNIPPET_ndls_exec, params, 3, NULL);
+        return 1;
     } else {
         gui_debug_printf("Unknown command %s\n", cmd);
     }
@@ -682,7 +671,8 @@ void rdebug_recv(void) {
     fd_set rfds;
     FD_ZERO(&rfds);
     FD_SET((unsigned)socket_fd, &rfds);
-    ret = select(socket_fd + 1, &rfds, NULL, NULL, &(struct timeval) {0, 0});
+    struct timeval zero = {0, 0};
+    ret = select(socket_fd + 1, &rfds, NULL, NULL, &zero);
     if (ret == -1 && errno == EBADF) {
         gui_debug_printf("Remote debug: connection closed.\n");
 #ifdef __MINGW32__

@@ -3,8 +3,11 @@
 #ifndef _H_ARMSNIPPETS
 #define _H_ARMSNIPPETS
 
+#include <stdbool.h>
+#include "cpu.h"
+
 enum SNIPPETS {
-    SNIPPET_ndls_debug_alloc, SNIPPET_ndls_debug_free
+    SNIPPET_ndls_debug_alloc, SNIPPET_ndls_debug_free, SNIPPET_ndls_exec
 };
 enum ARMLOADER_PARAM_TYPE {ARMLOADER_PARAM_VAL, ARMLOADER_PARAM_PTR};
 struct armloader_load_params {
