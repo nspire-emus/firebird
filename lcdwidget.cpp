@@ -36,11 +36,12 @@ void LCDWidget::keyPressEvent(QKeyEvent *event)
         touchpad_x = TOUCHPAD_X_MAX;
         break;
     case Qt::Key_Return:
-        touchpad_x = TOUCHPAD_X_MAX / 2;
+        key = Qt::Key_Enter;
+        /*touchpad_x = TOUCHPAD_X_MAX / 2;
         touchpad_y = TOUCHPAD_Y_MAX / 2;
         touchpad_contact = touchpad_down = true;
         kpc.gpio_int_active |= 0x800;
-        keypad_int_check();
+        keypad_int_check();*/
     default:
         auto& keymap = keymap_tp;
         for(unsigned int row = 0; row < sizeof(keymap)/sizeof(*keymap); ++row)
@@ -94,13 +95,14 @@ void LCDWidget::keyReleaseEvent(QKeyEvent *event)
             touchpad_contact = touchpad_down = false;
         break;
     case Qt::Key_Return:
-        if(touchpad_x == TOUCHPAD_X_MAX / 2
+        key = Qt::Key_Enter;
+        /*if(touchpad_x == TOUCHPAD_X_MAX / 2
             && touchpad_y == TOUCHPAD_Y_MAX / 2)
         {
             touchpad_contact = touchpad_down = false;
             kpc.gpio_int_active |= 0x800;
             keypad_int_check();
-        }
+        }*/
     default:
         auto& keymap = keymap_tp;
         for(unsigned int row = 0; row < sizeof(keymap)/sizeof(*keymap); ++row)
