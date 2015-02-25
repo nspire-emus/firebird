@@ -116,7 +116,8 @@ void MainWindow::refresh()
         uint16_t *px = reinterpret_cast<uint16_t*>(framebuffer.data());
         for(unsigned int i = 0; i < 320*240; ++i)
         {
-            uint16_t n = *px << 8 | *px << 4 | *px;
+            uint8_t pix = *px & 0xF;
+            uint16_t n = pix << 8 | pix << 4 | pix;
             *px = ~n;
             ++px;
         }
@@ -130,7 +131,6 @@ void MainWindow::refresh()
         p.drawText(QRect(0, 0, 320, 240), Qt::AlignCenter, QString("LCD turned off"));
         p.end();
     }
-
 
     lcd_scene.addPixmap(QPixmap::fromImage(image));
 }
