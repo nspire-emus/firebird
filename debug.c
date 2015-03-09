@@ -115,9 +115,6 @@ static uint32_t parse_expr(char *str) {
             }
             sum += sign * arm.reg[reg];
             sign = 1;
-        } else if (isxdigit(*str)) {
-            sum += sign * strtoul(str, &str, 16);
-            sign = 1;
         } else {
             for (reg = 13; reg < 16; reg++) {
                 if (!memcmp(str, reg_name[reg], 2)) {
