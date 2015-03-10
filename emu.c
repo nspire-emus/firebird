@@ -98,7 +98,7 @@ int exec_hack() {
 }
 
 void prefetch_abort(uint32_t mva, uint8_t status) {
-    logprintf(LOG_CPU, "Prefetch abort: address=%08x status=%02x\n", mva, status);
+    emuprintf("Prefetch abort: address=%08x status=%02x %08x\n", mva, status, arm.reg[15]);
     arm.reg[15] += 4;
     // Fault address register not changed
     arm.instruction_fault_status = status;
@@ -109,7 +109,7 @@ void prefetch_abort(uint32_t mva, uint8_t status) {
 }
 
 void data_abort(uint32_t mva, uint8_t status) {
-    logprintf(LOG_CPU, "Data abort: address=%08x status=%02x\n", mva, status);
+    emuprintf("Prefetch abort: address=%08x status=%02x %08x\n", mva, status, arm.reg[15]);
     fix_pc_for_fault();
     arm.reg[15] += 8;
     arm.fault_address = mva;
@@ -234,6 +234,8 @@ int emulate(unsigned int port_gdb, unsigned int port_rdbg)
         rdebug_bind(port_rdbg);
 
 reset:
+    memset(mem_areas[1].ptr, 0, mem_areas[1].size);
+
     memset(&arm, 0, sizeof arm);
     arm.control = 0x00050078;
     arm.cpsr_low28 = MODE_SVC | 0xC0;

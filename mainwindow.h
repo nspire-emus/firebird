@@ -52,6 +52,9 @@ public slots:
     void debugStr(QString str);
     void debugCommand();
 
+    //File transfer
+    void tabChanged(int id);
+
     //Settings
     void selectBoot1();
     void selectFlash();

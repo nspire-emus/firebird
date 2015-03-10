@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <assert.h>
 
 #include "emu.h"
 #include "usb.h"
@@ -21,6 +22,25 @@ struct packet {
 #define CONSTANT  BSWAP16(0x54FD)
 #define SRC_ADDR  BSWAP16(0x6400)
 #define DST_ADDR  BSWAP16(0x6401)
+
+enum FILE_Action {
+    FILE_Put = 0x03,
+    FILE_Ready = 0x04,
+    FILE_Contents = 0x05,
+    FILE_Get = 0x07,
+    FILE_New_Folder = 0x0A,
+    FILE_Del_Folger = 0x0B,
+    FILE_Dirlist_Init = 0x0D,
+    FILE_Dirlist_Next = 0x0E,
+    FILE_Dirlist_Done = 0x0F,
+    FILE_Dirlist_Entry = 0x10,
+    FILE_Attr = 0x20
+};
+
+enum USB_Mode {
+    FILE_SEND = 0,
+    DIRLIST
+} mode;
 
 uint16_t usblink_data_checksum(struct packet *packet) {
     uint16_t check = 0;
@@ -43,12 +63,12 @@ uint8_t usblink_header_checksum(struct packet *packet) {
 static void dump_packet(char *type, void *data, uint32_t size) {
     if (log_enabled[LOG_USB]) {
         uint32_t i;
-        logprintf(LOG_USB, "%s", type);
+        emuprintf("%s", type);
         for (i = 0; i < size && i < 24; i++)
-            logprintf(LOG_USB, " %02x", ((uint8_t *)data)[i]);
+            emuprintf(" %02x", ((uint8_t *)data)[i]);
         if (size > 24)
-            logprintf(LOG_USB, "...");
-        logprintf(LOG_USB, "\n");
+            emuprintf("...");
+        emuprintf("\n");
     }
 }
 
@@ -117,7 +137,7 @@ send_data:
                 out->data_size = 1 + len;
                 out->ack = 0;
                 out->seqno = next_seqno();
-                out->data[0] = 0x05;
+                out->data[0] = FILE_Contents;
                 fread(&out->data[1], 1, len, put_file);
                 usblink_send_packet();
                 break;
@@ -161,13 +181,105 @@ void usblink_sent_packet() {
     }
 }
 
+static usblink_dirlist_cb current_callback; static void *current_user_data;
+
+void usblink_dirlist(const char *dir, usblink_dirlist_cb callback, void *user_data)
+{
+    mode = DIRLIST;
+    current_callback = callback;
+    current_user_data = user_data;
+
+    /* Send the first packet */
+    struct packet *out = &usblink_send_buffer;
+    out->src.service = BSWAP16(0x8001);
+    out->dst.service = BSWAP16(0x4060);
+    out->ack = 0;
+    out->seqno = next_seqno();
+    uint8_t *data = out->data;
+    memset(data, 0, sizeof(out->data));
+    *data++ = FILE_Dirlist_Init;
+    //TODO
+    assert(strlen(dir) < sizeof(out->data) - 2);
+    data += sprintf((char*) data, "%s", dir);
+    out->data_size = data - out->data;
+    if(out->data_size < 10)
+        out->data_size = 10;
+
+    usblink_send_packet();
+}
+
+void dirlist_next(struct packet *in)
+{
+    struct packet *out = &usblink_send_buffer;
+
+    if(in->data[0] == 0xFF) // Status message
+    {
+        switch(in->data[1])
+        {
+        case 0:
+            //Success
+            goto request_next;
+            break;
+        case 0x11:
+            //Enum done
+            current_callback(NULL, current_user_data);
+
+            out->src.service = BSWAP16(0x8001);
+            out->dst.service = BSWAP16(0x4060);
+            out->ack = 0;
+            out->seqno = next_seqno();
+            uint8_t *data = out->data;
+            memset(data, 0, sizeof(out->data));
+            *data++ = FILE_Dirlist_Done;
+            out->data_size = data - out->data;
+            usblink_send_packet();
+            return;
+        default:
+            //Error
+            break;
+        }
+    }
+    else if(in->data[0] == 0x10) // Enum message
+    {
+        struct usblink_file file_info;
+        file_info.filename = (const char*) in->data + 3;
+        file_info.is_dir = !!in->data[in->data_size - 2];
+        file_info.size = BSWAP32(*(uint32_t*)(in->data + (in->data_size - 10)));
+
+        current_callback(&file_info, current_user_data);
+
+        request_next: //Request next entry
+        out->src.service = BSWAP16(0x8001);
+        out->dst.service = BSWAP16(0x4060);
+        out->ack = 0;
+        out->seqno = next_seqno();
+        uint8_t *data = out->data;
+        memset(data, 0, sizeof(out->data));
+        *data++ = FILE_Dirlist_Next;
+        out->data_size = data - out->data;
+        usblink_send_packet();
+    }
+}
+
 void usblink_received_packet(uint8_t *data, uint32_t size) {
     dump_packet("recv", data, size);
     struct packet *in = (struct packet *)data;
     struct packet *out = &usblink_send_buffer;
 
     if (in->dst.service == BSWAP16(0x8001))
-        put_file_next(in);
+    {
+        switch(mode)
+        {
+        case FILE_SEND:
+            put_file_next(in);
+            break;
+        case DIRLIST:
+            dirlist_next(in);
+            break;
+        default:
+            break;
+        }
+    }
 
     if (in->src.service == BSWAP16(0x4003)) { /* Address request */
         gui_status_printf("usblink connected.");
@@ -179,9 +291,9 @@ void usblink_received_packet(uint8_t *data, uint32_t size) {
         out->ack = 0;
         out->seqno = 1;
         uint16_t tmp = DST_ADDR;
-        memcpy(&out->data[0], &tmp, sizeof(tmp)); // *(uint16_t *)&out->data[0] = DST_ADDR;
+        memcpy(out->data + 0, &tmp, sizeof(tmp)); // *(uint16_t *)&out->data[0] = DST_ADDR;
         tmp = BSWAP16(0xFF00);
-        memcpy(&out->data[2], &tmp, sizeof(tmp)); // *(uint16_t *)&out->data[2] = BSWAP16(0xFF00);
+        memcpy(out->data + 2, &tmp, sizeof(tmp)); // *(uint16_t *)&out->data[2] = BSWAP16(0xFF00);
         usblink_send_packet();
     } else if (!in->ack) {
         /* Send an ACK */
@@ -196,6 +308,8 @@ void usblink_received_packet(uint8_t *data, uint32_t size) {
 }
 
 bool usblink_put_file(const char *filepath, const char *folder) {
+    mode = FILE_SEND;
+
     char *dot = strrchr(filepath, '.');
     // TODO (thanks for the reminder, Excale :P) : Filter depending on which model is being emulated
     if (dot && (!strcmp(dot, ".tno") || !strcmp(dot, ".tnc")
@@ -242,6 +356,8 @@ bool usblink_put_file(const char *filepath, const char *folder) {
 }
 
 void usblink_send_os(const char *filepath) {
+    mode = FILE_SEND;
+
     FILE *f = fopen(filepath, "rb");
     if (!f)
         return;

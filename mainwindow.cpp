@@ -27,7 +27,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     //Emu -> GUI (QueuedConnection as they're different threads)
     connect(&emu, SIGNAL(serialChar(char)), this, SLOT(serialChar(char)), Qt::QueuedConnection);
-    connect(&emu, SIGNAL(debugStr(QString)), this, SLOT(debugStr(QString)), Qt::QueuedConnection);
+    connect(&emu, SIGNAL(debugStr(QString)), this, SLOT(debugStr(QString))); //Not queued connection as it may cause a hang
     connect(&emu, SIGNAL(statusMsg(QString)), ui->statusbar, SLOT(showMessage(QString)), Qt::QueuedConnection);
     connect(&emu, SIGNAL(setThrottleTimer(bool)), this, SLOT(setThrottleTimer(bool)), Qt::QueuedConnection);
     connect(&emu, SIGNAL(usblinkChanged(bool)), this, SLOT(usblinkChanged(bool)), Qt::QueuedConnection);
@@ -47,6 +47,9 @@ MainWindow::MainWindow(QWidget *parent) :
 
     //Debugging
     connect(ui->lineEdit, SIGNAL(returnPressed()), this, SLOT(debugCommand()));
+
+    //File transfer
+    connect(ui->tabWidget, SIGNAL(currentChanged(int)), this, SLOT(tabChanged(int)));
 
     //Settings
     connect(ui->checkDebugger, SIGNAL(toggled(bool)), this, SLOT(setDebuggerOnStartup(bool)));
@@ -106,7 +109,8 @@ void MainWindow::refresh()
     lcd_scene.clear();
 
     QByteArray framebuffer(320 * 240 * 2, 0);
-    uint32_t bitfields[3];
+    uint32_t bitfields[] = { 0x01F, 0x000, 0x000};
+
     if(lcd_contrast > 0)
         lcd_cx_draw_frame(reinterpret_cast<uint16_t*>(framebuffer.data()), bitfields);
     QImage::Format format = bitfields[0] == 0x00F ? QImage::Format_RGB444 : QImage::Format_RGB16;
@@ -199,6 +203,38 @@ void MainWindow::debugCommand()
 {
     debug_command = ui->lineEdit->text().toLatin1();
     emit debuggerCommand();
+}
+
+static QString naturalSize(size_t bytes)
+{
+    if(bytes < 4ul * 1024)
+        return QString("%0 B").arg(bytes);
+    else if(bytes < 4ul * 1024 * 1024)
+        return QString("%0 KiB").arg(bytes / 1024);
+    else if(bytes < 4ul * 1024 * 1024 * 1024)
+        return QString("%0 MiB").arg(bytes / 1024 / 1024);
+    else
+        return QString("Too much");
+}
+
+static void usblink_dirlist_callback(struct usblink_file *file, void *data)
+{
+    if(!file)
+        return;
+
+    QTreeWidget *w = static_cast<QTreeWidget*>(data);
+    QTreeWidgetItem *item = new QTreeWidgetItem({QString::fromUtf8(file->filename), naturalSize(file->size)});
+    w->addTopLevelItem(item);
+}
+
+void MainWindow::tabChanged(int id)
+{
+    if(ui->tabWidget->widget(id) != ui->tabFiles || !usblink_connected)
+        return;
+
+    //Update the file list if current tab changed
+    ui->treeWidget->clear();
+    usblink_dirlist("/", usblink_dirlist_callback, ui->treeWidget);
 }
 
 void MainWindow::selectBoot1(QString path)
