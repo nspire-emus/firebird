@@ -64,7 +64,7 @@ uint8_t usblink_header_checksum(struct packet *packet) {
 }
 
 static void dump_packet(char *type, void *data, uint32_t size) {
-    //if (log_enabled[LOG_USB])
+    if (log_enabled[LOG_USB])
     {
         uint32_t i;
         emuprintf("%s", type);
