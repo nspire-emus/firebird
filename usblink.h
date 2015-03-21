@@ -3,12 +3,14 @@
 #ifndef _H_USBLINK
 #define _H_USBLINK
 
+#include <stdint.h>
+
 extern bool usblink_sending, usblink_connected;
 extern int usblink_state;
 
 struct usblink_file {
     const char *filename;
-    size_t size;
+    uint64_t size;
     bool is_dir;
 };
 

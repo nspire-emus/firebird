@@ -1,6 +1,8 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
+#include <future>
+
 #include <QFileDialog>
 #include <QStandardPaths>
 #include <QTextBlock>
@@ -65,6 +67,8 @@ MainWindow::MainWindow(QWidget *parent) :
     refresh_timer.start();
 
     ui->lcdView->setScene(&lcd_scene);
+
+    qRegisterMetaType<QVector<int>>();
 
 #ifdef Q_OS_ANDROID
     //On android the settings file is deleted everytime you update or uninstall,
@@ -205,25 +209,94 @@ void MainWindow::debugCommand()
     emit debuggerCommand();
 }
 
-static QString naturalSize(size_t bytes)
+static QString naturalSize(uint64_t bytes)
 {
     if(bytes < 4ul * 1024)
-        return QString("%0 B").arg(bytes);
+        return QString::number(bytes) + " B";
     else if(bytes < 4ul * 1024 * 1024)
-        return QString("%0 KiB").arg(bytes / 1024);
-    else if(bytes < 4ul * 1024 * 1024 * 1024)
-        return QString("%0 MiB").arg(bytes / 1024 / 1024);
+        return QString::number(bytes / 1024) + " KiB";
+    else if(bytes < 4ull * 1024 * 1024 * 1024)
+        return QString::number(bytes / 1024 / 1024) + " MiB";
     else
         return QString("Too much");
 }
 
+static QString usblink_path_item(QTreeWidgetItem *w)
+{
+    if(!w)
+        return "";
+
+    return QString("%0/%1").arg(usblink_path_item(w->parent())).arg(w->text(0));
+}
+
+static void usblink_dirlist_callback_nested(struct usblink_file *file, void *data);
+static bool usblink_dirlist_nested(QTreeWidgetItem *w)
+{
+    if(w->data(0, Qt::UserRole).value<bool>() == false) //Not a directory
+        return false;
+
+    if(w->data(1, Qt::UserRole).value<bool>() == false) //Not filled yet
+    {
+        QByteArray path_utf8 = usblink_path_item(w).toUtf8();
+        usblink_dirlist(path_utf8.data(), usblink_dirlist_callback_nested, w);
+        return true;
+    }
+    else
+    {
+        for(int i = 0; i < w->childCount(); ++i)
+            if(usblink_dirlist_nested(w->child(i)))
+                return true;
+    }
+
+    return false;
+}
+
+static void usblink_dirlist_callback_nested(struct usblink_file *file, void *data)
+{
+    QTreeWidgetItem *w = static_cast<QTreeWidgetItem*>(data);
+
+    //End of enumeration
+    if(!file)
+    {
+        w->setData(1, Qt::UserRole, QVariant(true)); //Dir is now filled
+        std::async(std::launch::async, [=]()
+        {
+            //Find a dir to fill with entries
+            for(int i = 0; i < w->treeWidget()->topLevelItemCount(); ++i)
+                if(usblink_dirlist_nested(w->treeWidget()->topLevelItem(i)))
+                    return;
+        });
+        return;
+    }
+
+    //Add directory entry to tree widget item (parent)
+    QTreeWidgetItem *item = new QTreeWidgetItem({QString::fromUtf8(file->filename), file->is_dir ? "" : naturalSize(file->size)});
+    item->setData(0, Qt::UserRole, QVariant(file->is_dir));
+    item->setData(1, Qt::UserRole, QVariant(false));
+    w->addChild(item);
+}
+
 static void usblink_dirlist_callback(struct usblink_file *file, void *data)
 {
-    if(!file)
-        return;
-
     QTreeWidget *w = static_cast<QTreeWidget*>(data);
-    QTreeWidgetItem *item = new QTreeWidgetItem({QString::fromUtf8(file->filename), naturalSize(file->size)});
+
+    //End of enumeration
+    if(!file)
+    {
+        std::async(std::launch::async, [=]()
+        {
+            //Find a dir to fill with entries
+            for(int i = 0; i < w->topLevelItemCount(); ++i)
+                if(usblink_dirlist_nested(w->topLevelItem(i)))
+                    return;
+        });
+        return;
+    }
+
+    //Add directory entry to tree widget
+    QTreeWidgetItem *item = new QTreeWidgetItem({QString::fromUtf8(file->filename), file->is_dir ? "" : naturalSize(file->size)});
+    item->setData(0, Qt::UserRole, QVariant(file->is_dir));
+    item->setData(1, Qt::UserRole, QVariant(false));
     w->addTopLevelItem(item);
 }
 
