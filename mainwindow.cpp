@@ -52,6 +52,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     //File transfer
     connect(ui->tabWidget, SIGNAL(currentChanged(int)), this, SLOT(tabChanged(int)));
+    connect(this, SIGNAL(usblink_progress_changed(int)), this, SLOT(changeProgress(int)), Qt::QueuedConnection);
 
     //Settings
     connect(ui->checkDebugger, SIGNAL(toggled(bool)), this, SLOT(setDebuggerOnStartup(bool)));
@@ -157,7 +158,7 @@ void MainWindow::dropEvent(QDropEvent *e)
         url = get_good_url_from_fileid_url("file://" + url.toString());
 #endif
 
-    usblink_put_file(url.toString().toStdString().c_str(), settings->value("usbdir", QString("ndless")).toString().toLocal8Bit().data());
+    usblink_put_file(url.toString().toStdString().c_str(), settings->value("usbdir", QString("ndless")).toString().toLocal8Bit().data(), usblink_progress_callback, this);
 }
 
 void MainWindow::dragEnterEvent(QDragEnterEvent *e)
@@ -229,7 +230,6 @@ static QString usblink_path_item(QTreeWidgetItem *w)
     return QString("%0/%1").arg(usblink_path_item(w->parent())).arg(w->text(0));
 }
 
-static void usblink_dirlist_callback_nested(struct usblink_file *file, void *data);
 static bool usblink_dirlist_nested(QTreeWidgetItem *w)
 {
     if(w->data(0, Qt::UserRole).value<bool>() == false) //Not a directory
@@ -238,7 +238,7 @@ static bool usblink_dirlist_nested(QTreeWidgetItem *w)
     if(w->data(1, Qt::UserRole).value<bool>() == false) //Not filled yet
     {
         QByteArray path_utf8 = usblink_path_item(w).toUtf8();
-        usblink_dirlist(path_utf8.data(), usblink_dirlist_callback_nested, w);
+        usblink_dirlist(path_utf8.data(), MainWindow::usblink_dirlist_callback_nested, w);
         return true;
     }
     else
@@ -251,7 +251,7 @@ static bool usblink_dirlist_nested(QTreeWidgetItem *w)
     return false;
 }
 
-static void usblink_dirlist_callback_nested(struct usblink_file *file, void *data)
+void MainWindow::usblink_dirlist_callback_nested(struct usblink_file *file, void *data)
 {
     QTreeWidgetItem *w = static_cast<QTreeWidgetItem*>(data);
 
@@ -276,7 +276,7 @@ static void usblink_dirlist_callback_nested(struct usblink_file *file, void *dat
     w->addChild(item);
 }
 
-static void usblink_dirlist_callback(struct usblink_file *file, void *data)
+void MainWindow::usblink_dirlist_callback(struct usblink_file *file, void *data)
 {
     QTreeWidget *w = static_cast<QTreeWidget*>(data);
 
@@ -300,6 +300,15 @@ static void usblink_dirlist_callback(struct usblink_file *file, void *data)
     w->addTopLevelItem(item);
 }
 
+void MainWindow::usblink_progress_callback(int progress, void *data)
+{
+    if(progress < 0 || progress > 100)
+        progress = 0; //No error handling here
+
+    MainWindow *mw = static_cast<MainWindow*>(data);
+    emit mw->usblink_progress_changed(progress);
+}
+
 void MainWindow::tabChanged(int id)
 {
     if(ui->tabWidget->widget(id) != ui->tabFiles || !usblink_connected)
@@ -308,6 +317,11 @@ void MainWindow::tabChanged(int id)
     //Update the file list if current tab changed
     ui->treeWidget->clear();
     usblink_dirlist("/", usblink_dirlist_callback, ui->treeWidget);
+}
+
+void MainWindow::changeProgress(int value)
+{
+    ui->progressBar->setValue(value);
 }
 
 void MainWindow::selectBoot1(QString path)

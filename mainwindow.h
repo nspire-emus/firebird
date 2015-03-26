@@ -54,6 +54,7 @@ public slots:
 
     //File transfer
     void tabChanged(int id);
+    void changeProgress(int value);
 
     //Settings
     void selectBoot1();
@@ -69,11 +70,17 @@ public slots:
 
 signals:
     void debuggerCommand();
+    void usblink_progress_changed(int progress);
 
 public:
     QByteArray debug_command;
 
     void throttleTimerWait();
+
+    //usblink callbacks
+    static void usblink_dirlist_callback_nested(struct usblink_file *file, void *data);
+    static void usblink_dirlist_callback(struct usblink_file *file, void *data);
+    static void usblink_progress_callback(int progress, void *data);
 
 private:
     void selectBoot1(QString path);

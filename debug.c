@@ -336,7 +336,7 @@ static int process_debug_cmd(char *cmdline) {
                 size_t len = strlen(file);
                 if (*(file + len - 1) == '"')
                     *(file + len - 1) = '\0';
-                if (usblink_put_file(file, target_folder))
+                if (usblink_put_file(file, target_folder, NULL, NULL))
                     return 1; // and continue
             }
         } else if (!strcasecmp(ln_cmd, "st")) {
