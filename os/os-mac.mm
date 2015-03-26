@@ -7,5 +7,5 @@
 QString get_good_url_from_fileid_url(const QString& url) {
     NSString* idURL = [NSString stringWithCString:url.toUtf8().data() encoding:NSUTF8StringEncoding];
     NSString* path = [[[NSURL URLWithString:idURL] filePathURL] path];
-    return QString::fromUtf8([path UTF8String], [path lengthOfBytesUsingEncoding:NSUTF8StringEncoding]);;
+    return QString::fromUtf8([path UTF8String], [path lengthOfBytesUsingEncoding:NSUTF8StringEncoding]);
 }
