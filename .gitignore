@@ -2,3 +2,4 @@
 *.o
 *.exe
 *.user
+*.user.*
