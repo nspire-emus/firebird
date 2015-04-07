@@ -15,6 +15,8 @@
 #include "os/os-mac.h"
 #endif
 
+#include "usblink_queue.h"
+
 MainWindow *main_window;
 
 MainWindow::MainWindow(QWidget *parent) :
@@ -105,7 +107,6 @@ extern "C"
 {
 #include "flash.h"
 #include "lcd.h"
-#include "usblink.h"
 #include "misc.h"
 }
 
@@ -158,7 +159,7 @@ void MainWindow::dropEvent(QDropEvent *e)
         url = get_good_url_from_fileid_url("file://" + url.toString());
 #endif
 
-    usblink_put_file(url.toString().toStdString().c_str(), settings->value("usbdir", QString("ndless")).toString().toLocal8Bit().data(), usblink_progress_callback, this);
+    usblink_queue_put_file(url.toString().toStdString(), settings->value("usbdir", QString("ndless")).toString().toStdString(), usblink_progress_callback, this);
 }
 
 void MainWindow::dragEnterEvent(QDragEnterEvent *e)
@@ -238,7 +239,7 @@ static bool usblink_dirlist_nested(QTreeWidgetItem *w)
     if(w->data(1, Qt::UserRole).value<bool>() == false) //Not filled yet
     {
         QByteArray path_utf8 = usblink_path_item(w).toUtf8();
-        usblink_dirlist(path_utf8.data(), MainWindow::usblink_dirlist_callback_nested, w);
+        usblink_queue_dirlist(path_utf8.data(), MainWindow::usblink_dirlist_callback_nested, w);
         return true;
     }
     else
@@ -311,12 +312,12 @@ void MainWindow::usblink_progress_callback(int progress, void *data)
 
 void MainWindow::tabChanged(int id)
 {
-    if(ui->tabWidget->widget(id) != ui->tabFiles || !usblink_connected)
+    if(ui->tabWidget->widget(id) != ui->tabFiles)
         return;
 
     //Update the file list if current tab changed
     ui->treeWidget->clear();
-    usblink_dirlist("/", usblink_dirlist_callback, ui->treeWidget);
+    usblink_queue_dirlist("/", usblink_dirlist_callback, ui->treeWidget);
 }
 
 void MainWindow::changeProgress(int value)
@@ -432,7 +433,7 @@ void MainWindow::screenshot()
 void MainWindow::connectUSB()
 {
     if(usblink_connected)
-        usblink_reset();
+        usblink_queue_reset();
     else
         usblink_connect();
 

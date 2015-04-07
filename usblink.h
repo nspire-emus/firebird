@@ -5,6 +5,10 @@
 
 #include <stdint.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 extern bool usblink_sending, usblink_connected;
 extern int usblink_state;
 
@@ -26,5 +30,9 @@ void usblink_send_os(const char *filepath, usblink_progress_cb callback, void *u
 
 void usblink_reset();
 void usblink_connect();
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

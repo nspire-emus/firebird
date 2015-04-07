@@ -1,3 +1,5 @@
+lessThan(QT_MAJOR_VERSION, 5) : error("You need at least Qt 5 to build nspire_emu!")
+
 TRANSLATION_ENABLED = true
 
 QT += core gui widgets
@@ -69,7 +71,8 @@ linux-g++-32 {
 }
 
 SOURCES += $$ASMCODE_IMPL \
-    lcdwidget.cpp
+    lcdwidget.cpp \
+    usblink_queue.cpp
 
 SOURCES += mainwindow.cpp \
     main.cpp \
@@ -131,7 +134,8 @@ HEADERS += \
 	casplus.h \
 	link.h \
 	asmcode.h \
-	schedule.h
+	schedule.h \
+    usblink_queue.h
 
 # Generate the binary arm code into armcode_bin.h
 armsnippets.commands = arm-none-eabi-gcc -fno-leading-underscore -c $$PWD/armsnippets.S -o armsnippets.o -mcpu=arm926ej-s \
@@ -139,6 +143,7 @@ armsnippets.commands = arm-none-eabi-gcc -fno-leading-underscore -c $$PWD/armsni
 						&& xxd -i snippets.bin > $$PWD/armcode_bin.h \
 						&& rm armsnippets.o
 
+# In case you change armsnippets.S, run "make armsnippets" and update armcode_bin.h
 QMAKE_EXTRA_TARGETS = armsnippets
 
 OTHER_FILES += \

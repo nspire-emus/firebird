@@ -163,9 +163,18 @@ send_data:
                 usblink_send_packet();
 
                 if(current_file_callback)
-                    current_file_callback(100 - ((put_file_size * 100) / put_file_size_orig), current_file_user_data);
+                {
+                    static int old_progress = 101;
+                    //Not 100 as the completion is signaled seperately and mustn't happen more than once
+                    int progress = ((put_file_size_orig-put_file_size) * 99) / put_file_size_orig;
+                    if(old_progress != progress)
+                        current_file_callback(old_progress = progress, current_file_user_data);
+                }
                 break;
             }
+
+            if(current_file_callback)
+                current_file_callback(100, current_file_user_data);
 
             gui_status_printf("Send complete");
             throttle_timer_on();

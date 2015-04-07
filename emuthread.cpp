@@ -5,6 +5,7 @@
 #include <QEventLoop>
 
 #include "mainwindow.h"
+#include "usblink_queue.h"
 
 EmuThread *emu_thread = nullptr;
 
@@ -122,6 +123,8 @@ void EmuThread::run()
     path_boot1 = emu_path_boot1.c_str();
     path_flash = emu_path_flash.c_str();
 
+    usblink_queue_start();
+
     int ret = emulate(port_gdb, port_rdbg);
 
     emit exited(ret);
@@ -139,6 +142,8 @@ void EmuThread::setPaused(bool paused)
 
 bool EmuThread::stop()
 {
+    usblink_queue_stop();
+
     exiting = true;
     paused = false;
     throttle_timer_off();
@@ -155,5 +160,7 @@ bool EmuThread::stop()
 
 void EmuThread::reset()
 {
+    usblink_queue_reset();
+
     cpu_events |= EVENT_RESET;
 }
