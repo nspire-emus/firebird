@@ -21,9 +21,10 @@ translation_enter:
 	push	%rbx
 	push	%rsi
 	push	%rdi
-	mov 	%rsp, in_translation_rsp
+	movabs	$in_translation_rsp, %r8
+	mov 	%rsp, (%r8)
 
-	mov		$arm, %rbx
+	movabs	$arm, %rbx
 	mov		ARM_PC(%rbx), %eax
 	jmp		translation_next
 
@@ -36,10 +37,12 @@ translation_next_bx:
 translation_next:
 	mov		%eax, ARM_PC(%rbx)
 
-	cmpl	$0, cycle_count_delta
+	movabs	$cycle_count_delta, %r8
+	cmpl	$0, (%r8)
 	jns		return
 
-	cmpl	$0, cpu_events
+	movabs	$cpu_events, %r8
+	cmpl	$0, (%r8)
 	jnz		return
 
 	mov		ARM_PC(%rbx), %edi
@@ -51,17 +54,21 @@ addr_ok:
 	movl 	RAM_FLAGS(%rax), %edx
 	testb	$RF_CODE_TRANSLATED, %dl
 	jz		return         // Not translated
-	mov 	%rax, in_translation_pc_ptr
+
+	movabs	$in_translation_pc_ptr, %r8
+	mov 	%rax, (%r8)
 
 	shr 	$RFS_TRANSLATION_INDEX, %rdx
 	shl		$5, %rdx
-	add 	$translation_table, %rdx
+	movabs	$translation_table, %r8
+	add 	%r8, %rdx
 
 	// Add one cycle for each instruction from this point to the end
 	mov 	TRANS_END_PTR(%rdx), %rcx
 	sub 	%rax, %rcx
 	shr 	$2, %rcx
-	add 	%rcx, cycle_count_delta
+	movabs	$cycle_count_delta, %r8
+	add 	%rcx, (%r8)
 
 	mov		%rax, %rcx
 	sub		TRANS_START_PTR(%rdx), %rcx
@@ -72,7 +79,8 @@ addr_ok:
 	//jmp	*(%rdx, %rcx, 8)
 
 return:
-	movq 	$0, in_translation_rsp
+	movabs	$in_translation_rsp, %r8
+	movq 	$0, (%r8)
 	pop 	%rdi
 	pop 	%rsi
 	pop 	%rbx

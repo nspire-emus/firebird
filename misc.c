@@ -506,6 +506,14 @@ uint32_t timer_cx_read(uint32_t addr) {
         case 0x0014: case 0x0034: return t->interrupt & t->control >> 5;
         case 0x0018: case 0x0038: return t->load;
         case 0x001C: case 0x003C: return 0; //?
+        case 0x0FE0: return 0x04;
+        case 0x0FE4: return 0x18;
+        case 0x0FE8: return 0x14;
+        case 0x0FEC: return 0x00;
+        case 0x0FF0: return 0x0D;
+        case 0x0FF4: return 0xF0;
+        case 0x0FF8: return 0x05;
+        case 0x0FFC: return 0xB1;
     }
     return bad_read_word(addr);
 }

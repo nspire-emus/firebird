@@ -1,5 +1,6 @@
 #include <string.h>
 #include <stdint.h>
+#include "translate.h"
 #include "emu.h"
 #include "cpu.h"
 #include "mmu.h"
@@ -9,8 +10,61 @@
 /* Copy of translation table in memory (hack to approximate effect of having a TLB) */
 static uint32_t mmu_translation_table[0x1000];
 
+void mmu_dump_tables(void) {
+    uint32_t i, j;
+    gui_debug_printf("MMU translations:\n");
+    uint32_t *tt = (uint32_t*)phys_mem_ptr(arm.translation_table_base, 0x4000);
+    for (i = 0; i < 0x1000; i++) {
+        uint32_t tt_entry = tt[i];
+        uint32_t virt_addr = i << 20;
+        uint32_t virt_shift = 0;
+        uint32_t *l1_table = NULL;
+        uint32_t l1_table_size = 0;;
+        uint32_t l1_entry;
+        uint32_t page_size = 0;
+        char *page_type = "?";
+        if (!(tt_entry & 3))
+        continue; // Invalid
+        if ((tt_entry & 3) == 2) { // Section (1MB)
+            page_size = 0x100000;
+            page_type = "1mB";
+            l1_entry = tt_entry;
+            j = 0;
+            goto section;
+        } else if ((tt_entry & 3) == 1) { // Coarse page table
+            l1_table = phys_mem_ptr(tt_entry & 0xFFFFFC00, 0x400);
+            l1_table_size = 256;
+            virt_shift = 12;
+        } else if ((tt_entry & 3) == 3) { // Fine page table
+            l1_table = phys_mem_ptr(tt_entry & 0xFFFFF000, 0x1000);
+            l1_table_size = 1024;
+            virt_shift = 10;
+        }
+
+        for (j = 0; j < l1_table_size; j++) {
+            l1_entry = l1_table[j];
+            if (!(l1_entry & 3))
+                continue; // Invalid
+            if ((l1_entry & 3) == 1) { // Large page (64kB)
+                page_size = 0x10000;
+                page_type = "64kB";
+            }
+            else if ((l1_entry & 3) == 2) { // Small page (4kB)
+                page_size = 0x1000;
+                page_type = "4kB";
+            }
+            else if ((l1_entry & 3) == 3) { // Tiny page (1kB)
+                page_size = 0x400;
+                page_type = "1kB";
+            }
+section:;
+            gui_debug_printf("%08x -> %08x (%s) (0x%8x)\n", virt_addr + j * (1 << virt_shift), l1_entry & -page_size, page_type, l1_entry);
+        }
+    }
+}
+
 /* Translate a virtual address to a physical address */
-uint32_t mmu_translate(uint32_t addr, bool writing, fault_proc *fault) {
+uint32_t mmu_translate(uint32_t addr, bool writing, fault_proc *fault, uint8_t *s_status) {
     uint32_t page_size;
     if (!(arm.control & 1))
         return addr;
@@ -23,6 +77,7 @@ uint32_t mmu_translate(uint32_t addr, bool writing, fault_proc *fault) {
 
     switch (entry & 3) {
         default: /* Invalid */
+            if (s_status) *s_status = status + 0x5;
             if (fault) fault(addr, status + 0x5); /* Section translation fault */
             return 0xFFFFFFFF;
         case 1: /* Course page table (one entry per 4kB) */
@@ -50,6 +105,7 @@ uint32_t mmu_translate(uint32_t addr, bool writing, fault_proc *fault) {
     status += 2;
     switch (entry & 3) {
         default: /* Invalid */
+            if (s_status) *s_status = status + 0x5;
             if (fault) fault(addr, status + 0x5); /* Page translation fault */
             return 0xFFFFFFFF;
         case 1: /* Large page (64kB) */
@@ -72,6 +128,7 @@ section:;
         if (!(domain_access & 1)) {
             /* 0 (No access) or 2 (Reserved)
              * Testing shows they both raise domain fault */
+            if (s_status) *s_status = status + 0x9;
             if (fault) fault(addr, status + 0x9); /* Domain fault */
             return 0xFFFFFFFF;
         }
@@ -82,6 +139,7 @@ section:;
                     case 0: /* No access */
                     case 3: /* Reserved - testing shows this behaves like 0 */
 perm_fault:
+                        if (s_status) *s_status = status + 0xD;
                         if (fault) fault(addr, status + 0xD); /* Permission fault */
                         return 0xFFFFFFFF;
                     case 1: /* System - read-only for privileged, no access for user */
@@ -108,6 +166,17 @@ perm_fault:
     }
 
     return (entry & -page_size) | (addr & (page_size - 1));
+}
+
+void mmu_check_priv(uint32_t addr, bool writing)
+{
+    uint8_t status = 0;
+    uint32_t saved_cpsr = arm.cpsr_low28;
+    arm.cpsr_low28 &= ~3;
+    mmu_translate(addr, writing, NULL, &status);
+    arm.cpsr_low28 = saved_cpsr;
+    if((status & 0xF) == 0xD)
+        data_abort(addr, status);
 }
 
 ac_entry *addr_cache;
@@ -158,7 +227,7 @@ bool addr_cache_pagefault(void *addr) {
 
 void *addr_cache_miss(uint32_t virt, bool writing, fault_proc *fault) {
     ac_entry entry;
-    uintptr_t phys = mmu_translate(virt, writing, fault);
+    uintptr_t phys = mmu_translate(virt, writing, fault, NULL);
     uint8_t *ptr = phys_mem_ptr(phys, 1);
     if (ptr && !(writing && (RAM_FLAGS((size_t)ptr & ~3) & RF_READ_ONLY))) {
         AC_SET_ENTRY_PTR(entry, virt, ptr)
@@ -192,4 +261,7 @@ void addr_cache_flush() {
         //	if (ac_commit_map[offset / (PAGE_SIZE / sizeof(ac_entry))])
         addr_cache_invalidate(offset);
     }
+
+    //Translations aren't position-independant
+    flush_translations();
 }

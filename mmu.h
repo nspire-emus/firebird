@@ -6,7 +6,10 @@
 /* Declarations for mmu.c */
 
 /* Translate a VA to a PA, using a page table lookup */
-uint32_t mmu_translate(uint32_t addr, bool writing, fault_proc *fault);
+uint32_t mmu_translate(uint32_t addr, bool writing, fault_proc *fault, uint8_t *s_status);
+
+/* Used for t-type (usermode-like) access */
+void mmu_check_priv(uint32_t addr, bool writing);
 
 /* Table for quickly accessing RAM and ROM by virtual addresses. This contains
  * two entries for each 1kB of virtual address space, one for reading and one
@@ -30,7 +33,7 @@ uint32_t mmu_translate(uint32_t addr, bool writing, fault_proc *fault);
 typedef uint8_t *ac_entry;
 extern ac_entry *addr_cache;
 
-#ifdef __i386__
+#if defined(__i386__) && !defined(NO_TRANSLATION)
     #define AC_SET_ENTRY_PTR(entry, va, ptr) \
             entry = (ptr) - (va);
     #define AC_NOT_PTR 0x80000000
@@ -56,5 +59,6 @@ extern ac_entry *addr_cache;
 bool addr_cache_pagefault(void *addr);
 void *addr_cache_miss(uint32_t addr, bool writing, fault_proc *fault) __asm__("addr_cache_miss");
 void addr_cache_flush();
+void mmu_dump_tables(void);
 
 #endif

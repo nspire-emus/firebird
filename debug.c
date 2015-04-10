@@ -31,7 +31,7 @@ char target_folder[256];
 
 void *virt_mem_ptr(uint32_t addr, uint32_t size) {
     // Note: this is not guaranteed to be correct when range crosses page boundary
-    return (void *)(intptr_t)phys_mem_ptr(mmu_translate(addr, false, NULL), size);
+    return (void *)(intptr_t)phys_mem_ptr(mmu_translate(addr, false, NULL, NULL), size);
 }
 
 void backtrace(uint32_t fp) {
@@ -104,7 +104,7 @@ static uint32_t parse_expr(char *str) {
             sign = -1;
             str++;
         } else if (*str == 'v') {
-            sum += sign * mmu_translate(strtoul(str + 1, &str, 16), false, NULL);
+            sum += sign * mmu_translate(strtoul(str + 1, &str, 16), false, NULL, NULL);
             sign = 1;
         } else if (*str == 'r') {
             reg = strtoul(str + 1, &str, 10);
@@ -182,6 +182,7 @@ static int process_debug_cmd(char *cmdline) {
                     "ln c - connect\n"
                     "ln s <file> - send a file\n"
                     "ln st <dir> - set target directory\n"
+                    "mmu - dump memory mappings\n"
                     "n - continue until next instruction\n"
                     "pr <address> - port or memory read\n"
                     "pw <address> <value> - port or memory write\n"
@@ -199,6 +200,8 @@ static int process_debug_cmd(char *cmdline) {
     } else if (!strcasecmp(cmd, "b")) {
         char *fp = strtok(NULL, " \n\r");
         backtrace(fp ? parse_expr(fp) : arm.reg[11]);
+    } else if (!strcasecmp(cmd, "mmu")) {
+        mmu_dump_tables();
     } else if (!strcasecmp(cmd, "r")) {
         int i, show_spsr;
         uint32_t cpsr = get_cpsr();
@@ -252,7 +255,7 @@ static int process_debug_cmd(char *cmdline) {
             flag_str = "+x";
         if (addr_str) {
             uint32_t addr = parse_expr(addr_str);
-            void *ptr = phys_mem_ptr(addr & ~3, 4);
+            void *ptr = virt_mem_ptr(addr & ~3, 4);
             if (ptr) {
                 uint32_t *flags = &RAM_FLAGS(ptr);
                 bool on = true;

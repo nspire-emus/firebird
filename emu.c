@@ -30,8 +30,6 @@ uint32_t cpu_events;
 bool do_translate = true;
 int asic_user_flags;
 bool turbo_mode;
-bool is_halting;
-bool show_speed;
 
 bool exiting, debug_on_start, debug_on_warn, large_nand, large_sdram;
 int product = 0x0E0;
@@ -98,7 +96,7 @@ int exec_hack() {
 }
 
 void prefetch_abort(uint32_t mva, uint8_t status) {
-    error("Prefetch abort: address=%08x status=%02x %08x\n", mva, status);
+    warn("Prefetch abort: address=%08x status=%02x instruction at %08x\n", mva, status, arm.reg[14]);
     arm.reg[15] += 4;
     // Fault address register not changed
     arm.instruction_fault_status = status;
@@ -109,7 +107,7 @@ void prefetch_abort(uint32_t mva, uint8_t status) {
 }
 
 void data_abort(uint32_t mva, uint8_t status) {
-    error("Data abort: address=%08x status=%02x %08x\n", mva, status);
+    warn("Data abort: address=%08x status=%02x instruction at %08x\n", mva, status, arm.reg[15]);
     fix_pc_for_fault();
     arm.reg[15] += 8;
     arm.fault_address = mva;
@@ -157,10 +155,8 @@ void throttle_interval_event(int index) {
         prev = interval_end;
     }
 
-	if (!turbo_mode || is_halting)
+    if (!turbo_mode)
 		throttle_timer_wait();
-	if (is_halting)
-		is_halting--;
 }
 
 void add_reset_proc(void (*proc)(void))

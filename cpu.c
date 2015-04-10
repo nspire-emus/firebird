@@ -181,6 +181,7 @@ static int get_shifted_immed(int insn, int setcc) {
 }
 
 static uint32_t shift(int type, uint32_t res, uint32_t count, int setcc) {
+    //TODO: Verify!
     if (count == 0) {
         /* For all types, a count of 0 does nothing and does not affect carry. */
         return res;
@@ -350,7 +351,7 @@ void cpu_interpret_instruction(uint32_t insn) {
             int offset = (insn & (1 << 22))
                     ? (insn & 0x0F) | (insn >> 4 & 0xF0)
                     : get_reg(insn & 15);
-            bool writeback;
+            bool writeback = false;
             uint32_t addr = get_reg_pc(base_reg);
 
             if (!(insn & (1 << 23))) // Subtracted offset
@@ -361,8 +362,9 @@ void cpu_interpret_instruction(uint32_t insn) {
                 offset = 0;
                 writeback = insn & (1 << 21);
             } else {
-                if (insn & (1 << 21))
-                    error("T-type memory access not implemented");
+                if(insn & (1 << 21))
+                    mmu_check_priv(addr, !((insn & (1 << 20)) || type == 2));
+
                 writeback = true;
             }
 
@@ -552,13 +554,16 @@ void cpu_interpret_instruction(uint32_t insn) {
         uint32_t offset;
         if (insn & (1 << 25)) {
             if (insn & (1 << 4))
-                error("Cannot shift memory offset by register");
+            {
+                warn("Cannot shift memory offset by register");
+                return cpu_exception(EX_UNDEFINED);
+            }
             offset = get_shifted_reg(insn, 0);
         } else {
             offset = insn & 0xFFF;
         }
 
-        bool writeback;
+        bool writeback = false;
         uint32_t addr = get_reg_pc(base_reg);
 
         if (!(insn & (1 << 23))) // Subtracted offset
@@ -569,8 +574,9 @@ void cpu_interpret_instruction(uint32_t insn) {
             offset = 0;
             writeback = insn & (1 << 21);
         } else {
-            if (insn & (1 << 21))
-                error("T-type memory access not implemented");
+            if(insn & (1 << 21))
+                mmu_check_priv(addr, insn & (1 << 20));
+
             writeback = true;
         }
 
@@ -583,6 +589,7 @@ void cpu_interpret_instruction(uint32_t insn) {
             if (insn & (1 << 22)) write_byte(addr, get_reg_pc_store(data_reg));
             else                  write_word(addr, get_reg_pc_store(data_reg));
         }
+
         if (writeback)
             set_reg(base_reg, addr + offset);
     } else if ((insn & 0xE000000) == 0x8000000) {
@@ -652,8 +659,8 @@ void cpu_interpret_instruction(uint32_t insn) {
         switch (insn & 0xEF00EF) {
             case 0x010000: { /* MCR p15, 0, <Rd>, c1, c0, 0: Control Register */
                 uint32_t change = value ^ arm.control;
-                if ((value & 0xFFFF8CF8) != 0x00050078)
-                    error("Bad or unimplemented control register value: %x\n", value);
+                if ((value & 0xFFFF8CF0) != 0x00050070)
+                    error("Bad or unimplemented control register value: %x (unsupported: %x)\n", value, (value & 0xFFFF8CF8) ^ 0x00050078);
                 arm.control = value;
                 if (change & 1) // MMU is being turned on or off
                     addr_cache_flush();
@@ -681,21 +688,25 @@ void cpu_interpret_instruction(uint32_t insn) {
                 if (arm.interrupts == 0) {
                     arm.reg[15] -= 4;
                     cpu_events |= EVENT_WAITING;
-                    //is_halting = 10;
                 }
                 break;
+            case 0x080005: /* MCR p15, 0, <Rd>, c8, c5, 0: Invalidate instruction TLB */
+            case 0x080006: /* MCR p15, 0, <Rd>, c8, c6, 0: Invalidate data TLB */
+            case 0x080007: /* MCR p15, 0, <Rd>, c8, c7, 0: Invalidate TLB */
             case 0x080025: /* MCR p15, 0, <Rd>, c8, c5, 1: Invalidate instruction TLB entry */
             case 0x080026: /* MCR p15, 0, <Rd>, c8, c6, 1: Invalidate data TLB entry */
-            case 0x080007: /* MCR p15, 0, <Rd>, c8, c7, 0: Invalidate TLB */
                 addr_cache_flush();
                 break;
             case 0x070005: /* MCR p15, 0, <Rd>, c7, c5, 0: Invalidate ICache */
             case 0x070025: /* MCR p15, 0, <Rd>, c7, c5, 1: Invalidate ICache line */
             case 0x070007: /* MCR p15, 0, <Rd>, c7, c7, 0: Invalidate ICache and DCache */
+            case 0x070026: /* MCR p15, 0, <Rd>, c7, c6, 1: Invalidate single DCache entry */
             case 0x07002A: /* MCR p15, 0, <Rd>, c7, c10, 1: Clean DCache line */
+            case 0x07002E: /* MCR p15, 0, <Rd>, c7, c14, 1: Clean and invalidate single DCache entry */
             case 0x07008A: /* MCR p15, 0, <Rd>, c7, c10, 4: Drain write buffer */
             case 0x0F0000: /* MCR p15, 0, <Rd>, c15, c0, 0: Debug Override Register */
-                // Ignore
+                // Normally ignored, but somehow needed for linux to boot correctly
+                addr_cache_flush();
                 break;
             default:
                 warn("Unknown coprocessor instruction MCR %08X", insn);
@@ -738,6 +749,9 @@ void cpu_interpret_instruction(uint32_t insn) {
             case 0x07006E: /* MRC p15, 0, <Rd>, c7, c14, 3: Test, clean, and invalidate DCache */
                 value = 1 << 30;
                 break;
+            case 0x0D0000: /* MRC p15, 0, <Rd>, c13, c0, 0: Read FCSE PID */
+                value = 0;
+                break;
             case 0x0F0000: /* MRC p15, 0, <Rd>, c15, c0, 0: Debug Override Register */
                 // Unimplemented
                 value = 0;
@@ -760,7 +774,8 @@ void cpu_interpret_instruction(uint32_t insn) {
         cpu_exception(EX_SWI);
     } else {
 bad_insn:
-        error("Unrecognized instruction %08x\n", insn);
+        logprintf(LOG_CPU, "Unrecognized instruction %08x\n", insn);
+        cpu_exception(EX_UNDEFINED);
     }
 }
 

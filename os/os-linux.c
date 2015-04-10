@@ -160,7 +160,7 @@ void addr_cache_init(os_exception_frame_t *frame)
         AC_SET_ENTRY_INVALID(addr_cache[i], (i >> 1) << 10)
     }
 
-#ifdef __i386__
+#if defined(__i386__) && !defined(NO_TRANSLATION)
     // Relocate the assembly code that wants addr_cache at a fixed address
     extern uint32_t *ac_reloc_start[] __asm__("ac_reloc_start"), *ac_reloc_end[] __asm__("ac_reloc_end");
     uint32_t **reloc;

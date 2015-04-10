@@ -58,8 +58,6 @@ extern const char *path_boot1, *path_boot2, *path_flash, *pre_manuf, *pre_boot2,
 // 0F-12 (CX CAS, CX, CM CAS, CM) use new ASIC
 #define emulate_cx (product >= 0x0F0)
 extern bool turbo_mode;
-extern bool is_halting;
-extern bool show_speed;
 
 enum { LOG_CPU, LOG_IO, LOG_FLASH, LOG_INTS, LOG_ICOUNT, LOG_USB, LOG_GDB, MAX_LOG };
 #define LOG_TYPE_TBL "CIFQ#UG"

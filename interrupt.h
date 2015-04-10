@@ -19,8 +19,9 @@ extern struct interrupt_state {
 	uint32_t raw_status;         // .active ^ ~.noninverted
 	uint32_t sticky_status;      // set on rising transition of .raw_status
 	uint32_t status;             // +x04: mixture of bits from .raw_status and .sticky_status
-	                        //       (determined by .sticky)
+                                 //       (determined by .sticky)
 	uint32_t mask[2];            // +x08: enabled interrupts
+    uint8_t  protection;         // +x20 on CX: only privileged
 	uint8_t  prev_pri_limit[2];  // +x28: saved .priority_limit from reading +x24
 	uint8_t  priority_limit[2];  // +x2C: interrupts with priority >= this value are disabled
 	uint32_t noninverted;        // +200: which interrupts not to invert in .raw_status
