@@ -32,6 +32,7 @@ MainWindow::MainWindow(QWidget *parent) :
     //Emu -> GUI (QueuedConnection as they're different threads)
     connect(&emu, SIGNAL(serialChar(char)), this, SLOT(serialChar(char)), Qt::QueuedConnection);
     connect(&emu, SIGNAL(debugStr(QString)), this, SLOT(debugStr(QString))); //Not queued connection as it may cause a hang
+    connect(&emu, SIGNAL(speedChanged(double)), this, SLOT(showSpeed(double)), Qt::QueuedConnection);
     connect(&emu, SIGNAL(statusMsg(QString)), ui->statusbar, SLOT(showMessage(QString)), Qt::QueuedConnection);
     connect(&emu, SIGNAL(setThrottleTimer(bool)), this, SLOT(setThrottleTimer(bool)), Qt::QueuedConnection);
     connect(&emu, SIGNAL(usblinkChanged(bool)), this, SLOT(usblinkChanged(bool)), Qt::QueuedConnection);

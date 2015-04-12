@@ -75,7 +75,7 @@ int gui_getchar()
 
 void gui_show_speed(double d)
 {
-    main_window->showSpeed(d);
+    emu_thread->speedChanged(d);
 }
 
 void gui_usblink_changed(bool state)

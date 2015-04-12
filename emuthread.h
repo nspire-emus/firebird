@@ -20,6 +20,7 @@ signals:
     void exited(int retcode);
     void serialChar(char c);
     void debugStr(QString str);
+    void speedChanged(double value);
     void statusMsg(QString str);
     void setThrottleTimer(bool state);
     void usblinkChanged(bool state);

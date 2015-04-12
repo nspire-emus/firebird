@@ -110,12 +110,8 @@ void addr_cache_deinit() {
     // Undo the relocations
     extern DWORD *ac_reloc_start[] __asm__("ac_reloc_start"), *ac_reloc_end[] __asm__("ac_reloc_end");
     DWORD **reloc;
-    for (reloc = ac_reloc_start; reloc != ac_reloc_end; reloc++) {
-        DWORD prot;
-        VirtualProtect(*reloc, 4, PAGE_EXECUTE_READWRITE, &prot);
+    for (reloc = ac_reloc_start; reloc != ac_reloc_end; reloc++)
         **reloc -= (DWORD)addr_cache;
-        VirtualProtect(*reloc, 4, prot, &prot);
-    }
 
     VirtualFree(addr_cache, AC_NUM_ENTRIES * sizeof(ac_entry), MEM_RELEASE);
     addr_cache = NULL;
