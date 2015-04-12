@@ -68,7 +68,7 @@ addr_ok:
 	sub 	%rax, %rcx
 	shr 	$2, %rcx
 	movabs	$cycle_count_delta, %r8
-	add 	%rcx, (%r8)
+	add 	%ecx, (%r8)
 
 	mov		%rax, %rcx
 	sub		TRANS_START_PTR(%rdx), %rcx
