@@ -11,10 +11,6 @@
 #include <QDropEvent>
 #include <QMimeData>
 
-#ifdef Q_OS_MAC
-#include "os/os-mac.h"
-#endif
-
 #include "usblink_queue.h"
 
 MainWindow *main_window;
