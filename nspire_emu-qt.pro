@@ -27,15 +27,6 @@ linux|macx {
     SOURCES += os/os-linux.c
 }
 
-# 10.10 uses a new "file id" format for drag+drop
-macx {
-    CONFIG += objective_c
-    OBJECTIVE_SOURCES = os/os-mac.mm
-    LIBS += -lobjc -framework Foundation
-    QMAKE_OBJECTIVE_CFLAGS += -fobjc-arc
-    QT += macextras
-}
-
 win32 {
     SOURCES += os/os-win32.c
     LIBS += -lwinmm -lws2_32
