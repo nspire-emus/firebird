@@ -125,7 +125,6 @@ HEADERS += \
 	keymap.h \
 	misc.h \
 	os/os.h \
-	os/os-mac.h \
 	gdbstub.h \
 	translate.h \
 	cpu.h \
