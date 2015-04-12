@@ -260,13 +260,11 @@ void MainWindow::usblink_dirlist_callback_nested(struct usblink_file *file, void
     if(!file)
     {
         w->setData(1, Qt::UserRole, QVariant(true)); //Dir is now filled
-        std::async(std::launch::async, [=]()
-        {
-            //Find a dir to fill with entries
-            for(int i = 0; i < w->treeWidget()->topLevelItemCount(); ++i)
-                if(usblink_dirlist_nested(w->treeWidget()->topLevelItem(i)))
-                    return;
-        });
+        //Find a dir to fill with entries
+        for(int i = 0; i < w->treeWidget()->topLevelItemCount(); ++i)
+            if(usblink_dirlist_nested(w->treeWidget()->topLevelItem(i)))
+                return;
+
         return;
     }
 
@@ -284,13 +282,10 @@ void MainWindow::usblink_dirlist_callback(struct usblink_file *file, void *data)
     //End of enumeration
     if(!file)
     {
-        std::async(std::launch::async, [=]()
-        {
-            //Find a dir to fill with entries
-            for(int i = 0; i < w->topLevelItemCount(); ++i)
-                if(usblink_dirlist_nested(w->topLevelItem(i)))
-                    return;
-        });
+        //Find a dir to fill with entries
+        for(int i = 0; i < w->topLevelItemCount(); ++i)
+            if(usblink_dirlist_nested(w->topLevelItem(i)))
+                return;
         return;
     }
 
