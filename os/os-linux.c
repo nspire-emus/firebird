@@ -128,18 +128,23 @@ void make_writable(void *addr)
         emuprintf("mprotect failed.\n");
 }
 
+static struct sigaction old_sa;
+
 void addr_cache_init(os_exception_frame_t *frame)
 {
     (void) frame;
 
-    // Only run this once
-    static bool initialized = false;
-    if(initialized)
+    // Only run this if not already initialized
+    if(addr_cache)
         return;
 
-    initialized = true;
-
     addr_cache = mmap((void*)0, AC_NUM_ENTRIES * sizeof(ac_entry), PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANON, -1, 0);
+    if(addr_cache == MAP_FAILED)
+    {
+        addr_cache = NULL;
+        fprintf(stderr, "Failed to mmap addr_cache.\n");
+        exit(1);
+    }
 
     setbuf(stdout, NULL);
 
@@ -148,9 +153,10 @@ void addr_cache_init(os_exception_frame_t *frame)
     sa.sa_flags = SA_SIGINFO;
     sigemptyset(&sa.sa_mask);
     sa.sa_sigaction = addr_cache_exception;
-    if(sigaction(SIGSEGV, &sa, NULL) == -1)
+    if(sigaction(SIGSEGV, &sa, &old_sa) == -1)
     {
-        emuprintf("Failed to initialize SEGV handler.\n");
+        fprintf(stderr, "Failed to initialize SEGV handler.\n");
+        addr_cache_deinit();
         exit(1);
     }
 
@@ -170,4 +176,13 @@ void addr_cache_init(os_exception_frame_t *frame)
         **reloc += (uintptr_t)addr_cache;
     }
 #endif
+}
+
+void addr_cache_deinit()
+{
+    if(addr_cache)
+        munmap(addr_cache, AC_NUM_ENTRIES * sizeof(ac_entry));
+
+    addr_cache = NULL;
+    sigaction(SIGSEGV, &old_sa, NULL);
 }

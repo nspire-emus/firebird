@@ -75,6 +75,7 @@ void fix_pc_for_fault()
 
 void prefetch_abort(uint32_t mva, uint8_t status)
 {
+    // TODO: Why doesn't linux boot anymore with this in place?
     //fix_pc_for_fault();
     warn("Prefetch abort: address=%08x status=%02x\n", mva, status);
     arm.reg[15] += 4;
@@ -99,12 +100,9 @@ void data_abort(uint32_t mva, uint8_t status)
 
 void undefined_instruction()
 {
-    // ARM-mode only
-    assert(current_instr_size == 4);
-
     fix_pc_for_fault();
     warn("Undefined instruction at %08x\n", arm.reg[15]);
-    arm.reg[15] += 4;
+    arm.reg[15] += current_instr_size;
     cpu_exception(EX_UNDEFINED);
     __builtin_longjmp(restart_after_exception, 1);
 }

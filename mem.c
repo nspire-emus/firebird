@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "emu.h"
 #include "os/os.h"
 #include "interrupt.h"
@@ -32,7 +33,7 @@ void bad_write_byte(uint32_t addr, uint8_t value)  { warn("Bad write_byte: %08x 
 void bad_write_half(uint32_t addr, uint16_t value) { warn("Bad write_half: %08x %04x", addr, value); }
 void bad_write_word(uint32_t addr, uint32_t value) { warn("Bad write_word: %08x %08x", addr, value); }
 
-uint8_t *mem_and_flags;
+uint8_t *mem_and_flags = NULL;
 struct mem_area_desc mem_areas[4];
 
 void *phys_mem_ptr(uint32_t addr, uint32_t size) {
@@ -183,11 +184,27 @@ void FASTCALL mmio_write_word(uint32_t addr, uint32_t value) {
     write_word_map[addr >> 26](addr, value);
 }
 
+void (*reset_procs[20])(void);
+unsigned int reset_proc_count;
+
+void add_reset_proc(void (*proc)(void))
+{
+    if (reset_proc_count == sizeof(reset_procs)/sizeof(*reset_procs))
+        abort();
+    reset_procs[reset_proc_count++] = proc;
+}
+
 bool memory_initialize(uint32_t sdram_size) {
-    static bool initialized = false;
-    if(initialized)
+    static int current_product = 0;
+
+    // If the memory size or product differ, reinitialize
+    if(mem_and_flags && (sdram_size != mem_areas[1].size || product != current_product))
+        memory_deinitialize();
+
+    if(mem_and_flags)
         return true;
-    initialized = true;
+
+    current_product = product;
 
     mem_areas[0].size = 0x80000;
     mem_areas[1].base = 0x10000000;
@@ -221,6 +238,8 @@ bool memory_initialize(uint32_t sdram_size) {
             !os_commit(mem_and_flags + MEM_MAXSIZE, total_mem))
     {
         emuprintf("Couldn't allocate memory\n");
+        os_free(mem_and_flags, MEM_MAXSIZE*2);
+        mem_and_flags = NULL;
         return false;
     }
 
@@ -384,7 +403,20 @@ bool memory_initialize(uint32_t sdram_size) {
     return true;
 }
 
+void memory_reset()
+{
+    for(unsigned int i = 0; i < reset_proc_count; i++)
+        reset_procs[i]();
+}
+
 void memory_deinitialize()
 {
-    // Do nothing
+    if(mem_and_flags)
+    {
+        memset(mem_areas, 0, sizeof(mem_areas));
+        os_free(mem_and_flags, MEM_MAXSIZE * 2);
+    }
+
+    mem_and_flags = NULL;
+    reset_proc_count = 0;
 }

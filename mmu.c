@@ -179,7 +179,7 @@ void mmu_check_priv(uint32_t addr, bool writing)
         data_abort(addr, status);
 }
 
-ac_entry *addr_cache;
+ac_entry *addr_cache = NULL;
 
 // Keep a list of valid entries so we can invalidate everything quickly
 #define AC_VALID_MAX 256

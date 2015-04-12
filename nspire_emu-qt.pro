@@ -11,8 +11,9 @@ TARGET = nspire_emu
 QMAKE_CFLAGS = -std=gnu11 -Wall -Wextra
 QMAKE_CXXFLAGS = -Wall -Wextra
 
-# Clang's LTO has some bugs
+# ICE on mac with clang
 !macx-clang {
+	# Override bad default options to enable better optimizations
 	QMAKE_CFLAGS_RELEASE = -O3 -flto
 	QMAKE_CXXFLAGS_RELEASE = -O3 -flto
 	QMAKE_LFLAGS_RELEASE = -Wl,-O3 -flto
@@ -56,7 +57,6 @@ equals(TRANSLATION_ENABLED, true) {
 
 	ASMCODE = $$join(QMAKE_TARGET.arch, "", "asmcode_", ".S")
 	exists($$ASMCODE): ASMCODE_IMPL = $$ASMCODE
-	macx-clang: ASMCODE_IMPL = asmcode_mac.S
 }
 else: DEFINES += NO_TRANSLATION
 
@@ -69,6 +69,7 @@ contains(QMAKE_TARGET.arch, "x86_64") {
 
 linux-g++-32 {
     QMAKE_CFLAGS += -m32
+	QMAKE_CXXFLAGS += -m32
 }
 
 SOURCES += $$ASMCODE_IMPL \

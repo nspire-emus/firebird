@@ -38,9 +38,6 @@ const char *path_boot1 = NULL, *path_boot2 = NULL, *path_flash = NULL, *pre_manu
 
 void *restart_after_exception[32];
 
-void (*reset_procs[20])(void);
-int reset_proc_count;
-
 const char log_type_tbl[] = LOG_TYPE_TBL;
 int log_enabled[MAX_LOG];
 FILE *log_file[MAX_LOG];
@@ -134,13 +131,6 @@ void throttle_interval_event(int index) {
 
     if (!turbo_mode)
 		throttle_timer_wait();
-}
-
-void add_reset_proc(void (*proc)(void))
-{
-    if (reset_proc_count == sizeof(reset_procs)/sizeof(*reset_procs))
-        abort();
-    reset_procs[reset_proc_count++] = proc;
 }
 
 int emulate(unsigned int port_gdb, unsigned int port_rdbg)
@@ -279,8 +269,7 @@ reset:
 
     sched_reset();
 
-    for (i = 0; i < reset_proc_count; i++)
-        reset_procs[i]();
+    memory_reset();
 
     sched_items[SCHED_THROTTLE].clock = CLOCK_27M;
     sched_items[SCHED_THROTTLE].proc = throttle_interval_event;
@@ -333,7 +322,4 @@ void emu_cleanup()
 
     gdbstub_quit();
     rdebug_quit();
-
-    flush_translations();
-    addr_cache_flush();
 }

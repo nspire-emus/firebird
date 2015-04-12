@@ -82,6 +82,10 @@ static int addr_cache_exception(PEXCEPTION_RECORD er, void *x, void *y, void *z)
 }
 
 void addr_cache_init(os_exception_frame_t *frame) {
+    // Don't run more than once
+    if(addr_cache)
+        return;
+
     addr_cache = VirtualAlloc(NULL, AC_NUM_ENTRIES * sizeof(ac_entry), MEM_RESERVE, PAGE_READWRITE);
 
     frame->function = (void *)addr_cache_exception;
@@ -97,4 +101,22 @@ void addr_cache_init(os_exception_frame_t *frame) {
         **reloc += (DWORD)addr_cache;
         VirtualProtect(*reloc, 4, prot, &prot);
     }
+}
+
+void addr_cache_deinit() {
+    if(!addr_cache)
+        return;
+
+    // Undo the relocations
+    extern DWORD *ac_reloc_start[] __asm__("ac_reloc_start"), *ac_reloc_end[] __asm__("ac_reloc_end");
+    DWORD **reloc;
+    for (reloc = ac_reloc_start; reloc != ac_reloc_end; reloc++) {
+        DWORD prot;
+        VirtualProtect(*reloc, 4, PAGE_EXECUTE_READWRITE, &prot);
+        **reloc -= (DWORD)addr_cache;
+        VirtualProtect(*reloc, 4, prot, &prot);
+    }
+
+    VirtualFree(addr_cache, AC_NUM_ENTRIES * sizeof(ac_entry), MEM_RELEASE);
+    addr_cache = NULL;
 }

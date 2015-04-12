@@ -300,7 +300,7 @@ enter_debugger:
                     break;
                 }
             default:
-                error("Unknown instruction: %04X\n", insn);
+                undefined_instruction();
                 break;
         }
     }

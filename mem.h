@@ -59,6 +59,7 @@ void FASTCALL mmio_write_half(uint32_t addr, uint32_t value) __asm__("mmio_write
 void FASTCALL mmio_write_word(uint32_t addr, uint32_t value) __asm__("mmio_write_word");
 
 bool memory_initialize(uint32_t sdram_size);
+void memory_reset();
 void memory_deinitialize();
 
 #ifdef __cplusplus
