@@ -8,14 +8,15 @@ CONFIG += c++11
 TEMPLATE = app
 TARGET = nspire_emu
 
-QMAKE_CFLAGS = -O3 -std=gnu11 -Wall -Wextra
+QMAKE_CFLAGS = -std=gnu11 -Wall -Wextra
+QMAKE_CXXFLAGS = -Wall -Wextra
 
 # Clang's LTO has some bugs
-!macx-clang: QMAKE_CFLAGS += -flto
-
-# Override bad default options
-QMAKE_CFLAGS_RELEASE = -O3
-QMAKE_CXXFLAGS_RELEASE = -O3
+!macx-clang {
+	QMAKE_CFLAGS_RELEASE = -O3 -flto
+	QMAKE_CXXFLAGS_RELEASE = -O3 -flto
+	QMAKE_LFLAGS_RELEASE = -Wl,-O3 -flto
+}
 
 # This does also apply to android
 linux|macx {
@@ -72,13 +73,12 @@ linux-g++-32 {
 
 SOURCES += $$ASMCODE_IMPL \
     lcdwidget.cpp \
-    usblink_queue.cpp
-
-SOURCES += mainwindow.cpp \
+    usblink_queue.cpp \
+	cpu.cpp \
+	mainwindow.cpp \
     main.cpp \
     armloader.c \
     casplus.c \
-    cpu.c \
     debug.c \
     des.c \
     disasm.c \
@@ -98,7 +98,10 @@ SOURCES += mainwindow.cpp \
     sha256.c \
     usb.c \
     usblink.c \
-    emuthread.cpp
+    emuthread.cpp \
+    arm_interpreter.cpp \
+    coproc.cpp \
+    thumb_interpreter.cpp
 
 FORMS += \
     mainwindow.ui \
@@ -135,7 +138,9 @@ HEADERS += \
 	link.h \
 	asmcode.h \
 	schedule.h \
-    usblink_queue.h
+    usblink_queue.h \
+    cpudefs.h \
+    bitfield.h
 
 # Generate the binary arm code into armcode_bin.h
 armsnippets.commands = arm-none-eabi-gcc -fno-leading-underscore -c $$PWD/armsnippets.S -o armsnippets.o -mcpu=arm926ej-s \

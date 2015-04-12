@@ -7,7 +7,7 @@
 
 void translation_enter() __asm__("translation_enter");
 
-void * FASTCALL ptr(uint32_t addr) __asm__("ptr");
+void * FASTCALL read_instruction(uint32_t addr) __asm__("read_instruction");
 uint32_t FASTCALL  read_byte(uint32_t addr) __asm__("read_byte");
 uint32_t FASTCALL  read_half(uint32_t addr) __asm__("read_half");
 uint32_t FASTCALL  read_word(uint32_t addr) __asm__("read_word");

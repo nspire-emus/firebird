@@ -956,26 +956,26 @@ void invalidate_translation(int index) {
     flush_translations();
 }
 
-void fix_pc_for_fault() {
-    if (in_translation_esp) {
-        uint32_t *insnp = in_translation_pc_ptr;
-        void *ret_eip = in_translation_esp[-1];
-        uint32_t flags = RAM_FLAGS(insnp);
-        if (!(flags & RF_CODE_TRANSLATED))
-            error("Couldn't get PC for fault");
-        int index = flags >> RFS_TRANSLATION_INDEX;
-        uint32_t start = (uint32_t)translation_table[index].start_ptr;
-        uint32_t end = (uint32_t)translation_table[index].end_ptr;
-        for (; start < end; start += 4) {
-            void *code = *(void **)((uintptr_t)(translation_table[index].jump_table) + start);
-            if (code >= ret_eip)
-                break;
-        }
-        arm.reg[15] += (uint32_t)start - (uint32_t)insnp;
-        cycle_count_delta -= ((uint32_t)end - (uint32_t)insnp) >> 2;
-        in_translation_esp = NULL;
+void translate_fix_pc() {
+    if (!in_translation_esp)
+        return;
+
+    uint32_t *insnp = in_translation_pc_ptr;
+    void *ret_eip = in_translation_esp[-1];
+    uint32_t flags = RAM_FLAGS(insnp);
+    if (!(flags & RF_CODE_TRANSLATED))
+        error("Couldn't get PC for fault");
+    int index = flags >> RFS_TRANSLATION_INDEX;
+    uint32_t start = (uint32_t)translation_table[index].start_ptr;
+    uint32_t end = (uint32_t)translation_table[index].end_ptr;
+    for (; start < end; start += 4) {
+        void *code = *(void **)((uintptr_t)(translation_table[index].jump_table) + start);
+        if (code >= ret_eip)
+            break;
     }
-    arm.reg[15] -= (arm.cpsr_low28 & 0x20) ? 2 : 4;
+    arm.reg[15] += (uint32_t)start - (uint32_t)insnp;
+    cycle_count_delta -= ((uint32_t)end - (uint32_t)insnp) >> 2;
+    in_translation_esp = NULL;
 }
 
 // returns 1 if at least one instruction translated in the range

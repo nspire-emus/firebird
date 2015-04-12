@@ -3,6 +3,10 @@
 #ifndef _H_TRANSLATE
 #define _H_TRANSLATE
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct translation {
     uintptr_t unused;
     void** jump_table;
@@ -17,7 +21,11 @@ extern uint8_t *insn_bufptr;
 int translate(uint32_t start_pc, uint32_t *insnp);
 void flush_translations();
 void invalidate_translation(int index);
-void fix_pc_for_fault();
+void translate_fix_pc();
 int range_translated(uint32_t range_start, uint32_t range_end);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

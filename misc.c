@@ -358,7 +358,7 @@ void rtc_cx_write(uint32_t addr, uint32_t value) {
 
 /* 900A0000 */
 uint32_t misc_read(uint32_t addr) {
-    struct timerpair *tp = &timerpairs[(addr - 0x10) >> 3 & 3];
+    struct timerpair *tp = &timerpairs[((addr - 0x10) >> 3) & 3];
     static const struct { uint32_t hi, lo; } idreg[4] = {
     { 0x00000000, 0x00000000 },
     { 0x04000001, 0x00010105 },

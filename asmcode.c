@@ -3,35 +3,12 @@
 #include "mmu.h"
 #include "mem.h"
 
-#define likely(x) (__builtin_expect(x, 1))
-#define unlikely(x) (__builtin_expect(x, 0))
-
 //TODO: Read breakpoints
 
 #if (!defined(__i386__) && !defined(__x86_64__)) || defined(NO_TRANSLATION)
 void flush_translations() {}
-void fix_pc_for_fault() {}
 bool range_translated(uintptr_t x, uintptr_t y) { (void) x; (void) y; return false; }
 #endif
-
-void * FASTCALL ptr(uint32_t addr)
-{
-    uintptr_t entry = *(uintptr_t*)(addr_cache + ((addr >> 10) << 1));
-
-    if(entry & AC_FLAGS)
-    {
-        if(entry & AC_INVALID)
-        {
-            addr_cache_miss(addr, false, prefetch_abort);
-            return ptr(addr);
-        }
-        else
-            return 0;
-    }
-
-    entry += addr;
-    return (void*)entry;
-}
 
 uint32_t FASTCALL read_word_ldr(uint32_t addr)
 {

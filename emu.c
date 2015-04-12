@@ -44,7 +44,7 @@ int reset_proc_count;
 const char log_type_tbl[] = LOG_TYPE_TBL;
 int log_enabled[MAX_LOG];
 FILE *log_file[MAX_LOG];
-void logprintf(int type, char *str, ...) {
+void logprintf(int type, const char *str, ...) {
     if (log_enabled[type]) {
         va_list va;
         va_start(va, str);
@@ -53,14 +53,14 @@ void logprintf(int type, char *str, ...) {
     }
 }
 
-void emuprintf(char *format, ...) {
+void emuprintf(const char *format, ...) {
     va_list va;
     va_start(va, format);
     gui_debug_vprintf(format, va);
     va_end(va);
 }
 
-void warn(char *fmt, ...) {
+void warn(const char *fmt, ...) {
     va_list va;
     va_start(va, fmt);
     gui_debug_printf("Warning (%08x): ", arm.reg[15]);
@@ -72,14 +72,12 @@ void warn(char *fmt, ...) {
 }
 
 __attribute__((noreturn))
-void error(char *fmt, ...) {
+void error(const char *fmt, ...) {
     va_list va;
     va_start(va, fmt);
     gui_debug_printf("Error (%08x): ", arm.reg[15]);
     gui_debug_vprintf(fmt, va);
     gui_debug_printf("\n");
-    /*fprintf(stderr, "\n\tBacktrace:\n");
-    backtrace(arm.reg[11]);*/
     va_end(va);
     debugger(DBG_EXCEPTION, 0);
     cpu_events |= EVENT_RESET;
@@ -93,27 +91,6 @@ int exec_hack() {
         return 1;
     }
     return 0;
-}
-
-void prefetch_abort(uint32_t mva, uint8_t status) {
-    warn("Prefetch abort: address=%08x status=%02x instruction at %08x\n", mva, status, arm.reg[14]);
-    arm.reg[15] += 4;
-    // Fault address register not changed
-    arm.instruction_fault_status = status;
-    cpu_exception(EX_PREFETCH_ABORT);
-    if (mva == arm.reg[15])
-        error("Abort occurred with exception vectors unmapped");
-    __builtin_longjmp(restart_after_exception, 1);
-}
-
-void data_abort(uint32_t mva, uint8_t status) {
-    warn("Data abort: address=%08x status=%02x instruction at %08x\n", mva, status, arm.reg[15]);
-    fix_pc_for_fault();
-    arm.reg[15] += 8;
-    arm.fault_address = mva;
-    arm.data_fault_status = status;
-    cpu_exception(EX_DATA_ABORT);
-    __builtin_longjmp(restart_after_exception, 1);
 }
 
 os_frequency_t perffreq;
@@ -356,4 +333,7 @@ void emu_cleanup()
 
     gdbstub_quit();
     rdebug_quit();
+
+    flush_translations();
+    addr_cache_flush();
 }

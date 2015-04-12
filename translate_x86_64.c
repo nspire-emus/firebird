@@ -56,6 +56,8 @@ static inline void emit_call_nosave(uintptr_t target) {
 
 //The AMD64 ABI says that most regs have to be saved by the caller
 static inline void emit_call(uintptr_t target) {
+    //If you change the stack layout, change the usage of in_translation_rsp in translate_fix_pc below as well!
+
     //TODO: Verify that %rdi isn't that important to save (it's the first arg)
     //emit_byte(0x57); // push %rdi
     emit_byte(0x56); // push %rsi
@@ -989,15 +991,12 @@ void invalidate_translation(int index) {
     flush_translations();
 }
 
-void fix_pc_for_fault() {
+void translate_fix_pc() {
     if (!in_translation_rsp)
-    {
-        arm.reg[15] -= (arm.cpsr_low28 & 0x20) ? 2 : 4;
         return;
-    }
 
     uint32_t *insnp = in_translation_pc_ptr;
-    void *ret_eip = in_translation_rsp[-1];
+    void *ret_eip = in_translation_rsp[-4];
     uint32_t flags = RAM_FLAGS(insnp);
     if (!(flags & RF_CODE_TRANSLATED))
         error("Couldn't get PC for fault");
@@ -1010,7 +1009,6 @@ void fix_pc_for_fault() {
     in_translation_rsp = NULL;
 
     assert(!(arm.cpsr_low28 & 0x20));
-    arm.reg[15] -= 4;
 }
 
 // returns 1 if at least one instruction translated in the range
