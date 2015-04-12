@@ -153,12 +153,6 @@ void MainWindow::dropEvent(QDropEvent *e)
 
     QUrl url = mime_data->urls().at(0).toLocalFile();
 
-#ifdef Q_OS_MAC
-    // For Mac OS X Yosemite...
-    if (url.path().startsWith("/.file/id="))
-        url = get_good_url_from_fileid_url("file://" + url.toString());
-#endif
-
     usblink_queue_put_file(url.toString().toStdString(), settings->value("usbdir", QString("ndless")).toString().toStdString(), usblink_progress_callback, this);
 }
 
