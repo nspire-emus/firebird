@@ -14,7 +14,7 @@ int os_getch()
 
 void *os_reserve(size_t size)
 {
-    return VirtualAlloc(NULL, size, MEM_RESERVE, PAGE_READWRITE);
+    return VirtualAlloc(NULL, size, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
 }
 
 void os_free(void *ptr, size_t size)
@@ -86,11 +86,27 @@ void addr_cache_init(os_exception_frame_t *frame) {
     if(addr_cache)
         return;
 
-    addr_cache = VirtualAlloc(NULL, AC_NUM_ENTRIES * sizeof(ac_entry), MEM_RESERVE, PAGE_READWRITE);
+    DWORD flags = MEM_RESERVE;
+
+#ifndef NDEBUG
+    // Commit memory to not trigger segfaults which make debugging a PITA
+    flags |= MEM_COMMIT;
+#endif
+
+    addr_cache = VirtualAlloc(NULL, AC_NUM_ENTRIES * sizeof(ac_entry), flags, PAGE_READWRITE);
 
     frame->function = (void *)addr_cache_exception;
     asm ("movl %%fs:(%1), %0" : "=r" (frame->prev) : "r" (0));
     asm ("movl %0, %%fs:(%1)" : : "r" (frame), "r" (0));
+
+#ifndef NDEBUG
+    // Without segfaults we have to invalidate everything here
+    unsigned int i;
+    for(i = 0; i < AC_NUM_ENTRIES; ++i)
+    {
+        AC_SET_ENTRY_INVALID(addr_cache[i], (i >> 1) << 10)
+    }
+#endif
 
     // Relocate the assembly code that wants addr_cache at a fixed address
     extern DWORD *ac_reloc_start[] __asm__("ac_reloc_start"), *ac_reloc_end[] __asm__("ac_reloc_end");
@@ -113,6 +129,6 @@ void addr_cache_deinit() {
     for (reloc = ac_reloc_start; reloc != ac_reloc_end; reloc++)
         **reloc -= (DWORD)addr_cache;
 
-    VirtualFree(addr_cache, AC_NUM_ENTRIES * sizeof(ac_entry), MEM_RELEASE);
+    VirtualFree(addr_cache, 0, MEM_RELEASE);
     addr_cache = NULL;
 }

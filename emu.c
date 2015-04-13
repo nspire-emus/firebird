@@ -31,7 +31,7 @@ bool do_translate = true;
 int asic_user_flags;
 bool turbo_mode;
 
-bool exiting, debug_on_start, debug_on_warn, large_nand, large_sdram;
+volatile bool exiting, debug_on_start, debug_on_warn, large_nand, large_sdram;
 int product = 0x0E0;
 uint32_t boot2_base;
 const char *path_boot1 = NULL, *path_boot2 = NULL, *path_flash = NULL, *pre_manuf = NULL, *pre_boot2 = NULL, *pre_diags = NULL, *pre_os = NULL;

@@ -413,6 +413,8 @@ void memory_deinitialize()
 {
     if(mem_and_flags)
     {
+        // translation_table uses absolute addresses
+        flush_translations();
         memset(mem_areas, 0, sizeof(mem_areas));
         os_free(mem_and_flags, MEM_MAXSIZE * 2);
     }
