@@ -28,23 +28,10 @@ extern "C" {
 #define unlikely(x) __builtin_expect(x, 0)
 #define likely(x) __builtin_expect(x, 1)
 static inline uint16_t BSWAP16(uint16_t x) { return x << 8 | x >> 8; }
-static inline uint32_t BSWAP32(uint32_t x) {
-#if defined(__i386__) || defined(__x86_64__)
-    if (__builtin_constant_p(x))
-        return x << 24 | (x << 8 & 0xFF0000) | (x >> 8 & 0xFF00) | x >> 24;
-    asm ("bswap %0" : "=r" (x) : "0" (x)); return x;
-#else
-    return x << 24 | (x << 8 & 0xFF0000) | (x >> 8 & 0xFF00) | x >> 24;
-#endif
-
-}
-
-/* Declarations for emu.c */
+#define BSWAP32(x) __builtin_bswap32(x)
 
 extern int cycle_count_delta __asm__("cycle_count_delta");
-
 extern int throttle_delay;
-
 extern uint32_t cpu_events __asm__("cpu_events");
 #define EVENT_IRQ 1
 #define EVENT_FIQ 2
