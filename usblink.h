@@ -18,7 +18,7 @@ struct usblink_file {
     bool is_dir;
 };
 
-/* f = NULL marks end of enumeration */
+/* f = NULL marks end of enumeration or error */
 typedef void (*usblink_dirlist_cb)(struct usblink_file *f, void *user_data);
 /* progress is 0-100 if successful or negative if an error occured.
    A value of 100 means complete and successful. */

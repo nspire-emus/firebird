@@ -16,8 +16,8 @@ struct usblink_queue_action {
     //Members only used if the appropriate action is set
     std::string filepath;
     std::string path;
-    usblink_progress_cb progress_callback;
-    usblink_dirlist_cb dirlist_callback;
+    usblink_progress_cb progress_callback = nullptr;
+    usblink_dirlist_cb dirlist_callback = nullptr;
     void *user_data;
 };
 
@@ -112,7 +112,16 @@ void usblink_queue_send_os(const char *filepath, usblink_progress_cb callback, v
 void usblink_queue_reset()
 {
     while(!usblink_queue.empty())
-        usblink_queue.pop(); //TODO: Inform recipients
+    {
+        // Treat as error
+        usblink_queue_action action = usblink_queue.front();
+        if(action.dirlist_callback)
+            action.dirlist_callback(nullptr, action.user_data);
+        else if(action.progress_callback)
+            action.progress_callback(-1, action.user_data);
+
+        usblink_queue.pop();
+    }
 
     busy = false;
 

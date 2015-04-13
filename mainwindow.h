@@ -88,6 +88,9 @@ private:
 
     Ui::MainWindow *ui;
 
+    // Whether to call usblink_dirlist when the tab is selected
+    // Small hack: static as used in static callbacks...
+    static bool refresh_filebrowser;
     QTimer refresh_timer, throttle_timer;
     QGraphicsScene lcd_scene;
     EmuThread emu;
@@ -95,6 +98,7 @@ private:
     FlashDialog flash_dialog;
 };
 
+// Used as global instance by EmuThread and friends
 extern MainWindow *main_window;
 
 #endif // MAINWINDOW_H

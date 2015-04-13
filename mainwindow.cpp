@@ -16,6 +16,7 @@
 #include "misc.h"
 
 MainWindow *main_window;
+bool MainWindow::refresh_filebrowser = true;
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -242,9 +243,11 @@ void MainWindow::usblink_dirlist_callback_nested(struct usblink_file *file, void
 {
     QTreeWidgetItem *w = static_cast<QTreeWidgetItem*>(data);
 
-    //End of enumeration
+    //End of enumeration or error
     if(!file)
     {
+        refresh_filebrowser = true;
+
         w->setData(1, Qt::UserRole, QVariant(true)); //Dir is now filled
         //Find a dir to fill with entries
         for(int i = 0; i < w->treeWidget()->topLevelItemCount(); ++i)
@@ -265,13 +268,16 @@ void MainWindow::usblink_dirlist_callback(struct usblink_file *file, void *data)
 {
     QTreeWidget *w = static_cast<QTreeWidget*>(data);
 
-    //End of enumeration
+    //End of enumeration or error
     if(!file)
     {
+        refresh_filebrowser = true;
+
         //Find a dir to fill with entries
         for(int i = 0; i < w->topLevelItemCount(); ++i)
             if(usblink_dirlist_nested(w->topLevelItem(i)))
                 return;
+
         return;
     }
 
@@ -293,9 +299,10 @@ void MainWindow::usblink_progress_callback(int progress, void *data)
 
 void MainWindow::tabChanged(int id)
 {
-    if(ui->tabWidget->widget(id) != ui->tabFiles)
+    if(ui->tabWidget->widget(id) != ui->tabFiles || !refresh_filebrowser)
         return;
 
+    refresh_filebrowser = false;
     //Update the file list if current tab changed
     ui->treeWidget->clear();
     usblink_queue_dirlist("/", usblink_dirlist_callback, ui->treeWidget);
