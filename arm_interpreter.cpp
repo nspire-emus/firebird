@@ -11,13 +11,13 @@
 #define SUB_OVERFLOW(left, right, sum) ((int32_t)(((left) ^ (right)) & ((left) ^ (sum))) < 0)
 
 static uint32_t add(uint32_t left, uint32_t right, int carry, int setcc) {
-    uint32_t sum = left + right + carry;
-    if (setcc) {
-        if (sum < left) carry = 1;
-        if (sum > left) carry = 0;
-        arm.cpsr_c = carry;
-        arm.cpsr_v = ADD_OVERFLOW(left, right, sum);
-    }
+    uint64_t sum64 = left + right + carry;
+    uint32_t sum = sum64;
+    if(!setcc)
+        return sum;
+
+    arm.cpsr_c = sum == left ? carry : sum < left;
+    arm.cpsr_v = sum64 != sum;
     return sum;
 }
 
@@ -25,7 +25,7 @@ static uint32_t shift(uint32_t value, uint8_t shift_type, uint8_t shift_val, boo
 {
     if(shift_val == 0)
     {
-        if(!has_rs)
+        if(unlikely(!has_rs))
         {
             switch(shift_type)
             {
@@ -44,7 +44,7 @@ static uint32_t shift(uint32_t value, uint8_t shift_type, uint8_t shift_val, boo
 
         return value;
     }
-    else if(shift_val < 32)
+    else if(likely(shift_val < 32))
     {
         switch(shift_type)
         {
@@ -136,7 +136,7 @@ void do_arm_instruction(Instruction i)
     bool exec = true;
 
     // Shortcut for unconditional instructions
-    if(i.cond == CC_AL)
+    if(likely(i.cond == CC_AL))
         goto always;
 
     switch(i.cond)
@@ -380,11 +380,11 @@ void do_arm_instruction(Instruction i)
         } else
             undefined_instruction();
     }
-    else if((insn & 0xC000000) == 0x0000000)
+    else if(likely((insn & 0xC000000) == 0x0000000))
     {
         // Data processing
-        uint8_t carry = arm.cpsr_c;
-        bool setcc = i.data_proc.s;
+        bool carry = arm.cpsr_c,
+             setcc = i.data_proc.s;
 
         uint32_t left = reg_pc(i.data_proc.rn),
                  right = addr_mode_1(i, setcc),
@@ -428,8 +428,8 @@ void do_arm_instruction(Instruction i)
     else if((insn & 0xC000000) == 0x4000000)
     {
         // LDR, STRB, etc.
-        uint32_t base = reg_pc(i.mem_proc.rn);
-        uint32_t offset = addr_mode_2(i);
+        uint32_t base = reg_pc(i.mem_proc.rn),
+                 offset = addr_mode_2(i);
         if(!i.mem_proc.u)
             offset = -offset;
         if(i.mem_proc.p)

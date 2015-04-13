@@ -113,7 +113,7 @@ void * FASTCALL read_instruction(uint32_t addr)
 #ifdef AC_FLAGS
     uintptr_t entry = *(uintptr_t*)(addr_cache + ((addr >> 10) << 1));
 
-    if(entry & AC_FLAGS)
+    if(unlikely(entry & AC_FLAGS))
     {
         if(entry & AC_INVALID)
         {
@@ -131,7 +131,7 @@ void * FASTCALL read_instruction(uint32_t addr)
     return (void*)entry;
 #else
     void *ptr = &addr_cache[(addr >> 10) << 1][addr];
-    if((uintptr_t)ptr & AC_NOT_PTR)
+    if(unlikely((uintptr_t)ptr & AC_NOT_PTR))
     {
         ptr = addr_cache_miss(addr, false, prefetch_abort);
         if (!ptr)

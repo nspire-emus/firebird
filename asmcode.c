@@ -15,7 +15,7 @@ uint32_t FASTCALL read_word_ldr(uint32_t addr)
     uintptr_t entry = *(uintptr_t*)(addr_cache + ((addr >> 10) << 1));
 
     //If the sum doesn't contain the address directly
-    if(entry & AC_FLAGS)
+    if(unlikely(entry & AC_FLAGS))
     {
         if(entry & AC_INVALID) //Invalid entry
         {
@@ -40,7 +40,7 @@ uint32_t FASTCALL read_byte(uint32_t addr)
     uintptr_t entry = *(uintptr_t*)(addr_cache + ((addr >> 10) << 1));
 
     //If the sum doesn't contain the address directly
-    if(entry & AC_FLAGS)
+    if(unlikely(entry & AC_FLAGS))
     {
         if(entry & AC_INVALID) //Invalid entry
         {
@@ -65,7 +65,7 @@ uint32_t FASTCALL read_half(uint32_t addr)
     uintptr_t entry = *(uintptr_t*)(addr_cache + ((addr >> 10) << 1));
 
     //If the sum doesn't contain the address directly
-    if(entry & AC_FLAGS)
+    if(unlikely(entry & AC_FLAGS))
     {
         if(entry & AC_INVALID) //Invalid entry
         {
@@ -95,7 +95,7 @@ void FASTCALL write_byte(uint32_t addr, uint32_t value)
     uintptr_t entry = *(uintptr_t*)(addr_cache + ((addr >> 10) << 1) + 1);
 
     //If the sum doesn't contain the address directly
-    if(entry & AC_NOT_PTR)
+    if(unlikely(entry & AC_FLAGS))
     {
         if(entry & AC_INVALID) //Invalid entry
         {
@@ -121,7 +121,7 @@ void FASTCALL write_half(uint32_t addr, uint32_t value)
     uintptr_t entry = *(uintptr_t*)(addr_cache + ((addr >> 10) << 1) + 1);
 
     //If the sum doesn't contain the address directly
-    if(entry & AC_NOT_PTR)
+    if(unlikely(entry & AC_FLAGS))
     {
         if(entry & AC_INVALID) //Invalid entry
         {
@@ -147,7 +147,7 @@ void FASTCALL write_word(uint32_t addr, uint32_t value)
     uintptr_t entry = *(uintptr_t*)(addr_cache + ((addr >> 10) << 1) + 1);
 
     //If the sum doesn't contain the address directly
-    if(entry & AC_NOT_PTR)
+    if(unlikely(entry & AC_FLAGS))
     {
         if(entry & AC_INVALID) //Invalid entry
         {
