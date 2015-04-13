@@ -3,6 +3,10 @@
 #ifndef _H_FLASH
 #define _H_FLASH
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 extern bool nand_writable;
 bool nand_initialize(bool large);
 void nand_deinitialize();
@@ -29,5 +33,9 @@ void flash_save_changes();
 int flash_save_as(const char *filename);
 bool flash_create_new(bool flag_large_nand, const char **preload_file, int product, bool large_sdram, uint8_t **nand_data_ptr, size_t *size);
 bool flash_read_settings(uint32_t *sdram_size);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

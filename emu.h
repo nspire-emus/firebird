@@ -76,6 +76,7 @@ void warn(const char *fmt, ...);
 __attribute__((noreturn)) void error(const char *fmt, ...);
 void throttle_timer_on();
 void throttle_timer_off();
+void throttle_timer_wait();
 int exec_hack();
 void add_reset_proc(void (*proc)(void));
 

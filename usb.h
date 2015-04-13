@@ -3,6 +3,10 @@
 #ifndef _H_USB
 #define _H_USB
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 extern struct usb_state {
     uint32_t usbcmd;      // +140
     uint32_t usbsts;      // +144
@@ -20,5 +24,9 @@ uint8_t usb_read_byte(uint32_t addr);
 uint16_t usb_read_half(uint32_t addr);
 uint32_t usb_read_word(uint32_t addr);
 void usb_write_word(uint32_t addr, uint32_t value);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

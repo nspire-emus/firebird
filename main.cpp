@@ -1,8 +1,6 @@
 #include <QApplication>
-#include <QTranslator>
-#include <QDebug>
+
 #include "mainwindow.h"
-#include "emuthread.h"
 
 int main(int argc, char **argv)
 {

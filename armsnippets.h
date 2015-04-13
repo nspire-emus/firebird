@@ -6,6 +6,10 @@
 #include <stdbool.h>
 #include "cpu.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 enum SNIPPETS {
     SNIPPET_ndls_debug_alloc, SNIPPET_ndls_debug_free, SNIPPET_ndls_exec
 };
@@ -22,5 +26,9 @@ struct armloader_load_params {
 };
 void armloader_cb(void);
 bool armloader_load_snippet(enum SNIPPETS snippet, struct armloader_load_params params[], unsigned params_num, void (*callback)(struct arm_state *));
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

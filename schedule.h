@@ -3,6 +3,10 @@
 #ifndef _H_SCHEDULE
 #define _H_SCHEDULE
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 enum clock_id { CLOCK_CPU, CLOCK_AHB, CLOCK_APB, CLOCK_27M, CLOCK_12M, CLOCK_32K };
 extern uint32_t clock_rates[6];
 enum sched_item_index {
@@ -32,5 +36,9 @@ void event_clear(int index);
 void event_set(int index, int ticks);
 uint32_t event_ticks_remaining(int index);
 void sched_set_clocks(int count, uint32_t *new_rates);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

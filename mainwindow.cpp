@@ -1,6 +1,3 @@
-#include "mainwindow.h"
-#include "ui_mainwindow.h"
-
 #include <future>
 
 #include <QFileDialog>
@@ -11,7 +8,12 @@
 #include <QDropEvent>
 #include <QMimeData>
 
+#include "mainwindow.h"
+#include "ui_mainwindow.h"
 #include "usblink_queue.h"
+#include "flash.h"
+#include "lcd.h"
+#include "misc.h"
 
 MainWindow *main_window;
 
@@ -98,13 +100,6 @@ MainWindow::~MainWindow()
 {
     delete settings;
     delete ui;
-}
-
-extern "C"
-{
-#include "flash.h"
-#include "lcd.h"
-#include "misc.h"
 }
 
 void MainWindow::refresh()

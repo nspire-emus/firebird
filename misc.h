@@ -3,6 +3,10 @@
 #ifndef _H_MISC
 #define _H_MISC
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 extern bool on_irq;
 
 void sdramctl_write_word(uint32_t addr, uint32_t value);
@@ -108,5 +112,9 @@ uint32_t unknown_BC_read_word(uint32_t addr);
 void adc_reset();
 uint32_t adc_read_word(uint32_t addr);
 void adc_write_word(uint32_t addr, uint32_t value);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

@@ -3,6 +3,10 @@
 #ifndef _H_INTERRUPT
 #define _H_INTERRUPT
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #define INT_SERIAL   1
 #define INT_WATCHDOG 3
 #define INT_USB      8
@@ -35,5 +39,9 @@ uint32_t int_cx_read_word(uint32_t addr);
 void int_cx_write_word(uint32_t addr, uint32_t value);
 void int_set(uint32_t int_num, bool on);
 void int_reset();
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

@@ -1,9 +1,10 @@
-#include "flashdialog.h"
-#include "ui_flashdialog.h"
-
 #include <QTextStream>
 #include <QFileDialog>
 #include <QMessageBox>
+
+#include "flash.h"
+#include "flashdialog.h"
+#include "ui_flashdialog.h"
 
 FlashDialog::FlashDialog(QWidget *parent) :
     QDialog(parent),
@@ -96,10 +97,6 @@ void FlashDialog::selectOS()
         version += " CX CAS";
 
     ui->labelOS->setText(version);
-}
-
-extern "C" {
-    #include "flash.h"
 }
 
 // Map of ui->selectModel indices to manuf product numbers
