@@ -1,0 +1,17 @@
+<RCC>
+    <qresource prefix="/icons">
+        <file>resources/icons/application-exit.png</file>
+        <file>resources/icons/flash-create.png</file>
+        <file>resources/icons/media-floppy.png</file>
+        <file>resources/icons/preferences-other.png</file>
+        <file>resources/icons/system-reboot.png</file>
+        <file>resources/icons/tools-report-bug.png</file>
+        <file>resources/icons/utilities-terminal.png</file>
+        <file>resources/icons/edit-bomb.png</file>
+        <file>resources/icons/media-playback-pause.png</file>
+        <file>resources/icons/camera-photo.png</file>
+        <file>resources/icons/Actions-media-playback-pause-icon.png</file>
+        <file>resources/icons/Actions-network-connect-icon.png</file>
+        <file>resources/icons/Actions-network-disconnect-icon.png</file>
+    </qresource>
+</RCC>

@@ -147,3 +147,6 @@ QMAKE_EXTRA_TARGETS = armsnippets
 
 OTHER_FILES += \
     TODO
+
+RESOURCES += \
+    resources.qrc
