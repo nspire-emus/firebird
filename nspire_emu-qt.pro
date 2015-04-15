@@ -21,10 +21,19 @@ QMAKE_CXXFLAGS_RELEASE = -O3
 	QMAKE_CXXFLAGS_RELEASE += -flto
 	QMAKE_LFLAGS_RELEASE += -Wl,-O3 -flto
 }
+!ios {
+    QMAKE_CFLAGS_RELEASE += -flto
+    QMAKE_CXXFLAGS_RELEASE += -flto
+    QMAKE_LFLAGS_RELEASE += -Wl,-O3 -flto
+}
 
 # This does also apply to android
-linux|macx {
+linux|macx|ios {
     SOURCES += os/os-linux.c
+}
+
+ios {
+    DEFINES += IS_IOS_BUILD
 }
 
 win32 {

@@ -113,7 +113,8 @@ static void addr_cache_exception(int sig, siginfo_t *si, void *uctx)
     emuprintf("Got SIGSEGV trying to access 0x%lx (RIP=0x%x)\n", (long) si->si_addr, u->uc_mcontext->__ss.__rip);
 #endif
 #elif defined(__arm__)
-    emuprintf("Got SIGSEGV (PC=0x%x)\n", u->uc_mcontext.arm_pc);
+    // TODO : fix
+    // emuprintf("Got SIGSEGV (PC=0x%x)\n", u->uc_mcontext.arm_pc);
 #endif
 
     if(!addr_cache_pagefault((uint8_t*)si->si_addr))
