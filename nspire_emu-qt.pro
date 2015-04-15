@@ -12,19 +12,15 @@ QMAKE_CFLAGS = -std=gnu11 -Wall -Wextra
 QMAKE_CXXFLAGS = -Wall -Wextra
 
 # Override bad default options to enable better optimizations
-QMAKE_CFLAGS_RELEASE = -O3
-QMAKE_CXXFLAGS_RELEASE = -O3
+QMAKE_CFLAGS_RELEASE = -O3 -flto
+QMAKE_CXXFLAGS_RELEASE = -O3 -flto
+QMAKE_LFLAGS_RELEASE = -Wl,-O3 -flto
 
 # ICE on mac with clang
-!macx-clang {
-    QMAKE_CFLAGS_RELEASE += -flto
-    QMAKE_CXXFLAGS_RELEASE += -flto
-    QMAKE_LFLAGS_RELEASE += -Wl,-O3 -flto
-}
-!ios {
-    QMAKE_CFLAGS_RELEASE += -flto
-    QMAKE_CXXFLAGS_RELEASE += -flto
-    QMAKE_LFLAGS_RELEASE += -Wl,-O3 -flto
+macx-clang|ios {
+    QMAKE_CFLAGS_RELEASE -= -flto
+    QMAKE_CXXFLAGS_RELEASE -= -flto
+    QMAKE_LFLAGS_RELEASE -= -Wl,-O3 -flto
 }
 
 # This does also apply to android
