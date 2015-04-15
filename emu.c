@@ -278,7 +278,9 @@ reset:
 
     exiting = false;
 
+#ifndef IS_IOS_BUILD
     __builtin_setjmp(restart_after_exception);
+#endif
 
     while (!exiting) {
         sched_process_pending_events();

@@ -8,6 +8,7 @@ int main(int argc, char **argv)
 
     QCoreApplication::setOrganizationName("ndless");
     QCoreApplication::setApplicationName("nspire_emu");
+    app.setAttribute(Qt::AA_UseHighDpiPixmaps);
 
     MainWindow mw;
 
