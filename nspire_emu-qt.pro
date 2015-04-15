@@ -17,9 +17,9 @@ QMAKE_CXXFLAGS_RELEASE = -O3
 
 # ICE on mac with clang
 !macx-clang {
-	QMAKE_CFLAGS_RELEASE += -flto
-	QMAKE_CXXFLAGS_RELEASE += -flto
-	QMAKE_LFLAGS_RELEASE += -Wl,-O3 -flto
+    QMAKE_CFLAGS_RELEASE += -flto
+    QMAKE_CXXFLAGS_RELEASE += -flto
+    QMAKE_LFLAGS_RELEASE += -Wl,-O3 -flto
 }
 !ios {
     QMAKE_CFLAGS_RELEASE += -flto
@@ -53,33 +53,33 @@ linux-g++-64:QMAKE_TARGET.arch = x86_64
 macx-clang:QMAKE_TARGET.arch = $$QMAKE_HOST.arch
 
 equals(TRANSLATION_ENABLED, true) {
-	TRANSLATE = $$join(QMAKE_TARGET.arch, "", "translate_", ".c")
-	exists($$TRANSLATE) {
-		SOURCES += $$TRANSLATE
-	}
+    TRANSLATE = $$join(QMAKE_TARGET.arch, "", "translate_", ".c")
+    exists($$TRANSLATE) {
+        SOURCES += $$TRANSLATE
+    }
 
-	ASMCODE = $$join(QMAKE_TARGET.arch, "", "asmcode_", ".S")
-	exists($$ASMCODE): ASMCODE_IMPL = $$ASMCODE
+    ASMCODE = $$join(QMAKE_TARGET.arch, "", "asmcode_", ".S")
+    exists($$ASMCODE): ASMCODE_IMPL = $$ASMCODE
 }
 else: DEFINES += NO_TRANSLATION
 
 # The x86_64 JIT uses asmcode.c for mem access
 contains(QMAKE_TARGET.arch, "x86_64") {
-	!contains(ASMCODE_IMPL, "asmcode.c") {
-		SOURCES += asmcode.c
-	}
+    !contains(ASMCODE_IMPL, "asmcode.c") {
+        SOURCES += asmcode.c
+    }
 }
 
 linux-g++-32 {
     QMAKE_CFLAGS += -m32
-	QMAKE_CXXFLAGS += -m32
+    QMAKE_CXXFLAGS += -m32
 }
 
 SOURCES += $$ASMCODE_IMPL \
     lcdwidget.cpp \
     usblink_queue.cpp \
-	cpu.cpp \
-	mainwindow.cpp \
+    cpu.cpp \
+    mainwindow.cpp \
     main.cpp \
     armloader.c \
     casplus.c \
@@ -112,35 +112,35 @@ FORMS += \
     flashdialog.ui
 
 HEADERS += \
-	keypad.h \
-	emu.h \
-	emuthread.h \
-	lcdwidget.h \
-	usb.h \
-	lcd.h \
-	disasm.h \
-	flash.h \
-	flashdialog.h \
-	interrupt.h \
-	armcode_bin.h \
-	mem.h \
-	mmu.h \
-	des.h \
-	armsnippets.h \
-	debug.h \
-	sha256.h \
-	usblink.h \
-	mainwindow.h \
-	keymap.h \
-	misc.h \
-	os/os.h \
-	gdbstub.h \
-	translate.h \
-	cpu.h \
-	casplus.h \
-	link.h \
-	asmcode.h \
-	schedule.h \
+    keypad.h \
+    emu.h \
+    emuthread.h \
+    lcdwidget.h \
+    usb.h \
+    lcd.h \
+    disasm.h \
+    flash.h \
+    flashdialog.h \
+    interrupt.h \
+    armcode_bin.h \
+    mem.h \
+    mmu.h \
+    des.h \
+    armsnippets.h \
+    debug.h \
+    sha256.h \
+    usblink.h \
+    mainwindow.h \
+    keymap.h \
+    misc.h \
+    os/os.h \
+    gdbstub.h \
+    translate.h \
+    cpu.h \
+    casplus.h \
+    link.h \
+    asmcode.h \
+    schedule.h \
     usblink_queue.h \
     cpudefs.h \
     bitfield.h
