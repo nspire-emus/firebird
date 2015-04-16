@@ -466,11 +466,12 @@ void MainWindow::throttleTimerWait()
         return;
 
     // e mustn't be deleted as there may be pending signals
-    QEventLoop *e = new QEventLoop;
-    connect(&throttle_timer, SIGNAL(timeout()), e, SLOT(quit()));
-    connect(&throttle_timer, SIGNAL(objectNameChanged(QString)), e, SLOT(quit()));
-    e->exec();
-    e->deleteLater();
+    static QEventLoop e;
+    throttle_timer.disconnect();
+    e.quit();
+    connect(&throttle_timer, SIGNAL(timeout()), &e, SLOT(quit()));
+    connect(&throttle_timer, SIGNAL(objectNameChanged(QString)), &e, SLOT(quit()));
+    e.exec();
 }
 
 void MainWindow::closeEvent(QCloseEvent *e)
