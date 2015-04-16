@@ -94,10 +94,7 @@ static uint32_t addr_mode_2(Instruction i)
     if(!i.mem_proc.not_imm)
         return i.mem_proc.immed;
 
-    if(i.data_proc.reg_shift)
-        return shift(reg_pc(i.data_proc.rm), i.data_proc.shift, reg(i.data_proc.rs), false, true);
-    else
-        return shift(reg_pc(i.data_proc.rm), i.data_proc.shift, i.data_proc.shift_imm, false, false);
+    return shift(reg_pc(i.mem_proc.rm), i.mem_proc.shift, i.mem_proc.shift_imm, false, false);
 }
 
 static uint32_t rotated_imm(Instruction i, bool setcc)
