@@ -30,6 +30,7 @@ linux|macx|ios {
 
 ios {
     DEFINES += IS_IOS_BUILD
+    QMAKE_INFO_PLIST = Info.plist
 }
 
 win32 {
