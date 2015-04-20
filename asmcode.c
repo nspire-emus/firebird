@@ -5,7 +5,7 @@
 
 //TODO: Read breakpoints
 
-#if (!defined(__i386__) && !defined(__x86_64__)) || defined(NO_TRANSLATION)
+#if (!defined(__i386__) && !defined(__x86_64__) && !defined(__arm__)) || defined(NO_TRANSLATION)
 void flush_translations() {}
 bool range_translated(uintptr_t x, uintptr_t y) { (void) x; (void) y; return false; }
 #endif

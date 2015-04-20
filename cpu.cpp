@@ -186,6 +186,22 @@ void cpu_exception(int type)
         arm.reg[15] += 0xFFFF0000;
 }
 
+uint32_t get_cpsr_flags()
+{
+    return arm.cpsr_n << 31
+         | arm.cpsr_z << 30
+         | arm.cpsr_c << 29
+         | arm.cpsr_v << 28;
+}
+
+void set_cpsr_flags(uint32_t flags)
+{
+    arm.cpsr_n = (flags >> 31) & 1;
+    arm.cpsr_z = (flags >> 30) & 1;
+    arm.cpsr_c = (flags >> 29) & 1;
+    arm.cpsr_v = (flags >> 28) & 1;
+}
+
 // Get full CPSR register
 uint32_t FASTCALL get_cpsr()
 {

@@ -3,6 +3,8 @@
 #ifndef _H_TRANSLATE
 #define _H_TRANSLATE
 
+#include <stdbool.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -18,11 +20,12 @@ extern struct translation translation_table[] __asm__("translation_table");
 extern uint8_t *insn_buffer;
 extern uint8_t *insn_bufptr;
 
-int translate(uint32_t start_pc, uint32_t *insnp);
+bool translate_init();
+void translate_deinit();
+void translate(uint32_t start_pc, uint32_t *insnp);
 void flush_translations();
 void invalidate_translation(int index);
 void translate_fix_pc();
-int range_translated(uint32_t range_start, uint32_t range_end);
 
 #ifdef __cplusplus
 }

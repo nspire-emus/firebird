@@ -6,6 +6,7 @@
 #include "asmcode.h"
 #include "translate.h"
 #include "debug.h"
+#include "os/os.h"
 
 extern void translation_enter() __asm__("translation_enter");
 extern void translation_next() __asm__("translation_next");
@@ -263,7 +264,18 @@ static inline void emit_setcc_flag(int setcc, void *flagptr) {
     emit_modrm_base_offset(0, EBX, (uint8_t *)flagptr - (uint8_t *)&arm);
 }
 
-int translate(uint32_t start_pc, uint32_t *start_insnp) {
+bool translate_init()
+{
+    if(!insn_buffer)
+    {
+        insn_buffer = os_alloc_executable(INSN_BUFFER_SIZE);
+        insn_bufptr = insn_buffer;
+    }
+
+    return !!insn_buffer;
+}
+
+void translate(uint32_t start_pc, uint32_t *start_insnp) {
     out = insn_bufptr;
     outj = jtbl_bufptr;
     uint32_t pc = start_pc;
@@ -953,7 +965,7 @@ branch_conditional:
 branch_unconditional:
 
     if (pc == start_pc)
-        return -1;
+        return;
 
     int index = next_index++;
 
@@ -965,8 +977,6 @@ branch_unconditional:
 
     insn_bufptr = out;
     jtbl_bufptr = outj;
-
-    return index;
 }
 
 void flush_translations() {
@@ -1009,17 +1019,4 @@ void translate_fix_pc() {
     in_translation_rsp = NULL;
 
     assert(!(arm.cpsr_low28 & 0x20));
-}
-
-// returns 1 if at least one instruction translated in the range
-int range_translated(uint32_t range_start, uint32_t range_end) {
-    uint32_t pc;
-    int translated = 0;
-    for (pc = range_start; pc < range_end;  pc += 4) {
-        void *pc_ram_ptr = virt_mem_ptr(pc, 4);
-        if (!pc_ram_ptr)
-            break;
-        translated |= RAM_FLAGS(pc_ram_ptr) & RF_CODE_TRANSLATED;
-    }
-    return translated;
 }

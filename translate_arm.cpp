@@ -1,0 +1,496 @@
+/*
+ * How the ARM translation works:
+ * translation_enter in asmcode_arm.S finds the entry point and jumps to it.
+ * LR in translation mode points to the global arm_state and r12 has a copy of
+ * cpsr_nzcv that is updated after every virtual instruction if it changes the
+ * flags. After returning from translation mode because either a branch was
+ * executed or the translated block ends, r12 is split into cpsr_nzcv again
+ * and all registers restored.
+ */
+
+#include <algorithm>
+#include <cassert>
+#include <cstdint>
+#include <cstdio>
+
+#include "asmcode.h"
+#include "cpu.h"
+#include "cpudefs.h"
+#include "mem.h"
+#include "translate.h"
+#include "os/os.h"
+
+extern "C" {
+extern void translation_next() __asm__("translation_next");
+extern void **translation_sp __asm__("translation_sp");
+extern void *translation_pc_ptr __asm__("translation_pc_ptr");
+}
+
+#define MAX_TRANSLATIONS 0x40000
+struct translation translation_table[MAX_TRANSLATIONS];
+uint32_t *jump_table[MAX_TRANSLATIONS*2],
+         **jump_table_current = jump_table;
+
+static uint32_t *translate_buffer = nullptr,
+         *translate_current = nullptr,
+         *translate_end = nullptr;
+
+static unsigned int next_translation_index = 0;
+
+static inline void emit(uint32_t instruction)
+{
+    *translate_current++ = instruction;
+}
+
+static inline void emit_al(uint32_t instruction)
+{
+    emit(instruction | (CC_AL << 28));
+}
+
+// Loads arm.reg[rs] into rd.
+static void emit_ldr_armreg(uint8_t rd, uint8_t r_virt)
+{
+    emit_al(0x59e0000 | (rd << 12) | (r_virt << 2)); // ldr rd, [lr, #2*r_virt]
+}
+
+// Saves rd into arm.reg[rs].
+static void emit_str_armreg(uint8_t rd, uint8_t r_virt)
+{
+    emit_al(0x58e0000 | (rd << 12) | (r_virt << 2)); // str rd, [lr, #2*r_virt]
+}
+
+// Register allocation: Registers are dynamically reused
+enum Reg : uint8_t {
+	R0=0,R1,R2,R3,R4,R5,R6,R7,R8,R9,R10,R11,R12,SP,LR,PC,
+    Invalid=16,Dirty=128
+};
+
+// Maps virtual register to physical register (or invalid) and a dirty-flag
+// PC is never mapped
+static uint8_t regmap[15];
+#define REG(x) (x&0xF)
+
+// The next available physical register
+static uint8_t current_reg = R4;
+
+static void map_reset()
+{
+    std::fill(regmap, regmap + 15, Invalid);
+}
+
+static int map_reg(uint8_t reg, bool write)
+{
+    assert(reg < 16); // Must not happen: PC not implemented and higher nr is invalid
+
+    // Already mapped?
+    if(regmap[reg] != Invalid)
+    {
+        if(write)
+            regmap[reg] |= Dirty;
+        return REG(regmap[reg]);
+    }
+
+    // Reg not loaded, reuse register: Remove old mapping first
+    for(unsigned int i = 0; i < 15; ++i)
+    {
+        if(REG(regmap[i]) != current_reg)
+            continue;
+
+        // Save register value
+        if(regmap[i] & Dirty)
+            emit_str_armreg(current_reg, i);
+
+        regmap[i] = Invalid;
+        break; // Always only one mapping present
+    }
+
+    if(write)
+        regmap[reg] = current_reg | Dirty;
+    else
+    {
+        // Load reg from memory
+        emit_ldr_armreg(current_reg, reg);
+        regmap[reg] = current_reg;
+    }
+
+    uint8_t ret = current_reg++;
+    // Wrap to R4 after all regs cycled
+    if(current_reg > R11)
+        current_reg = R4;
+
+    return ret;
+}
+
+// After eight loaded registers the previous ones will be reused!
+// The reg is marked as dirty
+// Return value: Register number the reg has been mapped to
+static int map_save_reg(uint8_t reg)
+{
+    return map_reg(reg, true);
+}
+
+// After eight loaded registers the previous ones will be reused!
+// The current value is loaded, if not mapped yet
+// Return value: Register number the reg has been loaded into
+static int map_load_reg(uint8_t reg)
+{
+    return map_reg(reg, false);
+}
+
+// Flush all mapped regs back into arm.reg[]
+static void emit_flush_regs()
+{
+	for(unsigned int i = 0; i < 15; ++i)
+    {
+        if(regmap[i] & Dirty)
+            emit_str_armreg(regmap[i], i);
+        regmap[i] = Invalid;
+    }
+}
+
+// Load and store flags from r12
+static void emit_ldr_flags()
+{
+    emit_al(0x128f00c); // msr cpsr_f, r12
+}
+
+static void emit_str_flags()
+{
+    emit_al(0x10fc000); // mrs r12, cpsr_f
+}
+
+// Sets rd to imm
+static void emit_mov(uint8_t rd, uint32_t imm)
+{
+    // TODO: More variants!
+
+	if((imm & 0xFF) == imm)
+        emit_al(0x3a00000 | (rd << 12) | imm); // mov rd, #imm
+	else
+    {
+        // Insert immediate into code and jump over it
+        emit_al(0x59f0000 | (rd << 12)); // ldr rd, [pc]
+        emit_al(0xa000000); // b pc
+        emit(imm);
+    }
+}
+
+static void emit_jmp(void *target)
+{
+    emit_al(0x51ff004); // ldr pc, [pc, #-4]
+    emit(reinterpret_cast<uintptr_t>(target));
+}
+
+static void emit_save_state();
+
+// Registers r0-r3 are not preserved!
+static void emit_call(void *target, bool save = true)
+{
+	if(save)
+		emit_save_state();
+
+    // This is cheaper than doing it like emit_mov above.
+    // r12 has to be pushed too, not preserved by C functions
+    emit_al(0x92d5000); // push {r12,lr}
+    emit_al(0x28fe004); // add lr, pc, #4
+    emit_al(0x51ff004); // ldr pc, [pc, #-4]
+    emit(reinterpret_cast<uintptr_t>(target));
+    emit_al(0x8bd5000); // pop {r12,lr}
+}
+
+// Flush all regs and flags into the global arm_state struct
+// Has to be called before anything that might cause a translation leave!
+static void emit_save_state()
+{
+	emit_flush_regs();
+
+    // Put the cpsr in r12 into arm.cpsr_* again
+    //TODO: do this natively!
+    emit_al(0x92d5001); // push {r0, r12,lr}
+    emit_al(0x1a0000c); // mov r0, r12
+    emit_al(0x28fe004); // add lr, pc, #4
+    emit_al(0x51ff004); // ldr pc, [pc, #-4]
+    emit(reinterpret_cast<uintptr_t>(set_cpsr_flags));
+    emit_al(0x8bd5001); // pop {r0, r12,lr}
+}
+
+static __attribute__((unused)) void emit_bkpt()
+{
+    emit_al(0x1200070); // bkpt #0
+}
+
+bool translate_init()
+{
+    if(translate_buffer)
+        return true;
+
+    translate_current = translate_buffer = reinterpret_cast<uint32_t*>(os_alloc_executable(INSN_BUFFER_SIZE));
+    translate_end = translate_current + INSN_BUFFER_SIZE/sizeof(*translate_buffer);
+    jump_table_current = jump_table;
+    next_translation_index = 0;
+
+    return !!translate_buffer;
+}
+
+void translate_deinit()
+{
+    if(!translate_buffer)
+        return;
+
+    os_free(translate_buffer, INSN_BUFFER_SIZE);
+    translate_end = translate_current = translate_buffer = nullptr;
+}
+
+void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
+{
+    if(next_translation_index >= MAX_TRANSLATIONS)
+    {
+        warn("Out of translation slots!");
+        return;
+    }
+
+    map_reset();
+
+    uint32_t **jump_table_start = jump_table_current;
+    uint32_t pc = pc_start, *insn_ptr = insn_ptr_start;
+    // Pointer to translation of current instruction
+    uint32_t *translate_buffer_inst_start = translate_current;
+    // cond_branch points to the bne, see below
+    uint32_t *cond_branch = nullptr;
+
+    // This loop is executed once per instruction
+    // Due to the CPU being able to jump to each instruction seperately,
+    // there is no state preserved, so register mappings are reset.
+    while(1)
+    {
+        // Translate further?
+        if(translate_current + 0x200 > translate_end
+            || RAM_FLAGS(insn_ptr) & (RF_EXEC_BREAKPOINT | RF_EXEC_DEBUG_NEXT | RF_EXEC_HACK | RF_CODE_TRANSLATED | RF_CODE_NO_TRANSLATE)
+            || (pc ^ pc_start) & ~0x3ff)
+            goto exit_translation;
+
+        Instruction i;
+        uint32_t insn = i.raw = *insn_ptr;
+
+        // Rollback translate_current to this val if instruction not supported
+        translate_buffer_inst_start = translate_current;
+
+        // Conditional instructions are translated like this:
+        // msr cpsr_f, r12
+        // b<cc> after_inst
+        // <instruction>
+        // after_inst: @ next instruction
+        if(i.cond != CC_AL)
+        {
+            emit_ldr_flags();
+            cond_branch = translate_current;
+            emit(0x0a000000 | ((i.cond ^ 1) << 28));
+        }
+
+        if((insn & 0xE000090) == 0x0000090)
+            goto unimpl;
+        else if((insn & 0xD900000) == 0x1000000)
+            goto unimpl;
+        else if((insn & 0xC000000) == 0x0000000)
+        {
+            // Data processing:
+            // The registers the instruction uses are renamed
+            bool setcc = i.data_proc.s,
+                 reg_shift = !i.data_proc.imm && i.data_proc.reg_shift;
+
+            // Using pc is not supported
+            if(i.data_proc.rd == 15
+                    || i.data_proc.rn == 15
+                    || i.data_proc.rm == 15
+                    || (reg_shift && i.data_proc.rs == 15))
+                goto unimpl;
+
+			Instruction translated;
+			translated.raw = i.raw;
+
+			// Map needed register values:
+			// add rd, rn, rm, lsl rs becomes add r4, r0, r1, lsl r2 for example
+
+			// MOV and MVN don't have Rn
+			if(i.data_proc.op != OP_MOV && i.data_proc.op != OP_MVN)
+                translated.data_proc.rn = map_load_reg(i.data_proc.rn);
+
+			// rm is stored in the immediate, don't overwrite it
+			if(!i.data_proc.imm)
+                translated.data_proc.rm = map_load_reg(i.data_proc.rm);
+
+			// Only load rs if actually needed
+            if(reg_shift)
+                translated.data_proc.rs = map_load_reg(i.data_proc.rs);
+
+			// Only change the destination register if it has one
+            if(i.data_proc.op < OP_TST || i.data_proc.op > OP_CMN)
+                translated.data_proc.rd = map_save_reg(i.data_proc.rd);
+
+            if(unlikely(setcc || i.data_proc.op == OP_ADC || i.data_proc.shift == SH_ROR))
+            {
+                // This instruction impacts the flags, load them...
+                emit_ldr_flags();
+
+                // Emit the instruction itself
+                emit(translated.raw);
+
+                // ... and store them again
+                emit_str_flags();
+            }
+            else
+                emit(translated.raw);
+        }
+        else if((insn & 0xC000000) == 0x4000000)
+        {
+            // Memory access: LDR, STRB, etc.
+
+            // User mode access not implemented
+            if(!i.mem_proc.p && i.mem_proc.w)
+                goto unimpl;
+
+            // pc-relative not implemented
+            if(i.mem_proc.rn == 15 || i.mem_proc.rm == 15)
+                goto unimpl;
+
+            // Base register gets in r0
+            emit_ldr_armreg(0, i.mem_proc.rn);
+
+            bool offset_is_zero = !i.mem_proc.not_imm && i.mem_proc.immed == 0;
+
+            // Skip offset calculation
+            if(offset_is_zero)
+                goto no_offset;
+
+            // Offset gets in r5
+            if(!i.mem_proc.not_imm)
+            {
+                // Immediate offset
+                emit_mov(5, i.mem_proc.immed);
+            }
+            else
+            {
+                // Shifted register: translate to mov
+                Instruction off;
+                off.raw = 0xe1a05000; // mov r5, something
+                off.raw |= insn & 0xFFF; // Copy shifter_operand
+                off.data_proc.rm = 1;
+                emit_ldr_armreg(1, i.mem_proc.rm);
+                emit(off.raw);
+            }
+
+            // Get final address in r5
+            if(i.mem_proc.u)
+                emit_al(0x0805005); // add r5, r0, r5
+            else
+                emit_al(0x0405005); // sub r5, r0, r5
+
+            // Get final address in r0
+            if(i.mem_proc.p)
+            {
+                emit_al(0x1a00005); // mov r0, r5
+                if(i.mem_proc.w) // Writeback: final address into rn
+                    emit_str_armreg(0, i.mem_proc.rn);
+            }
+
+            no_offset:
+            if(i.mem_proc.l)
+            {
+                emit_call(reinterpret_cast<void*>(i.mem_proc.b ? read_byte : read_word));
+                if(i.mem_proc.rd != 15)
+                    emit_str_armreg(0, i.mem_proc.rd); // r0 is return value
+                else
+                {
+                    // pc is destination register
+                    emit_save_state();
+                    emit_jmp(reinterpret_cast<void*>(translation_next));
+                }
+            }
+            else
+            {
+                emit_ldr_armreg(1, i.mem_proc.rd); // r1 is the value
+                emit_call(reinterpret_cast<void*>(i.mem_proc.b ? write_byte : write_word));
+            }
+
+            // Post-indexed: final address in r5 back into rn
+            if(!offset_is_zero && !i.mem_proc.p)
+                emit_str_armreg(5, i.mem_proc.rn);
+        }
+        else
+            goto unimpl;
+
+        emit_save_state();
+
+        if(cond_branch)
+        {
+            // Fixup the branch above (-2 to account for the pipeline)
+            *cond_branch |= (translate_current - cond_branch - 2) & 0xFFFFFF;
+            cond_branch = nullptr;
+        }
+
+        RAM_FLAGS(insn_ptr) |= (RF_CODE_TRANSLATED | next_translation_index << RFS_TRANSLATION_INDEX);
+        *jump_table_current++ = translate_buffer_inst_start;
+        ++insn_ptr;
+        pc += 4;
+    }
+
+    unimpl:
+    // There may be a partial translation in memory, scrap it.
+    translate_current = translate_buffer_inst_start;
+    RAM_FLAGS(insn_ptr) |= RF_CODE_NO_TRANSLATE;
+
+	exit_translation:
+	emit_save_state();
+    emit_mov(0, pc);
+    emit_jmp(reinterpret_cast<void*>(translation_next));
+
+    // Did we do any translation at all?
+    if(insn_ptr == insn_ptr_start)
+        return;
+
+    translation this_translation;
+    this_translation.jump_table = reinterpret_cast<void**>(jump_table_start);
+    this_translation.start_ptr = insn_ptr_start;
+    this_translation.end_ptr = insn_ptr;
+
+    // Flush the instruction cache
+     __builtin___clear_cache(jump_table_start[0], translate_current);
+
+    translation_table[next_translation_index++] = this_translation;
+}
+
+void flush_translations()
+{
+    for(unsigned int index = 0; index < next_translation_index; index++)
+    {
+        uint32_t *start = translation_table[index].start_ptr;
+        uint32_t *end   = translation_table[index].end_ptr;
+        for (; start < end; start++)
+            RAM_FLAGS(start) &= ~(RF_CODE_TRANSLATED | (-1 << RFS_TRANSLATION_INDEX));
+    }
+
+    next_translation_index = 0;
+    translate_current = translate_buffer;
+    jump_table_current = jump_table;
+}
+
+void invalidate_translation(int index)
+{
+    if(!translation_sp)
+        return flush_translations();
+
+    uint32_t flags = RAM_FLAGS(translation_pc_ptr);
+    if ((flags & RF_CODE_TRANSLATED) && (int)(flags >> RFS_TRANSLATION_INDEX) == index)
+        error("Cannot modify currently executing code block.");
+
+    flush_translations();
+}
+
+void translate_fix_pc()
+{
+    if (!translation_sp)
+        return;
+
+    // Not implemented
+    assert(false);
+}

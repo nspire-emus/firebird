@@ -65,6 +65,8 @@ void FASTCALL set_cpsr(uint32_t cpsr, uint32_t mask);
 uint32_t FASTCALL get_spsr();
 void FASTCALL set_spsr(uint32_t cpsr, uint32_t mask);
 uint32_t *ptr_spsr();
+uint32_t get_cpsr_flags();
+void set_cpsr_flags(uint32_t flags);
 void cpu_exception(int type);
 void fix_pc_for_fault();
 void cpu_interpret_instruction(uint32_t insn);

@@ -43,11 +43,8 @@ win32 {
 # A platform-independant implementation of lowlevel access as default
 ASMCODE_IMPL = asmcode.c
 
-linux-g++:QMAKE_TARGET.arch = $$QMAKE_HOST.arch
-linux-clang:QMAKE_TARGET.arch = $$QMAKE_HOST.arch
-linux-g++-32:QMAKE_TARGET.arch = x86
-linux-g++-64:QMAKE_TARGET.arch = x86_64
-macx-clang:QMAKE_TARGET.arch = $$QMAKE_HOST.arch
+# QMAKE_HOST can be e.g. armv7hl, but QT_ARCH would be arm in such cases
+QMAKE_TARGET.arch = $$QT_ARCH
 
 equals(TRANSLATION_ENABLED, true) {
     TRANSLATE = $$join(QMAKE_TARGET.arch, "", "translate_", ".c")
@@ -55,13 +52,18 @@ equals(TRANSLATION_ENABLED, true) {
         SOURCES += $$TRANSLATE
     }
 
+    TRANSLATE2 = $$join(QMAKE_TARGET.arch, "", "translate_", ".cpp")
+    exists($$TRANSLATE2) {
+        SOURCES += $$TRANSLATE2
+    }
+
     ASMCODE = $$join(QMAKE_TARGET.arch, "", "asmcode_", ".S")
     exists($$ASMCODE): ASMCODE_IMPL = $$ASMCODE
 }
 else: DEFINES += NO_TRANSLATION
 
-# The x86_64 JIT uses asmcode.c for mem access
-contains(QMAKE_TARGET.arch, "x86_64") {
+# The x86_64 and ARM JIT use asmcode.c for mem access
+contains(QMAKE_TARGET.arch, "x86_64") | contains(QMAKE_TARGET.arch, "arm") {
     !contains(ASMCODE_IMPL, "asmcode.c") {
         SOURCES += asmcode.c
     }

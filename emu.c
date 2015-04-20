@@ -173,14 +173,7 @@ int emulate(unsigned int port_gdb, unsigned int port_rdbg)
     }
 
 #ifndef NO_TRANSLATION
-    if(!insn_buffer)
-    {
-        insn_buffer = os_alloc_executable(INSN_BUFFER_SIZE);
-        insn_bufptr = insn_buffer;
-    }
-
-    if(!insn_buffer)
-        return false;
+    translate_init();
 #endif
 
     os_exception_frame_t frame;
