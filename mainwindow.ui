@@ -204,7 +204,7 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>207</width>
+             <width>206</width>
              <height>96</height>
             </rect>
            </property>
@@ -253,7 +253,7 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>352</width>
+             <width>237</width>
              <height>98</height>
             </rect>
            </property>
@@ -363,7 +363,7 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>157</width>
+             <width>156</width>
              <height>40</height>
             </rect>
            </property>
@@ -388,7 +388,7 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>149</width>
+             <width>148</width>
              <height>76</height>
             </rect>
            </property>
@@ -462,7 +462,7 @@
     <bool>false</bool>
    </property>
    <property name="toolButtonStyle">
-    <enum>Qt::ToolButtonFollowStyle</enum>
+    <enum>Qt::ToolButtonIconOnly</enum>
    </property>
    <attribute name="toolBarArea">
     <enum>TopToolBarArea</enum>
@@ -542,7 +542,7 @@
      <normaloff>:/icons/resources/icons/media-playback-pause.png</normaloff>:/icons/resources/icons/media-playback-pause.png</iconset>
    </property>
    <property name="text">
-    <string> </string>
+    <string/>
    </property>
    <property name="toolTip">
     <string>Pause execution</string>
@@ -562,7 +562,10 @@
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Speed</string>
+    <string>Speed: 0 %</string>
+   </property>
+   <property name="toolTip">
+    <string>Enable Fullspeed</string>
    </property>
   </action>
   <action name="actionScreenshot">
