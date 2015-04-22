@@ -3,11 +3,7 @@
 
 #include <sys/mman.h>
 #include <stdio.h>
-#include <termios.h>
-#include <sys/ioctl.h>
 #include <sys/time.h>
-#include <signal.h>
-#include <ucontext.h>
 #include <unistd.h>
 #include "os.h"
 
@@ -94,33 +90,6 @@ void os_query_frequency(os_frequency_t *f)
     fclose(freq);
 }
 
-static void addr_cache_exception(int sig, siginfo_t *si, void *uctx)
-{
-    (void) sig;
-    (void) uctx;
-
-    ucontext_t *u = (ucontext_t*) uctx;
-#ifdef __i386__
-#ifdef __linux__
-    emuprintf("Got SIGSEGV trying to access 0x%lx (EIP=0x%x)\n", (long) si->si_addr, u->uc_mcontext.gregs[REG_EIP]);
-#else // Apple
-    emuprintf("Got SIGSEGV trying to access 0x%lx (EIP=0x%x)\n", (long) si->si_addr, u->uc_mcontext->__ss.__eip);
-#endif
-#elif defined(__x86_64__)
-#ifdef __linux__
-    emuprintf("Got SIGSEGV trying to access 0x%lx (RIP=0x%x)\n", (long) si->si_addr, u->uc_mcontext.gregs[REG_RIP]);
-#else // Apple
-    emuprintf("Got SIGSEGV trying to access 0x%lx (RIP=0x%x)\n", (long) si->si_addr, u->uc_mcontext->__ss.__rip);
-#endif
-#elif defined(__arm__)
-    // TODO : fix
-    // emuprintf("Got SIGSEGV (PC=0x%x)\n", u->uc_mcontext.arm_pc);
-#endif
-
-    if(!addr_cache_pagefault((uint8_t*)si->si_addr))
-        exit(1);
-}
-
 void make_writable(void *addr)
 {
     uintptr_t ps = sysconf(_SC_PAGE_SIZE);
@@ -128,8 +97,6 @@ void make_writable(void *addr)
     if(mprotect(prev, ps, PROT_READ | PROT_WRITE | PROT_EXEC) != 0)
         emuprintf("mprotect failed.\n");
 }
-
-static struct sigaction old_sa;
 
 void addr_cache_init(os_exception_frame_t *frame)
 {
@@ -148,18 +115,6 @@ void addr_cache_init(os_exception_frame_t *frame)
     }
 
     setbuf(stdout, NULL);
-
-    struct sigaction sa;
-
-    sa.sa_flags = SA_SIGINFO;
-    sigemptyset(&sa.sa_mask);
-    sa.sa_sigaction = addr_cache_exception;
-    if(sigaction(SIGSEGV, &sa, &old_sa) == -1)
-    {
-        fprintf(stderr, "Failed to initialize SEGV handler.\n");
-        addr_cache_deinit();
-        exit(1);
-    }
 
     unsigned int i;
     for(i = 0; i < AC_NUM_ENTRIES; ++i)
@@ -185,5 +140,4 @@ void addr_cache_deinit()
         munmap(addr_cache, AC_NUM_ENTRIES * sizeof(ac_entry));
 
     addr_cache = NULL;
-    sigaction(SIGSEGV, &old_sa, NULL);
 }
