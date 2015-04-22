@@ -218,13 +218,8 @@ static void emit_save_state()
         return;
 
     cpsr_dirty = false;
-    // Put the cpsr in r11 into arm.cpsr_* again
-    //TODO: do this natively!
-    emit_al(0x92d4001); // push {r0, lr}
-    emit_al(0x1a0000b); // mov r0, r11
-    emit_al(0x28fe004); // add lr, pc, #4
-    emit_jmp(reinterpret_cast<void*>(set_cpsr_flags));
-    emit_al(0x8bd4001); // pop {r0, lr}
+    // Put the cpsr in r11 into arm.cpsr_flags again
+    emit_str_armreg(11, 18); // Small hack, arm.cpsr_flags is at pos. 18
 }
 
 static __attribute__((unused)) void emit_bkpt()
@@ -467,7 +462,7 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
     this_translation.end_ptr = insn_ptr;
 
     // Flush the instruction cache
-     __builtin___clear_cache(jump_table_start[0], translate_current);
+    __builtin___clear_cache(jump_table_start[0], translate_current);
 
     translation_table[next_translation_index++] = this_translation;
 }
@@ -504,6 +499,10 @@ void translate_fix_pc()
     if (!translation_sp)
         return;
 
-    // Not implemented
+    // This is normally done when leaving the translation,
+    // but since we are here, this didn't happen (longjmp)
+    set_cpsr_flags(arm.cpsr_flags);
+
+    // Not implemented: Get accurate pc back in arm.reg[15]
     assert(false);
 }

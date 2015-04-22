@@ -20,6 +20,10 @@ struct arm_state {  // Remember to update asmcode.S if this gets rearranged
     uint8_t  cpsr_c;     // CPSR bit 29
     uint8_t  cpsr_v;     // CPSR bit 28
 
+    #ifdef __arm__
+    uint32_t cpsr_flags; // Only used in ARM translations
+    #endif
+
     /* CP15 registers */
     uint32_t control;
     uint32_t translation_table_base;
