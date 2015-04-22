@@ -15,6 +15,10 @@ translation_pc_ptr: .global translation_pc_ptr
 #define RF_CODE_TRANSLATED   32
 #define RFS_TRANSLATION_INDEX 9
 
+#define AC_INVALID 0b10
+#define AC_NOT_PTR 0b01
+#define AC_FLAGS (AC_INVALID|AC_NOT_PTR)
+
 translation_enter: .global translation_enter
         push		{r4-r11, lr}
 	ldr		r0, =translation_sp
@@ -90,142 +94,146 @@ return:
 
         pop		{r4-r11, pc}
 
-/*read_word: .global read_word
-read_word_ldr: .global read_word_ldr
-	mov		r1, r0, lsr #10
-	adr		r2, addr_cache
-	ldr		r2, [r2]
-	ldr		r1, [r2, r1, lsl #1]
-	tst		r1, #0b11
-	ldreq	r0, [r1, r0]
-	bx		lr
-	tst		r1, #0b10
-	beq		phys_word
-	mov		r1, #0
-	push	{r4, lr}
-	mov		r4, r0
-	bl		addr_cache_miss
-	mov		r0, r4
-	pop		{r4, lr}
-	b		read_word
-phys_word:
-	mvn		r2, #0b11
-	and		r1, r1, r2
-	add		r0, r1, r0
-	pop		{r2, r3}
-	b		mmio_read_word
-
-read_half:  .global read_half
-	mov		r1, r0, lsr #10
-	adr		r2, addr_cache
-	ldr		r2, [r2]
-	ldr		r1, [r2, r1, lsl #1]
-	tst		r1, #0b11
-	ldreqh	r0, [r1, r0]
-	bx		lr
-	tst		r1, #0b10
-	beq		phys_half
-	mov		r1, #0
-	push	{r4, lr}
-	mov		r4, r0
-	bl		addr_cache_miss
-	mov		r0, r4
-	pop		{r4, lr}
-	b		read_half
-phys_half:
-	mvn		r2, #0b11
-	and		r1, r1, r2
-	add		r0, r1, r0
-	pop		{r2, r3}
-	b		mmio_read_half
-
-read_byte:  .global read_byte
-	mov		r1, r0, lsr #10
-	adr		r2, addr_cache
-	ldr		r2, [r2]
-	ldr		r1, [r2, r1, lsl #1]
-	tst		r1, #0b11
-	ldreqb	r0, [r1, r0]
-	bx		lr
-	tst		r1, #0b10
-	beq		phys_half
-	mov		r1, #0
-	push	{r4, lr}
-	mov		r4, r0
-	bl		addr_cache_miss
-	mov		r0, r4
-	pop		{r4, lr}
-	b		read_byte
-phys_byte:
-	mvn		r2, #0b11
-	and		r1, r1, r2
-	add		r0, r1, r0
-	pop		{r2, r3}
-	b		mmio_read_byte
+// Below is basically a handcoded assembly version of asmcode.c
+//TODO: Invoke write_action for translation invalidation!
 
 write_word: .global write_word
-	mov		r2, r0, lsr #10
-	adr		r3, addr_cache
-	ldr		r3, [r3]
-	ldr		r2, [r3, r2, lsl #1]
-	tst		r2, #0b11
-	streq	r1, [r2, r0]
-	bx		lr
-	tst		r2, #0b10
-	beq		phys_wword
-	push	{r0, r1, r4, lr}
-	mov		r1, #1
-	bl		addr_cache_miss
-	pop		{r0, r1, r4, lr}
-	b		write_word
-phys_wword:
-	mvn		r3, #0b11
-	and		r2, r2, r2
-	add		r0, r2, r0
-	pop		{r2, r3}
-	b		mmio_write_word
+// r0 is address, r1 is value
+        ldr             r2, =addr_cache
+        ldr             r2, [r2]
+        mov             r3, r0, lsr #9
+        orr             r3, r3, #1
+        ldr             r3, [r2, r3, lsl #2] // r3 contains ac_entry
+        tst             r3, #AC_FLAGS
+        streq           r1, [r3, r0]
+        bxeq            lr
+        tst             r3, #AC_INVALID
+        bne             write_word_invalid
+        bic             r3, #AC_FLAGS
+        add             r0, r3, r0
+        b               mmio_write_word
+write_word_invalid:
+        push            {r0, r1, r2, lr} //r2 for stack alignment
+        mov             r1, #1
+        ldr             r2, =data_abort
+        bl              addr_cache_miss
+        pop             {r0, r1, r2, lr}
+        b               write_word
 
 write_half: .global write_half
-	mov		r2, r0, lsr #10
-	adr		r3, addr_cache
-	ldr		r3, [r3]
-	ldr		r2, [r3, r2, lsl #1]
-	tst		r2, #0b11
-	streqh	r1, [r2, r0]
-	bx		lr
-	tst		r2, #0b10
-	beq		phys_whalf
-	push	{r0, r1, r4, lr}
-	mov		r1, #1
-	bl		addr_cache_miss
-	pop		{r0, r1, r4, lr}
-	b		write_half
-phys_whalf:
-	mvn		r3, #0b11
-	and		r2, r2, r2
-	add		r0, r2, r0
-	pop		{r2, r3}
-	b		mmio_write_half
+// r0 is address, r1 is value
+        ldr             r2, =addr_cache
+        ldr             r2, [r2]
+        mov             r3, r0, lsr #9
+        orr             r3, r3, #1
+        ldr             r3, [r2, r3, lsl #2] // r3 contains ac_entry
+        tst             r3, #AC_FLAGS
+        streqh          r1, [r3, r0]
+        bxeq            lr
+        tst             r3, #AC_INVALID
+        bne             write_half_invalid
+        bic             r3, #AC_FLAGS
+        add             r0, r3, r0
+        b               mmio_write_half
+write_half_invalid:
+        push            {r0, r1, r2, lr} //r2 for stack alignment
+        mov             r1, #1
+        ldr             r2, =data_abort
+        bl              addr_cache_miss
+        pop             {r0, r1, r2, lr}
+        b               write_half
+
 
 write_byte: .global write_byte
-	mov		r2, r0, lsr #10
-	adr		r3, addr_cache
-	ldr		r3, [r3]
-	ldr		r2, [r3, r2, lsl #1]
-	tst		r2, #0b11
-	streqb	r1, [r2, r0]
-	bx		lr
-	tst		r2, #0b10
-	beq		phys_wbyte
-	push	{r0, r1, r4, lr}
-	mov		r1, #1
-	bl		addr_cache_miss
-	pop		{r0, r1, r4, lr}
-	b		write_byte
-phys_wbyte:
-	mvn		r3, #0b11
-	and		r2, r2, r2
-	add		r0, r2, r0
-	pop		{r2, r3}
-	b		mmio_write_byte
-*/
+// r0 is address, r1 is value
+        ldr             r2, =addr_cache
+        ldr             r2, [r2]
+        mov             r3, r0, lsr #9
+        orr             r3, r3, #1
+        ldr             r3, [r2, r3, lsl #2] // r3 contains ac_entry
+        tst             r3, #AC_FLAGS
+        streqb          r1, [r3, r0]
+        bxeq            lr
+        tst             r3, #AC_INVALID
+        bne             write_byte_invalid
+        bic             r3, #AC_FLAGS
+        add             r0, r3, r0
+        b               mmio_write_byte
+write_byte_invalid:
+        push            {r0, r1, r2, lr} //r2 for stack alignment
+        mov             r1, #1
+        ldr             r2, =data_abort
+        bl              addr_cache_miss
+        pop             {r0, r1, r2, lr}
+        b               write_byte
+
+read_word_ldr: .global read_word_ldr
+read_word: .global read_word
+// r0 is address
+        ldr             r2, =addr_cache
+        ldr             r2, [r2]
+        mov             r3, r0, lsr #9
+        bic             r3, r3, #1
+        ldr             r3, [r2, r3, lsl #2] // r3 contains ac_entry
+        tst             r3, #AC_FLAGS
+        ldreq           r0, [r3, r0]
+        bxeq            lr
+        tst             r3, #AC_INVALID
+        bne             read_word_invalid
+        bic             r3, #AC_FLAGS
+        add             r0, r3, r0
+        b               mmio_read_word
+read_word_invalid:
+        push            {r0, lr}
+        mov             r1, #0
+        ldr             r2, =data_abort
+        bl              addr_cache_miss
+        pop             {r0, lr}
+        b               read_word
+
+read_half: .global read_half
+// r0 is address
+        ldr             r2, =addr_cache
+        ldr             r2, [r2]
+        mov             r3, r0, lsr #9
+        bic             r3, r3, #1
+        ldr             r3, [r2, r3, lsl #2] // r3 contains ac_entry
+        tst             r3, #AC_FLAGS
+        ldreqh          r0, [r3, r0]
+        bxeq            lr
+        tst             r3, #AC_INVALID
+        bne             read_half_invalid
+        bic             r3, #AC_FLAGS
+        add             r0, r3, r0
+        b               mmio_read_half
+read_half_invalid:
+        push            {r0, lr}
+        mov             r1, #0
+        ldr             r2, =data_abort
+        bl              addr_cache_miss
+        pop             {r0, lr}
+        b               read_half
+
+
+read_byte: .global read_byte
+// r0 is address
+        ldr             r2, =addr_cache
+        ldr             r2, [r2]
+        mov             r3, r0, lsr #9
+        bic             r3, r3, #1
+        ldr             r3, [r2, r3, lsl #2] // r3 contains ac_entry
+        tst             r3, #AC_FLAGS
+        ldreqb          r0, [r3, r0]
+        bxeq            lr
+        tst             r3, #AC_INVALID
+        bne             read_byte_invalid
+        bic             r3, #AC_FLAGS
+        add             r0, r3, r0
+        b               mmio_read_byte
+read_byte_invalid:
+        push            {r0, lr}
+        mov             r1, #0
+        ldr             r2, =data_abort
+        bl              addr_cache_miss
+        pop             {r0, lr}
+        b               read_byte
