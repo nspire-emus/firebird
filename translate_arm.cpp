@@ -20,6 +20,10 @@
 #include "translate.h"
 #include "os/os.h"
 
+#ifdef __thumb__
+#error Thumb mode is not supported!
+#endif
+
 extern "C" {
 extern void translation_next() __asm__("translation_next");
 extern void **translation_sp __asm__("translation_sp");
