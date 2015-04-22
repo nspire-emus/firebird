@@ -148,6 +148,9 @@ static void emit_flush_regs()
     }
 }
 
+// Whether the cpsr in r11 was modified and has to be written back
+static bool cpsr_dirty;
+
 // Load and store flags from r11
 static void emit_ldr_flags()
 {
@@ -157,6 +160,7 @@ static void emit_ldr_flags()
 static void emit_str_flags()
 {
     emit_al(0x10fb000); // mrs r11, cpsr_f
+    cpsr_dirty = true; // Trigger writeback
 }
 
 // Sets rd to imm
@@ -168,10 +172,18 @@ static void emit_mov(uint8_t rd, uint32_t imm)
         emit_al(0x3a00000 | (rd << 12) | imm); // mov rd, #imm
 	else
     {
-        // Insert immediate into code and jump over it
-        emit_al(0x59f0000 | (rd << 12)); // ldr rd, [pc]
-        emit_al(0xa000000); // b pc
-        emit(imm);
+        // movw/movt only available on >= armv6
+        #ifndef __ARM_ARCH_6__
+                emit_al(0x3000000 | (rd << 12) | ((imm & 0xF000) << 16) | (imm & 0xFFF)); // movw rd, #imm&0xFFFF
+                imm >>= 16;
+                if(imm)
+                    emit_al(0x3400000 | (rd << 12) | ((imm & 0xF000) << 16) | (imm & 0xFFF)); // movt rd, #imm>>16
+        #else
+                // Insert immediate into code and jump over it
+                emit_al(0x59f0000 | (rd << 12)); // ldr rd, [pc]
+                emit_al(0xa000000); // b pc
+                emit(imm);
+        #endif
     }
 }
 
@@ -202,6 +214,10 @@ static void emit_save_state()
 {
 	emit_flush_regs();
 
+    if(!cpsr_dirty)
+        return;
+
+    cpsr_dirty = false;
     // Put the cpsr in r11 into arm.cpsr_* again
     //TODO: do this natively!
     emit_al(0x92d4001); // push {r0, lr}

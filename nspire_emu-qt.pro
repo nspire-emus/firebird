@@ -69,6 +69,13 @@ contains(QMAKE_TARGET.arch, "x86_64") | contains(QMAKE_TARGET.arch, "arm") {
     }
 }
 
+# Default to armv6 on ARM. If your CPU doesn't support it,
+# comment this out.
+contains(QMAKE_TARGET.arch, "arm") {
+    QMAKE_CFLAGS += -march=armv6 -marm
+    QMAKE_CXXFLAGS += -march=armv6 -marm
+}
+
 linux-g++-32 {
     QMAKE_CFLAGS += -m32
     QMAKE_CXXFLAGS += -m32
