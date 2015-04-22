@@ -1,10 +1,10 @@
 /*
  * How the ARM translation works:
  * translation_enter in asmcode_arm.S finds the entry point and jumps to it.
- * LR in translation mode points to the global arm_state and r12 has a copy of
+ * LR in translation mode points to the global arm_state and r11 has a copy of
  * cpsr_nzcv that is updated after every virtual instruction if it changes the
  * flags. After returning from translation mode because either a branch was
- * executed or the translated block ends, r12 is split into cpsr_nzcv again
+ * executed or the translated block ends, r11 is split into cpsr_nzcv again
  * and all registers restored.
  */
 
@@ -115,7 +115,7 @@ static int map_reg(uint8_t reg, bool write)
 
     uint8_t ret = current_reg++;
     // Wrap to R4 after all regs cycled
-    if(current_reg > R11)
+    if(current_reg == R11)
         current_reg = R4;
 
     return ret;
@@ -148,15 +148,15 @@ static void emit_flush_regs()
     }
 }
 
-// Load and store flags from r12
+// Load and store flags from r11
 static void emit_ldr_flags()
 {
-    emit_al(0x128f00c); // msr cpsr_f, r12
+    emit_al(0x128f00b); // msr cpsr_f, r11
 }
 
 static void emit_str_flags()
 {
-    emit_al(0x10fc000); // mrs r12, cpsr_f
+    emit_al(0x10fb000); // mrs r11, cpsr_f
 }
 
 // Sets rd to imm
@@ -183,19 +183,17 @@ static void emit_jmp(void *target)
 
 static void emit_save_state();
 
-// Registers r0-r3 are not preserved!
+// Registers r0-r3 and r12 are not preserved!
 static void emit_call(void *target, bool save = true)
 {
 	if(save)
 		emit_save_state();
 
     // This is cheaper than doing it like emit_mov above.
-    // r12 has to be pushed too, not preserved by C functions
-    emit_al(0x92d5000); // push {r12,lr}
+    emit_al(0x92d4000); // push {lr}
     emit_al(0x28fe004); // add lr, pc, #4
-    emit_al(0x51ff004); // ldr pc, [pc, #-4]
-    emit(reinterpret_cast<uintptr_t>(target));
-    emit_al(0x8bd5000); // pop {r12,lr}
+    emit_jmp(target);
+    emit_al(0x8bd4000); // pop {lr}
 }
 
 // Flush all regs and flags into the global arm_state struct
@@ -204,14 +202,13 @@ static void emit_save_state()
 {
 	emit_flush_regs();
 
-    // Put the cpsr in r12 into arm.cpsr_* again
+    // Put the cpsr in r11 into arm.cpsr_* again
     //TODO: do this natively!
-    emit_al(0x92d5001); // push {r0, r12,lr}
-    emit_al(0x1a0000c); // mov r0, r12
+    emit_al(0x92d4001); // push {r0, lr}
+    emit_al(0x1a0000b); // mov r0, r11
     emit_al(0x28fe004); // add lr, pc, #4
-    emit_al(0x51ff004); // ldr pc, [pc, #-4]
-    emit(reinterpret_cast<uintptr_t>(set_cpsr_flags));
-    emit_al(0x8bd5001); // pop {r0, r12,lr}
+    emit_jmp(reinterpret_cast<void*>(set_cpsr_flags));
+    emit_al(0x8bd4001); // pop {r0, lr}
 }
 
 static __attribute__((unused)) void emit_bkpt()
@@ -276,7 +273,7 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
         translate_buffer_inst_start = translate_current;
 
         // Conditional instructions are translated like this:
-        // msr cpsr_f, r12
+        // msr cpsr_f, r11
         // b<cc> after_inst
         // <instruction>
         // after_inst: @ next instruction

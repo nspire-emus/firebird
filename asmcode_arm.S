@@ -16,11 +16,11 @@ translation_pc_ptr: .global translation_pc_ptr
 #define RFS_TRANSLATION_INDEX 9
 
 translation_enter: .global translation_enter
-        push		{r4-r12, lr}
+        push		{r4-r11, lr}
 	ldr		r0, =translation_sp
 	str		sp, [r0]
 	bl		get_cpsr_flags
-	mov		r12, r0 // r12 = cpsr
+        mov		r11, r0 // r11 = cpsr
 	ldr		lr, =arm // lr is a pointer to the global arm_state
 	ldr		r0, [lr, #15*4] // load arm.reg[15]
 	b		translation_next
@@ -75,7 +75,7 @@ translation_next: .global translation_next
 
 to_thumb:
 	sub		r0, r0, #1
-	orr		r12, r12, #0x20 // Set thumb bit
+        orr		r11, r11, #0x20 // Set thumb bit
 	b		return
 
 return:
@@ -83,7 +83,7 @@ return:
 	ldr		r1, =translation_sp
 	str		r0, [r1]
 
-	pop		{r4-r12, pc}
+        pop		{r4-r11, pc}
 
 /*read_word: .global read_word
 read_word_ldr: .global read_word_ldr
