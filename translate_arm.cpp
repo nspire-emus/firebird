@@ -181,10 +181,10 @@ static void emit_mov(uint8_t rd, uint32_t imm)
     {
         // movw/movt only available on >= armv6
         #if !defined(__ARM_ARCH_7__) && !defined(__ARM_ARCH_6__)
-                emit_al(0x3000000 | (rd << 12) | ((imm & 0xF000) << 16) | (imm & 0xFFF)); // movw rd, #imm&0xFFFF
+                emit_al(0x3000000 | (rd << 12) | ((imm & 0xF000) << 4) | (imm & 0xFFF)); // movw rd, #imm&0xFFFF
                 imm >>= 16;
                 if(imm)
-                    emit_al(0x3400000 | (rd << 12) | ((imm & 0xF000) << 16) | (imm & 0xFFF)); // movt rd, #imm>>16
+                    emit_al(0x3400000 | (rd << 12) | ((imm & 0xF000) << 4) | (imm & 0xFFF)); // movt rd, #imm>>16
         #else
                 // Insert immediate into code and jump over it
                 emit_al(0x59f0000 | (rd << 12)); // ldr rd, [pc]
