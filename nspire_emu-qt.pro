@@ -9,7 +9,7 @@ TEMPLATE = app
 TARGET = nspire_emu
 
 QMAKE_CFLAGS = -std=gnu11 -Wall -Wextra
-QMAKE_CXXFLAGS = -Wall -Wextra
+QMAKE_CXXFLAGS = -std=c++11 -Wall -Wextra
 
 # Override bad default options to enable better optimizations
 QMAKE_CFLAGS_RELEASE = -O3 -flto
@@ -71,8 +71,9 @@ contains(QMAKE_TARGET.arch, "x86_64") {
 
 # Default to armv7 on ARM. If your CPU doesn't support it, comment this out.
 contains(QMAKE_TARGET.arch, "arm") {
-    QMAKE_CFLAGS += -march=armv7 -marm
-    QMAKE_CXXFLAGS += -march=armv7 -marm
+    QMAKE_CFLAGS += -march=armv7-a -marm
+    QMAKE_CXXFLAGS += -march=armv7-a -marm
+    QMAKE_LFLAGS += -march=armv7-a -marm # We're using LTO, so the linker has to get the same flags
 }
 
 linux-g++-32 {
