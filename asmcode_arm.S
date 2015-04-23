@@ -12,6 +12,13 @@ translation_pc_ptr: .global translation_pc_ptr
 
 .text
 
+#ifdef __clang__
+        #define streqh strheq
+        #define streqb strbeq
+        #define ldreqh ldrheq
+        #define ldreqb ldrbeq
+#endif
+
 #define RF_CODE_TRANSLATED   32
 #define RFS_TRANSLATION_INDEX 9
 

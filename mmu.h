@@ -34,7 +34,7 @@ void mmu_check_priv(uint32_t addr, bool writing);
 
 #define AC_NUM_ENTRIES (4194304*2)
 typedef uint8_t *ac_entry;
-extern ac_entry *addr_cache;
+extern ac_entry *addr_cache __asm__("addr_cache");
 
 #if defined(__i386__) && !defined(NO_TRANSLATION)
     #define AC_SET_ENTRY_PTR(entry, va, ptr) \

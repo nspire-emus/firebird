@@ -28,6 +28,9 @@ extern "C" {
 extern void translation_next() __asm__("translation_next");
 extern void **translation_sp __asm__("translation_sp");
 extern void *translation_pc_ptr __asm__("translation_pc_ptr");
+#ifdef IS_IOS_BUILD
+    int sys_cache_control(int function, void *start, size_t len);
+#endif
 }
 
 #define MAX_TRANSLATIONS 0x40000
@@ -177,7 +180,7 @@ static void emit_mov(uint8_t rd, uint32_t imm)
 	else
     {
         // movw/movt only available on >= armv6
-        #ifndef __ARM_ARCH_6__
+        #if !defined(__ARM_ARCH_7__) && !defined(__ARM_ARCH_6__)
                 emit_al(0x3000000 | (rd << 12) | ((imm & 0xF000) << 16) | (imm & 0xFFF)); // movw rd, #imm&0xFFFF
                 imm >>= 16;
                 if(imm)
@@ -466,7 +469,11 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
     this_translation.end_ptr = insn_ptr;
 
     // Flush the instruction cache
+#ifdef IS_IOS_BUILD
+    sys_cache_control(1 /* kCacheFunctionPrepareForExecution */, jump_table_start[0], (translate_current-jump_table_start[0])*4);
+#else
     __builtin___clear_cache(jump_table_start[0], translate_current);
+#endif
 
     translation_table[next_translation_index++] = this_translation;
 }
