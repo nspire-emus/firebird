@@ -414,6 +414,8 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
                     emit_str_armreg(0, i.mem_proc.rd); // r0 is return value
                 else
                 {
+                    //TODO: Fix this
+                    goto unimpl;
                     // pc is destination register
                     emit_save_state();
                     emit_jmp(reinterpret_cast<void*>(translation_next));
