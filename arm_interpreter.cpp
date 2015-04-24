@@ -513,6 +513,7 @@ void do_arm_instruction(Instruction i)
     }
     else if((insn & 0xE000000) == 0xA000000)
     {
+        // B and BL
         if(i.branch.l)
             arm.reg[14] = arm.reg[15];
         arm.reg[15] += (int32_t) i.raw << 8 >> 6;

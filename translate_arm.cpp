@@ -17,6 +17,7 @@
 #include "cpu.h"
 #include "cpudefs.h"
 #include "mem.h"
+#include "mmu.h"
 #include "translate.h"
 #include "os/os.h"
 
@@ -427,6 +428,25 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
             // Post-indexed: final address in r5 back into rn
             if(!offset_is_zero && !i.mem_proc.p)
                 emit_str_armreg(5, i.mem_proc.rn);
+        }
+        else if((insn & 0xE000000) == 0xA000000)
+        {
+            if(i.branch.l)
+            {
+                // Save return address in LR
+                emit_mov(R0, pc + 4);
+                emit_str_armreg(R0, LR);
+            }
+
+            // We're going to jump somewhere else
+            emit_save_state();
+
+            uint32_t addr = pc + ((int32_t) i.raw << 8 >> 6) + 8;
+            emit_mov(R0, addr);
+            emit_jmp(reinterpret_cast<void*>(translation_next));
+
+            // TODO: Thunk of a way to jump to the translated code directly
+            // Currently this would generate an endless loop,  neither cpu_events nor cycle_count_delte gets checked
         }
         else
             goto unimpl;
