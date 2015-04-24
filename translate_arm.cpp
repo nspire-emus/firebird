@@ -1,7 +1,7 @@
 /*
  * How the ARM translation works:
  * translation_enter in asmcode_arm.S finds the entry point and jumps to it.
- * LR in translation mode points to the global arm_state and r11 has a copy of
+ * r10 in translation mode points to the global arm_state and r11 has a copy of
  * cpsr_nzcv that is updated after every virtual instruction if it changes the
  * flags. After returning from translation mode because either a branch was
  * executed or the translated block ends, r11 is split into cpsr_nzcv again
@@ -57,13 +57,13 @@ static inline void emit_al(uint32_t instruction)
 // Loads arm.reg[rs] into rd.
 static void emit_ldr_armreg(uint8_t rd, uint8_t r_virt)
 {
-    emit_al(0x59e0000 | (rd << 12) | (r_virt << 2)); // ldr rd, [lr, #2*r_virt]
+    emit_al(0x59a0000 | (rd << 12) | (r_virt << 2)); // ldr rd, [r10, #2*r_virt]
 }
 
 // Saves rd into arm.reg[rs].
 static void emit_str_armreg(uint8_t rd, uint8_t r_virt)
 {
-    emit_al(0x58e0000 | (rd << 12) | (r_virt << 2)); // str rd, [lr, #2*r_virt]
+    emit_al(0x58a0000 | (rd << 12) | (r_virt << 2)); // str rd, [r10, #2*r_virt]
 }
 
 // Register allocation: Registers are dynamically reused
@@ -122,7 +122,7 @@ static int map_reg(uint8_t reg, bool write)
 
     uint8_t ret = current_reg++;
     // Wrap to R4 after all regs cycled
-    if(current_reg == R11)
+    if(current_reg == R10)
         current_reg = R4;
 
     return ret;
@@ -155,9 +155,6 @@ static void emit_flush_regs()
     }
 }
 
-// Whether the cpsr in r11 was modified and has to be written back
-static bool cpsr_dirty;
-
 // Load and store flags from r11
 static void emit_ldr_flags()
 {
@@ -167,14 +164,12 @@ static void emit_ldr_flags()
 static void emit_str_flags()
 {
     emit_al(0x10fb000); // mrs r11, cpsr_f
-    cpsr_dirty = true; // Trigger writeback
+    // r11 is written to arm.cpsr_flags in translation_next and the memory access helpers in asmcode_arm.S
 }
 
 // Sets rd to imm
 static void emit_mov(uint8_t rd, uint32_t imm)
 {
-    // TODO: More variants!
-
 	if((imm & 0xFF) == imm)
         emit_al(0x3a00000 | (rd << 12) | imm); // mov rd, #imm
 	else
@@ -209,24 +204,15 @@ static void emit_call(void *target, bool save = true)
 		emit_save_state();
 
     // This is cheaper than doing it like emit_mov above.
-    emit_al(0x92d4000); // push {lr}
     emit_al(0x28fe004); // add lr, pc, #4
     emit_jmp(target);
-    emit_al(0x8bd4000); // pop {lr}
 }
 
-// Flush all regs and flags into the global arm_state struct
+// Flush all regs into the global arm_state struct
 // Has to be called before anything that might cause a translation leave!
 static void emit_save_state()
 {
 	emit_flush_regs();
-
-    if(!cpsr_dirty)
-        return;
-
-    cpsr_dirty = false;
-    // Put the cpsr in r11 into arm.cpsr_flags again
-    emit_str_armreg(11, 18); // Small hack, arm.cpsr_flags is at pos. 18
 }
 
 static __attribute__((unused)) void emit_bkpt()

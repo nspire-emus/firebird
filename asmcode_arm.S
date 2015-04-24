@@ -32,8 +32,8 @@ translation_enter: .global translation_enter
     str     sp, [r0]
     bl      get_cpsr
     mov     r11, r0 // r11 = cpsr
-    ldr     lr, =arm // lr is a pointer to the global arm_state
-    ldr     r0, [lr, #15*4] // load arm.reg[15]
+    ldr     r10, =arm // r10 is a pointer to the global arm_state
+    ldr     r0, [r10, #15*4] // load arm.reg[15]
     b       translation_next
 
 translation_next_bx: .global translation_next_bx
@@ -42,8 +42,8 @@ translation_next_bx: .global translation_next_bx
 
 translation_next: .global translation_next
     mov     r4, r0
-    str     r0, [lr, #15*4] // save to arm.reg[15]
-    str     r11, [lr, #18*4] // save to arm.cpsr_flags
+    str     r0, [r10, #15*4] // save to arm.reg[15]
+    str     r11, [r10, #18*4] // save to arm.cpsr_flags
     mov     r0, r11 // apply arm.cpsr_flags to arm.cpsr_*
     bl      set_cpsr_flags
     mov     r0, r4
@@ -86,7 +86,6 @@ translation_next: .global translation_next
     str     r5, [r6]
 
     sub     r0, r0, r3 // r0 = pc_ptr - start_ptr
-    ldr     lr, =arm // lr is a pointer to the global arm_state
     ldr     pc, [r2, r0] // jump to jump_table[r0]
 
 to_thumb:
@@ -114,6 +113,7 @@ write_word: .global write_word
     tst     r3, #AC_FLAGS
     streq   r1, [r3, r0]
     bxeq    lr
+    str     r11, [r10, #18*4] // save to arm.cpsr_flags
     tst     r3, #AC_INVALID
     bne     write_word_invalid
     bic     r3, #AC_FLAGS
@@ -137,6 +137,7 @@ write_half: .global write_half
     tst     r3, #AC_FLAGS
     streqh  r1, [r3, r0]
     bxeq    lr
+    str     r11, [r10, #18*4] // save to arm.cpsr_flags
     tst     r3, #AC_INVALID
     bne     write_half_invalid
     bic     r3, #AC_FLAGS
@@ -161,6 +162,7 @@ write_byte: .global write_byte
     tst     r3, #AC_FLAGS
     streqb  r1, [r3, r0]
     bxeq    lr
+    str     r11, [r10, #18*4] // save to arm.cpsr_flags
     tst     r3, #AC_INVALID
     bne     write_byte_invalid
     bic     r3, #AC_FLAGS
@@ -185,6 +187,7 @@ read_word: .global read_word
     tst     r3, #AC_FLAGS
     ldreq   r0, [r3, r0]
     bxeq    lr
+    str     r11, [r10, #18*4] // save to arm.cpsr_flags
     tst     r3, #AC_INVALID
     bne     read_word_invalid
     bic     r3, #AC_FLAGS
@@ -208,6 +211,7 @@ read_half: .global read_half
     tst     r3, #AC_FLAGS
     ldreqh  r0, [r3, r0]
     bxeq    lr
+    str     r11, [r10, #18*4] // save to arm.cpsr_flags
     tst     r3, #AC_INVALID
     bne     read_half_invalid
     bic     r3, #AC_FLAGS
@@ -232,6 +236,7 @@ read_byte: .global read_byte
     tst     r3, #AC_FLAGS
     ldreqb  r0, [r3, r0]
     bxeq    lr
+    str     r11, [r10, #18*4] // save to arm.cpsr_flags
     tst     r3, #AC_INVALID
     bne     read_byte_invalid
     bic     r3, #AC_FLAGS
