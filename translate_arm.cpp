@@ -291,7 +291,14 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
         if((insn & 0xE000090) == 0x0000090)
             goto unimpl;
         else if((insn & 0xD900000) == 0x1000000)
-            goto unimpl;
+        {
+            // Only msr rd, cpsr is supported
+            if((insn & 0xFF00000) != 0x10F0000)
+                goto unimpl;
+
+            // Store cpsr in arm.reg[rd]
+            emit_str_armreg(11, i.mrs.rd);
+        }
         else if((insn & 0xC000000) == 0x0000000)
         {
             // Data processing:
@@ -328,7 +335,11 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
             if(i.data_proc.op < OP_TST || i.data_proc.op > OP_CMN)
                 translated.data_proc.rd = map_save_reg(i.data_proc.rd);
 
-            if(unlikely(setcc || i.data_proc.op == OP_ADC || i.data_proc.shift == SH_ROR))
+            if(unlikely(setcc
+                        || i.data_proc.op == OP_ADC
+                        || i.data_proc.op == OP_SBC
+                        || i.data_proc.op == OP_RSC
+                        || i.data_proc.shift == SH_ROR)) // ROR with #0 as imm is RRX
             {
                 // This instruction impacts the flags, load them...
                 emit_ldr_flags();

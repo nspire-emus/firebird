@@ -55,6 +55,11 @@ union Instruction {
     } mem_proc; // LDR, STRB, etc.
 
     union {
+        BitField<22> r;
+        BitField<12, 4> rd;
+    } mrs;
+
+    union {
         BitField<24> p;
         BitField<23> u;
         BitField<22> s;
