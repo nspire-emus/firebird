@@ -8,8 +8,12 @@ CONFIG += c++11
 TEMPLATE = app
 TARGET = nspire_emu
 
-QMAKE_CFLAGS = -std=gnu11 -Wall -Wextra
-QMAKE_CXXFLAGS = -std=c++11 -Wall -Wextra
+# For make install support
+target.path = /usr/local/bin
+INSTALLS += target
+
+QMAKE_CFLAGS = -g -std=gnu11 -Wall -Wextra
+QMAKE_CXXFLAGS = -g -std=c++11 -Wall -Wextra
 
 # Override bad default options to enable better optimizations
 QMAKE_CFLAGS_RELEASE = -O3 -flto
@@ -69,7 +73,7 @@ contains(QMAKE_TARGET.arch, "x86_64") {
     }
 }
 
-# Default to armv7 on ARM. If your CPU doesn't support it, comment this out.
+# Default to armv7 on ARM for movw/movt If your CPU doesn't support it, comment this out.
 contains(QMAKE_TARGET.arch, "arm") {
     QMAKE_CFLAGS += -march=armv7-a -marm
     QMAKE_CXXFLAGS += -march=armv7-a -marm

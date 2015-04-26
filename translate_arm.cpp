@@ -175,8 +175,8 @@ static void emit_mov(uint8_t rd, uint32_t imm)
         emit_al(0x3a00000 | (rd << 12) | imm); // mov rd, #imm
 	else
     {
-        // movw/movt only available on >= armv6
-        #if !defined(__ARM_ARCH_7__) && !defined(__ARM_ARCH_6__)
+        // movw/movt only available on >= armv7
+        #ifdef __ARM_ARCH_7__
                 emit_al(0x3000000 | (rd << 12) | ((imm & 0xF000) << 4) | (imm & 0xFFF)); // movw rd, #imm&0xFFFF
                 imm >>= 16;
                 if(imm)
@@ -259,6 +259,12 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
     uint32_t *translate_buffer_inst_start = translate_current;
     // cond_branch points to the bne, see below
     uint32_t *cond_branch = nullptr;
+    // Pointer to struct translation for this block
+    translation *this_translation = &translation_table[next_translation_index];
+
+    // We know this already. end_ptr will be set after the loop
+    this_translation->jump_table = reinterpret_cast<void**>(jump_table_start);
+    this_translation->start_ptr = insn_ptr_start;
 
     // This loop is executed once per instruction
     // Due to the CPU being able to jump to each instruction seperately,
@@ -433,6 +439,10 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
         }
         else if((insn & 0xE000000) == 0xA000000)
         {
+            /* Branches work this way:
+             * Either jump to translation_next if code not translated (yet) or
+             * jump directly to the translated code, over a small function checking for pending events */
+
             if(i.branch.l)
             {
                 // Save return address in LR
@@ -444,11 +454,26 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
             emit_save_state();
 
             uint32_t addr = pc + ((int32_t) i.raw << 8 >> 6) + 8;
-            emit_mov(R0, addr);
-            emit_jmp(reinterpret_cast<void*>(translation_next));
+            uintptr_t entry = reinterpret_cast<uintptr_t>(addr_cache[(addr >> 10) << 1]);
+            uint32_t *ptr = reinterpret_cast<uint32_t*>(entry + addr);
+            if((entry & AC_FLAGS) || !(RAM_FLAGS(ptr) & RF_CODE_TRANSLATED))
+            {
+                // Not translated, use translation_next
+                emit_mov(R0, addr);
+                emit_jmp(reinterpret_cast<void*>(translation_next));
+            }
+            else
+            {
+                // Get address of translated code to jump to it
+                translation *target_translation = &translation_table[RAM_FLAGS(ptr) >> RFS_TRANSLATION_INDEX];
+                uintptr_t jmp_target = reinterpret_cast<uintptr_t>(target_translation->jump_table[ptr - target_translation->start_ptr]);
 
-            // TODO: Thunk of a way to jump to the translated code directly
-            // Currently this would generate an endless loop,  neither cpu_events nor cycle_count_delte gets checked
+                // Update pc first
+                emit_mov(R0, addr);
+                emit_str_armreg(R0, PC);
+                emit_mov(R0, jmp_target);
+                emit_jmp(reinterpret_cast<void*>(translation_jmp));
+            }
         }
         else
             goto unimpl;
@@ -482,10 +507,9 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
     if(insn_ptr == insn_ptr_start)
         return;
 
-    translation this_translation;
-    this_translation.jump_table = reinterpret_cast<void**>(jump_table_start);
-    this_translation.start_ptr = insn_ptr_start;
-    this_translation.end_ptr = insn_ptr;
+    this_translation->end_ptr = insn_ptr;
+    // This effectively flushes this_translation, as it won't get used next time
+    next_translation_index += 1;
 
     // Flush the instruction cache
 #ifdef IS_IOS_BUILD
@@ -493,8 +517,6 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
 #else
     __builtin___clear_cache(jump_table_start[0], translate_current);
 #endif
-
-    translation_table[next_translation_index++] = this_translation;
 }
 
 void flush_translations()

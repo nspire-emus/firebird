@@ -100,6 +100,35 @@ return:
 
     pop     {r4-r11, pc}
 
+// Invoked from within translated code to jump to other, already translated code
+// Target address of translated code is in r0 - only r10 and r11 have to be preserved
+// This is used to check for events and leave the translation to process them.
+// arm.reg[15] must be set already!
+translation_jmp: .global translation_jmp
+    /* For now the cpu_events check is commented out. This is a very critical section of code here,
+       having a high impact on performance. To increase accuracy, uncomment the block below.
+
+    ldr     r1, =cpu_events
+    ldr     r2, [r1]
+    cmp     r2, #0
+    bne     save_return */
+
+    ldr     r1, =cycle_count_delta
+    ldr     r2, [r1]
+    add     r2, #4 // We don't know how much will be executed, so use a possible number
+    str     r2, [r1]
+    cmp     r2, #0
+    bpl     save_return
+
+    bx      r0 // Jump to the target
+
+// Save flags and leave, arm.reg[15] must be set already!
+save_return:
+    str     r11, [r10, #18*4] // save to arm.cpsr_flags
+    mov     r0, r11 // apply arm.cpsr_flags to arm.cpsr_*
+    bl      set_cpsr_flags
+    b return
+
 // Below is basically a handcoded assembly version of asmcode.c
 //TODO: Invoke write_action for translation invalidation!
 
