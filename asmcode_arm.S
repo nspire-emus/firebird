@@ -132,7 +132,7 @@ save_return:
 // Below is basically a handcoded assembly version of asmcode.c
 //TODO: Invoke write_action for translation invalidation!
 
-write_word: .global write_word
+write_word_asm: .global write_word_asm
 // r0 is address, r1 is value
     ldr     r2, =addr_cache
     ldr     r2, [r2]
@@ -154,9 +154,9 @@ write_word_invalid:
     ldr     r2, =data_abort
     bl      addr_cache_miss
     pop     {r0, r1, r2, lr}
-    b       write_word
+    b       write_word_asm
 
-write_half: .global write_half
+write_half_asm: .global write_half_asm
 // r0 is address, r1 is value
     ldr     r2, =addr_cache
     ldr     r2, [r2]
@@ -178,10 +178,9 @@ write_half_invalid:
     ldr     r2, =data_abort
     bl      addr_cache_miss
     pop     {r0, r1, r2, lr}
-    b       write_half
+    b       write_half_asm
 
-
-write_byte: .global write_byte
+write_byte_asm: .global write_byte_asm
 // r0 is address, r1 is value
     ldr     r2, =addr_cache
     ldr     r2, [r2]
@@ -203,16 +202,14 @@ write_byte_invalid:
     ldr     r2, =data_abort
     bl      addr_cache_miss
     pop     {r0, r1, r2, lr}
-    b       write_byte
+    b       write_byte_asm
 
-read_word_ldr: .global read_word_ldr
-read_word: .global read_word
+read_word_asm: .global read_word_asm
 // r0 is address
     ldr     r2, =addr_cache
     ldr     r2, [r2]
-    mov     r3, r0, lsr #9
-    bic     r3, r3, #1
-    ldr     r3, [r2, r3, lsl #2] // r3 contains ac_entry
+    mov     r3, r0, lsr #10
+    ldr     r3, [r2, r3, lsl #3] // r3 contains ac_entry
     tst     r3, #AC_FLAGS
     ldreq   r0, [r3, r0]
     bxeq    lr
@@ -228,15 +225,14 @@ read_word_invalid:
     ldr     r2, =data_abort
     bl      addr_cache_miss
     pop     {r0, lr}
-    b       read_word
+    b       read_word_asm
 
-read_half: .global read_half
+read_half_asm: .global read_half_asm
 // r0 is address
     ldr     r2, =addr_cache
     ldr     r2, [r2]
-    mov     r3, r0, lsr #9
-    bic     r3, r3, #1
-    ldr     r3, [r2, r3, lsl #2] // r3 contains ac_entry
+    mov     r3, r0, lsr #10
+    ldr     r3, [r2, r3, lsl #3] // r3 contains ac_entry
     tst     r3, #AC_FLAGS
     ldreqh  r0, [r3, r0]
     bxeq    lr
@@ -252,16 +248,14 @@ read_half_invalid:
     ldr     r2, =data_abort
     bl      addr_cache_miss
     pop     {r0, lr}
-    b       read_half
+    b       read_half_asm
 
-
-read_byte: .global read_byte
+read_byte_asm: .global read_byte_asm
 // r0 is address
     ldr     r2, =addr_cache
     ldr     r2, [r2]
-    mov     r3, r0, lsr #9
-    bic     r3, r3, #1
-    ldr     r3, [r2, r3, lsl #2] // r3 contains ac_entry
+    mov     r3, r0, lsr #10
+    ldr     r3, [r2, r3, lsl #3] // r3 contains ac_entry
     tst     r3, #AC_FLAGS
     ldreqb  r0, [r3, r0]
     bxeq    lr
@@ -277,4 +271,4 @@ read_byte_invalid:
     ldr     r2, =data_abort
     bl      addr_cache_miss
     pop     {r0, lr}
-    b       read_byte
+    b       read_byte_asm

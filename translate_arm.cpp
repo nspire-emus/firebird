@@ -415,7 +415,7 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
             no_offset:
             if(i.mem_proc.l)
             {
-                emit_call(reinterpret_cast<void*>(i.mem_proc.b ? read_byte : read_word));
+                emit_call(reinterpret_cast<void*>(i.mem_proc.b ? read_byte_asm : read_word_asm));
                 if(i.mem_proc.rd != 15)
                     emit_str_armreg(0, i.mem_proc.rd); // r0 is return value
                 else
@@ -430,7 +430,7 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
             else
             {
                 emit_ldr_armreg(1, i.mem_proc.rd); // r1 is the value
-                emit_call(reinterpret_cast<void*>(i.mem_proc.b ? write_byte : write_word));
+                emit_call(reinterpret_cast<void*>(i.mem_proc.b ? write_byte_asm : write_word_asm));
             }
 
             // Post-indexed: final address in r5 back into rn

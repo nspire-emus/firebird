@@ -10,7 +10,7 @@ void flush_translations() {}
 bool range_translated(uintptr_t x, uintptr_t y) { (void) x; (void) y; return false; }
 #endif
 
-uint32_t FASTCALL read_word_ldr(uint32_t addr)
+uint32_t FASTCALL read_word(uint32_t addr)
 {
     uintptr_t entry = *(uintptr_t*)(addr_cache + ((addr >> 10) << 1));
 
@@ -20,7 +20,7 @@ uint32_t FASTCALL read_word_ldr(uint32_t addr)
         if(entry & AC_INVALID) //Invalid entry
         {
             addr_cache_miss(addr, false, data_abort);
-            return read_word_ldr(addr);
+            return read_word(addr);
         }
         else //Physical address
         {
@@ -83,11 +83,6 @@ uint32_t FASTCALL read_half(uint32_t addr)
     entry += addr;
 
     return *(uint16_t*)entry;
-}
-
-uint32_t FASTCALL read_word(uint32_t addr)
-{
-    return read_word_ldr(addr);
 }
 
 void FASTCALL write_byte(uint32_t addr, uint32_t value)

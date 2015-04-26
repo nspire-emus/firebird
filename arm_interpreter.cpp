@@ -213,7 +213,7 @@ void do_arm_instruction(Instruction i)
                 if (insn & 0x0400000) {
                     ld = read_byte(addr); write_byte(addr, st);
                 } else {
-                    ld = read_word_ldr(addr); write_word(addr, st);
+                    ld = read_word(addr); write_word(addr, st);
                 }
                 set_reg(insn >> 12 & 15, ld);
             } else {

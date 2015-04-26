@@ -173,23 +173,23 @@ enter_debugger:
                 }
                 break;
             }
-                CASE_x8(0x48): /* LDR reg, [PC, #imm] */ REG8 = read_word_ldr(((arm.reg[15] + 2) & -4) + ((insn & 0xFF) << 2)); break;
+                CASE_x8(0x48): /* LDR reg, [PC, #imm] */ REG8 = read_word(((arm.reg[15] + 2) & -4) + ((insn & 0xFF) << 2)); break;
                 CASE_x2(0x50): /* STR   Rd, [Rn, Rm] */ write_word(REG3 + REG6, REG0); break;
                 CASE_x2(0x52): /* STRH  Rd, [Rn, Rm] */ write_half(REG3 + REG6, REG0); break;
                 CASE_x2(0x54): /* STRB  Rd, [Rn, Rm] */ write_byte(REG3 + REG6, REG0); break;
                 CASE_x2(0x56): /* LDRSB Rd, [Rn, Rm] */ REG0 = (int8_t)read_byte(REG3 + REG6); break;
-                CASE_x2(0x58): /* LDR   Rd, [Rn, Rm] */ REG0 = read_word_ldr(REG3 + REG6); break;
+                CASE_x2(0x58): /* LDR   Rd, [Rn, Rm] */ REG0 = read_word(REG3 + REG6); break;
                 CASE_x2(0x5A): /* LDRH  Rd, [Rn, Rm] */ REG0 = read_half(REG3 + REG6); break;
                 CASE_x2(0x5C): /* LDRB  Rd, [Rn, Rm] */ REG0 = read_byte(REG3 + REG6); break;
                 CASE_x2(0x5E): /* LDRSH Rd, [Rn, Rm] */ REG0 = (int16_t)read_half(REG3 + REG6); break;
                 CASE_x8(0x60): /* STR  Rd, [Rn, #imm] */ write_word(REG3 + (insn >> 4 & 124), REG0); break;
-                CASE_x8(0x68): /* LDR  Rd, [Rn, #imm] */ REG0 = read_word_ldr(REG3 + (insn >> 4 & 124)); break;
+                CASE_x8(0x68): /* LDR  Rd, [Rn, #imm] */ REG0 = read_word(REG3 + (insn >> 4 & 124)); break;
                 CASE_x8(0x70): /* STRB Rd, [Rn, #imm] */ write_byte(REG3 + (insn >> 6 & 31), REG0); break;
                 CASE_x8(0x78): /* LDRB Rd, [Rn, #imm] */ REG0 = read_byte(REG3 + (insn >> 6 & 31)); break;
                 CASE_x8(0x80): /* STRH Rd, [Rn, #imm] */ write_half(REG3 + (insn >> 5 & 62), REG0); break;
                 CASE_x8(0x88): /* LDRH Rd, [Rn, #imm] */ REG0 = read_half(REG3 + (insn >> 5 & 62)); break;
                 CASE_x8(0x90): /* STR Rd, [SP, #imm] */ write_word(arm.reg[13] + ((insn & 0xFF) << 2), REG8); break;
-                CASE_x8(0x98): /* LDR Rd, [SP, #imm] */ REG8 = read_word_ldr(arm.reg[13] + ((insn & 0xFF) << 2)); break;
+                CASE_x8(0x98): /* LDR Rd, [SP, #imm] */ REG8 = read_word(arm.reg[13] + ((insn & 0xFF) << 2)); break;
                 CASE_x8(0xA0): /* ADD Rd, PC, #imm */ REG8 = ((arm.reg[15] + 2) & -4) + ((insn & 0xFF) << 2); break;
                 CASE_x8(0xA8): /* ADD Rd, SP, #imm */ REG8 = arm.reg[13] + ((insn & 0xFF) << 2); break;
             case 0xB0: /* ADD/SUB SP, #imm */
