@@ -66,13 +66,13 @@ static inline void emit_al(uint32_t instruction)
 }
 
 // Loads arm.reg[rs] into rd.
-static void emit_ldr_armreg(uint8_t rd, uint8_t r_virt)
+static void emit_ldr_armreg(const int rd, const int r_virt)
 {
     emit_al(0x59a0000 | (rd << 12) | (r_virt << 2)); // ldr rd, [r10, #2*r_virt]
 }
 
 // Saves rd into arm.reg[rs].
-static void emit_str_armreg(uint8_t rd, uint8_t r_virt)
+static void emit_str_armreg(const int rd, const int r_virt)
 {
     emit_al(0x58a0000 | (rd << 12) | (r_virt << 2)); // str rd, [r10, #2*r_virt]
 }
@@ -86,19 +86,19 @@ enum Reg : uint8_t {
 // Maps virtual register to physical register (or invalid) and a dirty-flag
 // PC is never mapped
 static uint8_t regmap[15];
-#define REG(x) (x&0xF)
+#define REG(x) (x&0xF) // Mask out Dirty bit
 
 // The next available physical register
-static uint8_t current_reg = R4;
+static int current_reg = R4;
 
 static void map_reset()
 {
     std::fill(regmap, regmap + 15, Invalid);
 }
 
-static int map_reg(uint8_t reg, bool write)
+static int map_reg(int reg, bool write)
 {
-    assert(reg < 16); // Must not happen: PC not implemented and higher nr is invalid
+    assert(reg <= 14); // Must not happen: PC (15) not implemented and any higher nr is invalid
 
     // Already mapped?
     if(regmap[reg] != Invalid)
@@ -142,7 +142,7 @@ static int map_reg(uint8_t reg, bool write)
 // After eight loaded registers the previous ones will be reused!
 // The reg is marked as dirty
 // Return value: Register number the reg has been mapped to
-static int map_save_reg(uint8_t reg)
+static int map_save_reg(int reg)
 {
     return map_reg(reg, true);
 }
@@ -150,7 +150,7 @@ static int map_save_reg(uint8_t reg)
 // After eight loaded registers the previous ones will be reused!
 // The current value is loaded, if not mapped yet
 // Return value: Register number the reg has been loaded into
-static int map_load_reg(uint8_t reg)
+static int map_load_reg(int reg)
 {
     return map_reg(reg, false);
 }
@@ -179,25 +179,25 @@ static void emit_str_flags()
 }
 
 // Sets rd to imm
-static void emit_mov(uint8_t rd, uint32_t imm)
+static void emit_mov(int rd, uint32_t imm)
 {
-	if((imm & 0xFF) == imm)
-        emit_al(0x3a00000 | (rd << 12) | imm); // mov rd, #imm
-	else
-    {
-        // movw/movt only available on >= armv7
-        #ifdef __ARM_ARCH_7__
-                emit_al(0x3000000 | (rd << 12) | ((imm & 0xF000) << 4) | (imm & 0xFFF)); // movw rd, #imm&0xFFFF
-                imm >>= 16;
-                if(imm)
-                    emit_al(0x3400000 | (rd << 12) | ((imm & 0xF000) << 4) | (imm & 0xFFF)); // movt rd, #imm>>16
-        #else
-                // Insert immediate into code and jump over it
-                emit_al(0x59f0000 | (rd << 12)); // ldr rd, [pc]
-                emit_al(0xa000000); // b pc
-                emit(imm);
-        #endif
-    }
+    // movw/movt only available on >= armv7
+    #ifdef __ARM_ARCH_7__
+        emit_al(0x3000000 | (rd << 12) | ((imm & 0xF000) << 4) | (imm & 0xFFF)); // movw rd, #imm&0xFFFF
+        imm >>= 16;
+        if(imm)
+            emit_al(0x3400000 | (rd << 12) | ((imm & 0xF000) << 4) | (imm & 0xFFF)); // movt rd, #imm>>16
+    #else
+        if((imm & 0xFF) == imm)
+            emit_al(0x3a00000 | (rd << 12) | imm); // mov rd, #imm
+        else
+        {
+            // Insert immediate into code and jump over it
+            emit_al(0x59f0000 | (rd << 12)); // ldr rd, [pc]
+            emit_al(0xa000000); // b pc
+            emit(imm);
+        }
+    #endif
 }
 
 // Returns 0 if target not reachable
@@ -309,7 +309,7 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
         else if(pc == 0x11800000)
         {
             clock_t diff = clock() - start;
-            printf("%d ms\n", diff / 1000);
+            printf("%ld ms\n", diff / 1000);
         }
     #endif
 
@@ -328,7 +328,7 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
         uint32_t insn = i.raw = *insn_ptr;
 
         // Rollback translate_current to this val if instruction not supported
-        translate_buffer_inst_start = translate_current;
+        *jump_table_current = translate_buffer_inst_start = translate_current;
 
         // Conditional instructions are translated like this:
         // msr cpsr_f, r11
@@ -535,7 +535,7 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
         }
 
         RAM_FLAGS(insn_ptr) |= (RF_CODE_TRANSLATED | next_translation_index << RFS_TRANSLATION_INDEX);
-        *jump_table_current++ = translate_buffer_inst_start;
+        ++jump_table_current;
         ++insn_ptr;
         pc += 4;
     }

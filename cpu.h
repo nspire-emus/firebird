@@ -28,7 +28,7 @@ struct arm_state {  // Remember to update asmcode.S if this gets rearranged
     uint32_t control;
     uint32_t translation_table_base;
     uint32_t domain_access_control;
-    uint8_t  data_fault_status, instruction_fault_status;
+    uint8_t  data_fault_status, instruction_fault_status, pad1, pad2; // pad1 and pad2 for better alignment
     uint32_t fault_address;
 
     uint32_t r8_usr[5], r13_usr[2];
