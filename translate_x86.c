@@ -1,5 +1,7 @@
 #include <stdbool.h>
 #include <stdio.h>
+
+#include "os/os.h"
 #include "emu.h"
 #include "mem.h"
 #include "cpu.h"
@@ -239,11 +241,10 @@ bool translate_init()
         insn_bufptr = insn_buffer;
     }
 
-    if(!insn_buffer)
-        return false;
+    return !!insn_buffer;
 }
 
-int translate(uint32_t start_pc, uint32_t *start_insnp) {
+void translate(uint32_t start_pc, uint32_t *start_insnp) {
     out = insn_bufptr;
     outj = jtbl_bufptr;
     uint32_t pc = start_pc;
@@ -802,7 +803,7 @@ data_proc_done:
 
             if (is_load) {
                 /* LDR/LDRB instruction */
-                emit_call(is_byteop ? (uint32_t)read_byte : (uint32_t)read_word_ldr);
+                emit_call(is_byteop ? (uint32_t)read_byte : (uint32_t)read_word);
                 if (data_reg != 15)
                     emit_mov_armreg_x86reg(data_reg, EAX);
             } else {
@@ -933,7 +934,7 @@ branch_conditional:
 branch_unconditional:
 
     if (pc == start_pc)
-        return -1;
+        return;
 
     int index = next_index++;
     translation_table[index].jump_table = (void**) ((uint32_t)jtbl_bufptr - (uint32_t)start_insnp);
@@ -943,7 +944,7 @@ branch_unconditional:
     insn_bufptr = out;
     jtbl_bufptr = outj;
 
-    return index;
+    return;
 }
 
 void flush_translations() {

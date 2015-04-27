@@ -37,6 +37,9 @@ ios {
     QMAKE_INFO_PLIST = Info.plist
 }
 
+# QMAKE_HOST can be e.g. armv7hl, but QT_ARCH would be arm in such cases
+QMAKE_TARGET.arch = $$QT_ARCH
+
 win32 {
     SOURCES += os/os-win32.c
     LIBS += -lwinmm -lws2_32
@@ -46,9 +49,6 @@ win32 {
 
 # A platform-independant implementation of lowlevel access as default
 ASMCODE_IMPL = asmcode.c
-
-# QMAKE_HOST can be e.g. armv7hl, but QT_ARCH would be arm in such cases
-QMAKE_TARGET.arch = $$QT_ARCH
 
 equals(TRANSLATION_ENABLED, true) {
     TRANSLATE = $$join(QMAKE_TARGET.arch, "", "translate_", ".c")
