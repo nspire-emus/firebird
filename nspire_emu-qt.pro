@@ -33,8 +33,11 @@ linux|macx|ios {
 }
 
 ios {
-    DEFINES += IS_IOS_BUILD
+    DEFINES += IS_IOS_BUILD __arm__
     QMAKE_INFO_PLIST = Info.plist
+    QMAKE_CFLAGS += -mno-thumb
+    QMAKE_CXXFLAGS += -mno-thumb
+    QMAKE_LFLAGS += -mno-thumb
 }
 
 # QMAKE_HOST can be e.g. armv7hl, but QT_ARCH would be arm in such cases
