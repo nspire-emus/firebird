@@ -190,8 +190,24 @@ static void emit_mov(uint8_t rd, uint32_t imm)
     }
 }
 
+// Returns 0 if target not reachable
+static uint32_t maybe_branch(void *target)
+{
+    // The difference is a count of 4-bytes already, don't shift
+    ptrdiff_t diff = reinterpret_cast<uint32_t*>(target) - translate_current - 2;
+    if(diff > 0x7FFFFF || -diff > 0x800000)
+        return 0;
+
+    return 0xa000000 | (diff & 0xFFFFFF);
+}
+
 static void emit_jmp(void *target)
 {
+    uint32_t branch = maybe_branch(target);
+    if(branch)
+        return emit_al(branch);
+
+    // Doesn't fit into branch, use memory
     emit_al(0x51ff004); // ldr pc, [pc, #-4]
     emit(reinterpret_cast<uintptr_t>(target));
 }
@@ -204,9 +220,14 @@ static void emit_call(void *target, bool save = true)
 	if(save)
 		emit_save_state();
 
+    uint32_t branch = maybe_branch(target);
+    if(branch)
+        return emit_al(branch | (1 << 24)); // Set the L-bit
+
     // This is cheaper than doing it like emit_mov above.
     emit_al(0x28fe004); // add lr, pc, #4
-    emit_jmp(target);
+    emit_al(0x51ff004); // ldr pc, [pc, #-4]
+    emit(reinterpret_cast<uintptr_t>(target));
 }
 
 // Flush all regs into the global arm_state struct
