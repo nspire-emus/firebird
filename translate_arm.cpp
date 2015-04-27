@@ -13,6 +13,16 @@
 #include <cstdint>
 #include <cstdio>
 
+// Uncomment the following line to measure the time until Boot2
+// #define BENCHMARK
+#ifdef BENCHMARK
+    #include <ctime>
+#endif
+
+// Uncomment the following line to support relative jumps if possible,
+// it doesn't work that often as the mmaped section is too far away.
+// #define REL_BRANCH
+
 #include "asmcode.h"
 #include "cpu.h"
 #include "cpudefs.h"
@@ -193,12 +203,17 @@ static void emit_mov(uint8_t rd, uint32_t imm)
 // Returns 0 if target not reachable
 static uint32_t maybe_branch(void *target)
 {
-    // The difference is a count of 4-bytes already, don't shift
-    ptrdiff_t diff = reinterpret_cast<uint32_t*>(target) - translate_current - 2;
-    if(diff > 0x7FFFFF || -diff > 0x800000)
-        return 0;
+    #ifdef REL_BRANCH
+        // The difference is a count of 4-bytes already, don't shift
+        ptrdiff_t diff = reinterpret_cast<uint32_t*>(target) - translate_current - 2;
+        if(diff > 0x7FFFFF || -diff > 0x800000)
+            return 0;
 
-    return 0xa000000 | (diff & 0xFFFFFF);
+        return 0xa000000 | (diff & 0xFFFFFF);
+    #else
+        (void) target;
+        return 0; // Never use rel. branches. Tests below are optimized out.
+    #endif
 }
 
 static void emit_jmp(void *target)
@@ -286,6 +301,17 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
     // We know this already. end_ptr will be set after the loop
     this_translation->jump_table = reinterpret_cast<void**>(jump_table_start);
     this_translation->start_ptr = insn_ptr_start;
+
+    #ifdef BENCHMARK
+        static clock_t start = 0;
+        if(pc == 0)
+            start = clock();
+        else if(pc == 0x11800000)
+        {
+            clock_t diff = clock() - start;
+            printf("%d ms\n", diff / 1000);
+        }
+    #endif
 
     // This loop is executed once per instruction
     // Due to the CPU being able to jump to each instruction seperately,

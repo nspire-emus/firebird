@@ -16,9 +16,9 @@ QMAKE_CFLAGS = -g -std=gnu11 -Wall -Wextra
 QMAKE_CXXFLAGS = -g -std=c++11 -Wall -Wextra
 
 # Override bad default options to enable better optimizations
-QMAKE_CFLAGS_RELEASE = -O3 -flto
-QMAKE_CXXFLAGS_RELEASE = -O3 -flto
-QMAKE_LFLAGS_RELEASE = -Wl,-O3 -flto
+QMAKE_CFLAGS_RELEASE = -O3 -flto -fwhole-program
+QMAKE_CXXFLAGS_RELEASE = -O3 -flto -fwhole-program
+QMAKE_LFLAGS_RELEASE = -Wl,-O3 -flto -fwhole-program
 
 # ICE on mac with clang
 macx-clang|ios {
