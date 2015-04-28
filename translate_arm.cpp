@@ -363,7 +363,7 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
             // Using pc is not supported
             if(i.data_proc.rd == 15
                     || i.data_proc.rn == 15
-                    || i.data_proc.rm == 15
+                    || (!i.data_proc.imm && i.data_proc.rm == 15)
                     || (reg_shift && i.data_proc.rs == 15))
                 goto unimpl;
 
