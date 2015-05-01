@@ -10,7 +10,7 @@ extern "C" {
 #endif
 
 struct translation {
-    uintptr_t unused;
+    void** map_table;
     void** jump_table;
     uint32_t *start_ptr;
     uint32_t *end_ptr;

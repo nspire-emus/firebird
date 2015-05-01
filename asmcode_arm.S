@@ -77,6 +77,7 @@ translation_next: .global translation_next
     ldr     r2, [r1, #1*4] // load translation.jump_table
     ldr     r3, [r1, #2*4] // load translation.start_ptr
     ldr     r4, [r1, #3*4] // load translation.end_ptr
+    ldr     r1, [r1, #0*4] // load translation.map_table
 
     sub     r4, r4, r0 // r4 = end_ptr - pc_ptr
     mov     r4, r4, lsr #2 // r4 = number of instructions to the end
@@ -86,7 +87,9 @@ translation_next: .global translation_next
     str     r5, [r6]
 
     sub     r0, r0, r3 // r0 = pc_ptr - start_ptr
-    ldr     pc, [r2, r0] // jump to jump_table[r0]
+    ldr     r1, [r1, r0] // load map_table[r0]
+    ldr     r0, [r2, r0] // load jump_table[r0]
+    b       load_state
 
 to_thumb:
     sub     r0, r0, #1
@@ -99,6 +102,22 @@ return:
     str     r0, [r1]
 
     pop     {r4-r11, pc}
+
+// r0: Jump target, r1: map_table entry
+load_state:
+    and     r2, r1, #0xF // Nr. of virt reg in r2
+    ldr     r4, [r10, r2, lsl #2] // load arm.reg[r2]
+    and     r2, r1, #0xF0 // Nr. of virt reg in r2
+    ldr     r5, [r10, r2, lsr #2] // load arm.reg[r2]
+    and     r2, r1, #0xF00 // Nr. of virt reg in r2
+    ldr     r6, [r10, r2, lsr #6] // load arm.reg[r2]
+    and     r2, r1, #0xF000 // Nr. of virt reg in r2
+    ldr     r7, [r10, r2, lsr #10] // load arm.reg[r2]
+    and     r2, r1, #0xF0000 // Nr. of virt reg in r2
+    ldr     r8, [r10, r2, lsr #14] // load arm.reg[r2]
+    and     r2, r1, #0xF00000 // Nr. of virt reg in r2
+    ldr     r9, [r10, r2, lsr #18] // load arm.reg[r2]
+    bx      r0
 
 // Invoked from within translated code to jump to other, already translated code
 // Target address of translated code is in r0 - only r10 and r11 have to be preserved

@@ -57,7 +57,7 @@ void os_sparse_decommit(void *page, size_t size)
 
 void *os_alloc_executable(size_t size)
 {
-#if defined(__i386__) || defined(__x86_64__)
+#if defined(__i386__) || defined(__x86_64__) || 1
     // Has to be in 32-bit space for the JIT
     void *ptr = mmap((void*)0x30000000, size, PROT_READ|PROT_WRITE|PROT_EXEC, MAP_SHARED|MAP_ANON, -1, 0);
 #else
