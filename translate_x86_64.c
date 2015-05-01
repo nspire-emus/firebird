@@ -834,7 +834,7 @@ data_proc_done:
 
             if (is_load) {
                 /* LDR/LDRB instruction */
-                emit_call(is_byteop ? (uintptr_t)read_byte : (uintptr_t)read_word_ldr);
+                emit_call(is_byteop ? (uintptr_t)read_byte : (uintptr_t)read_word);
                 if (data_reg != 15)
                     emit_mov_armreg_x86reg(data_reg, EAX);
             } else {
