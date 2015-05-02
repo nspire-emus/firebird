@@ -696,6 +696,8 @@ bool flash_create_new(bool flag_large_nand, const char **preload_file, int produ
 }
 
 bool flash_read_settings(uint32_t *sdram_size) {
+    assert(nand_data);
+
     asic_user_flags = 0;
     *sdram_size = 32 * 1024 * 1024;
 
@@ -734,4 +736,21 @@ void flash_close()
     }
 
     nand_deinitialize();
+}
+
+
+void flash_set_bootorder(BootOrder order)
+{
+    assert(nand_data);
+
+    if(order == ORDER_DEFAULT)
+        return;
+
+    //TODO: Only writes to the first page of bootdata
+    size_t offset = nand_metrics.page_size < 0x800 ? 0x15A810 : 0x2D6010;
+
+    uint32_t *ptr = (uint32_t*)(nand_data + offset); // See "NAND Memory Layout" on hackspire
+    *ptr = order;
+
+    ecc_fix(nand_data, nand_metrics, offset / nand_metrics.page_size);
 }

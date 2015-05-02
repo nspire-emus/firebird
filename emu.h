@@ -5,6 +5,8 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#include "flash.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -41,6 +43,7 @@ extern uint32_t cpu_events __asm__("cpu_events");
 
 // Settings
 extern volatile bool exiting, debug_on_start, debug_on_warn, large_nand, large_sdram;
+extern BootOrder boot_order;
 extern bool do_translate;
 extern int product;
 extern int asic_user_flags;

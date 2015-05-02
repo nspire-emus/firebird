@@ -65,6 +65,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->pathTransfer, SIGNAL(textEdited(QString)), this, SLOT(setUSBPath(QString)));
     connect(ui->spinGDB, SIGNAL(valueChanged(int)), this, SLOT(setGDBPort(int)));
     connect(ui->spinRDBG, SIGNAL(valueChanged(int)), this, SLOT(setRDBGPort(int)));
+    connect(ui->orderDiags, SIGNAL(toggled(bool)), this, SLOT(setBootOrder(bool)));
 
     refresh_timer.setInterval(1000 / 60); //60 fps
     refresh_timer.start();
@@ -90,6 +91,7 @@ MainWindow::MainWindow(QWidget *parent) :
     setUSBPath(settings->value("usbdir", QString("ndless")).toString());
     setGDBPort(settings->value("gdbPort", 3333).toUInt());
     setRDBGPort(settings->value("rdbgPort", 3334).toUInt());
+    setBootOrder(false);
 
     bool autostart = settings->value("emuAutostart", false).toBool();
     setAutostart(autostart);
@@ -368,6 +370,11 @@ void MainWindow::setAutostart(bool b)
     settings->setValue("emuAutostart", b);
     if(ui->checkAutostart->isChecked() != b)
         ui->checkAutostart->setChecked(b);
+}
+
+void MainWindow::setBootOrder(bool diags_first)
+{
+    boot_order = diags_first ? ORDER_DIAGS : ORDER_BOOT2;
 }
 
 void MainWindow::setUSBPath(QString path)

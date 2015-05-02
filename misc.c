@@ -82,7 +82,7 @@ void gpio_reset() {
     gpio.direction.w = 0xFFFFFFFFFFFFFFFF;
     gpio.output.w    = 0x0000000000000000;
 
-    gpio.input.w     = 0x00001000050F001B;
+    gpio.input.w     = 0x00001000070F001F;
     touchpad_gpio_reset();
 }
 uint32_t gpio_read(uint32_t addr) {

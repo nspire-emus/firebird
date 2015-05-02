@@ -32,6 +32,7 @@ int asic_user_flags;
 bool turbo_mode;
 
 volatile bool exiting, debug_on_start, debug_on_warn, large_nand, large_sdram;
+BootOrder boot_order = ORDER_DEFAULT;
 int product = 0x0E0;
 uint32_t boot2_base;
 const char *path_boot1 = NULL, *path_boot2 = NULL, *path_flash = NULL, *pre_manuf = NULL, *pre_boot2 = NULL, *pre_diags = NULL, *pre_os = NULL;
@@ -152,6 +153,8 @@ int emulate(unsigned int port_gdb, unsigned int port_rdbg)
 
     uint32_t sdram_size;
     flash_read_settings(&sdram_size);
+
+    flash_set_bootorder(boot_order);
 
     if(!memory_initialize(sdram_size))
         return 1;

@@ -3,6 +3,9 @@
 #ifndef _H_FLASH
 #define _H_FLASH
 
+#include <stdint.h>
+#include <unistd.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -33,6 +36,14 @@ void flash_save_changes();
 int flash_save_as(const char *filename);
 bool flash_create_new(bool flag_large_nand, const char **preload_file, int product, bool large_sdram, uint8_t **nand_data_ptr, size_t *size);
 bool flash_read_settings(uint32_t *sdram_size);
+
+typedef enum BootOrder {
+    ORDER_BOOT2=0,
+    ORDER_DIAGS,
+    ORDER_DEFAULT
+} BootOrder;
+
+void flash_set_bootorder(BootOrder order);
 
 #ifdef __cplusplus
 }

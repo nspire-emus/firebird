@@ -62,6 +62,7 @@ public slots:
     void setDebuggerOnStartup(bool b);
     void setDebuggerOnWarning(bool b);
     void setAutostart(bool b);
+    void setBootOrder(bool diags_first);
     void setUSBPath(QString path);
     void setGDBPort(int port);
     void setRDBGPort(int port);
