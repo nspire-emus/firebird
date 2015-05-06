@@ -1,0 +1,32 @@
+# Contributor: Antonio Vázquez Blanco <antoniovazquezblanco@gmail.com>
+
+pkgname=nspire-emu
+pkgver=0
+pkgrel=1
+pkgdesc='Community emulator of TI-Nspire calculators.'
+arch=('any')
+url='https://github.com/nspire-emus/nspire_emu'
+license=()
+depends=()
+makedepends=()
+source=('https://github.com/nspire-emus/nspire_emu/archive/qt.zip')
+md5sums=('1d8969f8dc69cc5d9996239a639f382a')
+
+build() {
+  # Compile...
+  #cd "${srcdir}/${pkgname}-${pkgver}"
+  cd "${srcdir}/nspire_emu-qt"
+  mkdir -p build
+  cd build
+  qmake ..
+  make
+}
+
+package() {
+  # Creation of necesary folders...
+  install -dm755 "${pkgdir}/usr/bin"
+
+  # Copy the binary...
+  install -D -m755 "${srcdir}/nspire_emu-qt/build/nspire_emu" "${pkgdir}/usr/bin/nspire_emu"
+}
+
