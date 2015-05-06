@@ -1,5 +1,5 @@
--Add support for creating flash files (preloading etc.)
--File transfer
+-File transfer: Download, Rename, Move
 -Better debugger integration
+-Bug: Crash if EmuThread terminated and debugger command entered
 -Keypad, maybe with skin
--Restore %r8 in asmcode_mac.S properly
+-Restore %r8 in asmcode_x86_64.S properly
