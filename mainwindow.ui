@@ -16,6 +16,10 @@
   <property name="windowTitle">
    <string>TI Nspire Emulator</string>
   </property>
+  <property name="windowIcon">
+   <iconset resource="resources.qrc">
+    <normaloff>:/icons/resources/logo.png</normaloff>:/icons/resources/logo.png</iconset>
+  </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QHBoxLayout" name="horizontalLayout">
     <item>
@@ -253,7 +257,7 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>352</width>
+             <width>239</width>
              <height>98</height>
             </rect>
            </property>
