@@ -7,6 +7,7 @@
 #include <QGraphicsItem>
 #include <QDropEvent>
 #include <QMimeData>
+#include <QDockWidget>
 
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
@@ -16,7 +17,6 @@
 #include "misc.h"
 
 MainWindow *main_window;
-bool MainWindow::refresh_filebrowser = true;
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -53,7 +53,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->lineEdit, SIGNAL(returnPressed()), this, SLOT(debugCommand()));
 
     //File transfer
-    connect(ui->tabWidget, SIGNAL(currentChanged(int)), this, SLOT(tabChanged(int)));
+    connect(ui->refreshButton, SIGNAL(clicked(bool)), this, SLOT(reload_filebrowser()));
     connect(this, SIGNAL(usblink_progress_changed(int)), this, SLOT(changeProgress(int)), Qt::QueuedConnection);
 
     //Settings
@@ -66,6 +66,21 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->spinGDB, SIGNAL(valueChanged(int)), this, SLOT(setGDBPort(int)));
     connect(ui->spinRDBG, SIGNAL(valueChanged(int)), this, SLOT(setRDBGPort(int)));
     connect(ui->orderDiags, SIGNAL(toggled(bool)), this, SLOT(setBootOrder(bool)));
+
+    //Convert the tabs into QDockWidgets
+    QDockWidget *last_dock = nullptr;
+    while(ui->tabWidget->count())
+    {
+        QWidget *tab = ui->tabWidget->widget(0);
+        QDockWidget *dw = new QDockWidget(ui->tabWidget->tabText(0), this);
+        tab->setParent(dw->widget());
+        addDockWidget(Qt::RightDockWidgetArea, dw);
+        dw->setWidget(tab);
+        if(last_dock != nullptr)
+            tabifyDockWidget(last_dock, dw);
+        last_dock = dw;
+    }
+    ui->tabWidget->deleteLater();
 
     refresh_timer.setInterval(1000 / 60); //60 fps
     refresh_timer.start();
@@ -248,8 +263,6 @@ void MainWindow::usblink_dirlist_callback_nested(struct usblink_file *file, void
     //End of enumeration or error
     if(!file)
     {
-        refresh_filebrowser = true;
-
         w->setData(1, Qt::UserRole, QVariant(true)); //Dir is now filled
         //Find a dir to fill with entries
         for(int i = 0; i < w->treeWidget()->topLevelItemCount(); ++i)
@@ -273,8 +286,6 @@ void MainWindow::usblink_dirlist_callback(struct usblink_file *file, void *data)
     //End of enumeration or error
     if(!file)
     {
-        refresh_filebrowser = true;
-
         //Find a dir to fill with entries
         for(int i = 0; i < w->topLevelItemCount(); ++i)
             if(usblink_dirlist_nested(w->topLevelItem(i)))
@@ -299,13 +310,8 @@ void MainWindow::usblink_progress_callback(int progress, void *data)
     emit mw->usblink_progress_changed(progress);
 }
 
-void MainWindow::tabChanged(int id)
+void MainWindow::reload_filebrowser()
 {
-    if(ui->tabWidget->widget(id) != ui->tabFiles || !refresh_filebrowser)
-        return;
-
-    refresh_filebrowser = false;
-    //Update the file list if current tab changed
     ui->treeWidget->clear();
     usblink_queue_dirlist("/", usblink_dirlist_callback, ui->treeWidget);
 }

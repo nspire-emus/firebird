@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>745</width>
-    <height>345</height>
+    <width>714</width>
+    <height>357</height>
    </rect>
   </property>
   <property name="acceptDrops">
@@ -64,38 +64,6 @@
     </item>
     <item>
      <widget class="QTabWidget" name="tabWidget">
-      <property name="currentIndex">
-       <number>0</number>
-      </property>
-      <widget class="QWidget" name="tabSerial">
-       <attribute name="icon">
-        <iconset resource="resources.qrc">
-         <normaloff>:/icons/resources/icons/utilities-terminal.png</normaloff>:/icons/resources/icons/utilities-terminal.png</iconset>
-       </attribute>
-       <attribute name="title">
-        <string>Serial Monitor</string>
-       </attribute>
-       <layout class="QVBoxLayout" name="verticalLayout_3">
-        <item>
-         <widget class="QPlainTextEdit" name="serialConsole">
-          <property name="font">
-           <font>
-            <family>Droid Sans Mono</family>
-           </font>
-          </property>
-          <property name="undoRedoEnabled">
-           <bool>false</bool>
-          </property>
-          <property name="lineWrapMode">
-           <enum>QPlainTextEdit::NoWrap</enum>
-          </property>
-          <property name="readOnly">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </widget>
       <widget class="QWidget" name="tabDebugger">
        <attribute name="icon">
         <iconset resource="resources.qrc">
@@ -154,38 +122,35 @@
             <string>Size</string>
            </property>
           </column>
-          <item>
-           <property name="text">
-            <string>documents</string>
-           </property>
-           <property name="text">
-            <string/>
-           </property>
-           <item>
-            <property name="text">
-             <string>ndless</string>
-            </property>
-            <property name="text">
-             <string/>
-            </property>
-            <item>
-             <property name="text">
-              <string>ndless_resources_3.6.tns</string>
-             </property>
-             <property name="text">
-              <string>100k</string>
-             </property>
-            </item>
-           </item>
-          </item>
          </widget>
         </item>
         <item>
-         <widget class="QProgressBar" name="progressBar">
-          <property name="value">
-           <number>24</number>
-          </property>
-         </widget>
+         <layout class="QHBoxLayout" name="horizontalLayout_6">
+          <item>
+           <widget class="QPushButton" name="refreshButton">
+            <property name="icon">
+             <iconset resource="resources.qrc">
+              <normaloff>:/icons/resources/icons/system-reboot.png</normaloff>:/icons/resources/icons/system-reboot.png</iconset>
+            </property>
+            <property name="iconSize">
+             <size>
+              <width>20</width>
+              <height>20</height>
+             </size>
+            </property>
+            <property name="flat">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QProgressBar" name="progressBar">
+            <property name="value">
+             <number>24</number>
+            </property>
+           </widget>
+          </item>
+         </layout>
         </item>
        </layout>
       </widget>
@@ -257,8 +222,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>239</width>
-             <height>98</height>
+             <width>348</width>
+             <height>99</height>
             </rect>
            </property>
            <attribute name="label">
@@ -453,6 +418,35 @@
         </item>
        </layout>
       </widget>
+      <widget class="QWidget" name="tabSerial">
+       <attribute name="icon">
+        <iconset resource="resources.qrc">
+         <normaloff>:/icons/resources/icons/utilities-terminal.png</normaloff>:/icons/resources/icons/utilities-terminal.png</iconset>
+       </attribute>
+       <attribute name="title">
+        <string>Serial Monitor</string>
+       </attribute>
+       <layout class="QVBoxLayout" name="verticalLayout_3">
+        <item>
+         <widget class="QPlainTextEdit" name="serialConsole">
+          <property name="font">
+           <font>
+            <family>Droid Sans Mono</family>
+           </font>
+          </property>
+          <property name="undoRedoEnabled">
+           <bool>false</bool>
+          </property>
+          <property name="lineWrapMode">
+           <enum>QPlainTextEdit::NoWrap</enum>
+          </property>
+          <property name="readOnly">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
      </widget>
     </item>
    </layout>
@@ -485,7 +479,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>745</width>
+     <width>714</width>
      <height>19</height>
     </rect>
    </property>

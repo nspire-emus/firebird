@@ -53,7 +53,7 @@ public slots:
     void debugCommand();
 
     //File transfer
-    void tabChanged(int id);
+    void reload_filebrowser();
     void changeProgress(int value);
 
     //Settings
@@ -89,9 +89,6 @@ private:
 
     Ui::MainWindow *ui;
 
-    // Whether to call usblink_dirlist when the tab is selected
-    // Small hack: static as used in static callbacks...
-    static bool refresh_filebrowser;
     QTimer refresh_timer, throttle_timer;
     QGraphicsScene lcd_scene;
     EmuThread emu;
