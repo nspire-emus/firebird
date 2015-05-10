@@ -50,6 +50,12 @@ win32 {
     QMAKE_TARGET.arch = x86
 }
 
+linux-g++-32 {
+    QMAKE_CFLAGS += -m32
+    QMAKE_CXXFLAGS += -m32
+    QMAKE_TARGET.arch = x86
+}
+
 # A platform-independant implementation of lowlevel access as default
 ASMCODE_IMPL = asmcode.c
 
@@ -81,11 +87,6 @@ contains(QMAKE_TARGET.arch, "arm") {
     QMAKE_CFLAGS += -march=armv7-a -marm
     QMAKE_CXXFLAGS += -march=armv7-a -marm
     QMAKE_LFLAGS += -march=armv7-a -marm # We're using LTO, so the linker has to get the same flags
-}
-
-linux-g++-32 {
-    QMAKE_CFLAGS += -m32
-    QMAKE_CXXFLAGS += -m32
 }
 
 SOURCES += $$ASMCODE_IMPL \

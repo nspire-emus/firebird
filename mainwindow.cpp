@@ -17,6 +17,7 @@
 #include "misc.h"
 
 MainWindow *main_window;
+bool MainWindow::refresh_filebrowser = true;
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -80,7 +81,7 @@ MainWindow::MainWindow(QWidget *parent) :
             tabifyDockWidget(last_dock, dw);
         last_dock = dw;
     }
-    ui->tabWidget->deleteLater();
+    ui->tabWidget->setHidden(true);
 
     refresh_timer.setInterval(1000 / 60); //60 fps
     refresh_timer.start();
@@ -263,6 +264,8 @@ void MainWindow::usblink_dirlist_callback_nested(struct usblink_file *file, void
     //End of enumeration or error
     if(!file)
     {
+        refresh_filebrowser = true;
+
         w->setData(1, Qt::UserRole, QVariant(true)); //Dir is now filled
         //Find a dir to fill with entries
         for(int i = 0; i < w->treeWidget()->topLevelItemCount(); ++i)
@@ -286,6 +289,8 @@ void MainWindow::usblink_dirlist_callback(struct usblink_file *file, void *data)
     //End of enumeration or error
     if(!file)
     {
+        refresh_filebrowser = true;
+
         //Find a dir to fill with entries
         for(int i = 0; i < w->topLevelItemCount(); ++i)
             if(usblink_dirlist_nested(w->topLevelItem(i)))
@@ -312,6 +317,9 @@ void MainWindow::usblink_progress_callback(int progress, void *data)
 
 void MainWindow::reload_filebrowser()
 {
+    if(!refresh_filebrowser)
+        return;
+
     ui->treeWidget->clear();
     usblink_queue_dirlist("/", usblink_dirlist_callback, ui->treeWidget);
 }
