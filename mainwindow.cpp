@@ -18,6 +18,8 @@
 
 MainWindow *main_window;
 bool MainWindow::refresh_filebrowser = true;
+// Change this if you change the UI
+static const constexpr int WindowStateVersion = 0;
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -74,6 +76,7 @@ MainWindow::MainWindow(QWidget *parent) :
     {
         QWidget *tab = ui->tabWidget->widget(0);
         QDockWidget *dw = new QDockWidget(ui->tabWidget->tabText(0), this);
+        dw->setObjectName(ui->tabWidget->tabText(0));
         tab->setParent(dw->widget());
         addDockWidget(Qt::RightDockWidgetArea, dw);
         dw->setWidget(tab);
@@ -100,6 +103,7 @@ MainWindow::MainWindow(QWidget *parent) :
 #endif
 
     //Load settings
+    restoreState(settings->value("windowState").toByteArray(), WindowStateVersion);
     selectBoot1(settings->value("boot1", "").toString());
     selectFlash(settings->value("flash", "").toString());
     setDebuggerOnStartup(settings->value("debugOnStart", false).toBool());
@@ -117,6 +121,8 @@ MainWindow::MainWindow(QWidget *parent) :
 
 MainWindow::~MainWindow()
 {
+    settings->setValue("windowState", saveState(WindowStateVersion));
+
     delete settings;
     delete ui;
 }
