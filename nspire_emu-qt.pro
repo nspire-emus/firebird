@@ -22,9 +22,10 @@ QMAKE_LFLAGS_RELEASE = -Wl,-O3 -flto -fwhole-program
 
 # ICE on mac with clang
 macx-clang|ios {
-    QMAKE_CFLAGS_RELEASE -= -flto
-    QMAKE_CXXFLAGS_RELEASE -= -flto
-    QMAKE_LFLAGS_RELEASE -= -Wl,-O3 -flto
+    QMAKE_CFLAGS_RELEASE -= -flto -fwhole-program
+    QMAKE_CXXFLAGS_RELEASE -= -flto -fwhole-program
+    QMAKE_LFLAGS_RELEASE -= -Wl,-O3 -flto -fwhole-program
+    ICON = resources/logo.icns
 }
 
 # This does also apply to android
@@ -38,6 +39,7 @@ ios {
     QMAKE_CFLAGS += -mno-thumb
     QMAKE_CXXFLAGS += -mno-thumb
     QMAKE_LFLAGS += -mno-thumb
+    QMAKE_IOS_DEVICE_ARCHS = armv7
 }
 
 # QMAKE_HOST can be e.g. armv7hl, but QT_ARCH would be arm in such cases
