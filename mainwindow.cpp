@@ -103,6 +103,7 @@ MainWindow::MainWindow(QWidget *parent) :
 #endif
 
     //Load settings
+    restoreGeometry(settings->value("windowGeometry").toByteArray());
     restoreState(settings->value("windowState").toByteArray(), WindowStateVersion);
     selectBoot1(settings->value("boot1", "").toString());
     selectFlash(settings->value("flash", "").toString());
@@ -122,6 +123,7 @@ MainWindow::MainWindow(QWidget *parent) :
 MainWindow::~MainWindow()
 {
     settings->setValue("windowState", saveState(WindowStateVersion));
+    settings->setValue("windowGeometry", saveGeometry());
 
     delete settings;
     delete ui;
