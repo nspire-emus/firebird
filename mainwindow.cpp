@@ -241,7 +241,9 @@ static QString usblink_path_item(QTreeWidgetItem *w)
     if(!w)
         return "";
 
-    return QString("%0/%1").arg(usblink_path_item(w->parent())).arg(w->text(0));
+    return usblink_path_item(w->parent()) + "/" + w->text(0);
+    // This crashes on 32-bit linux somehow
+    //return QString("%0/%1").arg(path_parent).arg(path_this);
 }
 
 static bool usblink_dirlist_nested(QTreeWidgetItem *w)
