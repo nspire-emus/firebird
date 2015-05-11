@@ -39,6 +39,7 @@ ios {
     QMAKE_CFLAGS += -mno-thumb
     QMAKE_CXXFLAGS += -mno-thumb
     QMAKE_LFLAGS += -mno-thumb
+    QMAKE_IOS_DEVICE_ARCHS = armv7
 }
 
 # QMAKE_HOST can be e.g. armv7hl, but QT_ARCH would be arm in such cases
