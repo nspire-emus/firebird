@@ -14,5 +14,6 @@
         <file>resources/icons/Actions-network-connect-icon.png</file>
         <file>resources/icons/Actions-network-disconnect-icon.png</file>
         <file>resources/logo.png</file>
+        <file>resources/logo.icns</file>
     </qresource>
 </RCC>
