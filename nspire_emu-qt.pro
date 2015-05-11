@@ -16,15 +16,15 @@ QMAKE_CFLAGS = -g -std=gnu11 -Wall -Wextra
 QMAKE_CXXFLAGS = -g -std=c++11 -Wall -Wextra
 
 # Override bad default options to enable better optimizations
-QMAKE_CFLAGS_RELEASE = -O3 -flto -fwhole-program
-QMAKE_CXXFLAGS_RELEASE = -O3 -flto -fwhole-program
-QMAKE_LFLAGS_RELEASE = -Wl,-O3 -flto -fwhole-program
+QMAKE_CFLAGS_RELEASE = -O3 -flto
+QMAKE_CXXFLAGS_RELEASE = -O3 -flto
+QMAKE_LFLAGS_RELEASE = -Wl,-O3 -flto
 
 # ICE on mac with clang
 macx-clang|ios {
-    QMAKE_CFLAGS_RELEASE -= -flto -fwhole-program
-    QMAKE_CXXFLAGS_RELEASE -= -flto -fwhole-program
-    QMAKE_LFLAGS_RELEASE -= -Wl,-O3 -flto -fwhole-program
+    QMAKE_CFLAGS_RELEASE -= -flto
+    QMAKE_CXXFLAGS_RELEASE -= -flto
+    QMAKE_LFLAGS_RELEASE -= -Wl,-O3 -flto
 }
 
 macx {
@@ -87,7 +87,7 @@ contains(QMAKE_TARGET.arch, "x86_64") || contains(QMAKE_TARGET.arch, "arm") {
     }
 }
 
-# Default to armv7 on ARM for movw/movt If your CPU doesn't support it, comment this out.
+# Default to armv7 on ARM for movw/movt. If your CPU doesn't support it, comment this out.
 contains(QMAKE_TARGET.arch, "arm") {
     QMAKE_CFLAGS += -march=armv7-a -marm
     QMAKE_CXXFLAGS += -march=armv7-a -marm
