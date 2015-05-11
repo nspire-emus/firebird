@@ -25,6 +25,9 @@ macx-clang|ios {
     QMAKE_CFLAGS_RELEASE -= -flto -fwhole-program
     QMAKE_CXXFLAGS_RELEASE -= -flto -fwhole-program
     QMAKE_LFLAGS_RELEASE -= -Wl,-O3 -flto -fwhole-program
+}
+
+macx {
     ICON = resources/logo.icns
 }
 
