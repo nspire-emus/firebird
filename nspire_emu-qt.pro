@@ -9,8 +9,12 @@ TEMPLATE = app
 TARGET = nspire_emu
 
 # For make install support
-target.path = /usr/local/bin
-INSTALLS += target
+target.path = /usr/bin
+desktop.path = /usr/share/applications
+desktop.files += resources/nspire_emu.desktop
+icon.path = /usr/share/icons
+icon.files += resources/nspire_emu.png
+INSTALLS += target desktop icon
 
 QMAKE_CFLAGS = -g -std=gnu11 -Wall -Wextra
 QMAKE_CXXFLAGS = -g -std=c++11 -Wall -Wextra

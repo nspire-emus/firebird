@@ -18,7 +18,7 @@
   </property>
   <property name="windowIcon">
    <iconset resource="resources.qrc">
-    <normaloff>:/icons/resources/logo.png</normaloff>:/icons/resources/logo.png</iconset>
+    <normaloff>:/icons/resources/nspire_emu.png</normaloff>:/icons/resources/nspire_emu.png</iconset>
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QHBoxLayout" name="horizontalLayout">
@@ -176,8 +176,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>273</width>
-             <height>98</height>
+             <width>348</width>
+             <height>99</height>
             </rect>
            </property>
            <attribute name="label">

@@ -13,6 +13,6 @@
         <file>resources/icons/Actions-media-playback-pause-icon.png</file>
         <file>resources/icons/Actions-network-connect-icon.png</file>
         <file>resources/icons/Actions-network-disconnect-icon.png</file>
-        <file>resources/logo.png</file>
+        <file>resources/nspire_emu.png</file>
     </qresource>
 </RCC>

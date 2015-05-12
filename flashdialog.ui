@@ -15,7 +15,7 @@
   </property>
   <property name="windowIcon">
    <iconset resource="resources.qrc">
-    <normaloff>:/icons/resources/logo.png</normaloff>:/icons/resources/logo.png</iconset>
+    <normaloff>:/icons/resources/nspire_emu.png</normaloff>:/icons/resources/nspire_emu.png</iconset>
   </property>
   <layout class="QFormLayout" name="formLayout">
    <property name="fieldGrowthPolicy">
