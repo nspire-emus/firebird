@@ -6,6 +6,7 @@
 #include "asmcode.h"
 #include "translate.h"
 #include "debug.h"
+#include "os/os.h"
 
 extern void translation_enter() __asm__("translation_enter");
 extern void translation_next() __asm__("translation_next");
@@ -56,6 +57,8 @@ static inline void emit_call_nosave(uintptr_t target) {
 
 //The AMD64 ABI says that most regs have to be saved by the caller
 static inline void emit_call(uintptr_t target) {
+    //If you change the stack layout, change the usage of in_translation_rsp in translate_fix_pc below as well!
+
     //TODO: Verify that %rdi isn't that important to save (it's the first arg)
     //emit_byte(0x57); // push %rdi
     emit_byte(0x56); // push %rsi
@@ -261,7 +264,18 @@ static inline void emit_setcc_flag(int setcc, void *flagptr) {
     emit_modrm_base_offset(0, EBX, (uint8_t *)flagptr - (uint8_t *)&arm);
 }
 
-int translate(uint32_t start_pc, uint32_t *start_insnp) {
+bool translate_init()
+{
+    if(!insn_buffer)
+    {
+        insn_buffer = os_alloc_executable(INSN_BUFFER_SIZE);
+        insn_bufptr = insn_buffer;
+    }
+
+    return !!insn_buffer;
+}
+
+void translate(uint32_t start_pc, uint32_t *start_insnp) {
     out = insn_bufptr;
     outj = jtbl_bufptr;
     uint32_t pc = start_pc;
@@ -820,7 +834,7 @@ data_proc_done:
 
             if (is_load) {
                 /* LDR/LDRB instruction */
-                emit_call(is_byteop ? (uintptr_t)read_byte : (uintptr_t)read_word_ldr);
+                emit_call(is_byteop ? (uintptr_t)read_byte : (uintptr_t)read_word);
                 if (data_reg != 15)
                     emit_mov_armreg_x86reg(data_reg, EAX);
             } else {
@@ -951,7 +965,7 @@ branch_conditional:
 branch_unconditional:
 
     if (pc == start_pc)
-        return -1;
+        return;
 
     int index = next_index++;
 
@@ -963,8 +977,6 @@ branch_unconditional:
 
     insn_bufptr = out;
     jtbl_bufptr = outj;
-
-    return index;
 }
 
 void flush_translations() {
@@ -989,15 +1001,12 @@ void invalidate_translation(int index) {
     flush_translations();
 }
 
-void fix_pc_for_fault() {
+void translate_fix_pc() {
     if (!in_translation_rsp)
-    {
-        arm.reg[15] -= (arm.cpsr_low28 & 0x20) ? 2 : 4;
         return;
-    }
 
     uint32_t *insnp = in_translation_pc_ptr;
-    void *ret_eip = in_translation_rsp[-1];
+    void *ret_eip = in_translation_rsp[-4];
     uint32_t flags = RAM_FLAGS(insnp);
     if (!(flags & RF_CODE_TRANSLATED))
         error("Couldn't get PC for fault");
@@ -1010,18 +1019,4 @@ void fix_pc_for_fault() {
     in_translation_rsp = NULL;
 
     assert(!(arm.cpsr_low28 & 0x20));
-    arm.reg[15] -= 4;
-}
-
-// returns 1 if at least one instruction translated in the range
-int range_translated(uint32_t range_start, uint32_t range_end) {
-    uint32_t pc;
-    int translated = 0;
-    for (pc = range_start; pc < range_end;  pc += 4) {
-        void *pc_ram_ptr = virt_mem_ptr(pc, 4);
-        if (!pc_ram_ptr)
-            break;
-        translated |= RAM_FLAGS(pc_ram_ptr) & RF_CODE_TRANSLATED;
-    }
-    return translated;
 }

@@ -7,6 +7,10 @@
 #include <stddef.h>
 #include <stdio.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 extern FILE *debugger_input;
 
 extern bool gdb_connected;
@@ -26,5 +30,9 @@ void debugger(enum DBG_REASON reason, uint32_t addr);
 void rdebug_recv(void);
 bool rdebug_bind(unsigned int port);
 void rdebug_quit();
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

@@ -3,6 +3,10 @@
 #ifndef _H_KEYPAD
 #define _H_KEYPAD
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #define NUM_KEYPAD_TYPES 5
 extern volatile uint16_t key_map[16];
 extern volatile uint8_t touchpad_proximity;
@@ -33,5 +37,9 @@ void touchpad_cx_write(uint32_t addr, uint32_t value);
 void touchpad_set(uint8_t proximity, uint16_t x, uint16_t y, uint8_t down);
 void touchpad_gpio_reset(void);
 void touchpad_gpio_change();
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

@@ -1,0 +1,2 @@
+All icons in this folder were created as part of the Oxygen Project (http://www.kde.org)
+and are licensed under the LGPLv3. You can get scalable SVGs of these icons from the KDE website.

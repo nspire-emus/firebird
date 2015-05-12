@@ -1,6 +1,3 @@
-#include "mainwindow.h"
-#include "ui_mainwindow.h"
-
 #include <future>
 
 #include <QFileDialog>
@@ -10,14 +7,19 @@
 #include <QGraphicsItem>
 #include <QDropEvent>
 #include <QMimeData>
+#include <QDockWidget>
 
-#ifdef Q_OS_MAC
-#include "os/os-mac.h"
-#endif
-
+#include "mainwindow.h"
+#include "ui_mainwindow.h"
 #include "usblink_queue.h"
+#include "flash.h"
+#include "lcd.h"
+#include "misc.h"
 
 MainWindow *main_window;
+bool MainWindow::refresh_filebrowser = true;
+// Change this if you change the UI
+static const constexpr int WindowStateVersion = 0;
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -32,6 +34,7 @@ MainWindow::MainWindow(QWidget *parent) :
     //Emu -> GUI (QueuedConnection as they're different threads)
     connect(&emu, SIGNAL(serialChar(char)), this, SLOT(serialChar(char)), Qt::QueuedConnection);
     connect(&emu, SIGNAL(debugStr(QString)), this, SLOT(debugStr(QString))); //Not queued connection as it may cause a hang
+    connect(&emu, SIGNAL(speedChanged(double)), this, SLOT(showSpeed(double)), Qt::QueuedConnection);
     connect(&emu, SIGNAL(statusMsg(QString)), ui->statusbar, SLOT(showMessage(QString)), Qt::QueuedConnection);
     connect(&emu, SIGNAL(setThrottleTimer(bool)), this, SLOT(setThrottleTimer(bool)), Qt::QueuedConnection);
     connect(&emu, SIGNAL(usblinkChanged(bool)), this, SLOT(usblinkChanged(bool)), Qt::QueuedConnection);
@@ -53,18 +56,20 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->lineEdit, SIGNAL(returnPressed()), this, SLOT(debugCommand()));
 
     //File transfer
-    connect(ui->tabWidget, SIGNAL(currentChanged(int)), this, SLOT(tabChanged(int)));
+    connect(ui->refreshButton, SIGNAL(clicked(bool)), this, SLOT(reload_filebrowser()));
     connect(this, SIGNAL(usblink_progress_changed(int)), this, SLOT(changeProgress(int)), Qt::QueuedConnection);
 
     //Settings
     connect(ui->checkDebugger, SIGNAL(toggled(bool)), this, SLOT(setDebuggerOnStartup(bool)));
     connect(ui->checkWarning, SIGNAL(toggled(bool)), this, SLOT(setDebuggerOnWarning(bool)));
+    connect(ui->uiDocks, SIGNAL(toggled(bool)), this, SLOT(setUIMode(bool)));
     connect(ui->checkAutostart, SIGNAL(toggled(bool)), this, SLOT(setAutostart(bool)));
     connect(ui->fileBoot1, SIGNAL(pressed()), this, SLOT(selectBoot1()));
     connect(ui->fileFlash, SIGNAL(pressed()), this, SLOT(selectFlash()));
     connect(ui->pathTransfer, SIGNAL(textEdited(QString)), this, SLOT(setUSBPath(QString)));
     connect(ui->spinGDB, SIGNAL(valueChanged(int)), this, SLOT(setGDBPort(int)));
     connect(ui->spinRDBG, SIGNAL(valueChanged(int)), this, SLOT(setRDBGPort(int)));
+    connect(ui->orderDiags, SIGNAL(toggled(bool)), this, SLOT(setBootOrder(bool)));
 
     refresh_timer.setInterval(1000 / 60); //60 fps
     refresh_timer.start();
@@ -83,6 +88,9 @@ MainWindow::MainWindow(QWidget *parent) :
 #endif
 
     //Load settings
+    setUIMode(settings->value("docksEnabled", true).toBool());
+    restoreGeometry(settings->value("windowGeometry").toByteArray());
+    restoreState(settings->value("windowState").toByteArray(), WindowStateVersion);
     selectBoot1(settings->value("boot1", "").toString());
     selectFlash(settings->value("flash", "").toString());
     setDebuggerOnStartup(settings->value("debugOnStart", false).toBool());
@@ -90,24 +98,23 @@ MainWindow::MainWindow(QWidget *parent) :
     setUSBPath(settings->value("usbdir", QString("ndless")).toString());
     setGDBPort(settings->value("gdbPort", 3333).toUInt());
     setRDBGPort(settings->value("rdbgPort", 3334).toUInt());
+    setBootOrder(false);
 
     bool autostart = settings->value("emuAutostart", false).toBool();
     setAutostart(autostart);
     if(emu.emu_path_boot1 != "" && emu.emu_path_flash != "" && autostart)
         emu.start();
+    else
+        ui->statusbar->showMessage(trUtf8("Start the emulation via Emulation->Restart."));
 }
 
 MainWindow::~MainWindow()
 {
+    settings->setValue("windowState", saveState(WindowStateVersion));
+    settings->setValue("windowGeometry", saveGeometry());
+
     delete settings;
     delete ui;
-}
-
-extern "C"
-{
-#include "flash.h"
-#include "lcd.h"
-#include "misc.h"
 }
 
 void MainWindow::refresh()
@@ -153,12 +160,6 @@ void MainWindow::dropEvent(QDropEvent *e)
 
     QUrl url = mime_data->urls().at(0).toLocalFile();
 
-#ifdef Q_OS_MAC
-    // For Mac OS X Yosemite...
-    if (url.path().startsWith("/.file/id="))
-        url = get_good_url_from_fileid_url("file://" + url.toString());
-#endif
-
     usblink_queue_put_file(url.toString().toStdString(), settings->value("usbdir", QString("ndless")).toString().toStdString(), usblink_progress_callback, this);
 }
 
@@ -202,6 +203,12 @@ void MainWindow::debugStr(QString str)
     ui->debugConsole->moveCursor(QTextCursor::End);
     ui->debugConsole->insertPlainText(str);
 
+    // Activate the debugger
+    if(dock_debugger)
+    {
+        dock_debugger->setVisible(true);
+        dock_debugger->raise();
+    }
     ui->tabWidget->setCurrentWidget(ui->tabDebugger);
 }
 
@@ -228,7 +235,9 @@ static QString usblink_path_item(QTreeWidgetItem *w)
     if(!w)
         return "";
 
-    return QString("%0/%1").arg(usblink_path_item(w->parent())).arg(w->text(0));
+    return usblink_path_item(w->parent()) + "/" + w->text(0);
+    // This crashes on 32-bit linux somehow
+    //return QString("%0/%1").arg(path_parent).arg(path_this);
 }
 
 static bool usblink_dirlist_nested(QTreeWidgetItem *w)
@@ -256,17 +265,17 @@ void MainWindow::usblink_dirlist_callback_nested(struct usblink_file *file, void
 {
     QTreeWidgetItem *w = static_cast<QTreeWidgetItem*>(data);
 
-    //End of enumeration
+    //End of enumeration or error
     if(!file)
     {
+        refresh_filebrowser = true;
+
         w->setData(1, Qt::UserRole, QVariant(true)); //Dir is now filled
-        std::async(std::launch::async, [=]()
-        {
-            //Find a dir to fill with entries
-            for(int i = 0; i < w->treeWidget()->topLevelItemCount(); ++i)
-                if(usblink_dirlist_nested(w->treeWidget()->topLevelItem(i)))
-                    return;
-        });
+        //Find a dir to fill with entries
+        for(int i = 0; i < w->treeWidget()->topLevelItemCount(); ++i)
+            if(usblink_dirlist_nested(w->treeWidget()->topLevelItem(i)))
+                return;
+
         return;
     }
 
@@ -281,16 +290,16 @@ void MainWindow::usblink_dirlist_callback(struct usblink_file *file, void *data)
 {
     QTreeWidget *w = static_cast<QTreeWidget*>(data);
 
-    //End of enumeration
+    //End of enumeration or error
     if(!file)
     {
-        std::async(std::launch::async, [=]()
-        {
-            //Find a dir to fill with entries
-            for(int i = 0; i < w->topLevelItemCount(); ++i)
-                if(usblink_dirlist_nested(w->topLevelItem(i)))
-                    return;
-        });
+        refresh_filebrowser = true;
+
+        //Find a dir to fill with entries
+        for(int i = 0; i < w->topLevelItemCount(); ++i)
+            if(usblink_dirlist_nested(w->topLevelItem(i)))
+                return;
+
         return;
     }
 
@@ -310,12 +319,11 @@ void MainWindow::usblink_progress_callback(int progress, void *data)
     emit mw->usblink_progress_changed(progress);
 }
 
-void MainWindow::tabChanged(int id)
+void MainWindow::reload_filebrowser()
 {
-    if(ui->tabWidget->widget(id) != ui->tabFiles)
+    if(!refresh_filebrowser)
         return;
 
-    //Update the file list if current tab changed
     ui->treeWidget->clear();
     usblink_queue_dirlist("/", usblink_dirlist_callback, ui->treeWidget);
 }
@@ -375,11 +383,52 @@ void MainWindow::setDebuggerOnWarning(bool b)
         ui->checkWarning->setChecked(b);
 }
 
+void MainWindow::setUIMode(bool docks_enabled)
+{
+    // Already in this mode?
+    if(docks_enabled == ui->tabWidget->isHidden())
+        return;
+
+    settings->setValue("docksEnabled", docks_enabled);
+
+    // Enabling tabs needs a restart
+    if(!docks_enabled)
+    {
+        QMessageBox::warning(this, trUtf8("Restart needed"), trUtf8("You need to restart nspire_emu to enable the tab interface."));
+        return;
+    }
+
+    //Convert the tabs into QDockWidgets
+    QDockWidget *last_dock = nullptr;
+    while(ui->tabWidget->count())
+    {
+        QWidget *tab = ui->tabWidget->widget(0);
+        QDockWidget *dw = new QDockWidget(ui->tabWidget->tabText(0), this);
+        if(tab == ui->tabDebugger)
+            dock_debugger = dw;
+
+        dw->setObjectName(ui->tabWidget->tabText(0));
+        tab->setParent(dw->widget());
+        addDockWidget(Qt::RightDockWidgetArea, dw);
+        dw->setWidget(tab);
+        if(last_dock != nullptr)
+            tabifyDockWidget(last_dock, dw);
+        last_dock = dw;
+    }
+    ui->tabWidget->setHidden(true);
+    ui->uiDocks->setChecked(docks_enabled);
+}
+
 void MainWindow::setAutostart(bool b)
 {
     settings->setValue("emuAutostart", b);
     if(ui->checkAutostart->isChecked() != b)
         ui->checkAutostart->setChecked(b);
+}
+
+void MainWindow::setBootOrder(bool diags_first)
+{
+    boot_order = diags_first ? ORDER_DIAGS : ORDER_BOOT2;
 }
 
 void MainWindow::setUSBPath(QString path)
@@ -477,7 +526,10 @@ void MainWindow::throttleTimerWait()
     if(!throttle_timer.isActive())
         return;
 
-    QEventLoop e;
+    // e mustn't be deleted as there may be pending signals
+    static QEventLoop e;
+    throttle_timer.disconnect();
+    e.quit();
     connect(&throttle_timer, SIGNAL(timeout()), &e, SLOT(quit()));
     connect(&throttle_timer, SIGNAL(objectNameChanged(QString)), &e, SLOT(quit()));
     e.exec();
@@ -497,8 +549,22 @@ void MainWindow::closeEvent(QCloseEvent *e)
 
 void MainWindow::restart()
 {
+    if(emu.emu_path_boot1 == "")
+    {
+        QMessageBox::critical(this, trUtf8("No boot1 set"), trUtf8("Before you can start the emulation, you have to select a proper boot1 file."));
+        selectBoot1();
+        return;
+    }
+
+    if(emu.emu_path_flash == "")
+    {
+        QMessageBox::critical(this, trUtf8("No flash image loaded"), trUtf8("Before you can start the emulation, you have to load a proper flash file.\n"
+                                                                            "You can create one via Flash->Create Flash in the menu."));
+        return;
+    }
+
     if(emu.stop())
         emu.start();
     else
-        debugStr("Failed to restart emulator. Close and reopen this app.\n");
+        QMessageBox::warning(this, trUtf8("Restart needed"), trUtf8("Failed to restart emulator. Close and reopen this app.\n"));
 }

@@ -8,28 +8,45 @@ CONFIG += c++11
 TEMPLATE = app
 TARGET = nspire_emu
 
-QMAKE_CFLAGS = -O3 -std=gnu11 -Wall -Wextra
+# For make install support
+target.path = /usr/local/bin
+INSTALLS += target
 
-# Clang's LTO has some bugs
-!macx-clang: QMAKE_CFLAGS += -flto
+QMAKE_CFLAGS = -g -std=gnu11 -Wall -Wextra
+QMAKE_CXXFLAGS = -g -std=c++11 -Wall -Wextra
 
-# Override bad default options
-QMAKE_CFLAGS_RELEASE = -O3
-QMAKE_CXXFLAGS_RELEASE = -O3
+# Override bad default options to enable better optimizations
+QMAKE_CFLAGS_RELEASE = -O3 -flto
+QMAKE_CXXFLAGS_RELEASE = -O3 -flto
+QMAKE_LFLAGS_RELEASE = -Wl,-O3 -flto
+
+# ICE on mac with clang
+macx-clang|ios {
+    QMAKE_CFLAGS_RELEASE -= -flto
+    QMAKE_CXXFLAGS_RELEASE -= -flto
+    QMAKE_LFLAGS_RELEASE -= -Wl,-O3 -flto
+}
+
+macx {
+    ICON = resources/logo.icns
+}
 
 # This does also apply to android
-linux|macx {
+linux|macx|ios {
     SOURCES += os/os-linux.c
 }
 
-# 10.10 uses a new "file id" format for drag+drop
-macx {
-    CONFIG += objective_c
-    OBJECTIVE_SOURCES = os/os-mac.mm
-    LIBS += -lobjc -framework Foundation
-    QMAKE_OBJECTIVE_CFLAGS += -fobjc-arc
-    QT += macextras
+ios {
+    DEFINES += IS_IOS_BUILD __arm__
+    QMAKE_INFO_PLIST = Info.plist
+    QMAKE_CFLAGS += -mno-thumb
+    QMAKE_CXXFLAGS += -mno-thumb
+    QMAKE_LFLAGS += -mno-thumb
+    QMAKE_IOS_DEVICE_ARCHS = armv7
 }
+
+# QMAKE_HOST can be e.g. armv7hl, but QT_ARCH would be arm in such cases
+QMAKE_TARGET.arch = $$QT_ARCH
 
 win32 {
     SOURCES += os/os-win32.c
@@ -38,47 +55,53 @@ win32 {
     QMAKE_TARGET.arch = x86
 }
 
+linux-g++-32 {
+    QMAKE_CFLAGS += -m32
+    QMAKE_CXXFLAGS += -m32
+    QMAKE_TARGET.arch = x86
+}
+
 # A platform-independant implementation of lowlevel access as default
 ASMCODE_IMPL = asmcode.c
 
-linux-g++:QMAKE_TARGET.arch = $$QMAKE_HOST.arch
-linux-clang:QMAKE_TARGET.arch = $$QMAKE_HOST.arch
-linux-g++-32:QMAKE_TARGET.arch = x86
-linux-g++-64:QMAKE_TARGET.arch = x86_64
-macx-clang:QMAKE_TARGET.arch = $$QMAKE_HOST.arch
-
 equals(TRANSLATION_ENABLED, true) {
-	TRANSLATE = $$join(QMAKE_TARGET.arch, "", "translate_", ".c")
-	exists($$TRANSLATE) {
-		SOURCES += $$TRANSLATE
-	}
+    TRANSLATE = $$join(QMAKE_TARGET.arch, "", "translate_", ".c")
+    exists($$TRANSLATE) {
+        SOURCES += $$TRANSLATE
+    }
 
-	ASMCODE = $$join(QMAKE_TARGET.arch, "", "asmcode_", ".S")
-	exists($$ASMCODE): ASMCODE_IMPL = $$ASMCODE
-	macx-clang: ASMCODE_IMPL = asmcode_mac.S
+    TRANSLATE2 = $$join(QMAKE_TARGET.arch, "", "translate_", ".cpp")
+    exists($$TRANSLATE2) {
+        SOURCES += $$TRANSLATE2
+    }
+
+    ASMCODE = $$join(QMAKE_TARGET.arch, "", "asmcode_", ".S")
+    exists($$ASMCODE): ASMCODE_IMPL = $$ASMCODE
 }
 else: DEFINES += NO_TRANSLATION
 
-# The x86_64 JIT uses asmcode.c for mem access
-contains(QMAKE_TARGET.arch, "x86_64") {
-	!contains(ASMCODE_IMPL, "asmcode.c") {
-		SOURCES += asmcode.c
-	}
+# The x86_64 and ARM JIT use asmcode.c for mem access
+contains(QMAKE_TARGET.arch, "x86_64") || contains(QMAKE_TARGET.arch, "arm") {
+    !contains(ASMCODE_IMPL, "asmcode.c") {
+        SOURCES += asmcode.c
+    }
 }
 
-linux-g++-32 {
-    QMAKE_CFLAGS += -m32
+# Default to armv7 on ARM for movw/movt. If your CPU doesn't support it, comment this out.
+contains(QMAKE_TARGET.arch, "arm") {
+    QMAKE_CFLAGS += -march=armv7-a -marm
+    QMAKE_CXXFLAGS += -march=armv7-a -marm
+    QMAKE_LFLAGS += -march=armv7-a -marm # We're using LTO, so the linker has to get the same flags
 }
 
 SOURCES += $$ASMCODE_IMPL \
     lcdwidget.cpp \
-    usblink_queue.cpp
-
-SOURCES += mainwindow.cpp \
+    usblink_queue.cpp \
+    cpu.cpp \
+    mainwindow.cpp \
     main.cpp \
     armloader.c \
     casplus.c \
-    cpu.c \
     debug.c \
     des.c \
     disasm.c \
@@ -98,44 +121,48 @@ SOURCES += mainwindow.cpp \
     sha256.c \
     usb.c \
     usblink.c \
-    emuthread.cpp
+    emuthread.cpp \
+    arm_interpreter.cpp \
+    coproc.cpp \
+    thumb_interpreter.cpp
 
 FORMS += \
     mainwindow.ui \
     flashdialog.ui
 
 HEADERS += \
-	keypad.h \
-	emu.h \
-	emuthread.h \
-	lcdwidget.h \
-	usb.h \
-	lcd.h \
-	disasm.h \
-	flash.h \
-	flashdialog.h \
-	interrupt.h \
-	armcode_bin.h \
-	mem.h \
-	mmu.h \
-	des.h \
-	armsnippets.h \
-	debug.h \
-	sha256.h \
-	usblink.h \
-	mainwindow.h \
-	keymap.h \
-	misc.h \
-	os/os.h \
-	os/os-mac.h \
-	gdbstub.h \
-	translate.h \
-	cpu.h \
-	casplus.h \
-	link.h \
-	asmcode.h \
-	schedule.h \
-    usblink_queue.h
+    keypad.h \
+    emu.h \
+    emuthread.h \
+    lcdwidget.h \
+    usb.h \
+    lcd.h \
+    disasm.h \
+    flash.h \
+    flashdialog.h \
+    interrupt.h \
+    armcode_bin.h \
+    mem.h \
+    mmu.h \
+    des.h \
+    armsnippets.h \
+    debug.h \
+    sha256.h \
+    usblink.h \
+    mainwindow.h \
+    keymap.h \
+    misc.h \
+    os/os.h \
+    gdbstub.h \
+    translate.h \
+    cpu.h \
+    casplus.h \
+    link.h \
+    asmcode.h \
+    schedule.h \
+    usblink_queue.h \
+    cpudefs.h \
+    bitfield.h
 
 # Generate the binary arm code into armcode_bin.h
 armsnippets.commands = arm-none-eabi-gcc -fno-leading-underscore -c $$PWD/armsnippets.S -o armsnippets.o -mcpu=arm926ej-s \
@@ -148,3 +175,6 @@ QMAKE_EXTRA_TARGETS = armsnippets
 
 OTHER_FILES += \
     TODO
+
+RESOURCES += \
+    resources.qrc

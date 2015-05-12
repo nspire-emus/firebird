@@ -149,6 +149,7 @@ void serial_write(uint32_t addr, uint32_t value) {
 struct {
     uint8_t rx_char;
     uint8_t rx;
+    uint32_t cr;
     uint16_t int_status;
     uint16_t int_mask;
 } serial_cx;
@@ -161,6 +162,7 @@ void serial_cx_reset() {
         xmodem_file = NULL;
     }
     memset(&serial_cx, 0, sizeof serial_cx);
+    serial_cx.cr = 0x300;
 }
 uint32_t serial_cx_read(uint32_t addr) {
     switch (addr & 0xFFFF) {
@@ -174,11 +176,20 @@ uint32_t serial_cx_read(uint32_t addr) {
             xmodem_next_char();
             return byte;
         case 0x018: return 0x90 & ~(serial_cx.rx << 4);
+        case 0x024: return 0;
+        case 0x028: return 0;
+        case 0x02C: return 0;
         case 0x040: return serial_cx.int_status & serial_cx.int_mask;
+        case 0x030: return serial_cx.cr;
+        case 0x038: return 0;
         case 0xFE0: return 0x11;
         case 0xFE4: return 0x10;
-        case 0xFE8: return 0x34;
+        case 0xFE8: return 0x14;
         case 0xFEC: return 0x00;
+        case 0xFF0: return 0x0d;
+        case 0xFF4: return 0xf0;
+        case 0xFF8: return 0x05;
+        case 0xFFC: return 0xb1;
     }
     return bad_read_word(addr);
 }
@@ -189,7 +200,7 @@ void serial_cx_write(uint32_t addr, uint32_t value) {
         case 0x024: return;
         case 0x028: return;
         case 0x02C: return;
-        case 0x030: return;
+        case 0x030: serial_cx.cr = value; return;
         case 0x034: return;
         case 0x038:
             serial_cx.int_mask = value & 0x7FF;

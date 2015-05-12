@@ -53,7 +53,7 @@ public slots:
     void debugCommand();
 
     //File transfer
-    void tabChanged(int id);
+    void reload_filebrowser();
     void changeProgress(int value);
 
     //Settings
@@ -61,7 +61,9 @@ public slots:
     void selectFlash();
     void setDebuggerOnStartup(bool b);
     void setDebuggerOnWarning(bool b);
+    void setUIMode(bool docks_enabled);
     void setAutostart(bool b);
+    void setBootOrder(bool diags_first);
     void setUSBPath(QString path);
     void setGDBPort(int port);
     void setRDBGPort(int port);
@@ -88,13 +90,19 @@ private:
 
     Ui::MainWindow *ui;
 
+    // Whether to call usblink_dirlist when the tab is selected
+    // Small hack: static as used in static callbacks...
+    static bool refresh_filebrowser;
     QTimer refresh_timer, throttle_timer;
     QGraphicsScene lcd_scene;
     EmuThread emu;
     QSettings *settings;
     FlashDialog flash_dialog;
+    // To make it possible to activate the debugger
+    QDockWidget *dock_debugger;
 };
 
+// Used as global instance by EmuThread and friends
 extern MainWindow *main_window;
 
 #endif // MAINWINDOW_H

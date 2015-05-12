@@ -126,6 +126,7 @@ uint32_t int_cx_read_word(uint32_t addr) {
         case 0x008: return intr.active;
         case 0x00C: return intr.mask[1];
         case 0x010: return intr.mask[0];
+        case 0x030: return 0x00; // Not used AFAIK
         case 0xFE0: return 0x90;
         case 0xFE4: return 0x11;
         case 0xFE8: return 0x04;
@@ -134,14 +135,24 @@ uint32_t int_cx_read_word(uint32_t addr) {
     return bad_read_word(addr);
 }
 void int_cx_write_word(uint32_t addr, uint32_t value) {
-    switch (addr & 0x3FFFFFF) {
+    uint32_t offset = addr & 0x3FFFFFF;
+    if(offset < 0x200)
+    {
+        switch(offset)
+        {
         case 0x004: return;
         case 0x00C: intr.mask[1] = value; update_cx(); return;
         case 0x010: intr.mask[0] |= value; update_cx(); return;
         case 0x014: intr.mask[0] &= ~value; update_cx(); return;
+        case 0x01C: return;
+        case 0x030: return;
+        case 0x034: return; // Not used AFAIK
         case 0x10C: return;
-        case 0x21C: return;
+        }
     }
+    else if(offset <= 0x300)
+        return; // Not used AFAIK
+
     bad_write_word(addr, value);
     return;
 }

@@ -82,7 +82,7 @@ void gpio_reset() {
     gpio.direction.w = 0xFFFFFFFFFFFFFFFF;
     gpio.output.w    = 0x0000000000000000;
 
-    gpio.input.w     = 0x00001000050F001B;
+    gpio.input.w     = 0x00001000070F001F;
     touchpad_gpio_reset();
 }
 uint32_t gpio_read(uint32_t addr) {
@@ -358,7 +358,7 @@ void rtc_cx_write(uint32_t addr, uint32_t value) {
 
 /* 900A0000 */
 uint32_t misc_read(uint32_t addr) {
-    struct timerpair *tp = &timerpairs[(addr - 0x10) >> 3 & 3];
+    struct timerpair *tp = &timerpairs[((addr - 0x10) >> 3) & 3];
     static const struct { uint32_t hi, lo; } idreg[4] = {
     { 0x00000000, 0x00000000 },
     { 0x04000001, 0x00010105 },
@@ -506,6 +506,14 @@ uint32_t timer_cx_read(uint32_t addr) {
         case 0x0014: case 0x0034: return t->interrupt & t->control >> 5;
         case 0x0018: case 0x0038: return t->load;
         case 0x001C: case 0x003C: return 0; //?
+        case 0x0FE0: return 0x04;
+        case 0x0FE4: return 0x18;
+        case 0x0FE8: return 0x14;
+        case 0x0FEC: return 0x00;
+        case 0x0FF0: return 0x0D;
+        case 0x0FF4: return 0xF0;
+        case 0x0FF8: return 0x05;
+        case 0x0FFC: return 0xB1;
     }
     return bad_read_word(addr);
 }

@@ -13,7 +13,6 @@
 #define RF_CODE_TRANSLATED   32
 #define RFS_TRANSLATION_INDEX 9
 
-	.text
 .globl	translation_enter
 translation_enter:
 	push	%rbp
@@ -21,9 +20,9 @@ translation_enter:
 	push	%rbx
 	push	%rsi
 	push	%rdi
-	mov 	%rsp, in_translation_rsp
+	mov	%rsp, in_translation_rsp(%rip)
 
-	mov		$arm, %rbx
+	lea	arm(%rip), %rbx
 	mov		ARM_PC(%rbx), %eax
 	jmp		translation_next
 
@@ -36,14 +35,16 @@ translation_next_bx:
 translation_next:
 	mov		%eax, ARM_PC(%rbx)
 
-	cmpl	$0, cycle_count_delta
+	lea	cycle_count_delta(%rip), %r8
+	cmpl	$0, (%r8)
 	jns		return
 
-	cmpl	$0, cpu_events
+	lea     cpu_events(%rip), %r8
+	cmpl	$0, (%r8)
 	jnz		return
 
 	mov		ARM_PC(%rbx), %edi
-	call	ptr
+	call	read_instruction
 	cmp		$0, %rax
 	jz		return
 addr_ok:
@@ -51,17 +52,21 @@ addr_ok:
 	movl 	RAM_FLAGS(%rax), %edx
 	testb	$RF_CODE_TRANSLATED, %dl
 	jz		return         // Not translated
-	mov 	%rax, in_translation_pc_ptr
+
+	lea	in_translation_pc_ptr(%rip), %r8
+	mov 	%rax, (%r8)
 
 	shr 	$RFS_TRANSLATION_INDEX, %rdx
 	shl		$5, %rdx
-	add 	$translation_table, %rdx
+	lea	translation_table(%rip), %r8
+	add 	%r8, %rdx
 
 	// Add one cycle for each instruction from this point to the end
 	mov 	TRANS_END_PTR(%rdx), %rcx
 	sub 	%rax, %rcx
 	shr 	$2, %rcx
-	add 	%rcx, cycle_count_delta
+	lea	cycle_count_delta(%rip), %r8
+	add 	%ecx, (%r8)
 
 	mov		%rax, %rcx
 	sub		TRANS_START_PTR(%rdx), %rcx
@@ -72,7 +77,8 @@ addr_ok:
 	//jmp	*(%rdx, %rcx, 8)
 
 return:
-	movq 	$0, in_translation_rsp
+	lea	in_translation_rsp(%rip), %r8
+	movq 	$0, (%r8)
 	pop 	%rdi
 	pop 	%rsi
 	pop 	%rbx

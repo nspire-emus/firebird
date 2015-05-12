@@ -5,6 +5,10 @@
 
 #include <stdbool.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 void casplus_lcd_draw_frame(uint8_t buffer[240][160]);
 uint8_t casplus_nand_read_byte(uint32_t addr);
 uint16_t casplus_nand_read_half(uint32_t addr);
@@ -21,5 +25,9 @@ void omap_write_half(uint32_t addr, uint16_t value);
 void omap_write_word(uint32_t addr, uint32_t value);
 
 void casplus_reset(void);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

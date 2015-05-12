@@ -3,47 +3,24 @@
 #include "mmu.h"
 #include "mem.h"
 
-#define likely(x) (__builtin_expect(x, 1))
-#define unlikely(x) (__builtin_expect(x, 0))
-
 //TODO: Read breakpoints
 
-#if (!defined(__i386__) && !defined(__x86_64__)) || defined(NO_TRANSLATION)
+#if (!defined(__i386__) && !defined(__x86_64__) && !defined(__arm__)) || defined(NO_TRANSLATION)
 void flush_translations() {}
-void fix_pc_for_fault() {}
 bool range_translated(uintptr_t x, uintptr_t y) { (void) x; (void) y; return false; }
 #endif
 
-void * FASTCALL ptr(uint32_t addr)
-{
-    uintptr_t entry = *(uintptr_t*)(addr_cache + ((addr >> 10) << 1));
-
-    if(entry & AC_FLAGS)
-    {
-        if(entry & AC_INVALID)
-        {
-            addr_cache_miss(addr, false, prefetch_abort);
-            return ptr(addr);
-        }
-        else
-            return 0;
-    }
-
-    entry += addr;
-    return (void*)entry;
-}
-
-uint32_t FASTCALL read_word_ldr(uint32_t addr)
+uint32_t FASTCALL read_word(uint32_t addr)
 {
     uintptr_t entry = *(uintptr_t*)(addr_cache + ((addr >> 10) << 1));
 
     //If the sum doesn't contain the address directly
-    if(entry & AC_FLAGS)
+    if(unlikely(entry & AC_FLAGS))
     {
         if(entry & AC_INVALID) //Invalid entry
         {
             addr_cache_miss(addr, false, data_abort);
-            return read_word_ldr(addr);
+            return read_word(addr);
         }
         else //Physical address
         {
@@ -63,7 +40,7 @@ uint32_t FASTCALL read_byte(uint32_t addr)
     uintptr_t entry = *(uintptr_t*)(addr_cache + ((addr >> 10) << 1));
 
     //If the sum doesn't contain the address directly
-    if(entry & AC_FLAGS)
+    if(unlikely(entry & AC_FLAGS))
     {
         if(entry & AC_INVALID) //Invalid entry
         {
@@ -88,7 +65,7 @@ uint32_t FASTCALL read_half(uint32_t addr)
     uintptr_t entry = *(uintptr_t*)(addr_cache + ((addr >> 10) << 1));
 
     //If the sum doesn't contain the address directly
-    if(entry & AC_FLAGS)
+    if(unlikely(entry & AC_FLAGS))
     {
         if(entry & AC_INVALID) //Invalid entry
         {
@@ -108,17 +85,12 @@ uint32_t FASTCALL read_half(uint32_t addr)
     return *(uint16_t*)entry;
 }
 
-uint32_t FASTCALL read_word(uint32_t addr)
-{
-    return read_word_ldr(addr);
-}
-
 void FASTCALL write_byte(uint32_t addr, uint32_t value)
 {
     uintptr_t entry = *(uintptr_t*)(addr_cache + ((addr >> 10) << 1) + 1);
 
     //If the sum doesn't contain the address directly
-    if(entry & AC_NOT_PTR)
+    if(unlikely(entry & AC_FLAGS))
     {
         if(entry & AC_INVALID) //Invalid entry
         {
@@ -144,7 +116,7 @@ void FASTCALL write_half(uint32_t addr, uint32_t value)
     uintptr_t entry = *(uintptr_t*)(addr_cache + ((addr >> 10) << 1) + 1);
 
     //If the sum doesn't contain the address directly
-    if(entry & AC_NOT_PTR)
+    if(unlikely(entry & AC_FLAGS))
     {
         if(entry & AC_INVALID) //Invalid entry
         {
@@ -170,7 +142,7 @@ void FASTCALL write_word(uint32_t addr, uint32_t value)
     uintptr_t entry = *(uintptr_t*)(addr_cache + ((addr >> 10) << 1) + 1);
 
     //If the sum doesn't contain the address directly
-    if(entry & AC_NOT_PTR)
+    if(unlikely(entry & AC_FLAGS))
     {
         if(entry & AC_INVALID) //Invalid entry
         {

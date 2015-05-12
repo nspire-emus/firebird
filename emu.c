@@ -30,23 +30,19 @@ uint32_t cpu_events;
 bool do_translate = true;
 int asic_user_flags;
 bool turbo_mode;
-bool is_halting;
-bool show_speed;
 
-bool exiting, debug_on_start, debug_on_warn, large_nand, large_sdram;
+volatile bool exiting, debug_on_start, debug_on_warn, large_nand, large_sdram;
+BootOrder boot_order = ORDER_DEFAULT;
 int product = 0x0E0;
 uint32_t boot2_base;
 const char *path_boot1 = NULL, *path_boot2 = NULL, *path_flash = NULL, *pre_manuf = NULL, *pre_boot2 = NULL, *pre_diags = NULL, *pre_os = NULL;
 
 void *restart_after_exception[32];
 
-void (*reset_procs[20])(void);
-int reset_proc_count;
-
 const char log_type_tbl[] = LOG_TYPE_TBL;
 int log_enabled[MAX_LOG];
 FILE *log_file[MAX_LOG];
-void logprintf(int type, char *str, ...) {
+void logprintf(int type, const char *str, ...) {
     if (log_enabled[type]) {
         va_list va;
         va_start(va, str);
@@ -55,14 +51,14 @@ void logprintf(int type, char *str, ...) {
     }
 }
 
-void emuprintf(char *format, ...) {
+void emuprintf(const char *format, ...) {
     va_list va;
     va_start(va, format);
     gui_debug_vprintf(format, va);
     va_end(va);
 }
 
-void warn(char *fmt, ...) {
+void warn(const char *fmt, ...) {
     va_list va;
     va_start(va, fmt);
     gui_debug_printf("Warning (%08x): ", arm.reg[15]);
@@ -74,14 +70,12 @@ void warn(char *fmt, ...) {
 }
 
 __attribute__((noreturn))
-void error(char *fmt, ...) {
+void error(const char *fmt, ...) {
     va_list va;
     va_start(va, fmt);
     gui_debug_printf("Error (%08x): ", arm.reg[15]);
     gui_debug_vprintf(fmt, va);
     gui_debug_printf("\n");
-    /*fprintf(stderr, "\n\tBacktrace:\n");
-    backtrace(arm.reg[11]);*/
     va_end(va);
     debugger(DBG_EXCEPTION, 0);
     cpu_events |= EVENT_RESET;
@@ -95,27 +89,6 @@ int exec_hack() {
         return 1;
     }
     return 0;
-}
-
-void prefetch_abort(uint32_t mva, uint8_t status) {
-    error("Prefetch abort: address=%08x status=%02x %08x\n", mva, status);
-    arm.reg[15] += 4;
-    // Fault address register not changed
-    arm.instruction_fault_status = status;
-    cpu_exception(EX_PREFETCH_ABORT);
-    if (mva == arm.reg[15])
-        error("Abort occurred with exception vectors unmapped");
-    __builtin_longjmp(restart_after_exception, 1);
-}
-
-void data_abort(uint32_t mva, uint8_t status) {
-    error("Data abort: address=%08x status=%02x %08x\n", mva, status);
-    fix_pc_for_fault();
-    arm.reg[15] += 8;
-    arm.fault_address = mva;
-    arm.data_fault_status = status;
-    cpu_exception(EX_DATA_ABORT);
-    __builtin_longjmp(restart_after_exception, 1);
 }
 
 os_frequency_t perffreq;
@@ -157,17 +130,8 @@ void throttle_interval_event(int index) {
         prev = interval_end;
     }
 
-	if (!turbo_mode || is_halting)
+    if (!turbo_mode)
 		throttle_timer_wait();
-	if (is_halting)
-		is_halting--;
-}
-
-void add_reset_proc(void (*proc)(void))
-{
-    if (reset_proc_count == sizeof(reset_procs)/sizeof(*reset_procs))
-        abort();
-    reset_procs[reset_proc_count++] = proc;
 }
 
 int emulate(unsigned int port_gdb, unsigned int port_rdbg)
@@ -190,6 +154,8 @@ int emulate(unsigned int port_gdb, unsigned int port_rdbg)
     uint32_t sdram_size;
     flash_read_settings(&sdram_size);
 
+    flash_set_bootorder(boot_order);
+
     if(!memory_initialize(sdram_size))
         return 1;
 
@@ -210,14 +176,7 @@ int emulate(unsigned int port_gdb, unsigned int port_rdbg)
     }
 
 #ifndef NO_TRANSLATION
-    if(!insn_buffer)
-    {
-        insn_buffer = os_alloc_executable(INSN_BUFFER_SIZE);
-        insn_bufptr = insn_buffer;
-    }
-
-    if(!insn_buffer)
-        return false;
+    translate_init();
 #endif
 
     os_exception_frame_t frame;
@@ -306,8 +265,7 @@ reset:
 
     sched_reset();
 
-    for (i = 0; i < reset_proc_count; i++)
-        reset_procs[i]();
+    memory_reset();
 
     sched_items[SCHED_THROTTLE].clock = CLOCK_27M;
     sched_items[SCHED_THROTTLE].proc = throttle_interval_event;
@@ -316,7 +274,9 @@ reset:
 
     exiting = false;
 
+#ifndef IS_IOS_BUILD
     __builtin_setjmp(restart_after_exception);
+#endif
 
     while (!exiting) {
         sched_process_pending_events();

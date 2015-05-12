@@ -98,6 +98,19 @@ static void put_debug_char(char c) {
     *sockbufptr++ = c;
 }
 
+// returns 1 if at least one instruction translated in the range
+static int range_translated(uint32_t range_start, uint32_t range_end) {
+    uint32_t pc;
+    int translated = 0;
+    for (pc = range_start; pc < range_end;  pc += 4) {
+        void *pc_ram_ptr = virt_mem_ptr(pc, 4);
+        if (!pc_ram_ptr)
+            break;
+        translated |= RAM_FLAGS(pc_ram_ptr) & RF_CODE_TRANSLATED;
+    }
+    return translated;
+}
+
 /* Returns -1 on disconnection */
 static char get_debug_char(void) {
     char c;

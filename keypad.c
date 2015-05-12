@@ -270,6 +270,8 @@ uint32_t touchpad_cx_read(uint32_t addr) {
             return val;
         case 0x0070:
             return touchpad_cx.reading ? 12 : 4;
+        case 0x00FC:
+            return 0x44570140;
         default:
             return 0;
     }

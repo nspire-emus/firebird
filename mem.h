@@ -7,6 +7,10 @@
 
 #include "emu.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #define MEM_MAXSIZE (65*1024*1024) // also defined as RAM_FLAGS in asmcode.S
 
 // Must be allocated below 2GB (see comments for mmu.c)
@@ -55,6 +59,11 @@ void FASTCALL mmio_write_half(uint32_t addr, uint32_t value) __asm__("mmio_write
 void FASTCALL mmio_write_word(uint32_t addr, uint32_t value) __asm__("mmio_write_word");
 
 bool memory_initialize(uint32_t sdram_size);
+void memory_reset();
 void memory_deinitialize();
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

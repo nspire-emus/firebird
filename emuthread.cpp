@@ -4,14 +4,12 @@
 #include <cstdarg>
 #include <QEventLoop>
 
+#include "debug.h"
+#include "emu.h"
 #include "mainwindow.h"
 #include "usblink_queue.h"
 
 EmuThread *emu_thread = nullptr;
-
-extern "C" {
-#include "debug.h"
-#include "emu.h"
 
 void gui_do_stuff()
 {
@@ -75,7 +73,7 @@ int gui_getchar()
 
 void gui_show_speed(double d)
 {
-    main_window->showSpeed(d);
+    emu_thread->speedChanged(d);
 }
 
 void gui_usblink_changed(bool state)
@@ -96,7 +94,6 @@ void throttle_timer_on()
 void throttle_timer_wait()
 {
     main_window->throttleTimerWait();
-}
 }
 
 EmuThread::EmuThread(QObject *parent) :

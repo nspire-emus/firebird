@@ -7,6 +7,10 @@
 
 #include "emu.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct arm_state {  // Remember to update asmcode.S if this gets rearranged
     uint32_t reg[16];    // Registers for current mode.
 
@@ -16,11 +20,15 @@ struct arm_state {  // Remember to update asmcode.S if this gets rearranged
     uint8_t  cpsr_c;     // CPSR bit 29
     uint8_t  cpsr_v;     // CPSR bit 28
 
+    #ifdef __arm__
+    uint32_t cpsr_flags; // Only used in ARM translations
+    #endif
+
     /* CP15 registers */
     uint32_t control;
     uint32_t translation_table_base;
     uint32_t domain_access_control;
-    uint8_t  data_fault_status, instruction_fault_status;
+    uint8_t  data_fault_status, instruction_fault_status, pad1, pad2; // pad1 and pad2 for better alignment
     uint32_t fault_address;
 
     uint32_t r8_usr[5], r13_usr[2];
@@ -52,17 +60,34 @@ extern struct arm_state arm __asm__("arm");
 #define EX_IRQ            6
 #define EX_FIQ            7
 
-#define current_instr_size (arm.cpsr_low28 & 0x20 ? 2 /* thumb */ : 4)
+#define current_instr_size ((arm.cpsr_low28 & 0x20) ? 2 /* thumb */ : 4)
 
 void cpu_int_check();
-uint32_t FASTCALL get_cpsr();
+uint32_t FASTCALL get_cpsr() __asm__("get_cpsr");
 void set_cpsr_full(uint32_t cpsr);
 void FASTCALL set_cpsr(uint32_t cpsr, uint32_t mask);
 uint32_t FASTCALL get_spsr();
 void FASTCALL set_spsr(uint32_t cpsr, uint32_t mask);
+uint32_t *ptr_spsr();
+uint32_t get_cpsr_flags();
+void set_cpsr_flags(uint32_t flags) __asm__("set_cpsr_flags");
 void cpu_exception(int type);
+void fix_pc_for_fault();
 void cpu_interpret_instruction(uint32_t insn);
 void cpu_arm_loop();
 void cpu_thumb_loop();
+typedef void fault_proc(uint32_t mva, uint8_t status);
+fault_proc prefetch_abort, data_abort __asm__("data_abort");
+void undefined_instruction();
+
+uint32_t reg(uint8_t i);
+uint32_t reg_pc(uint8_t i);
+uint32_t reg_pc_mem(uint8_t i);
+void set_reg(uint8_t i, uint32_t value);
+void set_reg_pc(uint8_t i, uint32_t value);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

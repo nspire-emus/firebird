@@ -1,9 +1,5 @@
 #include "lcdwidget.h"
-
-extern "C" {
-    #include "keypad.h"
-}
-
+#include "keypad.h"
 #include "keymap.h"
 
 LCDWidget::LCDWidget()
