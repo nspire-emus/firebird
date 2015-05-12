@@ -61,6 +61,7 @@ public slots:
     void selectFlash();
     void setDebuggerOnStartup(bool b);
     void setDebuggerOnWarning(bool b);
+    void setUIMode(bool docks_enabled);
     void setAutostart(bool b);
     void setBootOrder(bool diags_first);
     void setUSBPath(QString path);
@@ -97,6 +98,8 @@ private:
     EmuThread emu;
     QSettings *settings;
     FlashDialog flash_dialog;
+    // To make it possible to activate the debugger
+    QDockWidget *dock_debugger;
 };
 
 // Used as global instance by EmuThread and friends

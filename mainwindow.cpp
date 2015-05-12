@@ -62,6 +62,7 @@ MainWindow::MainWindow(QWidget *parent) :
     //Settings
     connect(ui->checkDebugger, SIGNAL(toggled(bool)), this, SLOT(setDebuggerOnStartup(bool)));
     connect(ui->checkWarning, SIGNAL(toggled(bool)), this, SLOT(setDebuggerOnWarning(bool)));
+    connect(ui->uiDocks, SIGNAL(toggled(bool)), this, SLOT(setUIMode(bool)));
     connect(ui->checkAutostart, SIGNAL(toggled(bool)), this, SLOT(setAutostart(bool)));
     connect(ui->fileBoot1, SIGNAL(pressed()), this, SLOT(selectBoot1()));
     connect(ui->fileFlash, SIGNAL(pressed()), this, SLOT(selectFlash()));
@@ -69,22 +70,6 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->spinGDB, SIGNAL(valueChanged(int)), this, SLOT(setGDBPort(int)));
     connect(ui->spinRDBG, SIGNAL(valueChanged(int)), this, SLOT(setRDBGPort(int)));
     connect(ui->orderDiags, SIGNAL(toggled(bool)), this, SLOT(setBootOrder(bool)));
-
-    //Convert the tabs into QDockWidgets
-    QDockWidget *last_dock = nullptr;
-    while(ui->tabWidget->count())
-    {
-        QWidget *tab = ui->tabWidget->widget(0);
-        QDockWidget *dw = new QDockWidget(ui->tabWidget->tabText(0), this);
-        dw->setObjectName(ui->tabWidget->tabText(0));
-        tab->setParent(dw->widget());
-        addDockWidget(Qt::RightDockWidgetArea, dw);
-        dw->setWidget(tab);
-        if(last_dock != nullptr)
-            tabifyDockWidget(last_dock, dw);
-        last_dock = dw;
-    }
-    ui->tabWidget->setHidden(true);
 
     refresh_timer.setInterval(1000 / 60); //60 fps
     refresh_timer.start();
@@ -103,6 +88,7 @@ MainWindow::MainWindow(QWidget *parent) :
 #endif
 
     //Load settings
+    setUIMode(settings->value("docksEnabled", true).toBool());
     restoreGeometry(settings->value("windowGeometry").toByteArray());
     restoreState(settings->value("windowState").toByteArray(), WindowStateVersion);
     selectBoot1(settings->value("boot1", "").toString());
@@ -118,6 +104,8 @@ MainWindow::MainWindow(QWidget *parent) :
     setAutostart(autostart);
     if(emu.emu_path_boot1 != "" && emu.emu_path_flash != "" && autostart)
         emu.start();
+    else
+        ui->statusbar->showMessage(trUtf8("Start the emulation via Emulation->Restart."));
 }
 
 MainWindow::~MainWindow()
@@ -215,6 +203,12 @@ void MainWindow::debugStr(QString str)
     ui->debugConsole->moveCursor(QTextCursor::End);
     ui->debugConsole->insertPlainText(str);
 
+    // Activate the debugger
+    if(dock_debugger)
+    {
+        dock_debugger->setVisible(true);
+        dock_debugger->raise();
+    }
     ui->tabWidget->setCurrentWidget(ui->tabDebugger);
 }
 
@@ -389,6 +383,42 @@ void MainWindow::setDebuggerOnWarning(bool b)
         ui->checkWarning->setChecked(b);
 }
 
+void MainWindow::setUIMode(bool docks_enabled)
+{
+    // Already in this mode?
+    if(docks_enabled == ui->tabWidget->isHidden())
+        return;
+
+    settings->setValue("docksEnabled", docks_enabled);
+
+    // Enabling tabs needs a restart
+    if(!docks_enabled)
+    {
+        QMessageBox::warning(this, trUtf8("Restart needed"), trUtf8("You need to restart nspire_emu to enable the tab interface."));
+        return;
+    }
+
+    //Convert the tabs into QDockWidgets
+    QDockWidget *last_dock = nullptr;
+    while(ui->tabWidget->count())
+    {
+        QWidget *tab = ui->tabWidget->widget(0);
+        QDockWidget *dw = new QDockWidget(ui->tabWidget->tabText(0), this);
+        if(tab == ui->tabDebugger)
+            dock_debugger = dw;
+
+        dw->setObjectName(ui->tabWidget->tabText(0));
+        tab->setParent(dw->widget());
+        addDockWidget(Qt::RightDockWidgetArea, dw);
+        dw->setWidget(tab);
+        if(last_dock != nullptr)
+            tabifyDockWidget(last_dock, dw);
+        last_dock = dw;
+    }
+    ui->tabWidget->setHidden(true);
+    ui->uiDocks->setChecked(docks_enabled);
+}
+
 void MainWindow::setAutostart(bool b)
 {
     settings->setValue("emuAutostart", b);
@@ -519,8 +549,22 @@ void MainWindow::closeEvent(QCloseEvent *e)
 
 void MainWindow::restart()
 {
+    if(emu.emu_path_boot1 == "")
+    {
+        QMessageBox::critical(this, trUtf8("No boot1 set"), trUtf8("Before you can start the emulation, you have to select a proper boot1 file."));
+        selectBoot1();
+        return;
+    }
+
+    if(emu.emu_path_flash == "")
+    {
+        QMessageBox::critical(this, trUtf8("No flash image loaded"), trUtf8("Before you can start the emulation, you have to load a proper flash file.\n"
+                                                                            "You can create one via Flash->Create Flash in the menu."));
+        return;
+    }
+
     if(emu.stop())
         emu.start();
     else
-        debugStr("Failed to restart emulator. Close and reopen this app.\n");
+        QMessageBox::warning(this, trUtf8("Restart needed"), trUtf8("Failed to restart emulator. Close and reopen this app.\n"));
 }
