@@ -48,6 +48,7 @@ bool ndls_is_installed(void) {
 
 static int listen_socket_fd = 0;
 static int socket_fd = 0;
+static bool gdb_handshake_complete = false;
 
 static void log_socket_error(const char *msg) {
 #ifdef __MINGW32__
@@ -409,8 +410,7 @@ static void set_registers(const uint32_t regbuf[NUMREGS]) {
  * stop reason and r can be null. */
 static void send_stop_reply(int signal, const char *stop_reason, const char *r) {
     char *ptr = remcomOutBuffer;
-    *ptr++ = 'T';
-    append_hex_char(ptr, signal);
+    ptr += sprintf(ptr, "T%02xthread:1;", signal);
     if (stop_reason) {
         strcpy(ptr, stop_reason);
         ptr += strlen(stop_reason);
@@ -464,6 +464,11 @@ void gdbstub_loop(void) {
                 hex2mem(ptr, regbuf, NUMREGS * sizeof(uint32_t));
                 set_registers(regbuf);
                 strcpy(remcomOutBuffer,"OK");
+                break;
+
+            case 'H':
+                if(ptr[1] == '1')
+                    strcpy(remcomOutBuffer, "OK");
                 break;
 
             case 'p': /* pn Read the value of register n */
@@ -543,10 +548,32 @@ parse_new_pc:
                     arm.reg[15] = addr;
                 }
                 return;
-            case 'q':
-                if (!strcmp("Offsets", ptr)) {
+            case 'q': /* qString Get value of String */
+                if (!strcmp("Offsets", ptr))
+                {
+                    /* Offsets of sections */
                     sprintf(remcomOutBuffer, "Text=%x;Data=%x;Bss=%x",
                             ndls_debug_alloc_block, ndls_debug_alloc_block,	ndls_debug_alloc_block);
+                }
+                else if(!strcmp("C", ptr))
+                {
+                    /* Current thread id */
+                    strcpy(remcomOutBuffer, "QC1"); // First and only thread
+                }
+                else if(!strcmp("fThreadInfo", ptr))
+                {
+                    /* First thread id */
+                    strcpy(remcomOutBuffer, "m1"); // First and only thread
+                }
+                else if(!strcmp("sThreadInfo", ptr))
+                {
+                    /* Next thread id */
+                    strcpy(remcomOutBuffer, "l"); // No more threads
+                }
+                else if(!strcmp("HostInfo", ptr))
+                {
+                    /* Host information */
+                    strcpy(remcomOutBuffer, "cputype:12;cpusubtype:7;endian:little;ptrsize:4;");
                 }
                 break;
             case 'Z': /* 0|1|2|3|4,addr,kind  */
@@ -573,7 +600,7 @@ z:
                         case '4': // access watchpoint
                             if (set) *flags |= RF_WRITE_BREAKPOINT;
                             else *flags &= ~RF_WRITE_BREAKPOINT;
-                            if (*ptr1 != 4)
+                            if (*ptr1 != '4')
                                 break;
                         case '3': // read watchpoint, access watchpoint
                             if (set) *flags |= RF_READ_BREAKPOINT;
@@ -641,6 +668,7 @@ void gdbstub_recv(void) {
             emuprintf("Ndless not detected or too old. Debugging of applications not available!\n");
 
         gdb_connected = true;
+        gdb_handshake_complete = false;
         gui_status_printf("GDB connected.");
         return;
     }
@@ -652,7 +680,15 @@ void gdbstub_recv(void) {
         gdbstub_disconnect();
     }
     else if (ret)
-        gdbstub_debugger(DBG_USER, 0);
+    {
+        if(!gdb_handshake_complete)
+        {
+            gdbstub_loop();
+            gdb_handshake_complete = true;
+        }
+        else
+            gdbstub_debugger(DBG_USER, 0);
+    }
 }
 
 /* addr is only required for read/write breakpoints */
