@@ -158,9 +158,11 @@ void MainWindow::dropEvent(QDropEvent *e)
     if(!mime_data->hasUrls())
         return;
 
-    QUrl url = mime_data->urls().at(0).toLocalFile();
-
-    usblink_queue_put_file(url.toString().toStdString(), settings->value("usbdir", QString("ndless")).toString().toStdString(), usblink_progress_callback, this);
+    for(auto &&url : mime_data->urls())
+    {
+        QUrl local = url.toLocalFile();
+        usblink_queue_put_file(local.toString().toStdString(), settings->value("usbdir", QString("ndless")).toString().toStdString(), usblink_progress_callback, this);
+    }
 }
 
 void MainWindow::dragEnterEvent(QDragEnterEvent *e)
