@@ -104,7 +104,6 @@ SOURCES += $$ASMCODE_IMPL \
     cpu.cpp \
     mainwindow.cpp \
     main.cpp \
-    armloader.c \
     casplus.c \
     debug.c \
     des.c \
@@ -128,7 +127,8 @@ SOURCES += $$ASMCODE_IMPL \
     emuthread.cpp \
     arm_interpreter.cpp \
     coproc.cpp \
-    thumb_interpreter.cpp
+    thumb_interpreter.cpp \
+    armsnippets_loader.c
 
 FORMS += \
     mainwindow.ui \

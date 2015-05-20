@@ -1,6 +1,7 @@
 #include <algorithm>
 #include <cassert>
 
+#include "armsnippets.h"
 #include "asmcode.h"
 #include "cpu.h"
 #include "cpudefs.h"
@@ -22,7 +23,7 @@ void cpu_arm_loop()
         if(!p)
             error("Bad PC: 0x%08x\n", arm.reg[15]);
 
-        uint32_t *flags = &RAM_FLAGS(p);
+        uint32_t *flags_ptr = &RAM_FLAGS(p);
 
         // Check for pending events
         if(cpu_events)
@@ -35,7 +36,7 @@ void cpu_arm_loop()
 
 #ifndef NO_TRANSLATION
         // If the instruction is translated, use the translation
-        if(*flags & RF_CODE_TRANSLATED)
+        if(*flags_ptr & RF_CODE_TRANSLATED)
         {
             translation_enter();
             continue;
@@ -43,14 +44,22 @@ void cpu_arm_loop()
 #endif
 
         // TODO: Other flags
-        if(*flags & (RF_EXEC_BREAKPOINT | RF_EXEC_DEBUG_NEXT))
+        if(*flags_ptr & (RF_EXEC_BREAKPOINT | RF_EXEC_DEBUG_NEXT | RF_ARMLOADER_CB))
         {
-            if(*flags & RF_EXEC_BREAKPOINT)
-                gui_debug_printf("Breakpoint at 0x%08x\n", arm.reg[15]);
-            enter_debugger: debugger(DBG_EXEC_BREAKPOINT, 0);
+            if(*flags_ptr & RF_ARMLOADER_CB)
+            {
+                *flags_ptr &= ~RF_ARMLOADER_CB;
+                armloader_cb();
+            }
+            else
+            {
+                if(*flags_ptr & RF_EXEC_BREAKPOINT)
+                    gui_debug_printf("Breakpoint at 0x%08x\n", arm.reg[15]);
+                enter_debugger: debugger(DBG_EXEC_BREAKPOINT, 0);
+            }
         }
 #ifndef NO_TRANSLATION
-        else if(do_translate && !(*flags & RF_CODE_NO_TRANSLATE))
+        else if(do_translate && !(*flags_ptr & RF_CODE_NO_TRANSLATE))
         {
             translate(arm.reg[15], &p->raw);
             continue;

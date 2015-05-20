@@ -1,4 +1,4 @@
-/* Declarations for armsnippets.S */
+/* Declarations for armsnippets */
 
 #ifndef _H_ARMSNIPPETS
 #define _H_ARMSNIPPETS
@@ -17,7 +17,7 @@ enum ARMLOADER_PARAM_TYPE {ARMLOADER_PARAM_VAL, ARMLOADER_PARAM_PTR};
 struct armloader_load_params {
     enum ARMLOADER_PARAM_TYPE t;
     union {
-        struct p {
+        struct {
             void *ptr;
             unsigned int size;
         } p;

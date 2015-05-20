@@ -180,9 +180,11 @@ bool gdbstub_init(unsigned int port) {
 
 // program block pre-allocated by Ndless, used for vOffsets queries
 static uint32_t ndls_debug_alloc_block = 0;
+static volatile bool ndls_debug_received = false;
 
 static void gdb_connect_ndls_cb(struct arm_state *state) {
     ndls_debug_alloc_block = state->reg[0]; // can be 0
+    ndls_debug_received = true;
 }
 
 /* BUFMAX defines the maximum number of characters in inbound/outbound buffers */
@@ -502,7 +504,7 @@ void gdbstub_loop(void) {
                         && (size_t)length < (sizeof(remcomOutBuffer) - 1) / 2)
                 {
                     ramaddr = virt_mem_ptr(addr, length);
-                    if (!ramaddr || mem2hex(ramaddr, remcomOutBuffer, length))
+                    if (ramaddr && mem2hex(ramaddr, remcomOutBuffer, length))
                         break;
                     strcpy(remcomOutBuffer, "E03");
                 } else
@@ -663,15 +665,25 @@ void gdbstub_recv(void) {
 
         /* Interface with Ndless */
         if (ndls_is_installed())
+        {
             armloader_load_snippet(SNIPPET_ndls_debug_alloc, NULL, 0, gdb_connect_ndls_cb);
+            ndls_debug_received = false;
+        }
         else
+        {
             emuprintf("Ndless not detected or too old. Debugging of applications not available!\n");
+            ndls_debug_received = true;
+        }
 
         gdb_connected = true;
         gdb_handshake_complete = false;
         gui_status_printf("GDB connected.");
-        return;
     }
+
+    // Wait until we know the program location
+    if(!ndls_debug_received)
+        return;
+
     fd_set rfds;
     FD_ZERO(&rfds);
     FD_SET((unsigned)socket_fd, &rfds);
@@ -683,8 +695,8 @@ void gdbstub_recv(void) {
     {
         if(!gdb_handshake_complete)
         {
-            gdbstub_loop();
             gdb_handshake_complete = true;
+            gdbstub_loop();
         }
         else
             gdbstub_debugger(DBG_USER, 0);
@@ -708,7 +720,6 @@ void gdbstub_debugger(enum DBG_REASON reason, uint32_t addr) {
     }
     gdbstub_loop();
 }
-
 
 void gdbstub_quit()
 {
