@@ -71,6 +71,11 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->spinRDBG, SIGNAL(valueChanged(int)), this, SLOT(setRDBGPort(int)));
     connect(ui->orderDiags, SIGNAL(toggled(bool)), this, SLOT(setBootOrder(bool)));
 
+    //Set up monospace fonts
+    QFont monospace = QFontDatabase::systemFont(QFontDatabase::FixedFont);
+    ui->debugConsole->setFont(monospace);
+    ui->serialConsole->setFont(monospace);
+
     refresh_timer.setInterval(1000 / 60); //60 fps
     refresh_timer.start();
 

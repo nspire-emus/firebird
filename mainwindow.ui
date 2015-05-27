@@ -176,8 +176,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>348</width>
-             <height>99</height>
+             <width>273</width>
+             <height>98</height>
             </rect>
            </property>
            <attribute name="label">
@@ -491,11 +491,6 @@
        <layout class="QVBoxLayout" name="verticalLayout_3">
         <item>
          <widget class="QPlainTextEdit" name="serialConsole">
-          <property name="font">
-           <font>
-            <family>Droid Sans Mono</family>
-           </font>
-          </property>
           <property name="undoRedoEnabled">
            <bool>false</bool>
           </property>
