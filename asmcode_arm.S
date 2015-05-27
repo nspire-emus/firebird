@@ -103,10 +103,11 @@ return:
 
     pop     {r4-r11, pc}
 
-// r0: Jump target, r1: map_table entry
+// r0: Jump target, r1: map_table entry, r10: &arm, r11: arm.cpsr_flags
 load_state:
     cmp     r1, #0
-    bxeq    r0 // Shortcut if map_table empty
+    beq     jump // Shortcut if map_table empty
+
     // See encoding of map_table in translate_arm.cpp
     sub     r10, #4
     ands    r2, r1, #0xF // Nr. of virt reg+1 in r2
@@ -122,6 +123,8 @@ load_state:
     ands    r2, r1, #0xF00000 // Nr. of virt reg+1 in r2
     ldrne   r9, [r10, r2, lsr #18] // load arm.reg[r2-1]
     add     r10, #4
+jump:
+    msr     cpsr_f, r11 // Flags have to be loaded
     bx      r0
 
 // Invoked from within translated code to jump to other, already translated code
