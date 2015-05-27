@@ -365,7 +365,7 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
 
     // We know this already. end_ptr will be set after the loop
     this_translation->jump_table = reinterpret_cast<void**>(jump_table_start);
-    this_translation->map_table = reinterpret_cast<void**>(map_table_start);
+    this_translation->map_table = map_table_start;
     this_translation->start_ptr = insn_ptr_start;
 
     #ifdef BENCHMARK
@@ -587,10 +587,14 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
                 emit_str_armreg(5, i.mem_proc.rn);
         }
         else if((insn & 0xE000000) == 0xA000000)
-        {goto unimpl;
+        {
             /* Branches work this way:
              * Either jump to translation_next if code not translated (yet) or
              * jump directly to the translated code, over a small function checking for pending events */
+
+            // We're going to jump somewhere else
+            // No register mapping after this
+            emit_save_state();
 
             if(i.branch.l)
             {
@@ -598,9 +602,6 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
                 emit_mov_imm(R0, pc + 4);
                 emit_str_armreg(R0, LR);
             }
-
-            // We're going to jump somewhere else
-            emit_save_state();
 
             uint32_t addr = pc + ((int32_t) i.raw << 8 >> 6) + 8;
             uintptr_t entry = reinterpret_cast<uintptr_t>(addr_cache[(addr >> 10) << 1]);
@@ -616,11 +617,14 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
                 // Get address of translated code to jump to it
                 translation *target_translation = &translation_table[RAM_FLAGS(ptr) >> RFS_TRANSLATION_INDEX];
                 uintptr_t jmp_target = reinterpret_cast<uintptr_t>(target_translation->jump_table[ptr - target_translation->start_ptr]);
+                uint32_t map_entry = target_translation->map_table[ptr - target_translation->start_ptr];
 
                 // Update pc first
                 emit_mov_imm(R0, addr);
                 emit_str_armreg(R0, PC);
                 emit_mov_imm(R0, jmp_target);
+                // TODO: Load regs here?
+                emit_mov_imm(R1, map_entry);
                 emit_jmp(reinterpret_cast<void*>(translation_jmp));
             }
         }

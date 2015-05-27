@@ -122,24 +122,24 @@ load_state:
 // Invoked from within translated code to jump to other, already translated code
 // Target address of translated code is in r0 - only r10 and r11 have to be preserved
 // This is used to check for events and leave the translation to process them.
-// arm.reg[15] must be set already!
+// arm.reg[15] must be set already! map_table entry of jump target is in r1.
 translation_jmp: .global translation_jmp
     /* For now the cpu_events check is commented out. This is a very critical section of code here,
        having a high impact on performance. To increase accuracy, uncomment the block below.
 
-    ldr     r1, =cpu_events
-    ldr     r2, [r1]
-    cmp     r2, #0
+    ldr     r2, =cpu_events
+    ldr     r3, [r2]
+    cmp     r3, #0
     bne     save_return */
 
-    ldr     r1, =cycle_count_delta
-    ldr     r2, [r1]
-    add     r2, #4 // We don't know how much will be executed, so use a possible number
-    str     r2, [r1]
-    cmp     r2, #0
+    ldr     r2, =cycle_count_delta
+    ldr     r3, [r2]
+    add     r3, #4 // We don't know how much will be executed, so use a possible number
+    str     r3, [r2]
+    cmp     r3, #0
     bpl     save_return
 
-    bx      r0 // Jump to the target
+    b       load_state // Load mapped registers and jump
 
 // Save flags and leave, arm.reg[15] must be set already!
 save_return:
