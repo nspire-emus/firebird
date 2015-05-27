@@ -105,18 +105,23 @@ return:
 
 // r0: Jump target, r1: map_table entry
 load_state:
-    and     r2, r1, #0xF // Nr. of virt reg in r2
-    ldr     r4, [r10, r2, lsl #2] // load arm.reg[r2]
-    and     r2, r1, #0xF0 // Nr. of virt reg in r2
-    ldr     r5, [r10, r2, lsr #2] // load arm.reg[r2]
-    and     r2, r1, #0xF00 // Nr. of virt reg in r2
-    ldr     r6, [r10, r2, lsr #6] // load arm.reg[r2]
-    and     r2, r1, #0xF000 // Nr. of virt reg in r2
-    ldr     r7, [r10, r2, lsr #10] // load arm.reg[r2]
-    and     r2, r1, #0xF0000 // Nr. of virt reg in r2
-    ldr     r8, [r10, r2, lsr #14] // load arm.reg[r2]
-    and     r2, r1, #0xF00000 // Nr. of virt reg in r2
-    ldr     r9, [r10, r2, lsr #18] // load arm.reg[r2]
+    cmp     r1, #0
+    bxeq    r0 // Shortcut if map_table empty
+    // See encoding of map_table in translate_arm.cpp
+    sub     r10, #4
+    ands    r2, r1, #0xF // Nr. of virt reg+1 in r2
+    ldrne   r4, [r10, r2, lsl #2] // load arm.reg[r2-1]
+    ands    r2, r1, #0xF0 // Nr. of virt reg+1 in r2
+    ldrne   r5, [r10, r2, lsr #2] // load arm.reg[r2-1]
+    ands    r2, r1, #0xF00 // Nr. of virt reg+1 in r2
+    ldrne   r6, [r10, r2, lsr #6] // load arm.reg[r2-1]
+    ands    r2, r1, #0xF000 // Nr. of virt reg+1 in r2
+    ldrne   r7, [r10, r2, lsr #10] // load arm.reg[r2-1]
+    ands    r2, r1, #0xF0000 // Nr. of virt reg+1 in r2
+    ldrne   r8, [r10, r2, lsr #14] // load arm.reg[r2-1]
+    ands    r2, r1, #0xF00000 // Nr. of virt reg+1 in r2
+    ldrne   r9, [r10, r2, lsr #18] // load arm.reg[r2-1]
+    add     r10, #4
     bx      r0
 
 // Invoked from within translated code to jump to other, already translated code

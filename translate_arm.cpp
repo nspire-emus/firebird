@@ -91,17 +91,19 @@ static const int first_map_reg = R4,
 
 // Maps virtual register to physical register (or invalid) and a dirty-flag
 // PC is never mapped
-static uint8_t regmap[15];
+static unsigned int regmap[15];
 
-// Maps physical register to virtual register, mustn't contain anything > 0xF
-static uint8_t mapreg[15];
+// Maps physical register to virtual register, mustn't contain anything > 0x10
+// 0 means not mapped, 1 means R0 and so on. This makes it possible to optimize load_state in asmcode_arm.S
+// Only mapreg[first_map_reg] until mapreg[last_map_reg] are valid entries
+static unsigned mapreg[15];
 
 // The next available physical register
 static unsigned int current_reg = first_map_reg;
 
 // Physical registers that must not be unmapped
 static const int MAX_USED_REGS = 4;
-static uint8_t used_regs[MAX_USED_REGS];
+static unsigned int used_regs[MAX_USED_REGS];
 
 // How many regs are currently used and must not be unmapped
 static unsigned int current_used_regs_count = 0;
@@ -111,12 +113,11 @@ static void map_reset()
     std::fill(regmap, regmap + 15, Invalid);
     current_used_regs_count = 0;
     current_reg = first_map_reg;
-    // mapreg doesn't have to be reset and mustn't contain anything > 0xF anyway
-    //std::fill(mapreg, mapreg + 15, Invalid);
+    std::fill(mapreg, mapreg + 15, 0);
 }
 
 // Marks a reg as needed. It won't be unmapped until the next instruction
-static int map_need(int reg)
+static int map_need(unsigned int reg)
 {
     assert(current_used_regs_count < MAX_USED_REGS);
     used_regs[current_used_regs_count++] = reg;
@@ -124,7 +125,7 @@ static int map_need(int reg)
 }
 
 // Whether the physical register reg is needed
-static bool reg_used(int reg)
+static bool reg_used(unsigned int reg)
 {
     if(current_used_regs_count == 0)
         return false;
@@ -150,12 +151,15 @@ static void next_reg()
 }
 
 // Flushed reg_phys into arm if needed and invalidates the map entriy
-static void unmap_reg(int reg_phys)
+static void unmap_reg(unsigned int reg_phys)
 {
-    int oldvirt = mapreg[reg_phys];
+    unsigned int oldvirt = mapreg[reg_phys];
     // Mapped?
-    if((regmap[oldvirt] & 0xF) != current_reg)
+    if(oldvirt == 0)
         return;
+
+    // See encoding of mapreg above
+    oldvirt -= 1;
 
     // Save register value
     if(regmap[oldvirt] & Dirty)
@@ -165,7 +169,7 @@ static void unmap_reg(int reg_phys)
     regmap[oldvirt] = Invalid;
 }
 
-static int map_reg(int reg_virt, bool write)
+static int map_reg(unsigned int reg_virt, bool write)
 {
     assert(reg_virt <= 14); // Must not happen: PC (15) not implemented and any higher nr is invalid
 
@@ -184,7 +188,7 @@ static int map_reg(int reg_virt, bool write)
     unmap_reg(current_reg);
 
     // Set map entry and load value
-    mapreg[current_reg] = reg_virt;
+    mapreg[current_reg] = reg_virt + 1;
     if(write)
         regmap[reg_virt] = current_reg | Dirty;
     else
@@ -199,7 +203,7 @@ static int map_reg(int reg_virt, bool write)
 
 // The reg is marked as dirty
 // Return value: Register number the reg has been mapped to
-static int map_save_reg(int reg)
+static int map_save_reg(unsigned int reg)
 {
     int ret = map_reg(reg, true);
     return map_need(ret);
@@ -207,7 +211,7 @@ static int map_save_reg(int reg)
 
 // The current value is loaded, if not mapped yet
 // Return value: Register number the reg has been loaded into
-static int map_load_reg(int reg)
+static int map_load_reg(unsigned int reg)
 {
     int ret = map_reg(reg, false);
     return map_need(ret);
@@ -226,13 +230,13 @@ static void emit_str_flags()
 }
 
 // Sets phys. rd to phys. rn
-static void emit_mov_reg(int rd, int rn)
+static void emit_mov_reg(unsigned int rd, unsigned int rn)
 {
     emit_al(0x1a00000 | (rd << 12) | rn);
 }
 
 // Sets phys. rd to imm
-static void emit_mov_imm(int rd, uint32_t imm)
+static void emit_mov_imm(unsigned int rd, uint32_t imm)
 {
     // movw/movt only available on >= armv7
     #if defined(__ARM_ARCH_7__) || defined(__ARM_ARCH_7A__)
@@ -283,14 +287,21 @@ static void emit_jmp(void *target)
 // Flush all mapped regs back into arm.reg[]
 static void emit_flush_regs()
 {
-    for(unsigned int i = 0; i < 15; ++i)
+    for(unsigned int i = first_map_reg; i <= last_map_reg; ++i)
     {
-        if(regmap[i] & Dirty)
-            emit_str_armreg(regmap[i], i);
+        unsigned int virt = mapreg[i];
+        if(!virt) // Not mapped
+            continue;
 
-        // mapreg doesn't have to be reset and mustn't contain anything > 0xF anyway
-        // mapreg[regmap[i] & 0xF] = Invalid;
-        regmap[i] = Invalid;
+        // See encoding of mapreg above
+        virt -= 1;
+
+        unsigned int phys = regmap[virt];
+        if(phys & Dirty)
+            emit_str_armreg(phys & 0xF, virt);
+
+        regmap[virt] = Invalid;
+        mapreg[i] = 0;
     }
 }
 
@@ -415,9 +426,6 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
                            | (mapreg[R6] << 8)
                            | (mapreg[R5] << 4)
                            | mapreg[R4];
-
-        //printf("At 0x%x: %x %x %x %x %x %x\n", pc, mapreg[R4], mapreg[R5], mapreg[R6], mapreg[R7], mapreg[R8], mapreg[R9]);
-        //printf("0x%x %p\n", pc, translate_current);
 
         // Conditional instructions are translated like this:
         // msr cpsr_f, r11
