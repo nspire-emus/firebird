@@ -66,14 +66,16 @@ static inline void emit_al(uint32_t instruction)
 }
 
 // Loads arm.reg[rs] into rd.
-static void emit_ldr_armreg(const int rd, const int r_virt)
+static void emit_ldr_armreg(const unsigned int rd, const unsigned int r_virt)
 {
+    assert(rd < 16 && r_virt < 16);
     emit_al(0x59a0000 | (rd << 12) | (r_virt << 2)); // ldr rd, [r10, #2*r_virt]
 }
 
 // Saves rd into arm.reg[rs].
-static void emit_str_armreg(const int rd, const int r_virt)
+static void emit_str_armreg(const unsigned int rd, const unsigned int r_virt)
 {
+    assert(rd < 16 && r_virt < 16);
     emit_al(0x58a0000 | (rd << 12) | (r_virt << 2)); // str rd, [r10, #2*r_virt]
 }
 
@@ -161,7 +163,7 @@ static void emit_flush_regs()
 	for(unsigned int i = 0; i < 15; ++i)
     {
         if(regmap[i] & Dirty)
-            emit_str_armreg(regmap[i], i);
+            emit_str_armreg(regmap[i] & 0xF, i);
         regmap[i] = Invalid;
     }
 }
@@ -415,14 +417,21 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
             if(!i.mem_proc.p && i.mem_proc.w)
                 goto unimpl;
 
-            // pc-relative not implemented
-            if(i.mem_proc.rn == 15 || i.mem_proc.rm == 15)
-                goto unimpl;
+            bool offset_is_zero = !i.mem_proc.not_imm && i.mem_proc.immed == 0;
 
             // Base register gets in r0
-            emit_ldr_armreg(0, i.mem_proc.rn);
+            if(i.mem_proc.rn != PC)
+                emit_ldr_armreg(0, i.mem_proc.rn);
+            else if(i.mem_proc.not_imm)
+                emit_mov(R0, pc + 8);
+            else // Address known
+            {
+                int offset = i.mem_proc.u ? i.mem_proc.immed :
+                                            -i.mem_proc.immed;
 
-            bool offset_is_zero = !i.mem_proc.not_imm && i.mem_proc.immed == 0;
+                emit_mov(R0, pc + 8 + offset);
+                goto no_offset;
+            }
 
             // Skip offset calculation
             if(offset_is_zero)
@@ -441,7 +450,11 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
                 off.raw = 0xe1a05000; // mov r5, something
                 off.raw |= insn & 0xFFF; // Copy shifter_operand
                 off.data_proc.rm = 1;
-                emit_ldr_armreg(1, i.mem_proc.rm);
+                if(i.mem_proc.rm != PC)
+                    emit_ldr_armreg(R1, i.mem_proc.rm);
+                else
+                    emit_mov(R1, pc + 8);
+
                 emit(off.raw);
             }
 
@@ -476,7 +489,11 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
             }
             else
             {
-                emit_ldr_armreg(1, i.mem_proc.rd); // r1 is the value
+                if(i.mem_proc.rd != PC)
+                    emit_ldr_armreg(1, i.mem_proc.rd); // r1 is the value
+                else
+                    emit_mov(R1, pc + 12);
+
                 emit_call(reinterpret_cast<void*>(i.mem_proc.b ? write_byte_asm : write_word_asm));
             }
 

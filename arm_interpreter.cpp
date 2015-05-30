@@ -430,9 +430,9 @@ void do_arm_instruction(Instruction i)
         if(!i.mem_proc.u)
             offset = -offset;
 
-        // Pre-indexed
+        // Pre-indexed or offset
         if(i.mem_proc.p)
-            base += offset; // Writeback handled after access
+            base += offset; // Writeback for pre-indexed handled after access
         else if(i.mem_proc.w) // Usermode Access
             mmu_check_priv(base, !i.mem_proc.l);
 
