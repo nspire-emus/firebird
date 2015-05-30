@@ -783,6 +783,8 @@ data_proc_done:
             int data_reg = insn >> 12 & 15;
 
             if (pre_index || post_index) {
+                // Pre-indexed addressing is broken (maybe data abort issues?)
+                if (pre_index) break;
                 if (pre_index && post_index) break;
                 if (base_reg == 15) break;
                 if (is_load && base_reg == data_reg) break;

@@ -429,13 +429,11 @@ void do_arm_instruction(Instruction i)
                  offset = addr_mode_2(i);
         if(!i.mem_proc.u)
             offset = -offset;
+
+        // Pre-indexed
         if(i.mem_proc.p)
-        {
-            base += offset;
-            if(i.mem_proc.w)
-                set_reg(i.mem_proc.rn, base);
-        }
-        else if(i.mem_proc.w)
+            base += offset; // Writeback handled after access
+        else if(i.mem_proc.w) // Usermode Access
             mmu_check_priv(base, !i.mem_proc.l);
 
         // Byte access
@@ -450,8 +448,13 @@ void do_arm_instruction(Instruction i)
             else write_word(base, reg_pc_mem(i.mem_proc.rd));
         }
 
+        // Post-indexed addressing
         if(!i.mem_proc.p)
-            set_reg(i.mem_proc.rn, base + offset);
+            base += offset;
+
+        // Writeback
+        if(!i.mem_proc.p || i.mem_proc.w)
+            set_reg(i.mem_proc.rn, base);
     }
     else if((insn & 0xE000000) == 0x8000000)
     {
