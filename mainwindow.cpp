@@ -334,6 +334,9 @@ void MainWindow::reload_filebrowser()
     if(!refresh_filebrowser)
         return;
 
+    if(!usblink_connected)
+        usblink_connect();
+
     ui->treeWidget->clear();
     usblink_queue_dirlist("/", usblink_dirlist_callback, ui->treeWidget);
 }
