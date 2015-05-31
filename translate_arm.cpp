@@ -299,6 +299,8 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
     uint32_t *cond_branch = nullptr;
     // Pointer to struct translation for this block
     translation *this_translation = &translation_table[next_translation_index];
+    // Whether to stop translating code
+    bool stop_here = false;
 
     // We know this already. end_ptr will be set after the loop
     this_translation->jump_table = reinterpret_cast<void**>(jump_table_start);
@@ -321,7 +323,8 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
     while(1)
     {
         // Translate further?
-        if(translate_current + 0x200 > translate_end
+        if(stop_here
+            || translate_current + 0x200 > translate_end
             || RAM_FLAGS(insn_ptr) & (RF_EXEC_BREAKPOINT | RF_EXEC_DEBUG_NEXT | RF_EXEC_HACK | RF_CODE_TRANSLATED | RF_CODE_NO_TRANSLATE)
             || (pc ^ pc_start) & ~0x3ff)
             goto exit_translation;
@@ -480,11 +483,12 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
                     emit_str_armreg(0, i.mem_proc.rd); // r0 is return value
                 else
                 {
-                    //TODO: Fix this
-                    goto unimpl;
                     // pc is destination register
                     emit_save_state();
                     emit_jmp(reinterpret_cast<void*>(translation_next));
+                    // It's an unconditional jump
+                    if(i.cond == CC_EQ)
+                        stop_here = true;
                 }
             }
             else
@@ -512,6 +516,11 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
                 // Save return address in LR
                 emit_mov(R0, pc + 4);
                 emit_str_armreg(R0, LR);
+            }
+            else if(i.cond == CC_EQ)
+            {
+                // It's not likely that the branch will return
+                stop_here = true;
             }
 
             // We're going to jump somewhere else
