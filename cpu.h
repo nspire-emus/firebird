@@ -73,6 +73,7 @@ uint32_t get_cpsr_flags();
 void set_cpsr_flags(uint32_t flags) __asm__("set_cpsr_flags");
 void cpu_exception(int type);
 void fix_pc_for_fault();
+void *try_ptr(uint32_t addr);
 void cpu_interpret_instruction(uint32_t insn);
 void cpu_arm_loop();
 void cpu_thumb_loop();

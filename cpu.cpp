@@ -116,6 +116,34 @@ void undefined_instruction()
     __builtin_longjmp(restart_after_exception, 1);
 }
 
+void *try_ptr(uint32_t addr)
+{
+    //There are two different addr_cache formats...
+#ifdef AC_FLAGS
+    uintptr_t entry = *(uintptr_t*)(addr_cache + ((addr >> 10) << 1));
+
+    if(unlikely(entry & AC_FLAGS))
+    {
+        if(entry & AC_INVALID)
+        {
+            addr_cache_miss(addr, false, nullptr);
+            return try_ptr(addr);
+        }
+        else // MMIO stuff
+            return 0;
+    }
+
+    entry += addr;
+    return (void*)entry;
+#else
+    void *ptr = &addr_cache[(addr >> 10) << 1][addr];
+    if(unlikely((uintptr_t)ptr & AC_NOT_PTR))
+        ptr = addr_cache_miss(addr, false, nullptr);
+
+    return ptr;
+#endif
+}
+
 void * FASTCALL read_instruction(uint32_t addr)
 {
     //There are two different addr_cache formats...

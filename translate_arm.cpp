@@ -431,9 +431,39 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
             {
                 int offset = i.mem_proc.u ? i.mem_proc.immed :
                                             -i.mem_proc.immed;
+                unsigned int address = pc + 8 + offset;
 
-                emit_mov(R0, pc + 8 + offset);
-                goto no_offset;
+                if(!i.mem_proc.l)
+                {
+                    emit_mov(R0, address);
+                    goto no_offset;
+                }
+
+                // Load: value very likely constant
+                uint32_t *ptr = reinterpret_cast<uint32_t*>(try_ptr(address));
+                if(!ptr || RAM_FLAGS(ptr) & RF_CODE_TRANSLATED)
+                {
+                    // Location not readable yet or trick below doesn't work, translate normally
+                    emit_mov(R0, address);
+                    goto no_offset;
+                }
+
+                // On a write this translation will get invalidated
+                RAM_FLAGS(ptr) |= RF_CODE_TRANSLATED | (next_translation_index << RFS_TRANSLATION_INDEX);
+                emit_mov(R0, i.mem_proc.b ? *ptr & 0xFF : *ptr);
+                if(i.mem_proc.rd != PC)
+                    emit_str_armreg(R0, i.mem_proc.rd);
+                else
+                {
+                    // pc is destination register
+                    emit_save_state();
+                    emit_jmp(reinterpret_cast<void*>(translation_next));
+                    // It's an unconditional jump
+                    if(i.cond == CC_EQ)
+                        stop_here = true;
+                }
+
+                goto instruction_translated;
             }
 
             // Skip offset calculation
@@ -550,6 +580,8 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
         }
         else
             goto unimpl;
+
+        instruction_translated:
 
         emit_save_state();
 
