@@ -502,7 +502,7 @@
           <property name="maximumSize">
            <size>
             <width>270</width>
-            <height>16777215</height>
+            <height>340</height>
            </size>
           </property>
           <property name="resizeMode">
