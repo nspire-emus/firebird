@@ -1,6 +1,7 @@
 #include "lcdwidget.h"
 #include "keypad.h"
 #include "keymap.h"
+#include "qmlbridge.h"
 
 LCDWidget::LCDWidget()
 {}
@@ -50,6 +51,7 @@ void LCDWidget::keyPressEvent(QKeyEvent *event)
                         keypad_on_pressed();
 
                     key_map[row] |= 1 << col;
+                    notifyKeypadStateChanged(row, col, true);
                     keypad_int_check();
                     return;
                 }
@@ -108,6 +110,7 @@ void LCDWidget::keyReleaseEvent(QKeyEvent *event)
                 if(key == keymap[row][col].key && keymap[row][col].alt == (bool(event->modifiers() & Qt::AltModifier) || bool(event->modifiers() & Qt::MetaModifier)))
                 {
                     key_map[row] &= ~(1 << col);
+                    notifyKeypadStateChanged(row, col, false);
                     keypad_int_check();
                     return;
                 }

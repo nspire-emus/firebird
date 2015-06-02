@@ -12,12 +12,11 @@ public:
     ~QMLBridge() {}
 
     Q_INVOKABLE void keypadStateChanged(int keymap_id, bool state);
-
-signals:
-
-public slots:
+    Q_INVOKABLE void registerNButton(int keymap_id, QVariant button);
 };
 
+void notifyKeypadStateChanged(int row, int col, bool state);
 QObject *qmlBridgeFactory(QQmlEngine *engine, QJSEngine *scriptEngine);
+
 
 #endif // QMLBRIDGE_H

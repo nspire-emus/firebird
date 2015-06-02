@@ -31,6 +31,10 @@ Rectangle {
         property bool state: false
         property bool hovering: false
 
+        Component.onCompleted: {
+            Emu.registerNButton(keymap_id, this);
+        }
+
         anchors.fill: parent
         acceptedButtons: Qt.LeftButton | Qt.RightButton
 
