@@ -8,6 +8,7 @@
 #include <QDropEvent>
 #include <QMimeData>
 #include <QDockWidget>
+#include <QtQml>
 
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
@@ -15,6 +16,7 @@
 #include "flash.h"
 #include "lcd.h"
 #include "misc.h"
+#include "qmlbridge.h"
 
 MainWindow *main_window;
 bool MainWindow::refresh_filebrowser = true;
@@ -26,6 +28,9 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow)
 {
     emu_thread = &emu;
+
+    // Register
+    qmlRegisterSingletonType<QMLBridge>("Ndless.Emu", 1, 0, "Emu", qmlBridgeFactory);
 
     ui->setupUi(this);
 

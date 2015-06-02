@@ -15,4 +15,13 @@
         <file>resources/icons/Actions-network-disconnect-icon.png</file>
         <file>resources/nspire_emu.png</file>
     </qresource>
+    <qresource prefix="/qml">
+        <file>qml/Keypad.qml</file>
+        <file>qml/NAlphaButton.qml</file>
+        <file>qml/NBigButton.qml</file>
+        <file>qml/NButton.qml</file>
+        <file>qml/NNumButton.qml</file>
+        <file>qml/Touchpad.qml</file>
+        <file>qml/NDualButton.qml</file>
+    </qresource>
 </RCC>

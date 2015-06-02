@@ -2,7 +2,7 @@ lessThan(QT_MAJOR_VERSION, 5) : error("You need at least Qt 5 to build nspire_em
 
 TRANSLATION_ENABLED = true
 
-QT += core gui widgets
+QT += core gui widgets quickwidgets
 CONFIG += c++11
 
 TEMPLATE = app
@@ -128,7 +128,8 @@ SOURCES += $$ASMCODE_IMPL \
     arm_interpreter.cpp \
     coproc.cpp \
     thumb_interpreter.cpp \
-    armsnippets_loader.c
+    armsnippets_loader.c \
+    qmlbridge.cpp
 
 FORMS += \
     mainwindow.ui \
@@ -166,7 +167,8 @@ HEADERS += \
     schedule.h \
     usblink_queue.h \
     cpudefs.h \
-    bitfield.h
+    bitfield.h \
+    qmlbridge.h
 
 # Generate the binary arm code into armcode_bin.h
 armsnippets.commands = arm-none-eabi-gcc -fno-leading-underscore -c $$PWD/armsnippets.S -o armsnippets.o -mcpu=arm926ej-s \

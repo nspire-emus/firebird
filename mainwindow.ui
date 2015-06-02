@@ -65,7 +65,7 @@
     <item>
      <widget class="QTabWidget" name="tabWidget">
       <property name="currentIndex">
-       <number>3</number>
+       <number>4</number>
       </property>
       <widget class="QWidget" name="tabDebugger">
        <attribute name="icon">
@@ -176,8 +176,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>273</width>
-             <height>98</height>
+             <width>348</width>
+             <height>99</height>
             </rect>
            </property>
            <attribute name="label">
@@ -480,6 +480,25 @@
         </item>
        </layout>
       </widget>
+      <widget class="QWidget" name="tab">
+       <attribute name="title">
+        <string>Keypad</string>
+       </attribute>
+       <layout class="QHBoxLayout" name="horizontalLayout_5">
+        <item>
+         <widget class="QQuickWidget" name="quickWidget">
+          <property name="resizeMode">
+           <enum>QQuickWidget::SizeRootObjectToView</enum>
+          </property>
+          <property name="source">
+           <url>
+            <string>qrc:/qml/qml/Keypad.qml</string>
+           </url>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
       <widget class="QWidget" name="tabSerial">
        <attribute name="icon">
         <iconset resource="resources.qrc">
@@ -665,6 +684,11 @@
   </action>
  </widget>
  <customwidgets>
+  <customwidget>
+   <class>QQuickWidget</class>
+   <extends>QWidget</extends>
+   <header>QQuickWidget</header>
+  </customwidget>
   <customwidget>
    <class>LCDWidget</class>
    <extends>QGraphicsView</extends>
