@@ -17,6 +17,7 @@
 #include "lcd.h"
 #include "misc.h"
 #include "qmlbridge.h"
+#include "qtkeypadbridge.h"
 
 MainWindow *main_window;
 bool MainWindow::refresh_filebrowser = true;
@@ -29,10 +30,14 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     emu_thread = &emu;
 
-    // Register
+    // Register QMLBridge for Keypad<->Emu communication
     qmlRegisterSingletonType<QMLBridge>("Ndless.Emu", 1, 0, "Emu", qmlBridgeFactory);
 
     ui->setupUi(this);
+
+    // Register QtKeypadBridge for the virtual keyboard functionality
+    ui->keypadWidget->installEventFilter(&qt_keypad_bridge);
+    ui->lcdView->installEventFilter(&qt_keypad_bridge);
 
     connect(&refresh_timer, SIGNAL(timeout()), this, SLOT(refresh()));
 

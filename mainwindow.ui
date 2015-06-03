@@ -65,7 +65,7 @@
     <item>
      <widget class="QTabWidget" name="tabWidget">
       <property name="currentIndex">
-       <number>4</number>
+       <number>3</number>
       </property>
       <widget class="QWidget" name="tabDebugger">
        <attribute name="icon">
@@ -176,8 +176,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>348</width>
-             <height>99</height>
+             <width>273</width>
+             <height>98</height>
             </rect>
            </property>
            <attribute name="label">
@@ -486,7 +486,7 @@
        </attribute>
        <layout class="QHBoxLayout" name="horizontalLayout_5">
         <item>
-         <widget class="QQuickWidget" name="quickWidget">
+         <widget class="QQuickWidget" name="keypadWidget">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
             <horstretch>0</horstretch>
@@ -504,6 +504,9 @@
             <width>270</width>
             <height>340</height>
            </size>
+          </property>
+          <property name="focusPolicy">
+           <enum>Qt::NoFocus</enum>
           </property>
           <property name="resizeMode">
            <enum>QQuickWidget::SizeRootObjectToView</enum>

@@ -66,7 +66,7 @@ Rectangle {
             width: 30
             anchors.horizontalCenter: parent.horizontalCenter
             text: "menu"
-            keymap_id: 81
+            keymap_id: 71
         }
     }
 

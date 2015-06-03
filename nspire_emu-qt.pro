@@ -129,7 +129,8 @@ SOURCES += $$ASMCODE_IMPL \
     coproc.cpp \
     thumb_interpreter.cpp \
     armsnippets_loader.c \
-    qmlbridge.cpp
+    qmlbridge.cpp \
+    qtkeypadbridge.cpp
 
 FORMS += \
     mainwindow.ui \
@@ -168,7 +169,8 @@ HEADERS += \
     usblink_queue.h \
     cpudefs.h \
     bitfield.h \
-    qmlbridge.h
+    qmlbridge.h \
+    qtkeypadbridge.h
 
 # Generate the binary arm code into armcode_bin.h
 armsnippets.commands = arm-none-eabi-gcc -fno-leading-underscore -c $$PWD/armsnippets.S -o armsnippets.o -mcpu=arm926ej-s \
