@@ -1,6 +1,7 @@
 #include "lcdwidget.h"
 #include "keypad.h"
 #include "qtkeypadbridge.h"
+#include "qmlbridge.h"
 
 LCDWidget::LCDWidget()
 {}
@@ -23,6 +24,7 @@ void LCDWidget::mousePressEvent(QMouseEvent *event)
         touchpad_y = TOUCHPAD_Y_MAX - (event->y() * TOUCHPAD_Y_MAX/height());
     }
 
+    notifyTouchpadStateChanged();
     kpc.gpio_int_active |= 0x800;
     keypad_int_check();
 }
@@ -34,10 +36,11 @@ void LCDWidget::mouseReleaseEvent(QMouseEvent *event)
     else
         touchpad_contact = false;
 
+    notifyTouchpadStateChanged();
     kpc.gpio_int_active |= 0x800;
     keypad_int_check();
 }
-extern int8_t touchpad_vel_x, touchpad_vel_y;
+
 void LCDWidget::mouseMoveEvent(QMouseEvent *event)
 {
     int new_x = event->x() * TOUCHPAD_X_MAX/width(),
@@ -55,12 +58,13 @@ void LCDWidget::mouseMoveEvent(QMouseEvent *event)
 
     int vel_x = new_x - touchpad_x;
     int vel_y = new_y - touchpad_y;
-    touchpad_vel_x = vel_x/2;
-    touchpad_vel_y = vel_y/2;
+    touchpad_vel_x = vel_x;
+    touchpad_vel_y = vel_y;
 
-    touchpad_x = new_x * 2;
-    touchpad_y = new_y * 2;
+    touchpad_x = new_x;
+    touchpad_y = new_y;
 
+    notifyTouchpadStateChanged();
     kpc.gpio_int_active |= 0x800;
     keypad_int_check();
 }

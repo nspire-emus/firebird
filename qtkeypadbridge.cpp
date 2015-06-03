@@ -53,6 +53,7 @@ void QtKeypadBridge::keyPressEvent(QKeyEvent *event)
     }
 
     touchpad_contact = touchpad_down = true;
+    notifyTouchpadStateChanged();
     kpc.gpio_int_active |= 0x800;
 
     keypad_int_check();
@@ -104,12 +105,15 @@ void QtKeypadBridge::keyReleaseEvent(QKeyEvent *event)
         return;
     }
 
+    notifyTouchpadStateChanged();
     kpc.gpio_int_active |= 0x800;
     keypad_int_check();
 }
 
 bool QtKeypadBridge::eventFilter(QObject *obj, QEvent *event)
 {
+    Q_UNUSED(obj);
+
     if(event->type() == QEvent::KeyPress)
         keyPressEvent(static_cast<QKeyEvent*>(event));
     else if(event->type() == QEvent::KeyRelease)

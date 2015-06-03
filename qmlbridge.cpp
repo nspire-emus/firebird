@@ -36,6 +36,27 @@ void QMLBridge::registerNButton(int keymap_id, QVariant button)
         buttons[row][col] = button.value<QObject*>();
 }
 
+void QMLBridge::touchpadStateChanged(qreal x, qreal y, bool state)
+{
+    touchpad_down = touchpad_contact = state;
+
+    if(state)
+    {
+        touchpad_x = x * TOUCHPAD_X_MAX;
+        touchpad_y = (1.0f-y) * TOUCHPAD_Y_MAX;
+    }
+
+    kpc.gpio_int_active |= 0x800;
+    keypad_int_check();
+}
+
+static QObject *qml_touchpad;
+
+void QMLBridge::registerTouchpad(QVariant touchpad)
+{
+    qml_touchpad = touchpad.value<QObject*>();
+}
+
 void notifyKeypadStateChanged(int row, int col, bool state)
 {
     assert(row < ROWS);
@@ -56,4 +77,25 @@ QObject *qmlBridgeFactory(QQmlEngine *engine, QJSEngine *scriptEngine)
     Q_UNUSED(scriptEngine)
 
     return new QMLBridge();
+}
+
+void notifyTouchpadStateChanged(qreal x, qreal y, bool state)
+{
+    if(!qml_touchpad)
+    {
+        qWarning("Warning: No touchpad registered!");
+        return;
+    }
+
+    QVariant ret;
+
+    if(state)
+        QMetaObject::invokeMethod(qml_touchpad, "showHighlight", Q_RETURN_ARG(QVariant, ret), Q_ARG(QVariant, QVariant(x)), Q_ARG(QVariant, QVariant(y)));
+    else
+        QMetaObject::invokeMethod(qml_touchpad, "hideHighlight");
+}
+
+void notifyTouchpadStateChanged()
+{
+    notifyTouchpadStateChanged(float(touchpad_x)/TOUCHPAD_X_MAX, 1.0f-(float(touchpad_y)/TOUCHPAD_Y_MAX), touchpad_contact);
 }

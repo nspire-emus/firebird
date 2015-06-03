@@ -11,11 +11,13 @@ Rectangle {
 
     ColumnLayout {
         id: columnLayout1
+        anchors.bottom: rectangle3.bottom
+        anchors.bottomMargin: 0
         z: 4
         anchors.left: parent.left
         anchors.leftMargin: 5
-        anchors.top: parent.top
-        anchors.topMargin: 5
+        anchors.top: rectangle3.top
+        anchors.topMargin: 0
 
         NBigButton {
             id: nButton1
@@ -42,9 +44,11 @@ Rectangle {
     ColumnLayout {
         id: columnLayout2
         x: -7
+        anchors.bottom: rectangle3.bottom
+        anchors.bottomMargin: 0
         z: 3
-        anchors.top: parent.top
-        anchors.topMargin: 5
+        anchors.top: rectangle3.top
+        anchors.topMargin: 0
         anchors.right: parent.right
         anchors.rightMargin: 5
         NBigButton {
@@ -73,7 +77,8 @@ Rectangle {
     Touchpad {
         id: touchpad1
         width: gridLayout1.width
-        height: 73
+        anchors.bottom: rectangle3.bottom
+        anchors.bottomMargin: 6
         z: 2
         anchors.horizontalCenter: gridLayout1.horizontalCenter
         anchors.top: parent.top
@@ -363,7 +368,7 @@ Rectangle {
 
     Rectangle {
         id: rectangle3
-        height: 85
+        height: 90
         color: "#111111"
         anchors.top: parent.top
         anchors.topMargin: 0

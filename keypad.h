@@ -11,6 +11,7 @@ extern "C" {
 extern volatile uint16_t key_map[16];
 extern volatile uint8_t touchpad_proximity;
 extern volatile uint16_t touchpad_x, touchpad_y;
+extern volatile int8_t touchpad_vel_x, touchpad_vel_y;
 extern volatile bool touchpad_down, touchpad_contact;
 
 extern struct keypad_controller_state {
