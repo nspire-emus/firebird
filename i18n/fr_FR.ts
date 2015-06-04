@@ -350,7 +350,7 @@
     <message>
         <location filename="../mainwindow.cpp" line="171"/>
         <source>LCD turned off</source>
-        <translation type="unfinished">Affichage désactivé</translation>
+        <translation>Ecran éteint</translation>
     </message>
     <message>
         <location filename="../mainwindow.cpp" line="428"/>
