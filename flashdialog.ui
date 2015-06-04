@@ -31,26 +31,26 @@
    <item row="0" column="1">
     <widget class="QComboBox" name="selectModel">
      <property name="currentText">
-      <string>Touchpad</string>
+      <string notr="true">Touchpad</string>
      </property>
      <item>
       <property name="text">
-       <string>Touchpad</string>
+       <string notr="true">Touchpad</string>
       </property>
      </item>
      <item>
       <property name="text">
-       <string>Touchpad CAS</string>
+       <string notr="true">Touchpad CAS</string>
       </property>
      </item>
      <item>
       <property name="text">
-       <string>CX</string>
+       <string notr="true">CX</string>
       </property>
      </item>
      <item>
       <property name="text">
-       <string>CX CAS</string>
+       <string notr="true">CX CAS</string>
       </property>
      </item>
     </widget>

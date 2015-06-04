@@ -50,13 +50,21 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(&emu, SIGNAL(usblinkChanged(bool)), this, SLOT(usblinkChanged(bool)), Qt::QueuedConnection);
 
     //Menu "Emulator"
+    connect(ui->buttonReset, SIGNAL(clicked(bool)), &emu, SLOT(reset()));
     connect(ui->actionReset, SIGNAL(triggered()), &emu, SLOT(reset()));
     connect(ui->actionRestart, SIGNAL(triggered()), this, SLOT(restart()));
     connect(ui->actionDebugger, SIGNAL(triggered()), &emu, SLOT(enterDebugger()));
+    connect(ui->buttonPause, SIGNAL(clicked(bool)), &emu, SLOT(setPaused(bool)));
+    connect(ui->buttonPause, SIGNAL(clicked(bool)), ui->actionPause, SLOT(setChecked(bool)));
     connect(ui->actionPause, SIGNAL(toggled(bool)), &emu, SLOT(setPaused(bool)));
-    connect(ui->actionSpeed, SIGNAL(triggered(bool)), this, SLOT(setThrottleTimerDeactivated(bool)));
+    connect(ui->actionPause, SIGNAL(toggled(bool)), ui->buttonPause, SLOT(setChecked(bool)));
+    connect(ui->buttonSpeed, SIGNAL(clicked(bool)), this, SLOT(setThrottleTimerDeactivated(bool)));
+
+    //Menu "Tools"
+    connect(ui->buttonScreenshot, SIGNAL(clicked()), this, SLOT(screenshot()));
     connect(ui->actionScreenshot, SIGNAL(triggered()), this, SLOT(screenshot()));
     connect(ui->actionConnect, SIGNAL(triggered()), this, SLOT(connectUSB()));
+    connect(ui->buttonUSB, SIGNAL(clicked(bool)), this, SLOT(connectUSB()));
 
     //Menu "Flash"
     connect(ui->actionSave, SIGNAL(triggered()), this, SLOT(saveFlash()));
@@ -479,8 +487,8 @@ void MainWindow::setRDBGPort(int port)
 
 void MainWindow::showSpeed(double percent)
 {
-    ui->actionSpeed->setText(tr("Speed: %1 %").arg(percent, 1, 'f', 0));
-    ui->actionSpeed->setChecked(!throttle_timer.isActive());
+    ui->buttonSpeed->setText(tr("Speed: %1 %").arg(percent, 1, 'f', 0));
+    ui->buttonSpeed->setChecked(!throttle_timer.isActive());
 }
 
 void MainWindow::setThrottleTimerDeactivated(bool b)
@@ -516,6 +524,8 @@ void MainWindow::usblinkChanged(bool state)
 {
     ui->actionConnect->setText(state ? tr("Disconnect USB") : tr("Connect USB"));
     ui->actionConnect->setChecked(state);
+    ui->buttonUSB->setText(state ? tr("Disconnect USB") : tr("Connect USB"));
+    ui->buttonUSB->setChecked(state);
 }
 
 void MainWindow::saveFlash()
