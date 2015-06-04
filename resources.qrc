@@ -24,4 +24,7 @@
         <file>qml/Touchpad.qml</file>
         <file>qml/NDualButton.qml</file>
     </qresource>
+    <qresource prefix="/i18n">
+        <file>i18n/de_DE.qm</file>
+    </qresource>
 </RCC>

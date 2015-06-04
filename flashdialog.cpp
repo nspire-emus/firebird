@@ -29,13 +29,13 @@ void FlashDialog::selectBoot2()
     if(path.isEmpty() || !QFile(path).exists())
     {
         boot2_path = "";
-        ui->labelBoot2->setText("None");
+        ui->labelBoot2->setText(tr("None"));
         return;
     }
 
     boot2_path = path;
 
-    ui->labelBoot2->setText("Unknown");
+    ui->labelBoot2->setText(tr("Unknown"));
 
     //Ugly way to display version
     QFile boot2(path);
