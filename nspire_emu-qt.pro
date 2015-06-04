@@ -1,7 +1,10 @@
 lessThan(QT_MAJOR_VERSION, 5) : error("You need at least Qt 5 to build nspire_emu!")
 
+# JIT
 TRANSLATION_ENABLED = true
-TRANSLATIONS += i18n/de_DE.ts
+
+# Localization
+TRANSLATIONS += i18n/de_DE.ts i18n/fr_FR.ts
 
 QT += core gui widgets quickwidgets
 CONFIG += c++11
