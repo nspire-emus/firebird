@@ -343,6 +343,11 @@
         <translation>Die Emulation mit Emulation-&gt;Neustart starten.</translation>
     </message>
     <message>
+        <location filename="../mainwindow.cpp" line="171"/>
+        <source>LCD turned off</source>
+        <translation>Display ausgeschaltet</translation>
+    </message>
+    <message>
         <location filename="../mainwindow.cpp" line="428"/>
         <location filename="../mainwindow.cpp" line="602"/>
         <source>Restart needed</source>

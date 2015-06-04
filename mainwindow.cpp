@@ -168,7 +168,7 @@ void MainWindow::refresh()
         QPainter p;
         p.begin(&image);
         p.setPen(emulate_cx ? Qt::white : Qt::black);
-        p.drawText(QRect(0, 0, 320, 240), Qt::AlignCenter, QString("LCD turned off"));
+        p.drawText(QRect(0, 0, 320, 240), Qt::AlignCenter, tr("LCD turned off"));
         p.end();
     }
 
