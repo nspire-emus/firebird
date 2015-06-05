@@ -1,6 +1,6 @@
 # Contributor: Antonio Vázquez Blanco <antoniovazquezblanco@gmail.com>
 
-pkgname=nspire_emu
+pkgname=firebird
 pkgver=0.9beta
 pkgrel=1
 pkgdesc='Community emulator of TI-Nspire calculators.'

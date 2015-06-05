@@ -11,9 +11,9 @@
 	<key>CFBundleSignature</key>
 	<string>????</string>
 	<key>CFBundleExecutable</key>
-	<string>nspire_emu</string>
+    <string>firebird</string>
 	<key>CFBundleIdentifier</key>
-	<string>com.nspire-emu.${PRODUCT_NAME:rfc1034identifier}</string>
+    <string>com.firebird.${PRODUCT_NAME:rfc1034identifier}</string>
 	<key>CFBundleDisplayName</key>
 	<string>${PRODUCT_NAME}</string>
 	<key>CFBundleName</key>

@@ -359,9 +359,13 @@
         <translation>Redémarrage requis</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="428"/>
         <source>You need to restart nspire_emu to enable the tab interface.</source>
-        <translation>Vous devez redémarrer nspire_emu pour activer l&apos;interface par onglets.</translation>
+        <translation type="vanished">Vous devez redémarrer nspire_emu pour activer l&apos;interface par onglets.</translation>
+    </message>
+    <message>
+        <location filename="../mainwindow.cpp" line="428"/>
+        <source>You need to restart firebird to enable the tab interface.</source>
+        <translation>Vous devez redémarrer firebird pour activer l&apos;interface par onglets.</translation>
     </message>
     <message>
         <location filename="../mainwindow.cpp" line="490"/>

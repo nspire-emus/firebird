@@ -1,4 +1,4 @@
-nspire_emu
+Firebird Emu
 ==========
 
 This project is currently the community TI-Nspire emulator, originally created by Goplat.
@@ -16,6 +16,7 @@ cd build
 qmake ..
 make
 ```
+
 License
 -------
 This work (except the icons from the KDE project) is licensed under a [Creative Commons Attribution-ShareAlike 4.0 International License](http://creativecommons.org/licenses/by-sa/4.0/)

@@ -1,4 +1,4 @@
-lessThan(QT_MAJOR_VERSION, 5) : error("You need at least Qt 5 to build nspire_emu!")
+lessThan(QT_MAJOR_VERSION, 5) : error("You need at least Qt 5 to build firebird!")
 
 # JIT
 TRANSLATION_ENABLED = true
@@ -10,14 +10,14 @@ QT += core gui widgets quickwidgets
 CONFIG += c++11
 
 TEMPLATE = app
-TARGET = nspire_emu
+TARGET = firebird
 
 # For make install support
 target.path = /usr/bin
 desktop.path = /usr/share/applications
-desktop.files += resources/nspire_emu.desktop
+desktop.files += resources/firebird.desktop
 icon.path = /usr/share/icons
-icon.files += resources/nspire_emu.png
+icon.files += resources/firebird.png
 INSTALLS += target desktop icon
 
 QMAKE_CFLAGS = -g -std=gnu11 -Wall -Wextra

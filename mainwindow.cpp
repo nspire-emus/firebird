@@ -425,7 +425,7 @@ void MainWindow::setUIMode(bool docks_enabled)
     // Enabling tabs needs a restart
     if(!docks_enabled)
     {
-        QMessageBox::warning(this, trUtf8("Restart needed"), trUtf8("You need to restart nspire_emu to enable the tab interface."));
+        QMessageBox::warning(this, trUtf8("Restart needed"), trUtf8("You need to restart firebird to enable the tab interface."));
         return;
     }
 

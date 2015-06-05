@@ -354,9 +354,13 @@
         <translation>Neustart benötigt</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="428"/>
         <source>You need to restart nspire_emu to enable the tab interface.</source>
-        <translation>nspire_emu muss neugestartet werden, um die Tabs-Oberfläche zu aktivieren.</translation>
+        <translation type="vanished">nspire_emu muss neugestartet werden, um die Tabs-Oberfläche zu aktivieren.</translation>
+    </message>
+    <message>
+        <location filename="../mainwindow.cpp" line="428"/>
+        <source>You need to restart firebird to enable the tab interface.</source>
+        <translation>Firebird muss neugestartet werden, um die Tabs-Oberfläche zu aktivieren.</translation>
     </message>
     <message>
         <location filename="../mainwindow.cpp" line="490"/>
