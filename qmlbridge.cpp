@@ -31,7 +31,7 @@ void QMLBridge::registerNButton(int keymap_id, QVariant button)
     //assert(col < COLS); Not needed.
 
     if(buttons[row][col])
-        qWarning() << "Warning: Button " << keymap_id << " already registered as " << buttons[7][11] << "!";
+        qWarning() << "Warning: Button " << keymap_id << " already registered as " << buttons[row][col] << "!";
     else
         buttons[row][col] = button.value<QObject*>();
 }
