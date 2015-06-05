@@ -633,7 +633,7 @@ bool rdebug_bind(unsigned int port) {
     sockaddr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
     r = bind(listen_socket_fd, (struct sockaddr *)&sockaddr, sizeof(sockaddr));
     if (r == -1) {
-        log_socket_error("Remote debug: failed to bind socket. Check that nspire_emu is not already running!");
+        log_socket_error("Remote debug: failed to bind socket. Check that firebird is not already running!");
         return false;
     }
     r = listen(listen_socket_fd, 0);
