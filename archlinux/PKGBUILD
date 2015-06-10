@@ -6,6 +6,7 @@ pkgrel=1
 pkgdesc='Community emulator of TI-Nspire calculators.'
 arch=('i686' 'x86_64')
 url='https://github.com/nspire-emus/firebird'
+conflicts=('nspire_emu')
 license=()
 depends=()
 makedepends=('qt5-declarative')
