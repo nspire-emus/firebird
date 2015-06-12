@@ -152,6 +152,10 @@ void usblink_queue_start()
 
 void usblink_queue_stop()
 {
+    // Queue not started
+    if(usblink_queue_worker_thread == nullptr)
+        return;
+
     keep_running = false;
     usblink_queue_worker_thread->join();
     delete usblink_queue_worker_thread;
