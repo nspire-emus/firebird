@@ -166,7 +166,7 @@
           </layout>
          </item>
          <item>
-          <widget class="LCDWidget" name="lcdView">
+          <widget class="LCDWidget" name="lcdView" native="true">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
              <horstretch>0</horstretch>
@@ -185,23 +185,8 @@
              <height>240</height>
             </size>
            </property>
-           <property name="frameShape">
-            <enum>QFrame::NoFrame</enum>
-           </property>
-           <property name="lineWidth">
-            <number>0</number>
-           </property>
-           <property name="verticalScrollBarPolicy">
-            <enum>Qt::ScrollBarAlwaysOff</enum>
-           </property>
-           <property name="horizontalScrollBarPolicy">
-            <enum>Qt::ScrollBarAlwaysOff</enum>
-           </property>
-           <property name="sizeAdjustPolicy">
-            <enum>QAbstractScrollArea::AdjustToContentsOnFirstShow</enum>
-           </property>
-           <property name="interactive">
-            <bool>false</bool>
+           <property name="focusPolicy">
+            <enum>Qt::StrongFocus</enum>
            </property>
           </widget>
          </item>
@@ -580,8 +565,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>149</width>
-             <height>76</height>
+             <width>326</width>
+             <height>149</height>
             </rect>
            </property>
            <attribute name="label">
@@ -849,8 +834,9 @@
   </customwidget>
   <customwidget>
    <class>LCDWidget</class>
-   <extends>QGraphicsView</extends>
+   <extends>QWidget</extends>
    <header>lcdwidget.h</header>
+   <container>1</container>
   </customwidget>
  </customwidgets>
  <resources>

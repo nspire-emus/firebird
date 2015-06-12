@@ -3,7 +3,7 @@
 
 #include "qmlbridge.h"
 
-#include "keypad.h"
+#include "core/keypad.h"
 
 QMLBridge::QMLBridge(QObject *parent) : QObject(parent)
 {}

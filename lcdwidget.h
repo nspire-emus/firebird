@@ -4,16 +4,18 @@
 #include <QGraphicsView>
 #include <QKeyEvent>
 
-class LCDWidget : public QGraphicsView
+class LCDWidget : public QWidget
 {
 public:
-    LCDWidget();
-    LCDWidget(QWidget *parent);
+    LCDWidget(QWidget *parent) : QWidget(parent) {}
 
 public slots:
     void mousePressEvent(QMouseEvent *event) override;
     void mouseReleaseEvent(QMouseEvent *event) override;
     void mouseMoveEvent(QMouseEvent *event) override;
+
+protected:
+    virtual void paintEvent(QPaintEvent *) override;
 };
 
 #endif // LCDWIDGET_H

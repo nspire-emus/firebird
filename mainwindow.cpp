@@ -8,15 +8,16 @@
 #include <QDropEvent>
 #include <QMimeData>
 #include <QDockWidget>
-#include <QtQml>
+
+#include "core/usblink_queue.h"
+#include "core/flash.h"
+#include "core/lcd.h"
+#include "core/misc.h"
 
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
-#include "usblink_queue.h"
-#include "flash.h"
-#include "lcd.h"
-#include "misc.h"
 #include "qmlbridge.h"
+#include "qtframebuffer.h"
 #include "qtkeypadbridge.h"
 
 MainWindow *main_window;
@@ -29,9 +30,6 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow)
 {
     emu_thread = &emu;
-
-    // Register QMLBridge for Keypad<->Emu communication
-    qmlRegisterSingletonType<QMLBridge>("Ndless.Emu", 1, 0, "Emu", qmlBridgeFactory);
 
     ui->setupUi(this);
 
@@ -97,8 +95,6 @@ MainWindow::MainWindow(QWidget *parent) :
     refresh_timer.setInterval(1000 / 60); //60 fps
     refresh_timer.start();
 
-    ui->lcdView->setScene(&lcd_scene);
-
     qRegisterMetaType<QVector<int>>();
 
 #ifdef Q_OS_ANDROID
@@ -142,37 +138,7 @@ MainWindow::~MainWindow()
 
 void MainWindow::refresh()
 {
-    lcd_scene.clear();
-
-    QByteArray framebuffer(320 * 240 * 2, 0);
-    uint32_t bitfields[] = { 0x01F, 0x000, 0x000};
-
-    if(lcd_contrast > 0)
-        lcd_cx_draw_frame(reinterpret_cast<uint16_t*>(framebuffer.data()), bitfields);
-    QImage::Format format = bitfields[0] == 0x00F ? QImage::Format_RGB444 : QImage::Format_RGB16;
-    if(!emulate_cx)
-    {
-        format = QImage::Format_RGB444;
-        uint16_t *px = reinterpret_cast<uint16_t*>(framebuffer.data());
-        for(unsigned int i = 0; i < 320*240; ++i)
-        {
-            uint8_t pix = *px & 0xF;
-            uint16_t n = pix << 8 | pix << 4 | pix;
-            *px = ~n;
-            ++px;
-        }
-    }
-    QImage image(reinterpret_cast<const uchar*>(framebuffer.data()), 320, 240, 320 * 2, format);
-    if(lcd_contrast == 0)
-    {
-        QPainter p;
-        p.begin(&image);
-        p.setPen(emulate_cx ? Qt::white : Qt::black);
-        p.drawText(QRect(0, 0, 320, 240), Qt::AlignCenter, tr("LCD turned off"));
-        p.end();
-    }
-
-    lcd_scene.addPixmap(QPixmap::fromImage(image));
+    ui->lcdView->update();
 }
 
 void MainWindow::dropEvent(QDropEvent *e)
@@ -498,9 +464,7 @@ void MainWindow::setThrottleTimerDeactivated(bool b)
 
 void MainWindow::screenshot()
 {
-    QImage image(320, 240, QImage::Format_RGB16);
-    QPainter painter(&image);
-    ui->lcdView->scene()->render(&painter);
+    QImage image = renderFramebuffer();
 
     QString filename = QFileDialog::getSaveFileName(this, tr("Save Screenshot"), QString(), "PNG images (*.png)");
     if(filename.isNull())

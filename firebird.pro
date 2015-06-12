@@ -41,7 +41,7 @@ macx {
 
 # This does also apply to android
 linux|macx|ios {
-    SOURCES += os/os-linux.c
+    SOURCES += core/os/os-linux.c
 }
 
 ios {
@@ -57,7 +57,7 @@ ios {
 QMAKE_TARGET.arch = $$QT_ARCH
 
 win32 {
-    SOURCES += os/os-win32.c
+    SOURCES += core/os/os-win32.c
     LIBS += -lwinmm -lws2_32
     # Somehow it's set to x86_64...
     QMAKE_TARGET.arch = x86
@@ -70,20 +70,20 @@ linux-g++-32 {
 }
 
 # A platform-independant implementation of lowlevel access as default
-ASMCODE_IMPL = asmcode.c
+ASMCODE_IMPL = core/asmcode.c
 
 equals(TRANSLATION_ENABLED, true) {
-    TRANSLATE = $$join(QMAKE_TARGET.arch, "", "translate_", ".c")
+    TRANSLATE = $$join(QMAKE_TARGET.arch, "", "core/translate_", ".c")
     exists($$TRANSLATE) {
         SOURCES += $$TRANSLATE
     }
 
-    TRANSLATE2 = $$join(QMAKE_TARGET.arch, "", "translate_", ".cpp")
+    TRANSLATE2 = $$join(QMAKE_TARGET.arch, "", "core/translate_", ".cpp")
     exists($$TRANSLATE2) {
         SOURCES += $$TRANSLATE2
     }
 
-    ASMCODE = $$join(QMAKE_TARGET.arch, "", "asmcode_", ".S")
+    ASMCODE = $$join(QMAKE_TARGET.arch, "", "core/asmcode_", ".S")
     exists($$ASMCODE): ASMCODE_IMPL = $$ASMCODE
 }
 else: DEFINES += NO_TRANSLATION
@@ -91,7 +91,7 @@ else: DEFINES += NO_TRANSLATION
 # The x86_64 and ARM JIT use asmcode.c for mem access
 contains(QMAKE_TARGET.arch, "x86_64") || contains(QMAKE_TARGET.arch, "arm") {
     !contains(ASMCODE_IMPL, "asmcode.c") {
-        SOURCES += asmcode.c
+        SOURCES += core/asmcode.c
     }
 }
 
@@ -104,82 +104,84 @@ contains(QMAKE_TARGET.arch, "arm") {
 
 SOURCES += $$ASMCODE_IMPL \
     lcdwidget.cpp \
-    usblink_queue.cpp \
-    cpu.cpp \
     mainwindow.cpp \
     main.cpp \
-    casplus.c \
-    debug.c \
-    des.c \
-    disasm.c \
-    emu.c \
-    flash.c \
     flashdialog.cpp \
-    gdbstub.c \
-    interrupt.c \
-    keypad.c \
-    lcd.c \
-    link.c \
-    mem.c \
-    misc.c \
-    mmu.c \
-    schedule.c \
-    serial.c \
-    sha256.c \
-    usb.c \
-    usblink.c \
     emuthread.cpp \
-    arm_interpreter.cpp \
-    coproc.cpp \
-    thumb_interpreter.cpp \
-    armsnippets_loader.c \
     qmlbridge.cpp \
-    qtkeypadbridge.cpp
+    qtkeypadbridge.cpp \
+    core/arm_interpreter.cpp \
+    core/coproc.cpp \
+    core/cpu.cpp \
+    core/thumb_interpreter.cpp \
+    core/usblink_queue.cpp \
+    core/armsnippets_loader.c \
+    core/casplus.c \
+    core/debug.c \
+    core/des.c \
+    core/disasm.c \
+    core/emu.c \
+    core/flash.c \
+    core/gdbstub.c \
+    core/interrupt.c \
+    core/keypad.c \
+    core/lcd.c \
+    core/link.c \
+    core/mem.c \
+    core/misc.c \
+    core/mmu.c \
+    core/schedule.c \
+    core/serial.c \
+    core/sha256.c \
+    core/usb.c \
+    core/usblink.c \
+    qtframebuffer.cpp
 
 FORMS += \
     mainwindow.ui \
     flashdialog.ui
 
 HEADERS += \
-    keypad.h \
-    emu.h \
     emuthread.h \
     lcdwidget.h \
-    usb.h \
-    lcd.h \
-    disasm.h \
-    flash.h \
     flashdialog.h \
-    interrupt.h \
-    armcode_bin.h \
-    mem.h \
-    mmu.h \
-    des.h \
-    armsnippets.h \
-    debug.h \
-    sha256.h \
-    usblink.h \
     mainwindow.h \
     keymap.h \
-    misc.h \
-    os/os.h \
-    gdbstub.h \
-    translate.h \
-    cpu.h \
-    casplus.h \
-    link.h \
-    asmcode.h \
-    schedule.h \
-    usblink_queue.h \
-    cpudefs.h \
-    bitfield.h \
     qmlbridge.h \
-    qtkeypadbridge.h
+    qtkeypadbridge.h \
+    core/os/os.h \
+    core/armcode_bin.h \
+    core/armsnippets.h \
+    core/asmcode.h \
+    core/bitfield.h \
+    core/casplus.h \
+    core/cpu.h \
+    core/cpudefs.h \
+    core/debug.h \
+    core/des.h \
+    core/disasm.h \
+    core/emu.h \
+    core/flash.h \
+    core/gdbstub.h \
+    core/interrupt.h \
+    core/keypad.h \
+    core/lcd.h \
+    core/link.h \
+    core/mem.h \
+    core/misc.h \
+    core/mmu.h \
+    core/schedule.h \
+    core/sha256.h \
+    core/translate.h \
+    core/usb.h \
+    core/usblink.h \
+    core/usblink_queue.h \
+    qtframebuffer.h
 
 # Generate the binary arm code into armcode_bin.h
-armsnippets.commands = arm-none-eabi-gcc -fno-leading-underscore -c $$PWD/armsnippets.S -o armsnippets.o -mcpu=arm926ej-s \
+armsnippets.commands = arm-none-eabi-gcc -fno-leading-underscore -c $$PWD/core/armsnippets.S -o armsnippets.o -mcpu=arm926ej-s \
 						&& arm-none-eabi-objcopy -O binary armsnippets.o snippets.bin \
-						&& xxd -i snippets.bin > $$PWD/armcode_bin.h \
+                        && xxd -i snippets.bin > $$PWD/core/armcode_bin.h \
 						&& rm armsnippets.o
 
 # In case you change armsnippets.S, run "make armsnippets" and update armcode_bin.h

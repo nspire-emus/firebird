@@ -1,8 +1,8 @@
-#include <assert.h>
+#include <cassert>
 #include <atomic>
 #include <queue>
-
-#include <QThread>
+#include <chrono>
+#include <thread>
 
 #include "usblink_queue.h"
 
@@ -21,6 +21,7 @@ struct usblink_queue_action {
     void *user_data;
 };
 
+static volatile bool keep_running;
 static std::atomic_bool busy;
 static std::queue<usblink_queue_action> usblink_queue;
 
@@ -128,35 +129,32 @@ void usblink_queue_reset()
     usblink_reset();
 }
 
-class USBLinkWorker : public QThread {
-public:
-    USBLinkWorker() { this->setObjectName("USBLinkWorker"); }
-    void run() override;
-};
-
-void USBLinkWorker::run()
+void usblink_queue_worker()
 {
-    while(true)
+    while(keep_running)
     {
-        msleep(10);
-        if(isInterruptionRequested())
-            return;
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
         if(usblink_connected && !busy)
             usblink_queue_do();
     }
 }
 
-USBLinkWorker usblink_queue_worker;
+static std::thread *usblink_queue_worker_thread = nullptr;
 
 void usblink_queue_start()
 {
+    assert(usblink_queue_worker_thread == nullptr);
     usblink_queue_reset();
-    usblink_queue_worker.start();
+    keep_running = true;
+    usblink_queue_worker_thread = new std::thread(usblink_queue_worker);
 }
 
 void usblink_queue_stop()
 {
-    usblink_queue_worker.requestInterruption();
+    keep_running = false;
+    usblink_queue_worker_thread->join();
+    delete usblink_queue_worker_thread;
+    usblink_queue_worker_thread = nullptr;
     usblink_queue_reset();
 }

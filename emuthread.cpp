@@ -4,10 +4,10 @@
 #include <cstdarg>
 #include <QEventLoop>
 
-#include "debug.h"
-#include "emu.h"
+#include "core/debug.h"
+#include "core/emu.h"
+#include "core/usblink_queue.h"
 #include "mainwindow.h"
-#include "usblink_queue.h"
 
 EmuThread *emu_thread = nullptr;
 

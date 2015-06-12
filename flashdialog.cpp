@@ -2,7 +2,7 @@
 #include <QFileDialog>
 #include <QMessageBox>
 
-#include "flash.h"
+#include "core/flash.h"
 #include "flashdialog.h"
 #include "ui_flashdialog.h"
 

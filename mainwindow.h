@@ -3,7 +3,6 @@
 
 #include <QTimer>
 #include <QMainWindow>
-#include <QGraphicsScene>
 #include <QSettings>
 
 #include "emuthread.h"
@@ -94,7 +93,6 @@ private:
     // Small hack: static as used in static callbacks...
     static bool refresh_filebrowser;
     QTimer refresh_timer, throttle_timer;
-    QGraphicsScene lcd_scene;
     EmuThread emu;
     QSettings *settings;
     FlashDialog flash_dialog;

@@ -1,14 +1,8 @@
 #include "lcdwidget.h"
-#include "keypad.h"
+#include "core/keypad.h"
 #include "qtkeypadbridge.h"
 #include "qmlbridge.h"
-
-LCDWidget::LCDWidget()
-{}
-
-LCDWidget::LCDWidget(QWidget *parent)
-    : QGraphicsView(parent)
-{}
+#include "qtframebuffer.h"
 
 void LCDWidget::mousePressEvent(QMouseEvent *event)
 {
@@ -67,4 +61,10 @@ void LCDWidget::mouseMoveEvent(QMouseEvent *event)
     notifyTouchpadStateChanged();
     kpc.gpio_int_active |= 0x800;
     keypad_int_check();
+}
+
+void LCDWidget::paintEvent(QPaintEvent *)
+{
+    QPainter painter(this);
+    paintFramebuffer(&painter);
 }

@@ -1,7 +1,7 @@
 #include "qtkeypadbridge.h"
 
 #include "keymap.h"
-#include "keypad.h"
+#include "core/keypad.h"
 #include "qmlbridge.h"
 
 QtKeypadBridge qt_keypad_bridge;
