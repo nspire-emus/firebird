@@ -9,9 +9,9 @@ Rectangle {
     height: 480
     color: "#111111"
 
-    ColumnLayout {
-        id: rowLayout1
-        width: toolButton1.width
+    RowLayout {
+        id: sidebar
+        width: parent.width*0.15
         anchors.bottom: controls.top
         anchors.bottomMargin: 0
         anchors.top: parent.top
@@ -21,14 +21,21 @@ Rectangle {
 
         ToolButton {
             id: toolButton1
-            iconSource: "qrc:/icons/resources/icons/system-reboot.png"
+            anchors.horizontalCenter: parent.horizontalCenter
+            anchors.margins: 4
+
+            Image {
+                anchors.fill: parent
+                anchors.margins: 4
+                source: "qrc:/icons/resources/icons/system-reboot.png"
+            }
         }
     }
 
     Screen {
         id: screen
         y: 0
-        width: parent.width - rowLayout1.width
+        width: parent.width - sidebar.width
         height: width/320*240
         anchors.left: parent.left
         anchors.leftMargin: 0
