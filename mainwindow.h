@@ -87,17 +87,17 @@ private:
     void selectBoot1(QString path);
     void selectFlash(QString path);
 
-    Ui::MainWindow *ui;
+    Ui::MainWindow *ui = nullptr;
 
     // Whether to call usblink_dirlist when the tab is selected
     // Small hack: static as used in static callbacks...
     static bool refresh_filebrowser;
     QTimer refresh_timer, throttle_timer;
     EmuThread emu;
-    QSettings *settings;
+    QSettings *settings = nullptr;
     FlashDialog flash_dialog;
     // To make it possible to activate the debugger
-    QDockWidget *dock_debugger;
+    QDockWidget *dock_debugger = nullptr;
 };
 
 // Used as global instance by EmuThread and friends
