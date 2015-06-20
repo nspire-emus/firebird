@@ -4,6 +4,15 @@
 #include "qmlbridge.h"
 #include "qtframebuffer.h"
 
+LCDWidget::LCDWidget(QWidget *parent)
+    : QWidget(parent)
+{
+    connect(&refresh_timer, SIGNAL(timeout()), this, SLOT(update()));
+
+    refresh_timer.setInterval(1000 / 60); // 60 fps
+    refresh_timer.start();
+}
+
 void LCDWidget::mousePressEvent(QMouseEvent *event)
 {
     if(event->button() == Qt::RightButton)

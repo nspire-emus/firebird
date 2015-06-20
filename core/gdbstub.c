@@ -342,7 +342,7 @@ static void *hex2mem(char *buf, void *mem, int count) {
             return mem;
         ch <<= 4;
         ch |= hex(*buf++);
-        *(char*)mem++ = ch;
+        *(char*)(mem)++ = ch;
         if (mem_err)
             return 0;
     }

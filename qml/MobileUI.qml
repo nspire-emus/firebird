@@ -7,9 +7,9 @@ Rectangle {
     id: rectangle1
     width: 320
     height: 480
-    color: "#111111"
+    color: "#AAA"
 
-    RowLayout {
+    ColumnLayout {
         id: sidebar
         width: parent.width*0.15
         anchors.bottom: controls.top
@@ -20,15 +20,47 @@ Rectangle {
         anchors.leftMargin: 0
 
         ToolButton {
-            id: toolButton1
+            id: restartButton
             anchors.horizontalCenter: parent.horizontalCenter
             anchors.margins: 4
 
             Image {
                 anchors.fill: parent
                 anchors.margins: 4
-                source: "qrc:/icons/resources/icons/system-reboot.png"
+                source: "qrc:/icons/resources/icons/edit-bomb.png"
             }
+
+            onClicked: Emu.restart();
+        }
+
+        ToolButton {
+            id: resetButton
+            anchors.horizontalCenter: parent.horizontalCenter
+            anchors.margins: 4
+
+            Image {
+                source: "qrc:/icons/resources/icons/system-reboot.png"
+                anchors.margins: 4
+                anchors.fill: parent
+            }
+
+            onClicked: Emu.reset();
+        }
+
+        ToolButton {
+            id: pauseButton
+            anchors.horizontalCenter: parent.horizontalCenter
+            anchors.margins: 4
+
+            checkable: true
+
+            Image {
+                source: "qrc:/icons/resources/icons/media-playback-pause.png"
+                anchors.margins: 4
+                anchors.fill: parent
+            }
+
+            onCheckedChanged: Emu.setPaused(checked);
         }
     }
 

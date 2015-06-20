@@ -39,7 +39,8 @@ void paintFramebuffer(QPainter *p)
         return;
     }
 
-    p->drawImage(p->window(), renderFramebuffer());
+    QImage image = renderFramebuffer().scaled(p->window().size(), Qt::KeepAspectRatio, Qt::SmoothTransformation);
+    p->drawImage(p->window(), image);
 }
 
 void QMLFramebuffer::paint(QPainter *p)

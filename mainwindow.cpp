@@ -29,22 +29,18 @@ MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
 {
-    emu_thread = &emu;
-
     ui->setupUi(this);
 
     // Register QtKeypadBridge for the virtual keyboard functionality
     ui->keypadWidget->installEventFilter(&qt_keypad_bridge);
     ui->lcdView->installEventFilter(&qt_keypad_bridge);
 
-    connect(&refresh_timer, SIGNAL(timeout()), this, SLOT(refresh()));
-
     //Emu -> GUI (QueuedConnection as they're different threads)
     connect(&emu, SIGNAL(serialChar(char)), this, SLOT(serialChar(char)), Qt::QueuedConnection);
     connect(&emu, SIGNAL(debugStr(QString)), this, SLOT(debugStr(QString))); //Not queued connection as it may cause a hang
     connect(&emu, SIGNAL(speedChanged(double)), this, SLOT(showSpeed(double)), Qt::QueuedConnection);
     connect(&emu, SIGNAL(statusMsg(QString)), ui->statusbar, SLOT(showMessage(QString)), Qt::QueuedConnection);
-    connect(&emu, SIGNAL(setThrottleTimer(bool)), this, SLOT(setThrottleTimer(bool)), Qt::QueuedConnection);
+    connect(&emu, SIGNAL(throttleTimerChanged(bool)), this, SLOT(throttleTimerChanged(bool)), Qt::QueuedConnection);
     connect(&emu, SIGNAL(usblinkChanged(bool)), this, SLOT(usblinkChanged(bool)), Qt::QueuedConnection);
 
     //Menu "Emulator"
@@ -56,7 +52,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->buttonPause, SIGNAL(clicked(bool)), ui->actionPause, SLOT(setChecked(bool)));
     connect(ui->actionPause, SIGNAL(toggled(bool)), &emu, SLOT(setPaused(bool)));
     connect(ui->actionPause, SIGNAL(toggled(bool)), ui->buttonPause, SLOT(setChecked(bool)));
-    connect(ui->buttonSpeed, SIGNAL(clicked(bool)), this, SLOT(setThrottleTimerDeactivated(bool)));
+    connect(ui->buttonSpeed, SIGNAL(clicked(bool)), &emu, SLOT(setThrottleTimerDeactivated(bool)));
 
     //Menu "Tools"
     connect(ui->buttonScreenshot, SIGNAL(clicked()), this, SLOT(screenshot()));
@@ -92,9 +88,6 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->debugConsole->setFont(monospace);
     ui->serialConsole->setFont(monospace);
 
-    refresh_timer.setInterval(1000 / 60); //60 fps
-    refresh_timer.start();
-
     qRegisterMetaType<QVector<int>>();
 
 #ifdef Q_OS_ANDROID
@@ -121,7 +114,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     bool autostart = settings->value("emuAutostart", false).toBool();
     setAutostart(autostart);
-    if(emu.emu_path_boot1 != "" && emu.emu_path_flash != "" && autostart)
+    if(emu.boot1 != "" && emu.flash != "" && autostart)
         emu.start();
     else
         ui->statusbar->showMessage(trUtf8("Start the emulation via Emulation->Restart."));
@@ -134,11 +127,6 @@ MainWindow::~MainWindow()
 
     delete settings;
     delete ui;
-}
-
-void MainWindow::refresh()
-{
-    ui->lcdView->update();
 }
 
 void MainWindow::dropEvent(QDropEvent *e)
@@ -333,7 +321,7 @@ void MainWindow::changeProgress(int value)
 void MainWindow::selectBoot1(QString path)
 {
     QFileInfo f(path);
-    emu.emu_path_boot1 = path.toStdString();
+    emu.boot1 = path.toStdString();
     ui->filenameBoot1->setText(f.fileName());
 
     settings->setValue("boot1", path);
@@ -341,7 +329,7 @@ void MainWindow::selectBoot1(QString path)
 
 void MainWindow::selectBoot1()
 {
-    QFileInfo f(QString::fromStdString(emu.emu_path_flash));
+    QFileInfo f(QString::fromStdString(emu.flash));
     QString path = QFileDialog::getOpenFileName(this, "Select boot1 file", f.dir().absolutePath());
     if(!path.isNull())
         selectBoot1(path);
@@ -350,7 +338,7 @@ void MainWindow::selectBoot1()
 void MainWindow::selectFlash(QString path)
 {
     QFileInfo f(path);
-    emu.emu_path_flash = path.toStdString();
+    emu.flash = path.toStdString();
     ui->filenameFlash->setText(f.fileName());
 
     settings->setValue("flash", path);
@@ -358,7 +346,7 @@ void MainWindow::selectFlash(QString path)
 
 void MainWindow::selectFlash()
 {
-    QFileInfo f(QString::fromStdString(emu.emu_path_flash));
+    QFileInfo f(QString::fromStdString(emu.flash));
     QString path = QFileDialog::getOpenFileName(this, "Select flash file", f.dir().absolutePath());
     if(!path.isNull())
         selectFlash(path);
@@ -451,15 +439,14 @@ void MainWindow::setRDBGPort(int port)
     ui->spinRDBG->setValue(port);
 }
 
+void MainWindow::throttleTimerChanged(bool active)
+{
+    ui->buttonSpeed->setChecked(!active);
+}
+
 void MainWindow::showSpeed(double percent)
 {
     ui->buttonSpeed->setText(tr("Speed: %1 %").arg(percent, 1, 'f', 0));
-    ui->buttonSpeed->setChecked(!throttle_timer.isActive());
-}
-
-void MainWindow::setThrottleTimerDeactivated(bool b)
-{
-    setThrottleTimer(!b);
 }
 
 void MainWindow::screenshot()
@@ -503,35 +490,6 @@ void MainWindow::createFlash()
     flash_dialog.exec();
 }
 
-void MainWindow::setThrottleTimer(bool b)
-{
-    if(b)
-    {
-        throttle_timer.setInterval(throttle_delay);
-        throttle_timer.start();
-    }
-    else
-    {
-        throttle_timer.stop();
-        //We abuse a signal here to quit the event loop whenever we want
-        throttle_timer.setObjectName(throttle_timer.objectName().isEmpty() ? "throttle_timer" : "");
-    }
-}
-
-void MainWindow::throttleTimerWait()
-{
-    if(!throttle_timer.isActive())
-        return;
-
-    // e mustn't be deleted as there may be pending signals
-    static QEventLoop e;
-    throttle_timer.disconnect();
-    e.quit();
-    connect(&throttle_timer, SIGNAL(timeout()), &e, SLOT(quit()));
-    connect(&throttle_timer, SIGNAL(objectNameChanged(QString)), &e, SLOT(quit()));
-    e.exec();
-}
-
 void MainWindow::closeEvent(QCloseEvent *e)
 {
     qDebug("Terminating emulator thread...");
@@ -546,14 +504,14 @@ void MainWindow::closeEvent(QCloseEvent *e)
 
 void MainWindow::restart()
 {
-    if(emu.emu_path_boot1 == "")
+    if(emu.boot1 == "")
     {
         QMessageBox::critical(this, trUtf8("No boot1 set"), trUtf8("Before you can start the emulation, you have to select a proper boot1 file."));
         selectBoot1();
         return;
     }
 
-    if(emu.emu_path_flash == "")
+    if(emu.flash == "")
     {
         QMessageBox::critical(this, trUtf8("No flash image loaded"), trUtf8("Before you can start the emulation, you have to load a proper flash file.\n"
                                                                             "You can create one via Flash->Create Flash in the menu."));

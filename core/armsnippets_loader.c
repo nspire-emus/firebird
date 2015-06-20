@@ -70,10 +70,10 @@ bool armloader_load_snippet(enum SNIPPETS snippet, struct armloader_load_params 
     arm.reg[12] = snippet;
 
     for(i = 0; i < params_num; i++) {
-        void *param_ptr;
         if(params[i].t == ARMLOADER_PARAM_VAL)
             arm.reg[i] = params[i].v;
         else {
+            void *param_ptr;
             uint32_t size = params[i].p.size;
             if (size % 4)
                 size += 4 - size % 4; // word-aligned

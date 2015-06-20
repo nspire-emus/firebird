@@ -1,7 +1,6 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
-#include <QTimer>
 #include <QMainWindow>
 #include <QSettings>
 
@@ -23,16 +22,12 @@ public:
 public slots:
     void closeEvent(QCloseEvent *) override;
 
-    //Timer for LCD refreshing
-    void refresh();
-
     //Drag & Drop
     void dropEvent(QDropEvent* event) override;
     void dragEnterEvent(QDragEnterEvent *ev) override;
 
     //Menu "Emulator"
     void restart();
-    void setThrottleTimerDeactivated(bool b);
     void screenshot();
     void connectUSB();
     void usblinkChanged(bool state);
@@ -40,9 +35,6 @@ public slots:
     //Menu "Flash"
     void saveFlash();
     void createFlash();
-
-    //Emu stuff (has to be a signal to execute it in this thread)
-    void setThrottleTimer(bool b);
 
     //Serial
     void serialChar(const char c);
@@ -67,6 +59,8 @@ public slots:
     void setGDBPort(int port);
     void setRDBGPort(int port);
 
+    //Tool bar (above screen)
+    void throttleTimerChanged(bool active);
     void showSpeed(double percent);
 
 signals:
@@ -75,8 +69,6 @@ signals:
 
 public:
     QByteArray debug_command;
-
-    void throttleTimerWait();
 
     //usblink callbacks
     static void usblink_dirlist_callback_nested(struct usblink_file *file, void *data);
@@ -92,7 +84,6 @@ private:
     // Whether to call usblink_dirlist when the tab is selected
     // Small hack: static as used in static callbacks...
     static bool refresh_filebrowser;
-    QTimer refresh_timer, throttle_timer;
     EmuThread emu;
     QSettings *settings = nullptr;
     FlashDialog flash_dialog;

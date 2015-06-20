@@ -3,11 +3,12 @@
 
 #include <QGraphicsView>
 #include <QKeyEvent>
+#include <QTimer>
 
 class LCDWidget : public QWidget
 {
 public:
-    LCDWidget(QWidget *parent) : QWidget(parent) {}
+    LCDWidget(QWidget *parent);
 
 public slots:
     void mousePressEvent(QMouseEvent *event) override;
@@ -16,6 +17,9 @@ public slots:
 
 protected:
     virtual void paintEvent(QPaintEvent *) override;
+
+private:
+    QTimer refresh_timer;
 };
 
 #endif // LCDWIDGET_H

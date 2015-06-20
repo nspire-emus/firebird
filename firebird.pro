@@ -44,6 +44,7 @@ linux|macx|ios {
     SOURCES += core/os/os-linux.c
 }
 
+DEFINES += MOBILE_UI
 ios|android {
     DEFINES += MOBILE_UI
 }

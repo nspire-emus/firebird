@@ -57,6 +57,38 @@ void QMLBridge::registerTouchpad(QVariant touchpad)
     qml_touchpad = touchpad.value<QObject*>();
 }
 
+#ifdef MOBILE_UI
+
+bool QMLBridge::restart()
+{
+    if(emu_thread.isRunning() && !emu_thread.stop())
+        return false;
+
+    QSettings settings;
+    emu_thread.boot1 = settings.value("boot1").toString().toStdString();
+    emu_thread.flash = settings.value("flash").toString().toStdString();
+
+    emu_thread.start();
+    return true;
+}
+
+void QMLBridge::setPaused(bool b)
+{
+    emu_thread.setPaused(b);
+}
+
+void QMLBridge::reset()
+{
+    emu_thread.reset();
+}
+
+bool QMLBridge::stop()
+{
+    return emu_thread.stop();
+}
+
+#endif
+
 void notifyKeypadStateChanged(int row, int col, bool state)
 {
     assert(row < ROWS);

@@ -351,8 +351,8 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
             goto unimpl;
         else if((insn & 0xD900000) == 0x1000000)
         {
-            // Only msr rd, cpsr is supported
-            if((insn & 0xFF00000) != 0x10F0000)
+            // Only mrs rd, cpsr is supported
+            if(i.mrs.r)
                 goto unimpl;
 
             // Store cpsr in arm.reg[rd]
