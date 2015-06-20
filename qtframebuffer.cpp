@@ -37,3 +37,8 @@ void paintFramebuffer(QPainter *p)
 
     p->drawImage(p->window(), renderFramebuffer());
 }
+
+void QMLFramebuffer::paint(QPainter *p)
+{
+    paintFramebuffer(p);
+}

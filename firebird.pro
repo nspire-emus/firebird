@@ -44,6 +44,10 @@ linux|macx|ios {
     SOURCES += core/os/os-linux.c
 }
 
+ios|android {
+    DEFINES += MOBILE_UI
+}
+
 ios {
     DEFINES += IS_IOS_BUILD __arm__
     QMAKE_INFO_PLIST = Info.plist

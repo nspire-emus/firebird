@@ -31,6 +31,8 @@ Rectangle {
         property bool state: false
         property bool hovering: false
 
+        preventStealing: true
+
         Component.onCompleted: {
             Emu.registerNButton(keymap_id, this);
         }

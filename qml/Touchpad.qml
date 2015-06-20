@@ -40,6 +40,7 @@ Rectangle {
         anchors.bottomMargin: 0
         anchors.fill: parent
         acceptedButtons: Qt.LeftButton
+        preventStealing: true
 
         Component.onCompleted: {
             Emu.registerTouchpad(this);

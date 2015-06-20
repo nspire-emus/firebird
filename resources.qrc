@@ -23,6 +23,9 @@
         <file>qml/NNumButton.qml</file>
         <file>qml/Touchpad.qml</file>
         <file>qml/NDualButton.qml</file>
+        <file>qml/MobileUI.qml</file>
+        <file>qml/MobileControl1.qml</file>
+        <file>qml/MobileControl2.qml</file>
     </qresource>
     <qresource prefix="/i18n">
         <file>i18n/de_DE.qm</file>

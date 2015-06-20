@@ -2,7 +2,13 @@
 #include <QTranslator>
 #include <QtQml>
 
+#ifndef MOBILE_UI
 #include "mainwindow.h"
+#else
+#include <QQuickView>
+#endif
+
+#include "qtframebuffer.h"
 #include "qmlbridge.h"
 
 int main(int argc, char **argv)
@@ -19,12 +25,18 @@ int main(int argc, char **argv)
 
     // Register QMLBridge for Keypad<->Emu communication
     qmlRegisterSingletonType<QMLBridge>("Ndless.Emu", 1, 0, "Emu", qmlBridgeFactory);
+    // Register QtFramebuffer for QML display
+    qmlRegisterType<QMLFramebuffer>("Ndless.Emu", 1, 0, "Screen");
 
-    MainWindow mw;
-
-    main_window = &mw;
-
-    mw.show();
+    #ifndef MOBILE_UI
+        MainWindow mw;
+        main_window = &mw;
+        mw.show();
+    #else
+        QQuickView mobile_ui(QUrl("qrc:/qml/qml/MobileUI.qml"));
+        mobile_ui.setResizeMode(QQuickView::SizeRootObjectToView);
+        mobile_ui.show();
+    #endif
 
     return app.exec();
 }
