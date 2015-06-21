@@ -18,13 +18,20 @@ QImage renderFramebuffer()
     lcd_cx_draw_frame(framebuffer, bitfields);
     QImage::Format format = bitfields[0] == 0x00F ? QImage::Format_RGB444 : QImage::Format_RGB16;
 
-    QImage image(reinterpret_cast<const uchar*>(framebuffer), 320, 240, 320 * 2, format, free, framebuffer);
-
     if(!emulate_cx)
     {
-        // Invert framebuffer
-        image.invertPixels();
+        format = QImage::Format_RGB444;
+        uint16_t *px = framebuffer;
+        for(unsigned int i = 0; i < 320*240; ++i)
+        {
+            uint8_t pix = *px & 0xF;
+            uint16_t n = pix << 8 | pix << 4 | pix;
+            *px = ~n;
+            ++px;
+        }
     }
+
+    QImage image(reinterpret_cast<const uchar*>(framebuffer), 320, 240, 320 * 2, format, free, framebuffer);
 
     return image;
 }

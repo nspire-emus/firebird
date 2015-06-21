@@ -82,9 +82,10 @@ Rectangle {
     Flickable {
         id: controls
         boundsBehavior: Flickable.StopAtBounds
-        flickableDirection: Flickable.HorizontalFlick
-        contentWidth: width*2
-        contentHeight: height
+        flickableDirection: Flickable.HorizontalAndVerticalFlick
+        contentWidth: width
+        contentHeight: control1.height
+        clip: true
         anchors.top: screen.bottom
         anchors.topMargin: 0
         anchors.bottom: parent.bottom
@@ -94,17 +95,9 @@ Rectangle {
         anchors.left: parent.left
         anchors.leftMargin: 0
 
-        MobileControl1 {
+        Keypad {
             id: control1
             width: controls.width
-            height: controls.height
-        }
-
-        MobileControl2 {
-            id: control2
-            width: controls.width
-            height: controls.height
-            anchors.left: control1.right
         }
     }
 
