@@ -22,6 +22,8 @@ public:
 public slots:
     void closeEvent(QCloseEvent *) override;
 
+    void dockVisibilityChanged(bool v);
+
     //Drag & Drop
     void dropEvent(QDropEvent* event) override;
     void dragEnterEvent(QDragEnterEvent *ev) override;
@@ -80,6 +82,10 @@ private:
     void selectFlash(QString path);
 
     Ui::MainWindow *ui = nullptr;
+
+    // On Mac you can't show docks after all of them are hidden...
+    // Keep track of them to count whether that's about to happen
+    std::vector<QDockWidget *> docks;
 
     // Whether to call usblink_dirlist when the tab is selected
     // Small hack: static as used in static callbacks...

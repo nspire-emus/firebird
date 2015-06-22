@@ -118,6 +118,10 @@ MainWindow::MainWindow(QWidget *parent) :
         emu.start();
     else
         ui->statusbar->showMessage(trUtf8("Start the emulation via Emulation->Restart."));
+
+    #ifdef Q_OS_MAC
+        QTimer::singleShot(50, [&] {dockVisibilityChanged(false);}); // Trigger dock update (after UI was shown)
+    #endif
 }
 
 MainWindow::~MainWindow()
@@ -389,6 +393,10 @@ void MainWindow::setUIMode(bool docks_enabled)
     {
         QWidget *tab = ui->tabWidget->widget(0);
         QDockWidget *dw = new QDockWidget(ui->tabWidget->tabText(0), this);
+        docks.push_back(dw);
+        #ifdef Q_OS_MAC
+            connect(dw, SIGNAL(visibilityChanged(bool)), this, SLOT(dockVisibilityChanged(bool)));
+        #endif
         if(tab == ui->tabDebugger)
             dock_debugger = dw;
 
@@ -500,6 +508,37 @@ void MainWindow::closeEvent(QCloseEvent *e)
         qDebug("Failed.");
 
     QMainWindow::closeEvent(e);
+}
+
+
+// Workaround for bug on Mac: If all docks are hidden,
+// it's not possible to open the dock menu and show them again
+void MainWindow::dockVisibilityChanged(bool v)
+{
+    // A dock got visible: make all of them closable
+    if(v)
+    {
+        for(auto dock : docks)
+            dock->setFeatures(QDockWidget::DockWidgetClosable | QDockWidget::DockWidgetMovable | QDockWidget::DockWidgetFloatable);
+        return;
+    }
+
+    // All but one dock hidden?
+    QDockWidget *remaining = nullptr;
+    for(auto dock : docks)
+        if(dock->isVisible())
+        {
+            if(remaining)
+                return; // Enough docks visible
+            else
+                remaining = dock;
+        }
+
+    if(!remaining)
+        return; // No dock visible?
+
+    // Disable closability on the remaining one
+    remaining->setFeatures(QDockWidget::DockWidgetMovable | QDockWidget::DockWidgetFloatable);
 }
 
 void MainWindow::restart()
