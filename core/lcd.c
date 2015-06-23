@@ -203,8 +203,8 @@ void lcd_write_word(uint32_t addr, uint32_t value) {
             case 0x000: case 0x004: case 0x008: case 0x00C:
                 lcd.timing[offset >> 2] = value;
                 return;
-            case 0x010: lcd.upbase = value; return;
-            case 0x014: lcd.lpbase = value; return;
+            case 0x010: lcd.upbase = value & ~0b111; if(value & 0b111) gui_debug_printf("Warning: LCD framebuffer not 8-byte aligned!"); return;
+            case 0x014: lcd.lpbase = value & ~0b111; if(value & 0b111) gui_debug_printf("Warning: LCD framebuffer not 8-byte aligned!"); return;
             case 0x018:
                 if (emulate_cx) goto write_control;
 write_int_mask:
