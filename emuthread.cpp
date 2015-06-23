@@ -159,6 +159,11 @@ void EmuThread::setTurboMode(bool enabled)
     emit turboModeChanged(enabled);
 }
 
+void EmuThread::toggleTurbo()
+{
+    setTurboMode(!turbo_mode);
+}
+
 void EmuThread::enterDebugger()
 {
     enter_debugger = true;

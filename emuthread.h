@@ -30,6 +30,7 @@ signals:
 public slots:
     virtual void run() override;
     void setTurboMode(bool state);
+    void toggleTurbo();
     void enterDebugger();
     void setPaused(bool paused);
     bool stop();

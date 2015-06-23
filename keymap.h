@@ -79,9 +79,6 @@ KEY(f6, F6);
 KEY(f7, F7);
 KEY(f8, F8);
 KEY(f9, F9);
-KEY(f10, F10);
-KEY(f11, F11);
-KEY(f12, F12);
 
 ALT(negative, Minus, "(-)");
 ALT(wtf, W, "?!");

@@ -8,6 +8,7 @@
 #include <QDropEvent>
 #include <QMimeData>
 #include <QDockWidget>
+#include <QShortcut>
 
 #include "core/usblink_queue.h"
 #include "core/flash.h"
@@ -53,12 +54,17 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->actionPause, SIGNAL(toggled(bool)), &emu, SLOT(setPaused(bool)));
     connect(ui->actionPause, SIGNAL(toggled(bool)), ui->buttonPause, SLOT(setChecked(bool)));
     connect(ui->buttonSpeed, SIGNAL(clicked(bool)), &emu, SLOT(setTurboMode(bool)));
+    QShortcut *shortcut = new QShortcut(QKeySequence(Qt::Key_F11), this);
+    shortcut->setAutoRepeat(false);
+    connect(shortcut, SIGNAL(activated()), &emu, SLOT(toggleTurbo()));
 
     //Menu "Tools"
     connect(ui->buttonScreenshot, SIGNAL(clicked()), this, SLOT(screenshot()));
     connect(ui->actionScreenshot, SIGNAL(triggered()), this, SLOT(screenshot()));
     connect(ui->actionConnect, SIGNAL(triggered()), this, SLOT(connectUSB()));
     connect(ui->buttonUSB, SIGNAL(clicked(bool)), this, SLOT(connectUSB()));
+    ui->actionConnect->setShortcut(QKeySequence(Qt::Key_F10));
+    ui->actionConnect->setAutoRepeat(false);
 
     //Menu "Flash"
     connect(ui->actionSave, SIGNAL(triggered()), this, SLOT(saveFlash()));
