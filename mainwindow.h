@@ -62,7 +62,6 @@ public slots:
     void setRDBGPort(int port);
 
     //Tool bar (above screen)
-    void throttleTimerChanged(bool active);
     void showSpeed(double percent);
 
 signals:

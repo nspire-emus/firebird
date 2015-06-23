@@ -105,6 +105,10 @@ void throttle_interval_event(int index) {
     extern void usblink_timer();
     usblink_timer();
 
+    // It's declared in a C++ header, so we can't include it.
+    extern void usblink_queue_do();
+    usblink_queue_do();
+
     int c = gui_getchar();
     if(c != -1) {
         char ch = c;

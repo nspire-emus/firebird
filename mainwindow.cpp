@@ -40,7 +40,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(&emu, SIGNAL(debugStr(QString)), this, SLOT(debugStr(QString))); //Not queued connection as it may cause a hang
     connect(&emu, SIGNAL(speedChanged(double)), this, SLOT(showSpeed(double)), Qt::QueuedConnection);
     connect(&emu, SIGNAL(statusMsg(QString)), ui->statusbar, SLOT(showMessage(QString)), Qt::QueuedConnection);
-    connect(&emu, SIGNAL(throttleTimerChanged(bool)), this, SLOT(throttleTimerChanged(bool)), Qt::QueuedConnection);
+    connect(&emu, SIGNAL(turboModeChanged(bool)), ui->buttonSpeed, SLOT(setChecked(bool)), Qt::QueuedConnection);
     connect(&emu, SIGNAL(usblinkChanged(bool)), this, SLOT(usblinkChanged(bool)), Qt::QueuedConnection);
 
     //Menu "Emulator"
@@ -52,7 +52,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->buttonPause, SIGNAL(clicked(bool)), ui->actionPause, SLOT(setChecked(bool)));
     connect(ui->actionPause, SIGNAL(toggled(bool)), &emu, SLOT(setPaused(bool)));
     connect(ui->actionPause, SIGNAL(toggled(bool)), ui->buttonPause, SLOT(setChecked(bool)));
-    connect(ui->buttonSpeed, SIGNAL(clicked(bool)), &emu, SLOT(setThrottleTimerDeactivated(bool)));
+    connect(ui->buttonSpeed, SIGNAL(clicked(bool)), &emu, SLOT(setTurboMode(bool)));
 
     //Menu "Tools"
     connect(ui->buttonScreenshot, SIGNAL(clicked()), this, SLOT(screenshot()));
@@ -445,11 +445,6 @@ void MainWindow::setRDBGPort(int port)
     emu_thread->port_rdbg = port;
     //valueChanged signal will only be emitted if the value actually changed
     ui->spinRDBG->setValue(port);
-}
-
-void MainWindow::throttleTimerChanged(bool active)
-{
-    ui->buttonSpeed->setChecked(!active);
 }
 
 void MainWindow::showSpeed(double percent)

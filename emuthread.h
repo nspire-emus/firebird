@@ -25,12 +25,11 @@ signals:
     void speedChanged(double value);
     void statusMsg(QString str);
     void usblinkChanged(bool state);
-    void throttleTimerChanged(bool state);
+    void turboModeChanged(bool state);
 
 public slots:
     virtual void run() override;
-    void setThrottleTimer(bool state);
-    void setThrottleTimerDeactivated(bool state);
+    void setTurboMode(bool state);
     void enterDebugger();
     void setPaused(bool paused);
     bool stop();
@@ -38,7 +37,7 @@ public slots:
 
 private:
     QTimer throttle_timer;
-    bool throttle_timer_state = false;
+
     bool enter_debugger = false;
 };
 

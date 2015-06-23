@@ -58,7 +58,7 @@ static void progress_callback(int progress, void *user_data)
 void usblink_queue_do()
 {
     bool b = false;
-    if(usblink_queue.empty() || !busy.compare_exchange_strong(b, true))
+    if(!usblink_connected || usblink_queue.empty() || !busy.compare_exchange_strong(b, true))
         return;
 
     usblink_queue_action action = usblink_queue.front();
@@ -74,6 +74,25 @@ void usblink_queue_do()
         usblink_dirlist(action.path.c_str(), dirlist_callback, action.user_data);
         break;
     }
+}
+
+void usblink_queue_reset()
+{
+    while(!usblink_queue.empty())
+    {
+        // Treat as error
+        usblink_queue_action action = usblink_queue.front();
+        if(action.dirlist_callback)
+            action.dirlist_callback(nullptr, action.user_data);
+        else if(action.progress_callback)
+            action.progress_callback(-1, action.user_data);
+
+        usblink_queue.pop();
+    }
+
+    busy = false;
+
+    usblink_reset();
 }
 
 void usblink_queue_dirlist(std::string path, usblink_dirlist_cb callback, void *user_data)
@@ -108,57 +127,4 @@ void usblink_queue_send_os(const char *filepath, usblink_progress_cb callback, v
     action.progress_callback = callback;
 
     usblink_queue.push(action);
-}
-
-void usblink_queue_reset()
-{
-    while(!usblink_queue.empty())
-    {
-        // Treat as error
-        usblink_queue_action action = usblink_queue.front();
-        if(action.dirlist_callback)
-            action.dirlist_callback(nullptr, action.user_data);
-        else if(action.progress_callback)
-            action.progress_callback(-1, action.user_data);
-
-        usblink_queue.pop();
-    }
-
-    busy = false;
-
-    usblink_reset();
-}
-
-void usblink_queue_worker()
-{
-    while(keep_running)
-    {
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
-
-        if(usblink_connected && !busy)
-            usblink_queue_do();
-    }
-}
-
-static std::thread *usblink_queue_worker_thread = nullptr;
-
-void usblink_queue_start()
-{
-    assert(usblink_queue_worker_thread == nullptr);
-    usblink_queue_reset();
-    keep_running = true;
-    usblink_queue_worker_thread = new std::thread(usblink_queue_worker);
-}
-
-void usblink_queue_stop()
-{
-    // Queue not started
-    if(usblink_queue_worker_thread == nullptr)
-        return;
-
-    keep_running = false;
-    usblink_queue_worker_thread->join();
-    delete usblink_queue_worker_thread;
-    usblink_queue_worker_thread = nullptr;
-    usblink_queue_reset();
 }

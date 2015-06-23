@@ -3,7 +3,9 @@
 #include <cassert>
 #include <cerrno>
 #include <cstdarg>
+
 #include <QEventLoop>
+#include <QTimer>
 
 #include "core/debug.h"
 #include "core/emu.h"
@@ -88,12 +90,12 @@ void gui_usblink_changed(bool state)
 
 void throttle_timer_off()
 {
-    emu_thread->setThrottleTimer(false);
+    emu_thread->setTurboMode(true);
 }
 
 void throttle_timer_on()
 {
-    emu_thread->setThrottleTimer(true);
+    emu_thread->setTurboMode(false);
 }
 
 void throttle_timer_wait()
@@ -104,11 +106,14 @@ void throttle_timer_wait()
 EmuThread::EmuThread(QObject *parent) :
     QThread(parent)
 {
-    throttle_timer.setInterval(throttle_delay);
-    throttle_timer.moveToThread(this);
-
     assert(emu_thread == nullptr);
     emu_thread = this;
+
+    connect(&throttle_timer, SIGNAL(timeout()), this, SLOT(quit()));
+    throttle_timer.start(throttle_delay);
+
+    // Set default settings
+    debug_on_start = debug_on_warn = false;
 }
 
 //Called occasionally, only way to do something in the same thread the emulator runs in.
@@ -118,18 +123,6 @@ void EmuThread::doStuff()
     {
         enter_debugger = false;
         debugger(DBG_USER, 0);
-    }
-
-    if(throttle_timer.isActive() != throttle_timer_state)
-    {
-        if(throttle_timer_state)
-            throttle_timer.start();
-        else
-        {
-            throttle_timer.stop();
-            // We abuse a signal here to quit the event loop whenever we want
-            throttle_timer.setObjectName(throttle_timer.objectName().isEmpty() ? "throttle_timer" : "");
-        }
     }
 
     while(paused)
@@ -143,8 +136,6 @@ void EmuThread::run()
     path_boot1 = boot1.c_str();
     path_flash = flash.c_str();
 
-    usblink_queue_start();
-
     int ret = emulate(port_gdb, port_rdbg);
 
     emit exited(ret);
@@ -152,28 +143,13 @@ void EmuThread::run()
 
 void EmuThread::throttleTimerWait()
 {
-    if(!throttle_timer.isActive())
-        return;
-
-    // e mustn't be deleted as there may be pending signals
-    static QEventLoop e;
-    throttle_timer.disconnect();
-    e.quit();
-    connect(&throttle_timer, SIGNAL(timeout()), &e, SLOT(quit()));
-    // See below
-    connect(&throttle_timer, SIGNAL(objectNameChanged(QString)), &e, SLOT(quit()));
-    e.exec();
+    exec(); // Start an event loop until throttle_timer times out
 }
 
-void EmuThread::setThrottleTimer(bool state)
+void EmuThread::setTurboMode(bool enabled)
 {
-    throttle_timer_state = state;
-    emit throttleTimerChanged(state);
-}
-
-void EmuThread::setThrottleTimerDeactivated(bool state)
-{
-    setThrottleTimer(!state);
+    turbo_mode = enabled;
+    emit turboModeChanged(enabled);
 }
 
 void EmuThread::enterDebugger()
@@ -188,15 +164,15 @@ void EmuThread::setPaused(bool paused)
 
 bool EmuThread::stop()
 {
-    usblink_queue_stop();
-
     exiting = true;
     paused = false;
-    throttle_timer_off();
-    if(!this->wait(1000))
+    setTurboMode(true);
+    // Signal processing may have stopped, so quit the event loop/throttle manually
+    this->quit();
+    if(!this->wait(200))
     {
         terminate();
-        if(!this->wait(1000))
+        if(!this->wait(200))
             return false;
     }
 
