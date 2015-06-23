@@ -201,6 +201,7 @@ void MainWindow::debugStr(QString str)
 void MainWindow::debugCommand()
 {
     debug_command = ui->lineEdit->text().toLatin1();
+    ui->lineEdit->clear();
     emit debuggerCommand();
 }
 

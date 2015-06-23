@@ -5,6 +5,7 @@
 #include <QImage>
 #include <QPainter>
 
+#include "core/debug.h"
 #include "core/lcd.h"
 #include "core/misc.h"
 
@@ -43,11 +44,20 @@ void paintFramebuffer(QPainter *p)
         p->fillRect(p->window(), emulate_cx ? Qt::black : Qt::white);
         p->setPen(emulate_cx ? Qt::white : Qt::black);
         p->drawText(p->window(), Qt::AlignCenter, QObject::tr("LCD turned off"));
-        return;
+    }
+    else
+    {
+        QImage image = renderFramebuffer().scaled(p->window().size(), Qt::KeepAspectRatio, Qt::SmoothTransformation);
+        p->drawImage(p->window(), image);
     }
 
-    QImage image = renderFramebuffer().scaled(p->window().size(), Qt::KeepAspectRatio, Qt::SmoothTransformation);
-    p->drawImage(p->window(), image);
+    if(in_debugger)
+    {
+        p->setCompositionMode(QPainter::CompositionMode_SourceOver);
+        p->fillRect(p->window(), QColor(30, 30, 30, 150));
+        p->setPen(Qt::white);
+        p->drawText(p->window(), Qt::AlignCenter, QObject::tr("In debugger"));
+    }
 }
 
 void QMLFramebuffer::paint(QPainter *p)

@@ -85,6 +85,7 @@ char *gui_debug_prompt();
 void gui_status_printf(const char *fmt, ...);
 void gui_show_speed(double speed);
 void gui_usblink_changed(bool state);
+void gui_debugger_entered_or_left(bool entered);
 
 int emulate(unsigned int port_gdb, unsigned int port_rdbg);
 void emu_cleanup();

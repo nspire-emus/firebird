@@ -2,7 +2,6 @@
 #define EMUTHREAD_H
 
 #include <QThread>
-#include <QTimer>
 
 class EmuThread : public QThread
 {
@@ -26,6 +25,7 @@ signals:
     void statusMsg(QString str);
     void usblinkChanged(bool state);
     void turboModeChanged(bool state);
+    void debuggerEntered(bool state);
 
 public slots:
     virtual void run() override;
@@ -36,8 +36,6 @@ public slots:
     void reset();
 
 private:
-    QTimer throttle_timer;
-
     bool enter_debugger = false;
 };
 

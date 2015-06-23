@@ -724,11 +724,15 @@ void rdebug_recv(void) {
     memmove(rdebug_inbuf, line_start, rdebug_inbuf_used);
 }
 
+volatile bool in_debugger = false;
+
 void debugger(enum DBG_REASON reason, uint32_t addr) {
+    gui_debugger_entered_or_left(in_debugger = true);
     if (gdb_connected)
         gdbstub_debugger(reason, addr);
     else
         native_debugger();
+    gui_debugger_entered_or_left(in_debugger = false);
 }
 
 void rdebug_quit()

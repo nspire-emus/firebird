@@ -3,6 +3,7 @@
 #include <cassert>
 #include <cerrno>
 #include <cstdarg>
+#include <chrono>
 
 #include <QEventLoop>
 #include <QTimer>
@@ -53,6 +54,11 @@ void gui_perror(const char *msg)
     gui_debug_printf("%s: %s\n", msg, strerror(errno));
 }
 
+void gui_debugger_entered_or_left(bool entered)
+{
+    emu_thread->debuggerEntered(entered);
+}
+
 char *gui_debug_prompt()
 {
     #ifdef MOBILE_UI
@@ -80,12 +86,12 @@ int gui_getchar()
 
 void gui_show_speed(double d)
 {
-    emu_thread->speedChanged(d);
+    emit emu_thread->speedChanged(d);
 }
 
 void gui_usblink_changed(bool state)
 {
-    emu_thread->usblinkChanged(state);
+    emit emu_thread->usblinkChanged(state);
 }
 
 void throttle_timer_off()
@@ -108,9 +114,6 @@ EmuThread::EmuThread(QObject *parent) :
 {
     assert(emu_thread == nullptr);
     emu_thread = this;
-
-    connect(&throttle_timer, SIGNAL(timeout()), this, SLOT(quit()));
-    throttle_timer.start(throttle_delay);
 
     // Set default settings
     debug_on_start = debug_on_warn = false;
@@ -143,7 +146,11 @@ void EmuThread::run()
 
 void EmuThread::throttleTimerWait()
 {
-    exec(); // Start an event loop until throttle_timer times out
+    unsigned int now = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count();
+    unsigned int throttle = throttle_delay * 1000;
+    unsigned int left = throttle - (now % throttle);
+    if(left > 0)
+        QThread::usleep(left);
 }
 
 void EmuThread::setTurboMode(bool enabled)
@@ -167,8 +174,6 @@ bool EmuThread::stop()
     exiting = true;
     paused = false;
     setTurboMode(true);
-    // Signal processing may have stopped, so quit the event loop/throttle manually
-    this->quit();
     if(!this->wait(200))
     {
         terminate();
