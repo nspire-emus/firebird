@@ -244,6 +244,15 @@ bool translate_init()
     return !!insn_buffer;
 }
 
+void translate_deinit()
+{
+    if(!insn_buffer)
+        return;
+
+    os_free(insn_buffer, INSN_BUFFER_SIZE);
+    insn_buffer = NULL;
+}
+
 void translate(uint32_t start_pc, uint32_t *start_insnp) {
     out = insn_bufptr;
     outj = jtbl_bufptr;
@@ -441,7 +450,7 @@ no_condition:
                 int target_reg = insn >> 12 & 15;
                 if (target_reg == 15)
                     break;
-                emit_call(insn & 0x0400000 ? (uint32_t)get_spsr : (uint32_t)get_cpsr);
+                emit_call((insn & 0x0400000) ? (uint32_t)get_spsr : (uint32_t)get_cpsr);
                 emit_mov_armreg_x86reg(target_reg, EAX);
             } else if ((insn & 0xFB0FFF0) == 0x120F000 ||
                        (insn & 0xFB0F000) == 0x320F000) {
@@ -463,7 +472,7 @@ no_condition:
                 if (insn & 0x0020000) mask |= 0x0000FF00;
                 if (insn & 0x0010000) mask |= 0x000000FF;
                 emit_mov_x86reg_immediate(EDX, mask);
-                emit_call(insn & 0x0400000 ? (uint32_t)set_spsr : (uint32_t)set_cpsr);
+                emit_call((insn & 0x0400000) ? (uint32_t)set_spsr : (uint32_t)set_cpsr);
                 // If cpsr_c changed, leave translation to check for interrupts
                 if ((insn & 0x0410000) == 0x0010000) {
                     emit_mov_x86reg_immediate(EAX, pc + 4);

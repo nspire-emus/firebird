@@ -21,7 +21,6 @@ struct usblink_queue_action {
     void *user_data;
 };
 
-static volatile bool keep_running;
 static std::atomic_bool busy;
 static std::queue<usblink_queue_action> usblink_queue;
 

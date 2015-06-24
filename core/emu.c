@@ -311,6 +311,8 @@ reset:
                 cpu_arm_loop();
         }
     }
+
+    emu_cleanup();
     return 0;
 }
 
@@ -318,6 +320,10 @@ void emu_cleanup()
 {
     if(debugger_input)
         fclose(debugger_input);
+
+    // addr_cache_init is rather expensive and needs to be called once only
+    //addr_cache_deinit();
+    translate_deinit();
 
     memory_deinitialize();
     flash_close();
