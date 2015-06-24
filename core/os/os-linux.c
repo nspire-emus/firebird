@@ -5,13 +5,12 @@
 #include <stdio.h>
 #include <sys/time.h>
 #include <unistd.h>
-#include "os.h"
-
-#ifdef __MACH__
+#ifdef __APPLE__
 #include <mach/clock.h>
 #include <mach/mach.h>
 #endif
 
+#include "os.h"
 #include "../debug.h"
 #include "../mmu.h"
 
