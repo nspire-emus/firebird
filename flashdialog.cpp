@@ -40,11 +40,12 @@ void FlashDialog::selectBoot2()
     //Ugly way to display version
     QFile boot2(path);
     QByteArray header;
-    if(!boot2.open(QFile::ReadOnly) || !boot2.seek(32) || (header = boot2.read(16)).isEmpty())
+    if(!boot2.open(QFile::ReadOnly) || !boot2.seek(31) || (header = boot2.read(17)).isEmpty())
         return;
 
-    if(header.at(7) == static_cast<char>(0x80))
-        ui->labelBoot2->setText(QString::fromUtf8(header.data(), 6));
+    unsigned int len = header.at(0);
+    if(len < 16 && header.at(len + 1) == static_cast<char>(0x80))
+        ui->labelBoot2->setText(QString::fromUtf8(header.data() + 1, len));
 }
 
 void FlashDialog::selectManuf()
