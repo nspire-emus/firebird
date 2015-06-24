@@ -51,7 +51,7 @@ void os_query_time(os_time_t *t)
 
 double os_time_diff(os_time_t x, os_time_t y)
 {
-    return (x.QuadPart - y.QuadPart) * 4;
+    return (x.QuadPart - y.QuadPart);
 }
 
 long long os_frequency_hz(os_frequency_t f)

@@ -126,10 +126,10 @@ void throttle_interval_event(int index) {
 
     // Show speed
     static os_time_t prev;
-    int64_t time = os_time_diff(interval_end, prev) / 4;
+    int64_t time = os_time_diff(interval_end, prev);
     if (time >= os_frequency_hz(perffreq)) {
         double speed = (double)os_frequency_hz(perffreq) * (intervals - prev_intervals) / time;
-        gui_show_speed(speed);
+        gui_show_speed(speed * 4);
         prev_intervals = intervals;
         prev = interval_end;
     }

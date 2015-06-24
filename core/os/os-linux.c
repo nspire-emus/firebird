@@ -73,12 +73,12 @@ void *os_alloc_executable(size_t size)
 
 void os_query_time(os_time_t *t)
 {
-    gettimeofday(t, NULL);
+    clock_gettime(CLOCK_MONOTONIC, t);
 }
 
 double os_time_diff(os_time_t x, os_time_t y)
 {
-    return (double)(x.tv_sec - y.tv_sec) * 10000000.0 + (x.tv_usec - y.tv_usec);
+    return (double)(x.tv_sec - y.tv_sec) * 10000000.0 + (x.tv_nsec - y.tv_nsec)/1000;
 }
 
 long long os_frequency_hz(os_frequency_t f)
