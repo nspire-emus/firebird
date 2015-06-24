@@ -7,6 +7,11 @@
 #include <unistd.h>
 #include "os.h"
 
+#ifdef __MACH__
+#include <mach/clock.h>
+#include <mach/mach.h>
+#endif
+
 #include "../debug.h"
 #include "../mmu.h"
 
@@ -73,7 +78,17 @@ void *os_alloc_executable(size_t size)
 
 void os_query_time(os_time_t *t)
 {
+#ifdef __APPLE__ // for iOS and OS X - no clock_gettime so use clock_get_time
+    clock_serv_t cclock;
+    mach_timespec_t mts;
+    host_get_clock_service(mach_host_self(), SYSTEM_CLOCK, &cclock);
+    clock_get_time(cclock, &mts);
+    mach_port_deallocate(mach_task_self(), cclock);
+    t->tv_sec = mts.tv_sec;
+    t->tv_nsec = mts.tv_nsec;
+#else
     clock_gettime(CLOCK_MONOTONIC, t);
+#endif
 }
 
 double os_time_diff(os_time_t x, os_time_t y)
