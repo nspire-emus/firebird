@@ -37,6 +37,7 @@
 
 extern "C" {
 extern void translation_next() __asm__("translation_next");
+extern void translation_next_bx() __asm__("translation_next_bx");
 extern void **translation_sp __asm__("translation_sp");
 extern void *translation_pc_ptr __asm__("translation_pc_ptr");
 #ifdef IS_IOS_BUILD
@@ -385,7 +386,28 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
                 emit_str_armreg(R5, i.mem_proc.rn);
         }
         else if((insn & 0xD900000) == 0x1000000)
-            goto unimpl;
+        {
+            if((insn & 0xFFFFFD0) == 0x12FFF10)
+            {
+                //B(L)X
+                if(i.bx.l)
+                {
+                    emit_mov(R0, pc + 4);
+                    emit_str_armreg(R0, LR);
+                }
+
+                if(i.bx.rm == PC)
+                    goto unimpl;
+
+                emit_ldr_armreg(R0, i.bx.rm);
+                emit_jmp(reinterpret_cast<void*>(translation_next_bx));
+
+                if(i.cond == CC_EQ)
+                    stop_here = true;
+            }
+            else
+                goto unimpl;
+        }
         else if((insn & 0xC000000) == 0x0000000)
         {
             // Data processing:

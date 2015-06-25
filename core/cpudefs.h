@@ -17,6 +17,11 @@ union Instruction {
     } branch;
 
     union {
+        BitField<0, 4> rm;
+        BitField<5> l;
+    } bx;
+
+    union {
         BitField<21, 4> op;
         BitField<20> s;
         BitField<16, 4> rn;

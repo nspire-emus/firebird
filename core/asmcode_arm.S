@@ -34,7 +34,7 @@ translation_enter: .global translation_enter
     mov     r11, r0 // r11 = cpsr
     ldr     r10, =arm // r10 is a pointer to the global arm_state
     ldr     r0, [r10, #15*4] // load arm.reg[15]
-    b       translation_next
+    b       translation_next_enter
 
 translation_next_bx: .global translation_next_bx
     tst     r0, #1
@@ -47,7 +47,7 @@ translation_next: .global translation_next
     mov     r0, r11 // apply arm.cpsr_flags to arm.cpsr_*
     bl      set_cpsr_flags
     mov     r0, r4
-
+translation_next_enter:
     ldr     r1, =cycle_count_delta
     ldr     r1, [r1]
     cmp     r1, #0
