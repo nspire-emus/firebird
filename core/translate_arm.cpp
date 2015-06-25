@@ -249,7 +249,141 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
         }
 
         if((insn & 0xE000090) == 0x0000090)
-            goto unimpl;
+        {
+            if(!i.mem_proc2.s && !i.mem_proc2.h)
+            {
+                // Not mem_proc2 -> multiply or swap
+                if((insn & 0x0FB00000) == 0x01000000)
+                    goto unimpl; // SWP/SWPB not implemented
+
+                // MUL, UMLAL, etc.
+                if(i.mult.rm == PC || i.mult.rs == PC
+                        || i.mult.rn == PC || i.mult.rd == PC)
+                    goto unimpl; // PC as register not implemented
+
+                Instruction translated;
+                translated.raw = i.raw;
+
+                int armreg[2] = {-1, -1};
+
+                emit_ldr_armreg(R0, i.mult.rm);
+                armreg[R0] = i.mult.rm;
+                translated.mult.rm = R0;
+
+                if(armreg[R0] == i.mult.rs)
+                    translated.mult.rs = R0;
+                else
+                {
+                    emit_ldr_armreg(R1, i.mult.rs);
+                    armreg[R1] = i.mult.rs;
+                    translated.mult.rs = R1;
+                }
+
+                if(i.mult.a)
+                {
+                    if(armreg[R0] == i.mult.rdlo)
+                        translated.mult.rdlo = R0;
+                    else if(armreg[R1] == i.mult.rdlo)
+                        translated.mult.rdlo = R1;
+                    else
+                    {
+                        emit_ldr_armreg(R2, i.mult.rdlo);
+                        translated.mult.rdlo = R2;
+                    }
+
+                    if(i.mult.l)
+                    {
+                        if(armreg[R0] == i.mult.rdhi)
+                            translated.mult.rdhi = R0;
+                        else if(armreg[R1] == i.mult.rdhi)
+                            translated.mult.rdhi = R1;
+                        else
+                        {
+                            emit_ldr_armreg(R3, i.mult.rdhi);
+                            translated.mult.rdhi = R3;
+                        }
+                    }
+                    else
+                        translated.mult.rdhi = R3;
+                }
+                else if(i.mult.l)
+                {
+                    // Not read, just written to
+                    translated.mult.rdlo = R2;
+                    translated.mult.rdhi = R3;
+                }
+                else
+                    translated.mult.rd = R2;
+
+
+                if(i.mult.s)
+                {
+                    emit_ldr_flags();
+                    emit(translated.raw);
+                    emit_str_flags();
+                }
+                else
+                    emit(translated.raw);
+
+                if(i.mult.l)
+                    emit_str_armreg(translated.mult.rdlo, i.mult.rdlo);
+                emit_str_armreg(translated.mult.rd, i.mult.rd);
+
+                goto instruction_translated;
+            }
+
+            if(i.mem_proc2.s || !i.mem_proc2.h)
+                goto unimpl; // Signed byte/halfword and doubleword not implemented
+
+            if(i.mem_proc2.rn == PC
+                    || i.mem_proc2.rd == PC)
+                goto unimpl; // PC as operand or dest. not implemented
+
+            // Load base into r0
+            emit_ldr_armreg(R0, i.mem_proc2.rn);
+
+            // Offset into r5
+            if(i.mem_proc2.i) // Immediate offset
+                emit_mov(R5, (i.mem_proc2.immed_h << 4) | i.mem_proc2.immed_l);
+            else // Register offset
+                emit_ldr_armreg(R5, i.mem_proc2.rm);
+
+            // Get final address..
+            if(i.mem_proc2.p)
+            {
+                // ..into r0
+                if(i.mem_proc2.u)
+                    emit_al(0x0800005); // add r0, r0, r5
+                else
+                    emit_al(0x0400005); // sub r0, r0, r5
+
+                if(i.mem_proc2.w) // Writeback: final address into rn
+                    emit_str_armreg(R0, i.mem_proc2.rn);
+            }
+            else
+            {
+                // ..into r5
+                if(i.mem_proc2.u)
+                    emit_al(0x0805005); // add r5, r0, r5
+                else
+                    emit_al(0x0405005); // sub r5, r0, r5
+            }
+
+            if(i.mem_proc2.l)
+            {
+                emit_call(reinterpret_cast<void*>(read_half_asm));
+                emit_str_armreg(R0, i.mem_proc2.rd);
+            }
+            else
+            {
+                emit_ldr_armreg(R1, i.mem_proc2.rd);
+                emit_call(reinterpret_cast<void*>(write_half_asm));
+            }
+
+            // Post-indexed: final address in r5 back into rn
+            if(!i.mem_proc.p)
+                emit_str_armreg(R5, i.mem_proc.rn);
+        }
         else if((insn & 0xD900000) == 0x1000000)
             goto unimpl;
         else if((insn & 0xC000000) == 0x0000000)
@@ -268,6 +402,8 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
 
             Instruction translated;
             translated.raw = i.raw;
+            // It's not needed to change the condition code of translated.
+            // In case of conditional execution the flags are loaded anyway.
 
             // Map needed register values:
             // add rd, rn, rm, lsl rs becomes add r4, r0, r1, lsl r2 for example
@@ -410,18 +546,26 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
                 emit(off.raw);
             }
 
-            // Get final address in r5
-            if(i.mem_proc.u)
-                emit_al(0x0805005); // add r5, r0, r5
-            else
-                emit_al(0x0405005); // sub r5, r0, r5
-
-            // Get final address in r0
+            // Get final address..
             if(i.mem_proc.p)
             {
-                emit_al(0x1a00005); // mov r0, r5
+                // ..in r0
+                if(i.mem_proc.u)
+                    emit_al(0x0800005); // add r0, r0, r5
+                else
+                    emit_al(0x0400005); // sub r0, r0, r5
+
+                // TODO: In case of data aborts, this is wrong.
                 if(i.mem_proc.w) // Writeback: final address into rn
                     emit_str_armreg(R0, i.mem_proc.rn);
+            }
+            else
+            {
+                // ..in r5
+                if(i.mem_proc.u)
+                    emit_al(0x0805005); // add r5, r0, r5
+                else
+                    emit_al(0x0405005); // sub r5, r0, r5
             }
 
             no_offset:
@@ -449,7 +593,7 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
                 emit_call(reinterpret_cast<void*>(i.mem_proc.b ? write_byte_asm : write_word_asm));
             }
 
-            // Post-indexed: final address in r5 back into rn
+            // Post-indexed: final address from r5 into rn
             if(!offset_is_zero && !i.mem_proc.p)
                 emit_str_armreg(R5, i.mem_proc.rn);
         }

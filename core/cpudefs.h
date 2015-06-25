@@ -55,6 +55,41 @@ union Instruction {
     } mem_proc; // LDR, STRB, etc.
 
     union {
+        BitField<24> p;
+        BitField<23> u;
+        BitField<22> i;
+        BitField<21> w;
+        BitField<20> l;
+        BitField<16, 4> rn;
+        BitField<12, 4> rd;
+
+        BitField<6> s;
+        BitField<5> h;
+
+        // If i
+        BitField<8, 4> immed_h;
+        BitField<0, 4> immed_l;
+        // else
+        BitField<0, 4> rm;
+    } mem_proc2; // LDRH, STRSH, etc.
+
+    union {
+        BitField<23> l;
+        BitField<21> a;
+        BitField<20> s;
+
+        BitField<8, 4> rs;
+        BitField<0, 4> rm;
+
+        // If l
+        BitField<16, 4> rdhi;
+        BitField<12, 4> rdlo;
+        // else
+        BitField<16, 4> rd;
+        BitField<12, 4> rn;
+    } mult;
+
+    union {
         BitField<22> r;
         BitField<12, 4> rd;
     } mrs;
