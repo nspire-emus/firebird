@@ -350,14 +350,7 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
         if((insn & 0xE000090) == 0x0000090)
             goto unimpl;
         else if((insn & 0xD900000) == 0x1000000)
-        {
-            // Only mrs rd, cpsr is supported
-            if(i.mrs.r)
-                goto unimpl;
-
-            // Store cpsr in arm.reg[rd]
-            emit_str_armreg(11, i.mrs.rd);
-        }
+            goto unimpl;
         else if((insn & 0xC000000) == 0x0000000)
         {
             // Data processing:
@@ -448,8 +441,6 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
                     goto no_offset;
                 }
 
-                // On a write this translation will get invalidated
-                RAM_FLAGS(ptr) |= RF_CODE_TRANSLATED | (next_translation_index << RFS_TRANSLATION_INDEX);
                 emit_mov(R0, i.mem_proc.b ? *ptr & 0xFF : *ptr);
                 if(i.mem_proc.rd != PC)
                     emit_str_armreg(R0, i.mem_proc.rd);
