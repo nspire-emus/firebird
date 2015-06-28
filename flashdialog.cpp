@@ -54,7 +54,7 @@ void FlashDialog::selectManuf()
     if(path.isEmpty() || !QFile(path).exists())
     {
         manuf_path = "";
-        ui->labelManuf->setText("None");
+        ui->labelManuf->setText(tr("None"));
         return;
     }
 
@@ -72,7 +72,7 @@ void FlashDialog::selectOS()
     if(path.isEmpty() || !QFile(path).exists())
     {
         os_path = "";
-        ui->labelOS->setText("None");
+        ui->labelOS->setText(tr("None"));
         return;
     }
 
