@@ -596,14 +596,6 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
                 emit_call(reinterpret_cast<void*>(i.mem_proc.b ? read_byte_asm : read_word_asm));
                 if(i.mem_proc.rd != PC)
                     emit_str_armreg(R0, i.mem_proc.rd); // r0 is return value
-                else
-                {
-                    // pc is destination register
-                    emit_jmp(reinterpret_cast<void*>(translation_next));
-                    // It's an unconditional jump
-                    if(i.cond == CC_EQ)
-                        stop_here = true;
-                }
             }
             else
             {
@@ -618,6 +610,16 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
             // Post-indexed: final address from r5 into rn
             if(!offset_is_zero && !i.mem_proc.p)
                 emit_str_armreg(R5, i.mem_proc.rn);
+
+            // Jump after writeback, to support post-indexed jumps
+            if(i.mem_proc.l && i.mem_proc.rd == PC)
+            {
+                // pc is destination register
+                emit_jmp(reinterpret_cast<void*>(translation_next));
+                // It's an unconditional jump
+                if(i.cond == CC_EQ)
+                    stop_here = true;
+            }
         }
         else if((insn & 0xE000000) == 0xA000000)
         {
