@@ -341,7 +341,7 @@ void MainWindow::selectBoot1(QString path)
 void MainWindow::selectBoot1()
 {
     QFileInfo f(QString::fromStdString(emu.flash));
-    QString path = QFileDialog::getOpenFileName(this, "Select boot1 file", f.dir().absolutePath());
+    QString path = QFileDialog::getOpenFileName(this, tr("Select boot1 file"), f.dir().absolutePath());
     if(!path.isNull())
         selectBoot1(path);
 }
@@ -358,7 +358,7 @@ void MainWindow::selectFlash(QString path)
 void MainWindow::selectFlash()
 {
     QFileInfo f(QString::fromStdString(emu.flash));
-    QString path = QFileDialog::getOpenFileName(this, "Select flash file", f.dir().absolutePath());
+    QString path = QFileDialog::getOpenFileName(this, tr("Select flash file"), f.dir().absolutePath());
     if(!path.isNull())
         selectFlash(path);
 }
