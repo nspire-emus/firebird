@@ -28,6 +28,9 @@ static void dirlist_callback(struct usblink_file *f, void *user_data)
 {
     assert(!usblink_queue.empty());
     assert(usblink_queue.front().action == usblink_queue_action::DIRLIST);
+    if(usblink_queue.front().dirlist_callback == nullptr)
+        return;
+
     usblink_queue.front().dirlist_callback(f, user_data);
     if(!f)
     {
@@ -39,6 +42,9 @@ static void dirlist_callback(struct usblink_file *f, void *user_data)
 static void progress_callback(int progress, void *user_data)
 {
     assert(!usblink_queue.empty());
+    if(usblink_queue.front().progress_callback == nullptr)
+        return;
+
     if(usblink_queue.front().action == usblink_queue_action::PUT_FILE)
         usblink_queue.front().progress_callback(progress, user_data);
     else if(usblink_queue.front().action == usblink_queue_action::SEND_OS)

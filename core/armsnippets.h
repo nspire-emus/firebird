@@ -19,7 +19,7 @@ struct armloader_load_params {
     union {
         struct {
             void *ptr;
-            unsigned int size;
+            uint32_t size;
         } p;
         uint32_t v; // simple value
     };

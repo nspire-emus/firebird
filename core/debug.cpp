@@ -24,7 +24,7 @@
 #include "disasm.h"
 #include "mmu.h"
 #include "translate.h"
-#include "usblink.h"
+#include "usblink_queue.h"
 #include "gdbstub.h"
 
 char target_folder[256];
@@ -39,7 +39,7 @@ void backtrace(uint32_t fp) {
     gui_debug_printf("Frame     PrvFrame Self     Return   Start\n");
     do {
         gui_debug_printf("%08X:", fp);
-        frame = virt_mem_ptr(fp - 12, 16);
+        frame = (uint32_t*) virt_mem_ptr(fp - 12, 16);
         if (!frame) {
             gui_debug_printf(" invalid address\n");
             break;
@@ -57,7 +57,7 @@ static void dump(uint32_t addr) {
 
     uint32_t row, col;
     for (row = start & ~0xF; row <= end; row += 0x10) {
-        uint8_t *ptr = virt_mem_ptr(row, 16);
+        uint8_t *ptr = (uint8_t*) virt_mem_ptr(row, 16);
         if (!ptr) {
             gui_debug_printf("Address %08X is not in RAM.\n", row);
             break;
@@ -80,7 +80,7 @@ static void dump(uint32_t addr) {
                 gui_debug_printf(".");
             else
             {
-                char str[] = {ptr[col], 0};
+                char str[] = {(char) ptr[col], 0};
                 gui_debug_printf(str);
             }
         }
@@ -167,6 +167,7 @@ FILE *debugger_input = NULL;
 
 // return 1: break (should stop being feed with debugger commands), 0: continue (can be feed with other debugger commands)
 static int process_debug_cmd(char *cmdline) {
+    gui_debug_printf("CMD: %s\n", cmdline);
     char *cmd = strtok(cmdline, " \n\r");
     if (!cmd)
         return 0;
@@ -205,7 +206,7 @@ static int process_debug_cmd(char *cmdline) {
     } else if (!strcasecmp(cmd, "r")) {
         int i, show_spsr;
         uint32_t cpsr = get_cpsr();
-        char *mode;
+        const char *mode;
         for (i = 0; i < 16; i++) {
             int newline = ((1 << 5) | (1 << 11) | (1 << 15)) & (1 << i);
             gui_debug_printf("%3s=%08x%c", reg_name[i], arm.reg[i], newline ? '\n' : ' ');
@@ -249,12 +250,12 @@ static int process_debug_cmd(char *cmdline) {
             }
         }
     } else if (!strcasecmp(cmd, "k")) {
-        char *addr_str = strtok(NULL, " \n\r");
-        char *flag_str = strtok(NULL, " \n\r");
+        const char *addr_str = strtok(NULL, " \n\r");
+        const char *flag_str = strtok(NULL, " \n\r");
         if (!flag_str)
             flag_str = "+x";
         if (addr_str) {
-            uint32_t addr = parse_expr(addr_str);
+            uint32_t addr = parse_expr((char*) addr_str);
             void *ptr = virt_mem_ptr(addr & ~3, 4);
             if (ptr) {
                 uint32_t *flags = &RAM_FLAGS(ptr);
@@ -307,7 +308,7 @@ static int process_debug_cmd(char *cmdline) {
         cpu_events |= EVENT_DEBUG_STEP;
         return 1;
     } else if (!strcasecmp(cmd, "n")) {
-        set_debug_next(virt_mem_ptr(arm.reg[15] & ~3, 4) + 1);
+        set_debug_next((uint32_t*) virt_mem_ptr(arm.reg[15] & ~3, 4) + 1);
         return 1;
     } else if (!strcasecmp(cmd, "d")) {
         char *arg = strtok(NULL, " \n\r");
@@ -339,8 +340,8 @@ static int process_debug_cmd(char *cmdline) {
                 size_t len = strlen(file);
                 if (*(file + len - 1) == '"')
                     *(file + len - 1) = '\0';
-                if (usblink_put_file(file, target_folder, NULL, NULL))
-                    return 1; // and continue
+                usblink_connect();
+                usblink_queue_put_file(std::string(file), std::string(target_folder), nullptr, nullptr);
             }
         } else if (!strcasecmp(ln_cmd, "st")) {
             char *dir = strtok(NULL, " \n\r");
@@ -351,7 +352,7 @@ static int process_debug_cmd(char *cmdline) {
         }
     } else if (!strcasecmp(cmd, "taskinfo")) {
         uint32_t task = parse_expr(strtok(NULL, " \n\r"));
-        uint8_t *p = virt_mem_ptr(task, 52);
+        uint8_t *p = (uint8_t*) virt_mem_ptr(task, 52);
         if (p) {
             gui_debug_printf("Previous:	%08x\n", *(uint32_t *)&p[0]);
             gui_debug_printf("Next:		%08x\n", *(uint32_t *)&p[4]);
@@ -366,7 +367,7 @@ static int process_debug_cmd(char *cmdline) {
             gui_debug_printf("Stack pointer:	%08x\n", *(uint32_t *)&p[44]);
             gui_debug_printf("Stack size:	%08x\n", *(uint32_t *)&p[48]);
             uint32_t sp = *(uint32_t *)&p[44];
-            uint32_t *psp = virt_mem_ptr(sp, 18 * 4);
+            uint32_t *psp = (uint32_t*) virt_mem_ptr(sp, 18 * 4);
             if (psp) {
 #ifdef __i386__
                 gui_debug_printf("Stack type:	%d (%s)\n", psp[0], psp[0] ? "Interrupt" : "Normal");
@@ -385,13 +386,13 @@ static int process_debug_cmd(char *cmdline) {
         }
     } else if (!strcasecmp(cmd, "tasklist")) {
         uint32_t tasklist = parse_expr(strtok(NULL, " \n\r"));
-        uint8_t *p = virt_mem_ptr(tasklist, 4);
+        uint8_t *p = (uint8_t*) virt_mem_ptr(tasklist, 4);
         if (p) {
             uint32_t first = *(uint32_t *)p;
             uint32_t task = first;
             gui_debug_printf("Task      ID   Name     St D Pr P | StkStart StkEnd   StkPtr   StkSize\n");
             do {
-                p = virt_mem_ptr(task, 52);
+                p = (uint8_t*) virt_mem_ptr(task, 52);
                 if (!p)
                     return 0;
                 gui_debug_printf("%08X: %c%c%c%c %-8.8s %02x %d %02x %d | %08x %08x %08x %08x\n",
@@ -459,13 +460,13 @@ static int process_debug_cmd(char *cmdline) {
         } else {
             uint32_t addr = parse_expr(addr_str);
             uint32_t len = parse_expr(len_str);
-            char *strptr = phys_mem_ptr(addr, len);
+            char *strptr = (char*) phys_mem_ptr(addr, len);
             char *ptr = strptr;
             char *endptr = strptr + len;
             if (ptr) {
                 size_t slen = strlen(string);
                 while (1) {
-                    ptr = memchr(ptr, *string, endptr - ptr);
+                    ptr = (char*) memchr(ptr, *string, endptr - ptr);
                     if (!ptr) {
                         gui_debug_printf("String not found.\n");
                         return 0;
@@ -520,8 +521,12 @@ static int process_debug_cmd(char *cmdline) {
             return 0;
         }
 
-        struct armloader_load_params arg_zero = {.t = ARMLOADER_PARAM_VAL, .v = 0},
-                                            arg_path = {.t = ARMLOADER_PARAM_PTR, .p = {.ptr = path, .size = strlen(path) + 1}};
+        struct armloader_load_params arg_zero, arg_path;
+        arg_zero.t = ARMLOADER_PARAM_VAL;
+        arg_zero.v = 0;
+
+        arg_path.t = ARMLOADER_PARAM_PTR;
+        arg_path.p = {.ptr = path, .size = (uint32_t) strlen(path) + 1};
         struct armloader_load_params params[3] = {arg_path, arg_zero, arg_zero};
         armloader_load_snippet(SNIPPET_ndls_exec, params, 3, NULL);
         return 1;
@@ -535,7 +540,7 @@ static int process_debug_cmd(char *cmdline) {
 
 static void native_debugger(void) {
     char line[MAX_CMD_LEN];
-    uint32_t *cur_insn = virt_mem_ptr(arm.reg[15] & ~3, 4);
+    uint32_t *cur_insn = (uint32_t*) virt_mem_ptr(arm.reg[15] & ~3, 4);
 
     // Did we hit the "next" breakpoint?
     if (cur_insn == debug_next) {

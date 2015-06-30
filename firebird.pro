@@ -18,7 +18,9 @@ desktop.path = /usr/share/applications
 desktop.files += resources/firebird.desktop
 icon.path = /usr/share/icons
 icon.files += resources/firebird.png
-INSTALLS += target desktop icon
+sendtool.path = /usr/bin
+sendtool.files = core/firebird-send
+INSTALLS += target desktop icon sendtool
 
 QMAKE_CFLAGS = -g -std=gnu11 -Wall -Wextra
 QMAKE_CXXFLAGS = -g -std=c++11 -Wall -Wextra
@@ -121,7 +123,6 @@ SOURCES += $$ASMCODE_IMPL \
     core/usblink_queue.cpp \
     core/armsnippets_loader.c \
     core/casplus.c \
-    core/debug.c \
     core/des.c \
     core/disasm.c \
     core/emu.c \
@@ -139,7 +140,8 @@ SOURCES += $$ASMCODE_IMPL \
     core/sha256.c \
     core/usb.c \
     core/usblink.c \
-    qtframebuffer.cpp
+    qtframebuffer.cpp \
+    core/debug.cpp
 
 FORMS += \
     mainwindow.ui \
@@ -196,3 +198,6 @@ OTHER_FILES += \
 
 RESOURCES += \
     resources.qrc
+
+DISTFILES += \
+    core/firebird-send
