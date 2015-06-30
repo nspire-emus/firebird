@@ -167,7 +167,6 @@ FILE *debugger_input = NULL;
 
 // return 1: break (should stop being feed with debugger commands), 0: continue (can be feed with other debugger commands)
 static int process_debug_cmd(char *cmdline) {
-    gui_debug_printf("CMD: %s\n", cmdline);
     char *cmd = strtok(cmdline, " \n\r");
     if (!cmd)
         return 0;
