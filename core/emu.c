@@ -323,7 +323,10 @@ void emu_cleanup()
 
     // addr_cache_init is rather expensive and needs to be called once only
     //addr_cache_deinit();
-    translate_deinit();
+
+    #ifndef NO_TRANSLATION
+        translate_deinit();
+    #endif
 
     memory_deinitialize();
     flash_close();
