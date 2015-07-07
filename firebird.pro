@@ -96,7 +96,7 @@ else: DEFINES += NO_TRANSLATION
 
 # The x86_64 and ARM JIT use asmcode.c for mem access
 contains(QMAKE_TARGET.arch, "x86_64") || contains(QMAKE_TARGET.arch, "arm") {
-    !contains(ASMCODE_IMPL, "asmcode.c") {
+    !contains(ASMCODE_IMPL, "core/asmcode.c") {
         SOURCES += core/asmcode.c
     }
 }
