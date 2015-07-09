@@ -22,9 +22,11 @@
         <location filename="../flashdialog.ui" line="70"/>
         <location filename="../flashdialog.ui" line="125"/>
         <location filename="../flashdialog.ui" line="180"/>
-        <location filename="../flashdialog.cpp" line="32"/>
-        <location filename="../flashdialog.cpp" line="57"/>
-        <location filename="../flashdialog.cpp" line="75"/>
+        <location filename="../flashdialog.ui" line="235"/>
+        <location filename="../flashdialog.cpp" line="48"/>
+        <location filename="../flashdialog.cpp" line="62"/>
+        <location filename="../flashdialog.cpp" line="80"/>
+        <location filename="../flashdialog.cpp" line="114"/>
         <source>None</source>
         <translation>Nicht geladen</translation>
     </message>
@@ -32,6 +34,7 @@
         <location filename="../flashdialog.ui" line="94"/>
         <location filename="../flashdialog.ui" line="149"/>
         <location filename="../flashdialog.ui" line="204"/>
+        <location filename="../flashdialog.ui" line="259"/>
         <source>Select file</source>
         <translation>Datei wählen</translation>
     </message>
@@ -46,32 +49,43 @@
         <translation>OS:</translation>
     </message>
     <message>
-        <location filename="../flashdialog.ui" line="241"/>
+        <location filename="../flashdialog.ui" line="228"/>
+        <source>Diags:</source>
+        <translation>Diags:</translation>
+    </message>
+    <message>
+        <location filename="../flashdialog.ui" line="296"/>
         <source>Save as..</source>
         <translation>Speichern als..</translation>
     </message>
     <message>
-        <location filename="../flashdialog.cpp" line="28"/>
+        <location filename="../flashdialog.cpp" line="44"/>
         <source>Select Boot2</source>
         <translation>Boot2 wählen</translation>
     </message>
     <message>
-        <location filename="../flashdialog.cpp" line="38"/>
+        <location filename="../flashdialog.cpp" line="33"/>
+        <location filename="../flashdialog.cpp" line="39"/>
         <source>Unknown</source>
         <translation>Unbekannt</translation>
     </message>
     <message>
-        <location filename="../flashdialog.cpp" line="53"/>
+        <location filename="../flashdialog.cpp" line="58"/>
         <source>Select Manuf</source>
         <translation>Manuf auswählen</translation>
     </message>
     <message>
-        <location filename="../flashdialog.cpp" line="71"/>
+        <location filename="../flashdialog.cpp" line="76"/>
         <source>Select OS file</source>
         <translation>Betriebssystem auswählen</translation>
     </message>
     <message>
-        <location filename="../flashdialog.cpp" line="108"/>
+        <location filename="../flashdialog.cpp" line="110"/>
+        <source>Select Diags</source>
+        <translation>Diags auswählen</translation>
+    </message>
+    <message>
+        <location filename="../flashdialog.cpp" line="127"/>
         <source>Save flash image</source>
         <translation>Flash-Image speichern</translation>
     </message>

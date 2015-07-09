@@ -19,12 +19,15 @@ public slots:
     void selectBoot2();
     void selectManuf();
     void selectOS();
+    void selectDiags();
     void saveAs();
 
 private:
+    QString readVersion(QString file);
+
     Ui::FlashDialog *ui;
 
-    QString boot2_path, manuf_path, os_path;
+    QString boot2_path, manuf_path, diags_path, os_path;
 };
 
 #endif // FLASHDIALOG_H

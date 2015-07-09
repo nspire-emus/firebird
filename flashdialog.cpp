@@ -15,12 +15,28 @@ FlashDialog::FlashDialog(QWidget *parent) :
     connect(ui->buttonBoot2, SIGNAL(clicked()), this, SLOT(selectBoot2()));
     connect(ui->buttonManuf, SIGNAL(clicked()), this, SLOT(selectManuf()));
     connect(ui->buttonOS, SIGNAL(clicked()), this, SLOT(selectOS()));
+    connect(ui->buttonDiags, SIGNAL(clicked(bool)), this, SLOT(selectDiags()));
     connect(ui->buttonSave, SIGNAL(clicked()), this, SLOT(saveAs()));
 }
 
 FlashDialog::~FlashDialog()
 {
     delete ui;
+}
+
+QString FlashDialog::readVersion(QString path)
+{
+    //Ugly way to display version
+    QFile file(path);
+    QByteArray header;
+    if(!file.open(QFile::ReadOnly) || !file.seek(31) || (header = file.read(17)).isEmpty())
+        return tr("Unknown");
+
+    unsigned int len = header.at(0);
+    if(len < 16 && header.at(len + 1) == static_cast<char>(0x80))
+        return QString::fromUtf8(header.data() + 1, len);
+
+    return tr("Unknown");
 }
 
 void FlashDialog::selectBoot2()
@@ -34,18 +50,7 @@ void FlashDialog::selectBoot2()
     }
 
     boot2_path = path;
-
-    ui->labelBoot2->setText(tr("Unknown"));
-
-    //Ugly way to display version
-    QFile boot2(path);
-    QByteArray header;
-    if(!boot2.open(QFile::ReadOnly) || !boot2.seek(31) || (header = boot2.read(17)).isEmpty())
-        return;
-
-    unsigned int len = header.at(0);
-    if(len < 16 && header.at(len + 1) == static_cast<char>(0x80))
-        ui->labelBoot2->setText(QString::fromUtf8(header.data() + 1, len));
+    ui->labelBoot2->setText(readVersion(boot2_path));
 }
 
 void FlashDialog::selectManuf()
@@ -100,6 +105,20 @@ void FlashDialog::selectOS()
     ui->labelOS->setText(version);
 }
 
+void FlashDialog::selectDiags()
+{
+    QString path = QFileDialog::getOpenFileName(this, trUtf8("Select Diags"));
+    if(path.isEmpty() || !QFile(path).exists())
+    {
+        diags_path = "";
+        ui->labelDiags->setText(tr("None"));
+        return;
+    }
+
+    diags_path = path;
+    ui->labelDiags->setText(readVersion(diags_path));
+}
+
 // Map of ui->selectModel indices to manuf product numbers
 const unsigned int product_values[] = { 0x0E0, 0x0C1, 0x100, 0x0F0 };
 
@@ -110,7 +129,7 @@ void FlashDialog::saveAs()
         return;
 
     bool is_cx = ui->selectModel->currentIndex() >= 2;
-    std::string preload_str[4] = { manuf_path.toStdString(), boot2_path.toStdString(), "", os_path.toStdString() };
+    std::string preload_str[4] = { manuf_path.toStdString(), boot2_path.toStdString(), diags_path.toStdString(), os_path.toStdString() };
     const char *preload[4] = { nullptr, nullptr, nullptr, nullptr };
 
     for(unsigned int i = 0; i < 4; ++i)
