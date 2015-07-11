@@ -22,11 +22,11 @@ Rectangle {
         ToolButton {
             id: restartButton
             anchors.horizontalCenter: parent.horizontalCenter
-            anchors.margins: 4
 
             Image {
+                fillMode: Image.PreserveAspectFit
                 anchors.fill: parent
-                anchors.margins: 4
+                anchors.margins: parent.width/10
                 source: "qrc:/icons/resources/icons/edit-bomb.png"
             }
 
@@ -36,11 +36,11 @@ Rectangle {
         ToolButton {
             id: resetButton
             anchors.horizontalCenter: parent.horizontalCenter
-            anchors.margins: 4
 
             Image {
+                fillMode: Image.PreserveAspectFit
                 source: "qrc:/icons/resources/icons/system-reboot.png"
-                anchors.margins: 4
+                anchors.margins: parent.width/10
                 anchors.fill: parent
             }
 
@@ -50,13 +50,13 @@ Rectangle {
         ToolButton {
             id: pauseButton
             anchors.horizontalCenter: parent.horizontalCenter
-            anchors.margins: 4
 
             checkable: true
 
             Image {
+                fillMode: Image.PreserveAspectFit
                 source: "qrc:/icons/resources/icons/media-playback-pause.png"
-                anchors.margins: 4
+                anchors.margins: parent.width/10
                 anchors.fill: parent
             }
 
@@ -84,7 +84,7 @@ Rectangle {
         boundsBehavior: Flickable.StopAtBounds
         flickableDirection: Flickable.HorizontalAndVerticalFlick
         contentWidth: width
-        contentHeight: control1.height
+        contentHeight: control1.height*control1.scale
         clip: true
         anchors.top: screen.bottom
         anchors.topMargin: 0
@@ -97,7 +97,9 @@ Rectangle {
 
         Keypad {
             id: control1
-            width: controls.width
+            // This is to make it possible to use fixed sizes
+            scale: controls.width/width
+            anchors.centerIn: parent
         }
     }
 

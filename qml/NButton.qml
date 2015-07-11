@@ -18,7 +18,7 @@ Rectangle {
         id: label
         anchors.fill: parent
         anchors.centerIn: parent
-        scale: 0.8
+        font.pixelSize: height/2
         color: font_color
         font.bold: true
         verticalAlignment: Text.AlignVCenter
