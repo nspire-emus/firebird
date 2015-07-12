@@ -9,6 +9,7 @@
  */
 
 #include <algorithm>
+#include <map>
 #include <cassert>
 #include <cstdint>
 #include <cstdio>
@@ -163,10 +164,50 @@ static __attribute__((unused)) void emit_bkpt()
     emit_al(0x1200070); // bkpt #0
 }
 
+// Cache for translated code
+struct translation_cache_entry {
+    translation_cache_entry() : translation_cache_entry(nullptr, 0) {}
+    translation_cache_entry(uint32_t *ptr, size_t size) : ptr(ptr), size(size) {}
+    uint32_t *ptr;
+    size_t size;
+};
+
+uint32_t translation_cache_bits[0x10000000/32];
+uint32_t translation_cache_data[0x400000];
+uint32_t *translation_cache_data_current = translation_cache_data;
+std::map<uint32_t, translation_cache_entry> translation_cache;
+
+translation_cache_entry *translation_cache_query(Instruction i)
+{
+    uint32_t index = i.raw & 0xFFFFFFF; // Mask away condition code
+    if(!(translation_cache_bits[index / 32] & (1 << (index & 0x1F))))
+        return nullptr; // Not in cache
+
+    return &translation_cache.at(index);
+}
+
+void translation_cache_add(Instruction i, uint32_t *start, uint32_t *end)
+{
+    if(translation_cache_data_current - translation_cache_data + end - start >= 0x400000)
+        return; // Cache full!
+
+    uint32_t *data = translation_cache_data_current;
+    size_t size = end - start;
+    while(start < end)
+        *translation_cache_data_current++ = *start++;
+
+    uint32_t index = i.raw & 0xFFFFFFF;
+    translation_cache.emplace(std::piecewise_construct, std::forward_as_tuple(index), std::forward_as_tuple(data, size));
+
+    translation_cache_bits[index / 32] |= 1 << (index & 0x1F);
+}
+
 bool translate_init()
 {
     if(translate_buffer)
         return true;
+
+    std::fill(translation_cache_bits, translation_cache_bits + 0x10000000/32, 0);
 
     translate_current = translate_buffer = reinterpret_cast<uint32_t*>(os_alloc_executable(INSN_BUFFER_SIZE));
     translate_end = translate_current + INSN_BUFFER_SIZE/sizeof(*translate_buffer);
@@ -203,6 +244,10 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
     translation *this_translation = &translation_table[next_translation_index];
     // Whether to stop translating code
     bool stop_here = false;
+    // Start of instruction translation, without cond. jump
+    uint32_t *translate_buffer_inst_real = translate_current;
+    // Whether this instruction can be cached (not possible if pc-relative)
+    bool cachable = true;
 
     // We know this already. end_ptr will be set after the loop
     this_translation->jump_table = reinterpret_cast<void**>(jump_table_start);
@@ -248,6 +293,19 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
             cond_branch = translate_current;
             emit(0x0a000000 | ((i.cond ^ 1) << 28));
         }
+
+        struct translation_cache_entry *cache = translation_cache_query(i);
+        if(cache)
+        {
+            auto cache_local = *cache;;
+            while(cache_local.size--)
+                emit(*cache_local.ptr++);
+
+	    goto instruction_cachehit;
+        }
+
+        translate_buffer_inst_real = translate_current;
+        cachable = true;
 
         if((insn & 0xE000090) == 0x0000090)
         {
@@ -315,7 +373,6 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
                 }
                 else
                     translated.mult.rd = R2;
-
 
                 if(i.mult.s)
                 {
@@ -392,6 +449,7 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
                 //B(L)X
                 if(i.bx.l)
                 {
+                    cachable = false;
                     emit_mov(R0, pc + 4);
                     emit_str_armreg(R0, LR);
                 }
@@ -416,14 +474,14 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
                  reg_shift = !i.data_proc.imm && i.data_proc.reg_shift;
 
             // Using pc is not supported
-            if(i.data_proc.rd == 15
-                    || i.data_proc.rn == 15
-                    || (!i.data_proc.imm && i.data_proc.rm == 15)
-                    || (reg_shift && i.data_proc.rs == 15))
+            if(i.data_proc.rd == PC
+                    || i.data_proc.rn == PC
+                    || (!i.data_proc.imm && i.data_proc.rm == PC)
+                    || (reg_shift && i.data_proc.rs == PC))
                 goto unimpl;
 
             Instruction translated;
-            translated.raw = i.raw;
+            translated.raw = (i.raw & 0xFFFFFFF) | 0xE0000000;
             // It's not needed to change the condition code of translated.
             // In case of conditional execution the flags are loaded anyway.
 
@@ -506,9 +564,13 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
             if(i.mem_proc.rn != PC)
                 emit_ldr_armreg(R0, i.mem_proc.rn);
             else if(i.mem_proc.not_imm)
+            {
+                cachable = false;
                 emit_mov(R0, pc + 8);
+            }
             else // Address known
             {
+                cachable = false;
                 int offset = i.mem_proc.u ? i.mem_proc.immed :
                                             -i.mem_proc.immed;
                 unsigned int address = pc + 8 + offset;
@@ -563,7 +625,10 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
                 if(i.mem_proc.rm != PC)
                     emit_ldr_armreg(R1, i.mem_proc.rm);
                 else
+                {
+                    cachable = false;
                     emit_mov(R1, pc + 8);
+                }
 
                 emit(off.raw);
             }
@@ -602,7 +667,10 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
                 if(i.mem_proc.rd != PC)
                     emit_ldr_armreg(R1, i.mem_proc.rd); // r1 is the value
                 else
+                {
+                    cachable = false;
                     emit_mov(R1, pc + 12);
+                }
 
                 emit_call(reinterpret_cast<void*>(i.mem_proc.b ? write_byte_asm : write_word_asm));
             }
@@ -626,6 +694,8 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
             /* Branches work this way:
              * Either jump to translation_next if code not translated (yet) or
              * jump directly to the translated code, over a small function checking for pending events */
+
+            cachable = false; // Always pc-relative
 
             if(i.branch.l)
             {
@@ -665,6 +735,11 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
             goto unimpl;
 
         instruction_translated:
+        // Instruction not in cache, cache it
+        if(cachable)
+            translation_cache_add(i, translate_buffer_inst_real, translate_current);
+
+        instruction_cachehit:
 
         if(cond_branch)
         {
