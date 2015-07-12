@@ -1,5 +1,6 @@
 #include <iostream>
 #include <cassert>
+#include <unistd.h>
 
 #include "qmlbridge.h"
 
@@ -64,12 +65,31 @@ bool QMLBridge::restart()
     if(emu_thread.isRunning() && !emu_thread.stop())
         return false;
 
+#if defined(Q_OS_IOS)
+    QString docsPath = QStandardPaths::standardLocations(QStandardPaths::DocumentsLocation)[0];
+    std::string boot1_path_str = (docsPath + "/boot1.img").toStdString();
+    std::string flash_path_str = (docsPath + "/flash.img").toStdString();
+     if(access(boot1_path_str.c_str(), F_OK) != -1 && access(flash_path_str.c_str(), F_OK) != -1) {
+         // Both files are good to use.
+        emu_thread.boot1 = boot1_path_str;
+        emu_thread.flash = flash_path_str;
+    }
+#else
     QSettings settings;
     emu_thread.boot1 = settings.value("boot1").toString().toStdString();
     emu_thread.flash = settings.value("flash").toString().toStdString();
+#endif
 
-    emu_thread.start();
-    return true;
+    if(emu_thread.boot1 != "" && emu_thread.flash != "") {
+        emu_thread.start();
+        return true;
+    } else {
+        QMessageBox Msgbox;
+        // TODO: translation
+        Msgbox.setText("Error! You need to transfer flash.img and boot1.img from your computer to firebird through iTunes (app 'File sharing').");
+        Msgbox.exec();
+        return false;
+    }
 }
 
 void QMLBridge::setPaused(bool b)
