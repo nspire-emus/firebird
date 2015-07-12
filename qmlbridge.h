@@ -26,8 +26,18 @@ public:
         Q_INVOKABLE void reset();
         Q_INVOKABLE bool stop();
 
+        Q_INVOKABLE QString getBoot1Path();
+        Q_INVOKABLE void setBoot1Path(QUrl path);
+        Q_INVOKABLE QString getFlashPath();
+        Q_INVOKABLE void setFlashPath(QUrl path);
+
+        Q_INVOKABLE QString basename(QString path);
+
         EmuThread emu_thread;
     #endif
+
+private:
+    QSettings settings;
 };
 
 void notifyKeypadStateChanged(int row, int col, bool state);

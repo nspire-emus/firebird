@@ -76,9 +76,8 @@ bool QMLBridge::restart()
         emu_thread.flash = flash_path_str;
     }
 #else
-    QSettings settings;
-    emu_thread.boot1 = settings.value("boot1").toString().toStdString();
-    emu_thread.flash = settings.value("flash").toString().toStdString();
+    emu_thread.boot1 = getBoot1Path().toStdString();
+    emu_thread.flash = getFlashPath().toStdString();
 #endif
 
     if(emu_thread.boot1 != "" && emu_thread.flash != "") {
@@ -89,6 +88,7 @@ bool QMLBridge::restart()
         // TODO: translation
         Msgbox.setText("Error! You need to transfer flash.img and boot1.img from your computer to firebird through iTunes (app 'File sharing').");
         Msgbox.exec();
+        Msgbox.show();
         return false;
     }
 }
@@ -106,6 +106,35 @@ void QMLBridge::reset()
 bool QMLBridge::stop()
 {
     return emu_thread.stop();
+}
+
+QString QMLBridge::getBoot1Path()
+{
+    return settings.value("boot1", "").toString();
+}
+
+void QMLBridge::setBoot1Path(QUrl path)
+{
+    settings.setValue("boot1", path.toLocalFile());
+}
+
+QString QMLBridge::getFlashPath()
+{
+    return settings.value("flash", "").toString();
+}
+
+void QMLBridge::setFlashPath(QUrl path)
+{
+    settings.setValue("flash", path.toLocalFile());
+}
+
+QString QMLBridge::basename(QString path)
+{
+    if(path == "")
+        return "None";
+
+    QFileInfo file_info(path);
+    return file_info.fileName();
 }
 
 #endif

@@ -83,8 +83,8 @@ Rectangle {
         id: controls
         boundsBehavior: Flickable.StopAtBounds
         flickableDirection: Flickable.HorizontalAndVerticalFlick
-        contentWidth: width
-        contentHeight: control1.height*control1.scale
+        contentWidth: controlsRow.width
+        contentHeight: controlsRow.height
         clip: true
         anchors.top: screen.bottom
         anchors.topMargin: 0
@@ -95,13 +95,30 @@ Rectangle {
         anchors.left: parent.left
         anchors.leftMargin: 0
 
-        Keypad {
-            id: control1
-            // This is to make it possible to use fixed sizes
-            scale: controls.width/width
-            anchors.centerIn: parent
+        Row {
+            id: controlsRow
+
+            Rectangle {
+                height: keypad.height*controls.width/keypad.width
+                width: controls.width
+
+                Keypad {
+                    id: keypad
+                    transform: Scale { origin.x: 0; origin.y: 0; xScale: controls.width/keypad.width; yScale: controls.width/keypad.width }
+                }
+            }
+
+            Rectangle {
+                height: keypad.height*controls.width/keypad.width
+                width: controls.width
+                color: keypad.color
+
+                MobileControl2 {
+                    id: control2
+                    transform: Scale { origin.x: 0; origin.y: 0; xScale: controls.width/keypad.width; yScale: controls.width/keypad.width }
+                }
+            }
         }
     }
-
 }
 
