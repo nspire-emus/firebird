@@ -11,7 +11,8 @@ Rectangle {
 
     ColumnLayout {
         id: sidebar
-        width: parent.width*0.15
+        // In landscape mode fit whole framebuffer on screen
+        width: parent.width/350 > parent.height/240 ? parent.width-320*parent.height/240 : parent.width*0.15
         anchors.bottom: controls.top
         anchors.bottomMargin: 0
         anchors.top: parent.top
@@ -64,7 +65,7 @@ Rectangle {
         }
     }
 
-    Screen {
+    EmuScreen {
         id: screen
         y: 0
         width: parent.width - sidebar.width

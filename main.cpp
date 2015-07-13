@@ -26,7 +26,7 @@ int main(int argc, char **argv)
     // Register QMLBridge for Keypad<->Emu communication
     qmlRegisterSingletonType<QMLBridge>("Ndless.Emu", 1, 0, "Emu", qmlBridgeFactory);
     // Register QtFramebuffer for QML display
-    qmlRegisterType<QMLFramebuffer>("Ndless.Emu", 1, 0, "Screen");
+    qmlRegisterType<QMLFramebuffer>("Ndless.Emu", 1, 0, "EmuScreen");
 
     #ifndef MOBILE_UI
         MainWindow mw;
