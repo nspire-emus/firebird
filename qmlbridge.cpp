@@ -59,6 +59,16 @@ void QMLBridge::registerTouchpad(QVariant touchpad)
     qml_touchpad = touchpad.value<QObject*>();
 }
 
+bool QMLBridge::isMobile()
+{
+    // TODO: Mobile UI on desktop? Q_OS_ANDROID doesn't work somehow.
+    #ifdef MOBILE_UI
+        return true;
+    #else
+        return false;
+    #endif
+}
+
 #ifdef MOBILE_UI
 
 bool QMLBridge::restart()

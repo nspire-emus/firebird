@@ -20,6 +20,8 @@ public:
     Q_INVOKABLE void touchpadStateChanged(qreal x, qreal y, bool state);
     Q_INVOKABLE void registerTouchpad(QVariant touchpad);
 
+    Q_INVOKABLE bool isMobile();
+
     #ifdef MOBILE_UI
         Q_INVOKABLE bool restart();
         Q_INVOKABLE void setPaused(bool b);

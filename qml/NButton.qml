@@ -40,7 +40,7 @@ Rectangle {
         anchors.fill: parent
         acceptedButtons: Qt.LeftButton | Qt.RightButton
 
-        hoverEnabled: true
+        hoverEnabled: !Emu.isMobile()
         onEntered: {
             hovering = true
         }
