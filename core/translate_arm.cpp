@@ -321,7 +321,8 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
                     goto unimpl; // PC as register not implemented
 
                 Instruction translated;
-                translated.raw = i.raw;
+
+                translated.raw = (i.raw & 0xFFFFFFF) | 0xE0000000;
 
                 int armreg[2] = {-1, -1};
 
@@ -394,7 +395,8 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
                 goto unimpl; // Signed byte/halfword and doubleword not implemented
 
             if(i.mem_proc2.rn == PC
-                    || i.mem_proc2.rd == PC)
+                    || i.mem_proc2.rd == PC
+                    || i.mem_proc2.rm == PC)
                 goto unimpl; // PC as operand or dest. not implemented
 
             // Load base into r0
@@ -482,8 +484,6 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
 
             Instruction translated;
             translated.raw = (i.raw & 0xFFFFFFF) | 0xE0000000;
-            // It's not needed to change the condition code of translated.
-            // In case of conditional execution the flags are loaded anyway.
 
             // Map needed register values:
             // add rd, rn, rm, lsl rs becomes add r4, r0, r1, lsl r2 for example
