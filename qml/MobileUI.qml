@@ -115,7 +115,7 @@ Rectangle {
 
                 MobileControl2 {
                     id: control2
-                    transform: Scale { origin.x: 0; origin.y: 0; xScale: controls.width/keypad.width; yScale: controls.width/keypad.width }
+                    //transform: Scale { origin.x: 0; origin.y: 0; xScale: controls.width/keypad.width; yScale: controls.width/keypad.width }
                 }
             }
         }
