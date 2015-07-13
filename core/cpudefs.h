@@ -106,6 +106,7 @@ union Instruction {
         BitField<21> w;
         BitField<20> l;
         BitField<16, 4> rn;
+        BitField<0, 16> reglist;
     } mem_multi;
 };
 

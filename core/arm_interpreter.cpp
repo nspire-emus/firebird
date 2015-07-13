@@ -463,8 +463,12 @@ void do_arm_instruction(Instruction i)
         uint32_t addr = reg(base_reg);
         uint32_t new_base = addr;
         int i, count = 0;
-        for (i = 0; i < 16; i++)
-            count += (insn >> i & 1);
+        uint16_t reglist = insn;
+        while(reglist)
+        {
+            count += reglist & 1;
+            reglist >>= 1;
+        }
 
         if (insn & (1 << 23)) { // Increasing
             if (insn & (1 << 21)) // Writeback

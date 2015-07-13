@@ -15,7 +15,7 @@
 #include <cstdio>
 
 // Uncomment the following line to measure the time until Boot2
-// #define BENCHMARK
+#define BENCHMARK
 #ifdef BENCHMARK
     #include <ctime>
 #endif
@@ -101,7 +101,7 @@ static void emit_str_flags()
 static void emit_mov(int rd, uint32_t imm)
 {
     // movw/movt only available on >= armv7
-    #ifdef __ARM_ARCH_7__
+    #if defined(__ARM_ARCH_7__) || defined(__ARM_ARCH_7A__)
         emit_al(0x3000000 | (rd << 12) | ((imm & 0xF000) << 4) | (imm & 0xFFF)); // movw rd, #imm&0xFFFF
         imm >>= 16;
         if(imm)
@@ -257,7 +257,7 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
         static clock_t start = 0;
         if(pc == 0)
             start = clock();
-        else if(pc == 0x11800000)
+        else if(pc == 0x10000000)
         {
             clock_t diff = clock() - start;
             printf("%ld ms\n", diff / 1000);
@@ -687,6 +687,101 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
                 // It's an unconditional jump
                 if(i.cond == CC_EQ)
                     stop_here = true;
+            }
+        }
+        else if((insn & 0xE000000) == 0x8000000)
+        {
+            if(i.mem_multi.s)
+                goto unimpl; // Exception return or usermode not implemented
+
+            if(i.mem_multi.rn == PC)
+                goto unimpl;
+
+            uint16_t reglist = i.mem_multi.reglist;
+            if(reglist & (1 << i.mem_multi.rn))
+                goto unimpl; // Loading/Saving address register
+
+            //TODO: Loading PC is broken
+            if(reglist & (1 << PC))
+                goto unimpl;
+
+            int count = 0, offset, wb_offset;
+            uint16_t reglist_ = reglist;
+            while(reglist_)
+            {
+                if(reglist_ & 1)
+                    count += 1;
+                reglist_ >>= 1;
+            }
+
+            if(i.mem_multi.u) // Increment
+            {
+                wb_offset = count * 4;
+                offset = 0;
+            }
+            else // Decrement
+            {
+                wb_offset = count * -4;
+                offset = wb_offset;
+            }
+
+            if(i.mem_multi.p == i.mem_multi.u)
+                offset += 4;
+
+            // Base reg in r4
+            emit_ldr_armreg(R4, i.mem_multi.rn);
+            unsigned int reg = 0;
+            while(reglist)
+            {
+                if((reglist & 1) == 0)
+                    goto next;
+
+                if(offset >= 0)
+                    emit_al(0x2840000 | offset); // add r0, r4, #offset
+                else
+                    emit_al(0x2440000 | -offset); // sub r0, r4, #-offset
+
+                if(i.mem_multi.l)
+                {
+                    emit_call(reinterpret_cast<void*>(read_word_asm));
+                    if(reg != PC)
+                        emit_str_armreg(R0, reg);
+                    //else written below
+                }
+                else
+                {
+                    if(reg == PC)
+                    {
+                        cachable = false;
+                        emit_mov(R1, pc + 12);
+                    }
+                    else
+                        emit_ldr_armreg(R1, reg);
+
+                    emit_call(reinterpret_cast<void*>(write_word_asm));
+                }
+
+                offset += 4;
+                next:
+                reglist >>= 1;
+                ++reg;
+            }
+
+            if(i.mem_multi.w)
+            {
+                if(wb_offset >= 0)
+                    emit_al(0x2841000 | wb_offset); // add r1, r4, #wb_offset
+                else
+                    emit_al(0x2441000 | -wb_offset); // sub r1, r4, #-wb_offset
+
+                emit_str_armreg(R1, i.mem_multi.rn);
+            }
+
+            if(i.mem_multi.l && (reglist & (1 << PC))) // Loading PC
+            {
+                // PC already in R0 (last one loaded)
+                emit_jmp(reinterpret_cast<void*>(translation_next_bx));
+                stop_here = 1;
             }
         }
         else if((insn & 0xE000000) == 0xA000000)
