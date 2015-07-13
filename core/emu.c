@@ -278,7 +278,8 @@ reset:
 
     exiting = false;
 
-#ifndef IS_IOS_BUILD
+// TODO: try to properly fix that (it causes a ICE on clang)
+#ifndef __APPLE__
     __builtin_setjmp(restart_after_exception);
 #endif
 
