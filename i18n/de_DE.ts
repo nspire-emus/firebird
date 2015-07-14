@@ -23,10 +23,6 @@
         <location filename="../flashdialog.ui" line="125"/>
         <location filename="../flashdialog.ui" line="180"/>
         <location filename="../flashdialog.ui" line="235"/>
-        <location filename="../flashdialog.cpp" line="48"/>
-        <location filename="../flashdialog.cpp" line="62"/>
-        <location filename="../flashdialog.cpp" line="80"/>
-        <location filename="../flashdialog.cpp" line="114"/>
         <source>None</source>
         <translation>Nicht geladen</translation>
     </message>
@@ -59,35 +55,28 @@
         <translation>Speichern als..</translation>
     </message>
     <message>
-        <location filename="../flashdialog.cpp" line="44"/>
         <source>Select Boot2</source>
-        <translation>Boot2 wählen</translation>
+        <translation type="vanished">Boot2 wählen</translation>
     </message>
     <message>
-        <location filename="../flashdialog.cpp" line="33"/>
-        <location filename="../flashdialog.cpp" line="39"/>
         <source>Unknown</source>
-        <translation>Unbekannt</translation>
+        <translation type="vanished">Unbekannt</translation>
     </message>
     <message>
-        <location filename="../flashdialog.cpp" line="58"/>
         <source>Select Manuf</source>
-        <translation>Manuf auswählen</translation>
+        <translation type="vanished">Manuf auswählen</translation>
     </message>
     <message>
-        <location filename="../flashdialog.cpp" line="76"/>
         <source>Select OS file</source>
-        <translation>Betriebssystem auswählen</translation>
+        <translation type="vanished">Betriebssystem auswählen</translation>
     </message>
     <message>
-        <location filename="../flashdialog.cpp" line="110"/>
         <source>Select Diags</source>
-        <translation>Diags auswählen</translation>
+        <translation type="vanished">Diags auswählen</translation>
     </message>
     <message>
-        <location filename="../flashdialog.cpp" line="127"/>
         <source>Save flash image</source>
-        <translation>Flash-Image speichern</translation>
+        <translation type="vanished">Flash-Image speichern</translation>
     </message>
 </context>
 <context>
@@ -340,10 +329,8 @@
         <translation>Screenshot</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="486"/>
-        <location filename="../mainwindow.cpp" line="488"/>
         <source>Connect USB</source>
-        <translation>USB verbinden</translation>
+        <translation type="vanished">USB verbinden</translation>
     </message>
     <message>
         <source>Save</source>
@@ -354,104 +341,125 @@
         <translation type="vanished">Flash erstellen</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="126"/>
         <source>Start the emulation via Emulation-&gt;Restart.</source>
-        <translation>Die Emulation mit Emulation-&gt;Neustart starten.</translation>
+        <translation type="vanished">Die Emulation mit Emulation-&gt;Neustart starten.</translation>
     </message>
     <message>
         <source>LCD turned off</source>
         <translation type="vanished">Display ausgeschaltet</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="393"/>
-        <location filename="../mainwindow.cpp" line="565"/>
         <source>Restart needed</source>
-        <translation>Neustart benötigt</translation>
+        <translation type="vanished">Neustart benötigt</translation>
     </message>
     <message>
         <source>You need to restart nspire_emu to enable the tab interface.</source>
         <translation type="vanished">nspire_emu muss neugestartet werden, um die Tabs-Oberfläche zu aktivieren.</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="344"/>
         <source>Select boot1 file</source>
-        <translation>Datei für Boot1 auswählen</translation>
+        <translation type="vanished">Datei für Boot1 auswählen</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="361"/>
         <source>Select flash file</source>
-        <translation>Flash-Image auswählen</translation>
+        <translation type="vanished">Flash-Image auswählen</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="393"/>
         <source>You need to restart firebird to enable the tab interface.</source>
-        <translation>Firebird muss neugestartet werden, um die Tabs-Oberfläche zu aktivieren.</translation>
+        <translation type="vanished">Firebird muss neugestartet werden, um die Tabs-Oberfläche zu aktivieren.</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="459"/>
         <source>Speed: %1 %</source>
-        <translation>Geschwindigkeit: %1 %</translation>
+        <translation type="vanished">Geschwindigkeit: %1 %</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="466"/>
         <source>Save Screenshot</source>
-        <translation>Screenshot speichern</translation>
+        <translation type="vanished">Screenshot speichern</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="471"/>
         <source>Screenshot failed</source>
-        <translation>Screenshot fehlgeschlagen</translation>
+        <translation type="vanished">Screenshot fehlgeschlagen</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="471"/>
         <source>Failed to save screenshot!</source>
-        <translation>Konnte Screenshot nicht speichern!</translation>
+        <translation type="vanished">Konnte Screenshot nicht speichern!</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="486"/>
-        <location filename="../mainwindow.cpp" line="488"/>
         <source>Disconnect USB</source>
-        <translation>USB trennen</translation>
+        <translation type="vanished">USB trennen</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="550"/>
         <source>No boot1 set</source>
-        <translation>Kein boot1 gegeben</translation>
+        <translation type="vanished">Kein boot1 gegeben</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="550"/>
         <source>Before you can start the emulation, you have to select a proper boot1 file.</source>
-        <translation>Bevor die Emulation gestartet werden kann, muss ein boot1 ausgewählt werden.</translation>
+        <translation type="vanished">Bevor die Emulation gestartet werden kann, muss ein boot1 ausgewählt werden.</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="557"/>
         <source>No flash image loaded</source>
-        <translation>Kein Flash-Image geladen</translation>
+        <translation type="vanished">Kein Flash-Image geladen</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="557"/>
         <source>Before you can start the emulation, you have to load a proper flash file.
 You can create one via Flash-&gt;Create Flash in the menu.</source>
-        <translation>Bevor die Emulation gestartet werden kann, muss ein passendes Flash-Image ausgewählt werden.</translation>
+        <translation type="vanished">Bevor die Emulation gestartet werden kann, muss ein passendes Flash-Image ausgewählt werden.</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="565"/>
         <source>Failed to restart emulator. Close and reopen this app.
 </source>
-        <translation>Konnte Emulation nicht neu starten. Schließe diese Anwendung und starte sie neu.</translation>
+        <translation type="vanished">Konnte Emulation nicht neu starten. Schließe diese Anwendung und starte sie neu.</translation>
+    </message>
+</context>
+<context>
+    <name>MobileControl2</name>
+    <message>
+        <location filename="../qml/MobileControl2.qml" line="20"/>
+        <source>Settings</source>
+        <translation>Einstellungen</translation>
+    </message>
+    <message>
+        <location filename="../qml/MobileControl2.qml" line="27"/>
+        <source>Select Boot1</source>
+        <translation>Boot1 wählen</translation>
+    </message>
+    <message>
+        <location filename="../qml/MobileControl2.qml" line="38"/>
+        <source>Select Flash</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../qml/MobileControl2.qml" line="62"/>
+        <source>Boot1:</source>
+        <translation>Boot1:</translation>
+    </message>
+    <message>
+        <location filename="../qml/MobileControl2.qml" line="68"/>
+        <location filename="../qml/MobileControl2.qml" line="89"/>
+        <source>None</source>
+        <translation>Nicht geladen</translation>
+    </message>
+    <message>
+        <location filename="../qml/MobileControl2.qml" line="75"/>
+        <location filename="../qml/MobileControl2.qml" line="96"/>
+        <source>Select</source>
+        <translation>Wählen</translation>
+    </message>
+    <message>
+        <location filename="../qml/MobileControl2.qml" line="83"/>
+        <source>Flash:</source>
+        <translation>Flash:</translation>
     </message>
 </context>
 <context>
     <name>QObject</name>
     <message>
-        <location filename="../qtframebuffer.cpp" line="46"/>
         <source>LCD turned off</source>
-        <translation>Display ausgeschaltet</translation>
+        <translation type="vanished">Display ausgeschaltet</translation>
     </message>
     <message>
-        <location filename="../qtframebuffer.cpp" line="59"/>
         <source>In debugger</source>
-        <translation>Im Debugger</translation>
+        <translation type="vanished">Im Debugger</translation>
     </message>
 </context>
 </TS>

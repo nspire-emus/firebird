@@ -184,6 +184,19 @@ HEADERS += \
     core/usblink_queue.h \
     qtframebuffer.h
 
+# For localization
+lupdate_only {
+SOURCES = qml/MobileControl2.qml \
+    qml/NButton.qml \
+    qml/NAlphaButton.qml \
+    qml/MobileUI.qml \
+    qml/NBigButton.qml \
+    qml/Touchpad.qml \
+    qml/NDualButton.qml \
+    qml/Keypad.qml \
+    qml/NNumButton.qml
+}
+
 # Generate the binary arm code into armcode_bin.h
 armsnippets.commands = arm-none-eabi-gcc -fno-leading-underscore -c $$PWD/core/armsnippets.S -o armsnippets.o -mcpu=arm926ej-s \
 						&& arm-none-eabi-objcopy -O binary armsnippets.o snippets.bin \
