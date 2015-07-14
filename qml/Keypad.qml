@@ -84,7 +84,7 @@ Rectangle {
         anchors.topMargin: 6
     }
 
-    GridLayout {
+    Grid {
         id: gridLayout1
         anchors.right: nDualButton7.left
         anchors.rightMargin: 18
@@ -95,6 +95,8 @@ Rectangle {
         anchors.top: rectangle3.bottom
         anchors.topMargin: 6
         columns: 3
+        rowSpacing: 6
+        columnSpacing: 14
 
         NBigButton {
             id: nButton11
