@@ -86,12 +86,14 @@ Rectangle {
 
     GridLayout {
         id: gridLayout1
-        x: 73
-        y: 96
-        width: 120
-        height: 124
-        anchors.horizontalCenter: parent.horizontalCenter
-        columnSpacing: 15
+        anchors.right: nDualButton7.left
+        anchors.rightMargin: 18
+        anchors.left: nDualButton1.right
+        anchors.leftMargin: 18
+        anchors.bottom: nButton8.bottom
+        anchors.bottomMargin: 0
+        anchors.top: rectangle3.bottom
+        anchors.topMargin: 6
         columns: 3
 
         NBigButton {
