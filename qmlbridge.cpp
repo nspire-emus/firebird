@@ -95,11 +95,7 @@ bool QMLBridge::restart()
         emu_thread.start();
         return true;
     } else {
-        QMessageBox Msgbox;
-        // TODO: translation
-        Msgbox.setText("Error! You need to transfer flash.img and boot1.img from your computer to firebird through iTunes (app 'File sharing').");
-        Msgbox.exec();
-        Msgbox.show();
+        QMessageBox::warning(nullptr, tr("Error"), tr("You need to select a proper boot1 and flash image before.\nSwipe the keypad to the left to show the settings menu."));
         return false;
     }
 }
