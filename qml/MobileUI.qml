@@ -24,11 +24,13 @@ Rectangle {
         ToolButton {
             id: restartButton
             anchors.horizontalCenter: parent.horizontalCenter
+            Layout.fillWidth: true
+            Layout.fillHeight: true
 
             Image {
                 fillMode: Image.PreserveAspectFit
                 anchors.fill: parent
-                anchors.margins: parent.width/10
+                anchors.margins: 3
                 source: "qrc:/icons/resources/icons/edit-bomb.png"
             }
 
@@ -38,11 +40,13 @@ Rectangle {
         ToolButton {
             id: resetButton
             anchors.horizontalCenter: parent.horizontalCenter
+            Layout.fillWidth: true
+            Layout.fillHeight: true
 
             Image {
                 fillMode: Image.PreserveAspectFit
                 source: "qrc:/icons/resources/icons/system-reboot.png"
-                anchors.margins: parent.width/10
+                anchors.margins: 3
                 anchors.fill: parent
             }
 
@@ -52,13 +56,15 @@ Rectangle {
         ToolButton {
             id: pauseButton
             anchors.horizontalCenter: parent.horizontalCenter
+            Layout.fillWidth: true
+            Layout.fillHeight: true
 
             checkable: true
 
             Image {
                 fillMode: Image.PreserveAspectFit
                 source: "qrc:/icons/resources/icons/media-playback-pause.png"
-                anchors.margins: parent.width/10
+                anchors.margins: 3
                 anchors.fill: parent
             }
 
@@ -68,11 +74,13 @@ Rectangle {
         ToolButton {
             id: saveButton
             anchors.horizontalCenter: parent.horizontalCenter
+            Layout.fillWidth: true
+            Layout.fillHeight: true
 
             Image {
                 fillMode: Image.PreserveAspectFit
                 source: "qrc:/icons/resources/icons/media-floppy.png"
-                anchors.margins: parent.width/10
+                anchors.margins: 3
                 anchors.fill: parent
             }
 
