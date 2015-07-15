@@ -5,6 +5,7 @@
 
 #include "qmlbridge.h"
 
+#include "core/flash.h"
 #include "core/keypad.h"
 
 QMLBridge::QMLBridge(QObject *parent) : QObject(parent)
@@ -116,6 +117,11 @@ void QMLBridge::reset()
 bool QMLBridge::stop()
 {
     return emu_thread.stop();
+}
+
+void QMLBridge::saveFlash()
+{
+    flash_save_changes();
 }
 
 QString QMLBridge::getBoot1Path()

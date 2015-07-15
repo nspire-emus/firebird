@@ -1,5 +1,6 @@
 import QtQuick 2.0
 import QtQuick.Layouts 1.0
+import QtQuick.Dialogs 1.1
 import Ndless.Emu 1.0
 import QtQuick.Controls 1.3
 
@@ -62,6 +63,40 @@ Rectangle {
             }
 
             onCheckedChanged: Emu.setPaused(checked);
+        }
+
+        ToolButton {
+            id: saveButton
+            anchors.horizontalCenter: parent.horizontalCenter
+
+            Image {
+                fillMode: Image.PreserveAspectFit
+                source: "qrc:/icons/resources/icons/media-floppy.png"
+                anchors.margins: parent.width/10
+                anchors.fill: parent
+            }
+
+            MessageDialog {
+                id: saveSuccessDialog
+                title: qsTr("Success")
+                text: qsTr("Flash saved.")
+                icon: StandardIcon.Information
+            }
+
+            MessageDialog {
+                id: saveFailedDialog
+                title: qsTr("Error")
+                text: qsTr("Failed to save changes!")
+                icon: StandardIcon.Warning
+            }
+
+            onClicked: {
+                var path = Emu.getFlashPath();
+                if(path === "" || !Emu.saveFlash())
+                    saveFailedDialog.visible = true;
+                else
+                    saveSuccessDialog.visible = true
+            }
         }
     }
 

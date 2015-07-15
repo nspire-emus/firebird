@@ -443,10 +443,10 @@ bool flash_open(const char *filename) {
     return true;
 }
 
-void flash_save_changes() {
+bool flash_save_changes() {
     if (flash_file == NULL) {
         gui_status_printf("No flash loaded!");
-        return;
+        return false;
     }
     uint32_t block, count = 0;
     uint32_t block_size = nand_metrics.page_size << nand_metrics.log2_pages_per_block;
@@ -460,6 +460,7 @@ void flash_save_changes() {
     }
     fflush(flash_file);
     gui_status_printf("Flash: Saved %d modified blocks", count);
+    return true;
 }
 
 int flash_save_as(const char *filename) {
@@ -723,6 +724,7 @@ bool flash_create_new(bool flag_large_nand, const char **preload_file, int produ
     if (preload_file[1]) load_file(nand_data, nand_metrics, PartitionBoot2, preload_file[1]); // Boot2 area
     size_t bootdata_offset = flash_partition_offset(PartitionBootdata, &nand_metrics, nand_data); // Bootdata
     memset(nand_data + bootdata_offset, 0xFF, nand_metrics.page_size);
+    memset(nand_data + bootdata_offset + 0x62, 0, 414);
     memcpy(nand_data + bootdata_offset, bootdata, sizeof(bootdata));
     if (preload_file[2]) load_file(nand_data, nand_metrics, PartitionDiags, preload_file[2]); // Diags area
     if (preload_file[3]) preload(nand_data, nand_metrics, flash_partition_offset(PartitionFilesystem, &nand_metrics, nand_data)/nand_metrics.page_size * (nand_metrics.page_size&0x7f), "IMAGE", preload_file[3]); // Filesystem/OS
@@ -773,7 +775,6 @@ void flash_close()
     nand_deinitialize();
 }
 
-
 void flash_set_bootorder(BootOrder order)
 {
     assert(nand_data);
@@ -787,6 +788,7 @@ void flash_set_bootorder(BootOrder order)
     {
         // No bootdata yet
         memset(nand_data + bootdata_offset, 0xFF, nand_metrics.page_size);
+        memset(nand_data + bootdata_offset + 0x62, 0, 414);
         memcpy(nand_data + bootdata_offset, bootdata, sizeof(bootdata));
     }
 

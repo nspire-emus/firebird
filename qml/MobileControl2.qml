@@ -18,7 +18,7 @@ Rectangle {
         y: 8
         color: "#f0f0f0"
         text: qsTr("Settings")
-        font.pointSize: 11
+        font.pointSize: 11*Screen.logicalPixelDensity/2
     }
 
     FileDialog {
@@ -52,7 +52,7 @@ Rectangle {
         anchors.left: parent.left
         anchors.leftMargin: 8
         anchors.bottom: parent.bottom
-        anchors.bottomMargin: 8
+        anchors.bottomMargin: 103
         anchors.top: title.bottom
         anchors.topMargin: 6
 

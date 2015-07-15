@@ -32,7 +32,7 @@ void nand_cx_write_word(uint32_t addr, uint32_t value);
 
 bool flash_open(const char *filename);
 void flash_close();
-void flash_save_changes();
+bool flash_save_changes();
 int flash_save_as(const char *filename);
 bool flash_create_new(bool flag_large_nand, const char **preload_file, int product, bool large_sdram, uint8_t **nand_data_ptr, size_t *size);
 bool flash_read_settings(uint32_t *sdram_size);
