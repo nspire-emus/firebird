@@ -531,7 +531,7 @@ static uint32_t load_file_part(uint8_t *nand_data, struct nand_metrics nand_metr
     return offset - start;
 }
 
-static uint32_t load_file(uint8_t *nand_data, struct nand_metrics nand_metrics, Partition p, const char *filename) {
+static uint32_t load_file(uint8_t *nand_data, struct nand_metrics nand_metrics, Partition p, const char *filename, size_t off) {
     FILE *f = fopen(filename, "rb");
     if (!f) {
         gui_perror(filename);
@@ -540,12 +540,14 @@ static uint32_t load_file(uint8_t *nand_data, struct nand_metrics nand_metrics, 
     size_t offset = flash_partition_offset(p, &nand_metrics, nand_data);
     offset /= nand_metrics.page_size;
     offset *= nand_metrics.page_size & ~0x7F; // Convert offset into offset without spare bytes
+    offset += off;
     uint32_t size = load_file_part(nand_data, nand_metrics, offset, f, -1);
     fclose(f);
     return size;
 }
 
-static uint32_t load_zip_entry(uint8_t *nand_data, struct nand_metrics nand_metrics, uint32_t offset, FILE *f, char *name) {
+// Broken.
+/*static uint32_t load_zip_entry(uint8_t *nand_data, struct nand_metrics nand_metrics, uint32_t offset, FILE *f, char *name) {
     struct __attribute__((packed)) {
         uint32_t sig;
         uint16_t version;
@@ -576,33 +578,31 @@ static uint32_t load_zip_entry(uint8_t *nand_data, struct nand_metrics nand_metr
     }
     fprintf(stderr, "Could not locate %s in CAS+ OS file\n", name);
     return 0;
-}
+}*/
 
-static uint32_t preload(uint8_t *nand_data, struct nand_metrics nand_metrics, uint32_t offset, char *name, const char *filename) {
-    uint32_t page_data_size = (nand_metrics.page_size & ~0x7F);
-    uint32_t page = offset / page_data_size;
+static void preload(uint8_t *nand_data, struct nand_metrics nand_metrics, Partition p, char *name, const char *filename) {
+    uint32_t page = flash_partition_offset(p, &nand_metrics, nand_data) / nand_metrics.page_size;
     uint32_t manifest_size, image_size;
 
-    offset += 32;
     if (emulate_casplus && strcmp(name, "IMAGE") == 0) {
-        FILE *f = fopen(filename, "rb");
+        assert(false); // load_zip_entry doesn't have "offset" anymore
+        /*FILE *f = fopen(filename, "rb");
         if (!f) {
             gui_perror(filename);
             return false;
         }
-        manifest_size = load_zip_entry(nand_data, nand_metrics, offset, f, "manifest_img");
+        manifest_size = load_zip_entry(nand_data, nand_metrics, offset+32, f, "manifest_img");
         offset += manifest_size;
-        image_size = load_zip_entry(nand_data, nand_metrics,  offset, f, "phoenix.img");
+        image_size = load_zip_entry(nand_data, nand_metrics, offset+32, f, "phoenix.img");
         offset += image_size;
         fclose(f);
         if(!manifest_size || !image_size)
-            return false;
+            return false;*/
     } else {
         manifest_size = 0;
-        image_size = load_file(nand_data, nand_metrics, offset, filename);
+        image_size = load_file(nand_data, nand_metrics, p, filename, 32);
         if(!image_size)
-            return false;
-        offset += image_size;
+            return;
     }
 
     uint8_t *pagep = &nand_data[page * nand_metrics.page_size];
@@ -611,10 +611,6 @@ static uint32_t preload(uint8_t *nand_data, struct nand_metrics nand_metrics, ui
     *(uint32_t *)&pagep[24] = BSWAP32(manifest_size);
     *(uint32_t *)&pagep[28] = BSWAP32(image_size);
     ecc_fix(nand_data, nand_metrics, page);
-
-    // Round to next block
-    uint32_t mask = -page_data_size << nand_metrics.log2_pages_per_block;
-    return (offset + ~mask) & mask;
 }
 
 struct manuf_data_804 {
@@ -682,7 +678,7 @@ bool flash_create_new(bool flag_large_nand, const char **preload_file, int produ
     memset(nand_data, 0xFF, *size);
 
     if (preload_file[0]) {
-        load_file(nand_data, nand_metrics, 0, preload_file[0]);
+        load_file(nand_data, nand_metrics, 0, preload_file[0], 0);
     } else if (!emulate_casplus) {
         *(uint32_t *)&nand_data[0] = 0x796EB03C;
         ecc_fix(nand_data, nand_metrics, 0);
@@ -721,13 +717,13 @@ bool flash_create_new(bool flag_large_nand, const char **preload_file, int produ
         ecc_fix(nand_data, nand_metrics, nand_metrics.page_size < 0x800 ? 4 : 1);
     }
 
-    if (preload_file[1]) load_file(nand_data, nand_metrics, PartitionBoot2, preload_file[1]); // Boot2 area
+    if (preload_file[1]) load_file(nand_data, nand_metrics, PartitionBoot2, preload_file[1], 0); // Boot2 area
     size_t bootdata_offset = flash_partition_offset(PartitionBootdata, &nand_metrics, nand_data); // Bootdata
     memset(nand_data + bootdata_offset, 0xFF, nand_metrics.page_size);
     memset(nand_data + bootdata_offset + 0x62, 0, 414);
     memcpy(nand_data + bootdata_offset, bootdata, sizeof(bootdata));
-    if (preload_file[2]) load_file(nand_data, nand_metrics, PartitionDiags, preload_file[2]); // Diags area
-    if (preload_file[3]) preload(nand_data, nand_metrics, flash_partition_offset(PartitionFilesystem, &nand_metrics, nand_data)/nand_metrics.page_size * (nand_metrics.page_size&0x7f), "IMAGE", preload_file[3]); // Filesystem/OS
+    if (preload_file[2]) load_file(nand_data, nand_metrics, PartitionDiags, preload_file[2], 0); // Diags area
+    if (preload_file[3]) preload(nand_data, nand_metrics, PartitionFilesystem, "IMAGE", preload_file[3]); // Filesystem/OS
 
     return true;
 }
