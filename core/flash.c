@@ -387,6 +387,29 @@ void nand_cx_write_word(uint32_t addr, uint32_t value) {
 
 FILE *flash_file = NULL;
 
+typedef enum Partition {
+    PartitionManuf=0,
+    PartitionBoot2,
+    PartitionBootdata,
+    PartitionDiags,
+    PartitionFilesystem
+} Partition;
+
+// Returns offset into nand_data
+size_t flash_partition_offset(Partition p, struct nand_metrics *nand_metrics, uint8_t *nand_data)
+{
+    static size_t offset_classic[] = { 0, 0x2400, 0x15a800, 0x16b000, 0x2100000 };
+
+    if(nand_metrics->page_size < 0x800)
+        return offset_classic[p];
+
+    static size_t parttable_cx[] = { 0x870, 0x874, 0x86c, 0x878 };
+    if(p == PartitionManuf)
+        return 0;
+
+    return (*(uint32_t*)(nand_data + parttable_cx[p-1]))/0x800 * 0x840;
+}
+
 bool flash_open(const char *filename) {
     bool large = false;
     if(flash_file)
@@ -507,12 +530,15 @@ static uint32_t load_file_part(uint8_t *nand_data, struct nand_metrics nand_metr
     return offset - start;
 }
 
-static uint32_t load_file(uint8_t *nand_data, struct nand_metrics nand_metrics, uint32_t offset, const char *filename) {
+static uint32_t load_file(uint8_t *nand_data, struct nand_metrics nand_metrics, Partition p, const char *filename) {
     FILE *f = fopen(filename, "rb");
     if (!f) {
         gui_perror(filename);
         return 0;
     }
+    size_t offset = flash_partition_offset(p, &nand_metrics, nand_data);
+    offset /= nand_metrics.page_size;
+    offset *= nand_metrics.page_size & ~0x7F; // Convert offset into offset without spare bytes
     uint32_t size = load_file_part(nand_data, nand_metrics, offset, f, -1);
     fclose(f);
     return size;
@@ -631,6 +657,15 @@ struct manuf_data_804 {
     uint32_t bootgfx_certsize;
 };
 
+static uint8_t bootdata[] = {
+    0xAA, 0xC6, 0x8C, 0x92, // Signature
+    0x00, 0x00, 0x00, 0x00, // Minimum OS version
+    0x00, 0x00, 0x00, 0x00, // PTT status 1
+    0x00, 0x00, 0x00, 0x00, // PTT status 2
+    0x00, 0x00, 0x00, 0x00, // Boot diags?
+    // Stuff we don't care about
+};
+
 bool flash_create_new(bool flag_large_nand, const char **preload_file, int product, bool large_sdram, uint8_t **nand_data_ptr, size_t *size) {
     assert(nand_data_ptr);
     assert(size);
@@ -685,12 +720,12 @@ bool flash_create_new(bool flag_large_nand, const char **preload_file, int produ
         ecc_fix(nand_data, nand_metrics, nand_metrics.page_size < 0x800 ? 4 : 1);
     }
 
-    int block = nand_metrics.page_size < 0x800 ? 0x200000 : 0x400000;
-    //if (preload_file[1]) block = preload(block, "BOOT2", preload_file[1]);
-    //if (preload_file[2]) block = preload(block, "DIAGS", preload_file[2]);
-    if (preload_file[1]) load_file(nand_data, nand_metrics, nand_metrics.page_size < 0x800 ? 0x004000 : 0x020000, preload_file[1]);
-    if (preload_file[2]) load_file(nand_data, nand_metrics, nand_metrics.page_size < 0x800 ? 0x160000 : 0x320000, preload_file[2]);
-    if (preload_file[3]) block = preload(nand_data, nand_metrics, block, "IMAGE", preload_file[3]);
+    if (preload_file[1]) load_file(nand_data, nand_metrics, PartitionBoot2, preload_file[1]); // Boot2 area
+    size_t bootdata_offset = flash_partition_offset(PartitionBootdata, &nand_metrics, nand_data); // Bootdata
+    memset(nand_data + bootdata_offset, 0xFF, nand_metrics.page_size);
+    memcpy(nand_data + bootdata_offset, bootdata, sizeof(bootdata));
+    if (preload_file[2]) load_file(nand_data, nand_metrics, PartitionDiags, preload_file[2]); // Diags area
+    if (preload_file[3]) preload(nand_data, nand_metrics, flash_partition_offset(PartitionFilesystem, &nand_metrics, nand_data)/nand_metrics.page_size * (nand_metrics.page_size&0x7f), "IMAGE", preload_file[3]); // Filesystem/OS
 
     return true;
 }
@@ -746,11 +781,22 @@ void flash_set_bootorder(BootOrder order)
     if(order == ORDER_DEFAULT)
         return;
 
-    //TODO: Only writes to the first page of bootdata
-    size_t offset = nand_metrics.page_size < 0x800 ? 0x15A810 : 0x2D6010;
+    size_t bootdata_offset = flash_partition_offset(PartitionBootdata, &nand_metrics, nand_data);
 
-    uint32_t *ptr = (uint32_t*)(nand_data + offset); // See "NAND Memory Layout" on hackspire
-    *ptr = order;
+    if(*(uint32_t*)(nand_data + bootdata_offset) != 0x928cc6aa)
+    {
+        // No bootdata yet
+        memset(nand_data + bootdata_offset, 0xFF, nand_metrics.page_size);
+        memcpy(nand_data + bootdata_offset, bootdata, sizeof(bootdata));
+    }
 
-    ecc_fix(nand_data, nand_metrics, offset / nand_metrics.page_size);
+    // Loop through all bootdata pages with signature
+    while(*(uint32_t*)(nand_data + bootdata_offset) == 0x928cc6aa)
+    {
+        *(uint32_t*)(nand_data + bootdata_offset + 0x10) = order;
+        unsigned int page = bootdata_offset / nand_metrics.page_size;
+        nand_block_modified[page >> nand_metrics.log2_pages_per_block] = true;
+        ecc_fix(nand_data, nand_metrics, page);
+        bootdata_offset += nand_metrics.page_size;
+    }
 }
