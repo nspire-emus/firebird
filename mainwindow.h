@@ -30,6 +30,9 @@ public slots:
 
     //Menu "Emulator"
     void restart();
+
+    //Menu "Tools"
+    void xmodemSend();
     void screenshot();
     void connectUSB();
     void usblinkChanged(bool state);

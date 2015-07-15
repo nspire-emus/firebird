@@ -88,7 +88,7 @@
     </message>
     <message>
         <location filename="../mainwindow.ui" line="86"/>
-        <location filename="../mainwindow.ui" line="773"/>
+        <location filename="../mainwindow.ui" line="775"/>
         <source>Pause</source>
         <translation>Pausieren</translation>
     </message>
@@ -256,39 +256,44 @@
         <translation>&amp;Werkzeuge</translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="743"/>
+        <location filename="../mainwindow.ui" line="745"/>
         <source>&amp;Reset</source>
         <translation>&amp;Reset</translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="752"/>
+        <location filename="../mainwindow.ui" line="754"/>
         <source>Enter &amp;Debugger</source>
         <translation>&amp;Debugger betreten</translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="785"/>
+        <location filename="../mainwindow.ui" line="787"/>
         <source>Re&amp;start</source>
         <translation>Neu&amp;start</translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="794"/>
+        <location filename="../mainwindow.ui" line="796"/>
         <source>&amp;Screenshot</source>
         <translation>&amp;Screenshot</translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="807"/>
+        <location filename="../mainwindow.ui" line="809"/>
         <source>Connect &amp;USB</source>
         <translation>&amp;USB verbinden</translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="816"/>
+        <location filename="../mainwindow.ui" line="818"/>
         <source>&amp;Save</source>
         <translation>&amp;Speichern</translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="825"/>
+        <location filename="../mainwindow.ui" line="827"/>
         <source>&amp;Create Flash</source>
         <translation>Flash &amp;erstellen</translation>
+    </message>
+    <message>
+        <location filename="../mainwindow.ui" line="832"/>
+        <source>Send file over XModem</source>
+        <translation>Datei über XModem senden</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="66"/>
@@ -300,12 +305,12 @@
         <translation type="vanished">Debugger betreten</translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="761"/>
+        <location filename="../mainwindow.ui" line="763"/>
         <source>&amp;Quit</source>
         <translation>&amp;Beenden</translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="776"/>
+        <location filename="../mainwindow.ui" line="778"/>
         <source>Pause execution</source>
         <translation>Pausieren</translation>
     </message>
@@ -449,6 +454,29 @@ You can create one via Flash-&gt;Create Flash in the menu.</source>
         <location filename="../qml/MobileControl2.qml" line="83"/>
         <source>Flash:</source>
         <translation>Flash:</translation>
+    </message>
+</context>
+<context>
+    <name>MobileUI</name>
+    <message>
+        <location filename="../qml/MobileUI.qml" line="89"/>
+        <source>Success</source>
+        <translation>Erfolg</translation>
+    </message>
+    <message>
+        <location filename="../qml/MobileUI.qml" line="90"/>
+        <source>Flash saved.</source>
+        <translation>Flash gespeichert.</translation>
+    </message>
+    <message>
+        <location filename="../qml/MobileUI.qml" line="96"/>
+        <source>Error</source>
+        <translation>Fehler</translation>
+    </message>
+    <message>
+        <location filename="../qml/MobileUI.qml" line="97"/>
+        <source>Failed to save changes!</source>
+        <translation>Konnte Änderungen nicht speichern!</translation>
     </message>
 </context>
 <context>

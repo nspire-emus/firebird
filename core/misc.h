@@ -44,7 +44,7 @@ uint32_t timer_read(uint32_t addr);
 void timer_write(uint32_t addr, uint32_t value);
 void timer_reset(void);
 
-void xmodem_send(char *filename);
+void xmodem_send(const char *filename);
 void serial_reset(void);
 uint32_t serial_read(uint32_t addr);
 void serial_write(uint32_t addr, uint32_t value);

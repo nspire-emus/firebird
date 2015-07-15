@@ -322,7 +322,7 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>273</width>
+             <width>271</width>
              <height>98</height>
             </rect>
            </property>
@@ -430,7 +430,7 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>239</width>
+             <width>237</width>
              <height>98</height>
             </rect>
            </property>
@@ -540,7 +540,7 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>157</width>
+             <width>156</width>
              <height>40</height>
             </rect>
            </property>
@@ -729,6 +729,8 @@
     </property>
     <addaction name="actionScreenshot"/>
     <addaction name="actionConnect"/>
+    <addaction name="separator"/>
+    <addaction name="actionXModem"/>
    </widget>
    <addaction name="menuEmulation"/>
    <addaction name="menuTools"/>
@@ -825,12 +827,17 @@
     <string>&amp;Create Flash</string>
    </property>
   </action>
+  <action name="actionXModem">
+   <property name="text">
+    <string>Send file over XModem</string>
+   </property>
+  </action>
  </widget>
  <customwidgets>
   <customwidget>
    <class>QQuickWidget</class>
    <extends>QWidget</extends>
-   <header>QQuickWidget</header>
+   <header>QtQuickWidgets/QQuickWidget</header>
   </customwidget>
   <customwidget>
    <class>LCDWidget</class>

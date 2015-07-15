@@ -35,7 +35,7 @@ static void xmodem_next_packet() {
     xmodem_next_char();
 }
 
-void xmodem_send(char *filename) {
+void xmodem_send(const char *filename) {
     if (xmodem_file)
         fclose(xmodem_file);
     xmodem_file = fopen(filename, "rb");
@@ -43,7 +43,7 @@ void xmodem_send(char *filename) {
         gui_perror(filename);
         return;
     }
-    emuprintf("XMODEM: sending file %s...\n", filename);
+    gui_status_printf("XMODEM: sending file %s...\n", filename);
     xmodem_buf[1] = 0;
     xmodem_next_packet();
 }
@@ -51,7 +51,7 @@ void xmodem_send(char *filename) {
 void serial_byte_out(uint8_t byte) {
     if (xmodem_file) {
         if (byte == 6) {
-            emuprintf("\r%ld bytes sent", ftell(xmodem_file));
+            gui_status_printf("\r%ld bytes sent", ftell(xmodem_file));
             xmodem_next_packet();
         } else {
             emuprintf("xmodem got byte %02X\n", byte);
@@ -59,7 +59,8 @@ void serial_byte_out(uint8_t byte) {
             xmodem_file = NULL;
         }
     }
-    gui_putchar(byte);
+    else
+        gui_putchar(byte);
 }
 
 struct {

@@ -63,6 +63,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->actionScreenshot, SIGNAL(triggered()), this, SLOT(screenshot()));
     connect(ui->actionConnect, SIGNAL(triggered()), this, SLOT(connectUSB()));
     connect(ui->buttonUSB, SIGNAL(clicked(bool)), this, SLOT(connectUSB()));
+    connect(ui->actionXModem, SIGNAL(triggered()), this, SLOT(xmodemSend()));
     ui->actionConnect->setShortcut(QKeySequence(Qt::Key_F10));
     ui->actionConnect->setAutoRepeat(false);
 
@@ -563,4 +564,14 @@ void MainWindow::restart()
         emu.start();
     else
         QMessageBox::warning(this, trUtf8("Restart needed"), trUtf8("Failed to restart emulator. Close and reopen this app.\n"));
+}
+
+void MainWindow::xmodemSend()
+{
+    QString filename = QFileDialog::getOpenFileName(this, tr("Select file to send"));
+    if(filename.isNull())
+        return;
+
+    std::string path = filename.toStdString();
+    xmodem_send(path.c_str());
 }
