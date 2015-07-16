@@ -14,7 +14,7 @@
    <bool>true</bool>
   </property>
   <property name="windowTitle">
-   <string>TI Nspire Emulator</string>
+   <string>TI-Nspire Emulator</string>
   </property>
   <property name="windowIcon">
    <iconset resource="resources.qrc">
@@ -322,7 +322,7 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>271</width>
+             <width>273</width>
              <height>98</height>
             </rect>
            </property>
@@ -430,7 +430,7 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>237</width>
+             <width>239</width>
              <height>98</height>
             </rect>
            </property>
@@ -540,7 +540,7 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>156</width>
+             <width>157</width>
              <height>40</height>
             </rect>
            </property>
@@ -565,8 +565,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>326</width>
-             <height>149</height>
+             <width>149</width>
+             <height>76</height>
             </rect>
            </property>
            <attribute name="label">
@@ -837,7 +837,7 @@
   <customwidget>
    <class>QQuickWidget</class>
    <extends>QWidget</extends>
-   <header>QtQuickWidgets/QQuickWidget</header>
+   <header>QQuickWidget</header>
   </customwidget>
   <customwidget>
    <class>LCDWidget</class>
