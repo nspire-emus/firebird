@@ -695,7 +695,11 @@ void rdebug_recv(void) {
         return;
     }
 
-    ssize_t rv = recv(socket_fd, (void*)&rdebug_inbuf[rdebug_inbuf_used], buf_remain, 0);
+#ifdef __MINGW32__
+    ssize_t rv = recv(socket_fd, &rdebug_inbuf[rdebug_inbuf_used], buf_remain, 0);
+#else
+    ssize_t rv = recv(socket_fd, (void*) &rdebug_inbuf[rdebug_inbuf_used], buf_remain, 0);
+#endif
     if (!rv) {
         gui_debug_printf("Remote debug: connection closed.\n");
 #ifdef __MINGW32__

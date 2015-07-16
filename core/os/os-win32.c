@@ -56,7 +56,7 @@ double os_time_diff(os_time_t x, os_time_t y)
 
 long long os_frequency_hz(os_frequency_t f)
 {
-    return f.QuadPart;
+    return f.QuadPart/4;
 }
 
 void os_query_frequency(os_frequency_t *f)
