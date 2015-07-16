@@ -466,22 +466,22 @@ You can create one via Flash-&gt;Create Flash in the menu.</source>
     <message>
         <location filename="../qml/MobileUI.qml" line="89"/>
         <source>Success</source>
-        <translation type="unfinished"></translation>
+        <translation>OK</translation>
     </message>
     <message>
         <location filename="../qml/MobileUI.qml" line="90"/>
         <source>Flash saved.</source>
-        <translation type="unfinished"></translation>
+        <translation>Flash sauvée.</translation>
     </message>
     <message>
         <location filename="../qml/MobileUI.qml" line="96"/>
         <source>Error</source>
-        <translation type="unfinished"></translation>
+        <translation>Erreur</translation>
     </message>
     <message>
         <location filename="../qml/MobileUI.qml" line="97"/>
         <source>Failed to save changes!</source>
-        <translation type="unfinished"></translation>
+        <translation>Impossible de sauvegarder les modifications !</translation>
     </message>
 </context>
 <context>
