@@ -1,3 +1,0 @@
--File transfer: Download, Rename, Move
--Better debugger integration
--Bug: Crash if EmuThread terminated and debugger command entered
