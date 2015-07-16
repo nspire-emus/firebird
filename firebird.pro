@@ -57,6 +57,8 @@ ios {
     QMAKE_CXXFLAGS += -mno-thumb
     QMAKE_LFLAGS += -mno-thumb
     QMAKE_IOS_DEVICE_ARCHS = armv7
+    ios_icon.files = $$files(resources/ios/Icon*.png)
+    QMAKE_BUNDLE_DATA += ios_icon
 }
 
 # QMAKE_HOST can be e.g. armv7hl, but QT_ARCH would be arm in such cases
