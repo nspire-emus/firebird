@@ -22,7 +22,7 @@ As a workaround, you'll have to take care of it manually:
 
 1. start a standard build so that all the needed files get created
 2. in Terminal, `cd` to the `src/core` directory
-3. get the .o yourself: `clang -marm -o asmcode_arm.o -c asmcode_arm.S`
+3. get the .o yourself: `clang -arch armv7 -marm -o asmcode_arm.o -c asmcode_arm.S`
 4. move this newly created `asmcode_arm.o` into the objects directory (`[BUILD_FOLDER]/firebird.build/Release-iphoneos/firebird.build/Objects-normal/armv7/`)
 5. add a line with `asmcode_arm.o` to the `firebird.LinkFileList` file (which is also located in the objects folder)
 6. lock both files (Right-Click -> Get Info)
