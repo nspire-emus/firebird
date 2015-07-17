@@ -28,7 +28,7 @@ public:
         Q_INVOKABLE void reset();
         Q_INVOKABLE bool stop();
 
-        Q_INVOKABLE void saveFlash();
+        Q_INVOKABLE bool saveFlash();
 
         Q_INVOKABLE QString getBoot1Path();
         Q_INVOKABLE void setBoot1Path(QUrl path);

@@ -115,9 +115,9 @@ bool QMLBridge::stop()
     return emu_thread.stop();
 }
 
-void QMLBridge::saveFlash()
+bool QMLBridge::saveFlash()
 {
-    flash_save_changes();
+    return flash_save_changes();
 }
 
 QString QMLBridge::getBoot1Path()
