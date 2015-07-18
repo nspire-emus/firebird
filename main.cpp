@@ -20,7 +20,7 @@ int main(int argc, char **argv)
     app.installTranslator(&appTranslator);
 
     QCoreApplication::setOrganizationName("ndless");
-    QCoreApplication::setApplicationName("nspire_emu");
+    QCoreApplication::setApplicationName("firebird");
     app.setAttribute(Qt::AA_UseHighDpiPixmaps);
 
     // Register QMLBridge for Keypad<->Emu communication
