@@ -59,16 +59,16 @@ void nand_deinitialize()
 void nand_write_command_byte(uint8_t command) {
     //printf("\n[%08X] Command %02X", arm.reg[15], command);
     switch (command) {
-        case 0x01: case 0x50:
+        case 0x01: case 0x50: // READ0, READOOB
             if (nand_metrics.page_size >= 0x800)
                 goto unknown;
             // Fallthrough
-        case 0x00:
+        case 0x00: // READ0
             nand_area_pointer = (command == 0x50) ? 2 : command;
             nand_addr_state = 0;
             nand_state = 0x00;
             break;
-        case 0x10:
+        case 0x10: // PAGEPROG
             if (nand_state == 0x80) {
                 if (!nand_writable)
                     error("program with write protect on");
@@ -80,18 +80,18 @@ void nand_write_command_byte(uint8_t command) {
                 nand_state = 0xFF;
             }
             break;
-        case 0x30: // ???
+        case 0x30: // READSTART
             break;
-        case 0x60:
+        case 0x60: // ERASE1
             nand_addr_state = 2;
             nand_state = command;
             break;
-        case 0x80:
+        case 0x80: // SEQIN
             nand_buffer_pos = 0;
             nand_addr_state = 0;
             nand_state = command;
             break;
-        case 0xD0:
+        case 0xD0: // ERASE2
             if (nand_state == 0x60) {
                 uint32_t block_bits = (1 << nand_metrics.log2_pages_per_block) - 1;
                 if (!nand_writable)
@@ -106,13 +106,13 @@ void nand_write_command_byte(uint8_t command) {
                 nand_state = 0xFF;
             }
             break;
-        case 0xFF:
+        case 0xFF: // RESET
             nand_row = 0;
             nand_column = 0;
             nand_area_pointer = 0;
             // fallthrough
-        case 0x70:
-        case 0x90:
+        case 0x70: // STATUS
+        case 0x90: // READID
             nand_addr_state = 6;
             nand_state = command;
             break;
@@ -161,7 +161,10 @@ uint8_t nand_read_data_byte() {
             return nand_data[nand_row * nand_metrics.page_size + nand_column++];
         case 0x70: return 0x40 | (nand_writable << 7); // Status register
         case 0x90: nand_state++; return nand_metrics.chip_manuf;
-        case 0x90+1: nand_state = 0xFF; return nand_metrics.chip_model;
+        case 0x90+1: if(nand_metrics.chip_model == 0xA1) nand_state++; else nand_state = 0xFF; return nand_metrics.chip_model;
+        case 0x90+2: nand_state++; return 1; // bits per cell
+        case 0x90+3: nand_state++; return 0x25; // extid
+        case 0x90+4: nand_state = 0xFF; return 0;
         default:
             //warn("NAND read byte in state %02X", nand_state);
             return 0;
@@ -365,12 +368,23 @@ void nand_cx_write_byte(uint32_t addr, uint8_t value) {
     bad_write_byte(addr, value);
 }
 void nand_cx_write_word(uint32_t addr, uint32_t value) {
+    static int addr_bytes_remaining = 0;
+
     if (addr >= 0x81000000 && addr < 0x82000000) {
         if (addr & 0x080000) {
             nand_write_data_word(value);
         } else {
             int addr_bytes = addr >> 21 & 7;
-            if (addr_bytes > 4) error("more than 4 address bytes not implemented");
+            if(addr_bytes_remaining)
+            {
+                addr_bytes = addr_bytes_remaining;
+                addr_bytes_remaining = 0;
+            }
+            if(addr_bytes > 4)
+            {
+                addr_bytes_remaining = addr_bytes - 4;
+                addr_bytes = 4;
+            }
             nand_write_command_byte(addr >> 3);
             for (; addr_bytes != 0; addr_bytes--) {
                 nand_write_address_byte(value);

@@ -24,6 +24,40 @@ void sdramctl_write_word(uint32_t addr, uint32_t value) {
     bad_write_word(addr, value);
 }
 
+uint32_t nandctl_ecc_memcfg;
+uint32_t nandctl_cx_read_word(uint32_t addr)
+{
+    switch(addr - 0x8FFF1000)
+    {
+    case 0x000: return 0x20; // memc_status (raw interrupt bit set when flash op complete?)
+    case 0x004: return 0x56; // memif_cfg
+    case 0x300: return 0x00; // ecc_status
+    case 0x304: return nandctl_ecc_memcfg; // ecc_memcfg
+    case 0xFE0: return 0x51;
+    case 0xFE4: return 0x13;
+    case 0xFE8: return 0x34;
+    case 0xFEC: return 0x00;
+    }
+    return bad_read_word(addr);
+}
+
+void nandctl_cx_write_word(uint32_t addr, uint32_t value)
+{
+    switch(addr - 0x8FFF1000)
+    {
+    case 0x008: return; // memc_cfg_set
+    case 0x00C: return; // memc_cfg_clr
+    case 0x010: return; // direct_cmd
+    case 0x014: return; // set_cycles
+    case 0x018: return; // set_opmode
+    case 0x204: nand_writable = value & 1; return;
+    case 0x304: nandctl_ecc_memcfg = value; return;
+    case 0x308: return; // ecc_memcommand1
+    case 0x30C: return; // ecc_memcommand2
+    }
+    bad_write_word(addr, value);
+}
+
 uint32_t memctl_cx_status;
 uint32_t memctl_cx_config;
 void memctl_cx_reset(void) {
@@ -31,6 +65,9 @@ void memctl_cx_reset(void) {
     memctl_cx_config = 0;
 }
 uint32_t memctl_cx_read_word(uint32_t addr) {
+    if(addr >= 0x8FFF1000)
+        return nandctl_cx_read_word(addr);
+
     switch (addr - 0x8FFF0000) {
         case 0x0000: return memctl_cx_status | 0x80;
         case 0x000C: return memctl_cx_config;
@@ -38,15 +75,13 @@ uint32_t memctl_cx_read_word(uint32_t addr) {
         case 0x0FE4: return 0x13;
         case 0x0FE8: return 0x14;
         case 0x0FEC: return 0x00;
-        case 0x1000: return 0x20; // memc_status (raw interrupt bit set when flash op complete?)
-        case 0x1FE0: return 0x51;
-        case 0x1FE4: return 0x13;
-        case 0x1FE8: return 0x34;
-        case 0x1FEC: return 0x00;
     }
     return bad_read_word(addr);
 }
 void memctl_cx_write_word(uint32_t addr, uint32_t value) {
+    if(addr >= 0x8FFF1000)
+        return nandctl_cx_write_word(addr, value);
+
     switch (addr - 0x8FFF0000) {
         case 0x0004:
             switch (value) {
@@ -65,11 +100,6 @@ void memctl_cx_write_word(uint32_t addr, uint32_t value) {
         case 0x0030: return; // t_rp
         case 0x0104: return;
         case 0x0200: return;
-        case 0x1008: return; // memc_cfg_set
-        case 0x1010: return; // direct_cmd
-        case 0x1014: return; // set_cycles
-        case 0x1018: return; // set_opmode
-        case 0x1204: nand_writable = value & 1; return;
     }
     bad_write_word(addr, value);
 }
