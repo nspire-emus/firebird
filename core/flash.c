@@ -162,8 +162,8 @@ uint8_t nand_read_data_byte() {
         case 0x70: return 0x40 | (nand_writable << 7); // Status register
         case 0x90: nand_state++; return nand_metrics.chip_manuf;
         case 0x90+1: if(nand_metrics.chip_model == 0xA1) nand_state++; else nand_state = 0xFF; return nand_metrics.chip_model;
-        case 0x90+2: nand_state++; return 1; // bits per cell
-        case 0x90+3: nand_state++; return 0x25; // extid
+        case 0x90+2: nand_state++; return 1; // bits per cell: SLC
+        case 0x90+3: nand_state++; return 0x15; // extid: erase size: 128 KiB, page size: 2048, OOB size: 64, 8-bit
         case 0x90+4: nand_state = 0xFF; return 0;
         default:
             //warn("NAND read byte in state %02X", nand_state);
@@ -369,9 +369,10 @@ void nand_cx_write_byte(uint32_t addr, uint8_t value) {
 }
 void nand_cx_write_word(uint32_t addr, uint32_t value) {
     static int addr_bytes_remaining = 0;
-
     if (addr >= 0x81000000 && addr < 0x82000000) {
         if (addr & 0x080000) {
+            if(!(addr & (1 << 21)))
+                warn("Doesn't work on HW");
             nand_write_data_word(value);
         } else {
             int addr_bytes = addr >> 21 & 7;
