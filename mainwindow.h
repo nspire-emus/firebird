@@ -37,6 +37,12 @@ public slots:
     void connectUSB();
     void usblinkChanged(bool state);
 
+    //Menu "State"
+    void resume();
+    void suspend();
+    void resumeFromFile();
+    void suspendToFile();
+
     //Menu "Flash"
     void saveFlash();
     void createFlash();
@@ -80,6 +86,8 @@ public:
     static void usblink_progress_callback(int progress, void *data);
 
 private:
+    void suspendToPath(QString path);
+    void resumeFromPath(QString path);
     void selectBoot1(QString path);
     void selectFlash(QString path);
 

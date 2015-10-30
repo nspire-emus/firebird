@@ -7,7 +7,7 @@
 extern "C" {
 #endif
 
-extern struct usb_state {
+typedef struct usb_state {
     uint32_t usbcmd;      // +140
     uint32_t usbsts;      // +144
     uint32_t usbintr;     // +148
@@ -18,8 +18,13 @@ extern struct usb_state {
     uint32_t epsetupsr;   // +1AC
     uint32_t epsr;        // +1B8
     uint32_t epcomplete;  // +1BC
-} usb;
+} usb_state;
+
+extern usb_state usb;
 void usb_reset(void);
+typedef struct emu_snapshot emu_snapshot;
+bool usb_suspend(emu_snapshot *snapshot);
+bool usb_resume(const emu_snapshot *snapshot);
 uint8_t usb_read_byte(uint32_t addr);
 uint16_t usb_read_half(uint32_t addr);
 uint32_t usb_read_word(uint32_t addr);

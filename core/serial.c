@@ -63,14 +63,20 @@ void serial_byte_out(uint8_t byte) {
         gui_putchar(byte);
 }
 
-struct {
-    uint8_t rx_char;
-    uint8_t interrupts;
-    uint8_t DLL;
-    uint8_t DLM;
-    uint8_t IER;
-    uint8_t LCR;
-} serial;
+static serial_state serial;
+
+bool serial_resume(const emu_snapshot *snapshot)
+{
+    serial = snapshot->mem.serial;
+    return true;
+}
+
+bool serial_suspend(emu_snapshot *snapshot)
+{
+    snapshot->mem.serial = serial;
+    return true;
+}
+
 static void serial_int_check() {
     if (emulate_casplus)
         casplus_int_set(15, serial.interrupts & serial.IER);
@@ -147,13 +153,20 @@ void serial_write(uint32_t addr, uint32_t value) {
     bad_write_word(addr, value);
 }
 
-struct {
-    uint8_t rx_char;
-    uint8_t rx;
-    uint32_t cr;
-    uint16_t int_status;
-    uint16_t int_mask;
-} serial_cx;
+static serial_cx_state serial_cx;
+
+bool serial_cx_resume(const emu_snapshot *snapshot)
+{
+    serial_cx = snapshot->mem.serial_cx;
+    return true;
+}
+
+bool serial_cx_suspend(emu_snapshot *snapshot)
+{
+    snapshot->mem.serial_cx = serial_cx;
+    return true;
+}
+
 static inline void serial_cx_int_check() {
     int_set(INT_SERIAL, serial_cx.int_status & serial_cx.int_mask);
 }

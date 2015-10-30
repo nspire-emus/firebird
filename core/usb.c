@@ -10,7 +10,7 @@
 extern void usblink_receive(int ep, uint8_t *buf, uint32_t size);
 extern void usblink_complete_send(int ep);
 
-struct usb_state usb;
+usb_state usb;
 
 struct usb_qh { // Queue head
     uint32_t flags;
@@ -263,4 +263,16 @@ void usb_write_word(uint32_t addr, uint32_t value) {
             return;
     }
     bad_write_word(addr, value);
+}
+
+bool usb_suspend(emu_snapshot *snapshot)
+{
+    snapshot->mem.usb = usb;
+    return true;
+}
+
+bool usb_resume(const emu_snapshot *snapshot)
+{
+    usb = snapshot->mem.usb;
+    return true;
 }

@@ -14,6 +14,8 @@
         <file>resources/icons/Actions-network-connect-icon.png</file>
         <file>resources/icons/Actions-network-disconnect-icon.png</file>
         <file>resources/firebird.png</file>
+        <file>resources/icons/system-suspend-hibernate.png</file>
+        <file>resources/icons/system-suspend.png</file>
     </qresource>
     <qresource prefix="/qml">
         <file>qml/Keypad.qml</file>

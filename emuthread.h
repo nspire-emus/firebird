@@ -12,9 +12,9 @@ public:
     void doStuff();
     void throttleTimerWait();
 
-    volatile bool paused = false;
+    volatile bool paused = false, do_suspend = false, do_resume = false;
 
-    std::string boot1 = "", flash = "";
+    std::string boot1 = "", flash = "", snapshot_path = "";
     unsigned int port_gdb = 0, port_rdbg = 0;
 
 signals:

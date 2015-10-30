@@ -5,7 +5,7 @@
 
 uint32_t clock_rates[6] = { 0, 0, 0, 27000000, 12000000, 32768 };
 
-struct sched_item sched_items[SCHED_NUM_ITEMS];
+sched_state sched;
 
 uint32_t next_cputick;
 int next_index; // -1 if no more events this second
@@ -22,11 +22,11 @@ static inline uint32_t muldiv(uint32_t a, uint32_t b, uint32_t c) {
 }
 
 void sched_reset(void) {
-    memset(sched_items, 0, sizeof sched_items);
+    memset(sched.items, 0, sizeof sched.items);
 }
 
 void event_repeat(int index, uint32_t ticks) {
-    struct sched_item *item = &sched_items[index];
+    struct sched_item *item = &sched.items[index];
 
     uint32_t prev = item->tick;
     item->second = ticks / clock_rates[item->clock];
@@ -45,7 +45,7 @@ void sched_update_next_event(uint32_t cputick) {
     next_index = -1;
     int i;
     for (i = 0; i < SCHED_NUM_ITEMS; i++) {
-        struct sched_item *item = &sched_items[i];
+        struct sched_item *item = &sched.items[i];
         if (item->proc != NULL && item->second == 0 && item->cputick < next_cputick) {
             next_cputick = item->cputick;
             next_index = i;
@@ -62,14 +62,14 @@ uint32_t sched_process_pending_events() {
             //printf("[%8d] New second\n", cputick);
             int i;
             for (i = 0; i < SCHED_NUM_ITEMS; i++) {
-                if (sched_items[i].second >= 0)
-                    sched_items[i].second--;
+                if (sched.items[i].second >= 0)
+                    sched.items[i].second--;
             }
             cputick -= clock_rates[CLOCK_CPU];
         } else {
             //printf("[%8d/%8d] Event %d\n", cputick, next_cputick, next_index);
-            sched_items[next_index].second = -1;
-            sched_items[next_index].proc(next_index);
+            sched.items[next_index].second = -1;
+            sched.items[next_index].proc(next_index);
         }
         sched_update_next_event(cputick);
     }
@@ -79,14 +79,14 @@ uint32_t sched_process_pending_events() {
 void event_clear(int index) {
     uint32_t cputick = sched_process_pending_events();
 
-    sched_items[index].second = -1;
+    sched.items[index].second = -1;
 
     sched_update_next_event(cputick);
 }
 void event_set(int index, int ticks) {
     uint32_t cputick = sched_process_pending_events();
 
-    struct sched_item *item = &sched_items[index];
+    struct sched_item *item = &sched.items[index];
     item->tick = muldiv(cputick, clock_rates[item->clock], clock_rates[CLOCK_CPU]);
     event_repeat(index, ticks);
 
@@ -96,7 +96,7 @@ void event_set(int index, int ticks) {
 uint32_t event_ticks_remaining(int index) {
     uint32_t cputick = sched_process_pending_events();
 
-    struct sched_item *item = &sched_items[index];
+    struct sched_item *item = &sched.items[index];
     return item->second * clock_rates[item->clock]
             + item->tick - muldiv(cputick, clock_rates[item->clock], clock_rates[CLOCK_CPU]);
 }
@@ -107,14 +107,14 @@ void sched_set_clocks(int count, uint32_t *new_rates) {
     uint32_t remaining[SCHED_NUM_ITEMS];
     int i;
     for (i = 0; i < SCHED_NUM_ITEMS; i++) {
-        struct sched_item *item = &sched_items[i];
+        struct sched_item *item = &sched.items[i];
         if (item->second >= 0)
             remaining[i] = event_ticks_remaining(i);
     }
     cputick = muldiv(cputick, new_rates[CLOCK_CPU], clock_rates[CLOCK_CPU]);
     memcpy(clock_rates, new_rates, sizeof(uint32_t) * count);
     for (i = 0; i < SCHED_NUM_ITEMS; i++) {
-        struct sched_item *item = &sched_items[i];
+        struct sched_item *item = &sched.items[i];
         if (item->second >= 0) {
             item->tick = muldiv(cputick, clock_rates[item->clock], clock_rates[CLOCK_CPU]);
             event_repeat(i, remaining[i]);
@@ -122,4 +122,21 @@ void sched_set_clocks(int count, uint32_t *new_rates) {
     }
 
     sched_update_next_event(cputick);
+}
+
+bool sched_resume(const emu_snapshot *snapshot)
+{
+    for(int i = 0; i < SCHED_NUM_ITEMS; ++i)
+    {
+        struct sched_item j = snapshot->sched.items[i];
+        j.proc = sched.items[i].proc;
+        sched.items[i] = j;
+    }
+    return true;
+}
+
+bool sched_suspend(emu_snapshot *snapshot)
+{
+    snapshot->sched = sched;
+    return true;
 }

@@ -13,20 +13,20 @@ void QtKeypadBridge::keyPressEvent(QKeyEvent *event)
     switch(key)
     {
     case Qt::Key_Down:
-        touchpad_x = TOUCHPAD_X_MAX / 2;
-        touchpad_y = 0;
+        keypad.touchpad_x = TOUCHPAD_X_MAX / 2;
+        keypad.touchpad_y = 0;
         break;
     case Qt::Key_Up:
-        touchpad_x = TOUCHPAD_X_MAX / 2;
-        touchpad_y = TOUCHPAD_Y_MAX;
+        keypad.touchpad_x = TOUCHPAD_X_MAX / 2;
+        keypad.touchpad_y = TOUCHPAD_Y_MAX;
         break;
     case Qt::Key_Left:
-        touchpad_y = TOUCHPAD_Y_MAX / 2;
-        touchpad_x = 0;
+        keypad.touchpad_y = TOUCHPAD_Y_MAX / 2;
+        keypad.touchpad_x = 0;
         break;
     case Qt::Key_Right:
-        touchpad_y = TOUCHPAD_Y_MAX / 2;
-        touchpad_x = TOUCHPAD_X_MAX;
+        keypad.touchpad_y = TOUCHPAD_Y_MAX / 2;
+        keypad.touchpad_x = TOUCHPAD_X_MAX;
         break;
     case Qt::Key_Return:
         key = Qt::Key_Enter;
@@ -42,7 +42,7 @@ void QtKeypadBridge::keyPressEvent(QKeyEvent *event)
                     if(row == 0 && col == 9)
                         keypad_on_pressed();
 
-                    key_map[row] |= 1 << col;
+                    keypad.key_map[row] |= 1 << col;
                     notifyKeypadStateChanged(row, col, true);
                     keypad_int_check();
                     return;
@@ -52,9 +52,9 @@ void QtKeypadBridge::keyPressEvent(QKeyEvent *event)
         return;
     }
 
-    touchpad_contact = touchpad_down = true;
+    keypad.touchpad_contact = keypad.touchpad_down = true;
     notifyTouchpadStateChanged();
-    kpc.gpio_int_active |= 0x800;
+    keypad.kpc.gpio_int_active |= 0x800;
 
     keypad_int_check();
 }
@@ -66,24 +66,24 @@ void QtKeypadBridge::keyReleaseEvent(QKeyEvent *event)
     switch(key)
     {
     case Qt::Key_Down:
-        if(touchpad_x == TOUCHPAD_X_MAX / 2
-            && touchpad_y == 0)
-            touchpad_contact = touchpad_down = false;
+        if(keypad.touchpad_x == TOUCHPAD_X_MAX / 2
+            && keypad.touchpad_y == 0)
+            keypad.touchpad_contact = keypad.touchpad_down = false;
         break;
     case Qt::Key_Up:
-        if(touchpad_x == TOUCHPAD_X_MAX / 2
-            && touchpad_y == TOUCHPAD_Y_MAX)
-            touchpad_contact = touchpad_down = false;
+        if(keypad.touchpad_x == TOUCHPAD_X_MAX / 2
+            && keypad.touchpad_y == TOUCHPAD_Y_MAX)
+            keypad.touchpad_contact = keypad.touchpad_down = false;
         break;
     case Qt::Key_Left:
-        if(touchpad_y == TOUCHPAD_Y_MAX / 2
-            && touchpad_x == 0)
-            touchpad_contact = touchpad_down = false;
+        if(keypad.touchpad_y == TOUCHPAD_Y_MAX / 2
+            && keypad.touchpad_x == 0)
+            keypad.touchpad_contact = keypad.touchpad_down = false;
         break;
     case Qt::Key_Right:
-        if(touchpad_y == TOUCHPAD_Y_MAX / 2
-            && touchpad_x == TOUCHPAD_X_MAX)
-            touchpad_contact = touchpad_down = false;
+        if(keypad.touchpad_y == TOUCHPAD_Y_MAX / 2
+            && keypad.touchpad_x == TOUCHPAD_X_MAX)
+            keypad.touchpad_contact = keypad.touchpad_down = false;
         break;
     case Qt::Key_Return:
         key = Qt::Key_Enter;
@@ -95,7 +95,7 @@ void QtKeypadBridge::keyReleaseEvent(QKeyEvent *event)
             {
                 if(key == keymap[row][col].key && keymap[row][col].alt == (bool(event->modifiers() & Qt::AltModifier) || bool(event->modifiers() & Qt::MetaModifier)))
                 {
-                    key_map[row] &= ~(1 << col);
+                    keypad.key_map[row] &= ~(1 << col);
                     notifyKeypadStateChanged(row, col, false);
                     keypad_int_check();
                     return;
@@ -106,7 +106,7 @@ void QtKeypadBridge::keyReleaseEvent(QKeyEvent *event)
     }
 
     notifyTouchpadStateChanged();
-    kpc.gpio_int_active |= 0x800;
+    keypad.kpc.gpio_int_active |= 0x800;
     keypad_int_check();
 }
 

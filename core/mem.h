@@ -5,7 +5,14 @@
 
 #include <stdint.h>
 
-#include "emu.h"
+#include "cpu.h"
+#include "des.h"
+#include "misc.h"
+#include "interrupt.h"
+#include "keypad.h"
+#include "lcd.h"
+#include "sha256.h"
+#include "usb.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -58,8 +65,34 @@ void FASTCALL mmio_write_byte(uint32_t addr, uint32_t value) __asm__("mmio_write
 void FASTCALL mmio_write_half(uint32_t addr, uint32_t value) __asm__("mmio_write_half");
 void FASTCALL mmio_write_word(uint32_t addr, uint32_t value) __asm__("mmio_write_word");
 
+typedef struct mem_snapshot
+{
+    size_t sdram_size;
+    uint8_t mem_and_flags[MEM_MAXSIZE]; // TODO: No flags saved. Only RF_EXEC_BREAKPOINT and maybe RF_READ_ONLY are interesting.
+    gpio_state gpio;
+    watchdog_state watchdog;
+    pmu_state pmu;
+    keypad_state keypad;
+    hdq1w_state hdq1w;
+    usb_state usb;
+    lcd_state lcd;
+    adc_state adc;
+    des_state des;
+    sha256_state sha256;
+    timer_state timer;
+    timer_cx_state timer_cx;
+    serial_state serial;
+    //ti84_io_state ti84; // TODO?
+    interrupt_state intr;
+    memctl_cx_state memctl_cx;
+    serial_cx_state serial_cx;
+} mem_snapshot;
+
 bool memory_initialize(uint32_t sdram_size);
 void memory_reset();
+typedef struct emu_snapshot emu_snapshot;
+bool memory_suspend(emu_snapshot *snapshot);
+bool memory_resume(const emu_snapshot *snapshot);
 void memory_deinitialize();
 
 #ifdef __cplusplus

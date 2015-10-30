@@ -133,7 +133,7 @@ ok:;
 }
 
 uint32_t disasm_insn(uint32_t pc) {
-    return arm.cpsr_low28 & 0x20 ? disasm_thumb_insn(pc) : disasm_arm_insn(pc);
+    return (arm.cpsr_low28 & 0x20) ? disasm_thumb_insn(pc) : disasm_arm_insn(pc);
 }
 
 static void disasm(uint32_t (*dis_func)(uint32_t pc)) {
@@ -442,8 +442,12 @@ static int process_debug_cmd(char *cmdline) {
             size = ftell(f);
             rewind(f);
         }
-
-        if (!(frommem ? fwrite(ram, size, 1, f) : fread(ram, size, 1, f))) {
+        size_t ret;
+        if(frommem)
+            ret = fwrite(ram, size, 1, f);
+        else
+            ret = fread(ram, size, 1, f);
+        if (!ret) {
             fclose(f);
             gui_perror(filename);
             return 0;

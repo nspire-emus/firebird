@@ -241,12 +241,12 @@ uint32_t disasm_arm_insn(uint32_t pc) {
             if (insn & (1 << 21)) *out++ = 't';
             break;
         case M:
-            *out++ = insn & (1 << 23) ? 'i' : 'd';
-            *out++ = insn & (1 << 24) ? 'b' : 'a';
+            *out++ = (insn & (1 << 23)) ? 'i' : 'd';
+            *out++ = (insn & (1 << 24)) ? 'b' : 'a';
             break;
         case H:
             if (insn & (1 << 6)) *out++ = 's';
-            *out++ = insn & (1 << 5) ? 'h' : 'b';
+            *out++ = (insn & (1 << 5)) ? 'h' : 'b';
             break;
         case D:
             *out++ = 'd';
@@ -442,7 +442,7 @@ uint32_t disasm_thumb_insn(uint32_t pc) {
                 insn & 7, insn >> 3 & 7, insn >> 6 & 31);
     } else if (insn < 0x2000) {
         sprintf(out, "%s\tr%d,r%d,%s%d",
-                insn & 0x0200 ? "sub" : "add",
+                (insn & 0x0200) ? "sub" : "add",
                 insn & 7, insn >> 3 & 7,
                 (insn & 0x400) ? "" : "r", insn >> 6 & 7);
     } else if (insn < 0x4000) {

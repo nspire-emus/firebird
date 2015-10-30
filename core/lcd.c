@@ -5,16 +5,7 @@
 #include "schedule.h"
 #include "mem.h"
 
-struct {
-    uint32_t timing[4];
-    uint32_t upbase; // Upper panel base
-    uint32_t lpbase; // Lower panel base (not used)
-    uint32_t framebuffer; // Value of upbase latched at beginning of frame
-    uint32_t control;
-    uint8_t int_mask;
-    uint8_t int_status;
-    uint16_t palette[256];
-} lcd;
+static lcd_state lcd;
 
 /* Draw the current screen into a 4bpp bitmap. (SetDIBitsToDevice
  * supports either orientation, but some programs can't paste right-side-up bitmaps) */
@@ -164,9 +155,9 @@ static void lcd_event(int index) {
 void lcd_reset() {
     // Palette is unchanged on a reset
     memset(&lcd, 0, (char *)&lcd.palette - (char *)&lcd);
-    sched_items[SCHED_LCD].clock = emulate_cx ? CLOCK_12M : CLOCK_27M;
-    sched_items[SCHED_LCD].second = -1;
-    sched_items[SCHED_LCD].proc = lcd_event;
+    sched.items[SCHED_LCD].clock = emulate_cx ? CLOCK_12M : CLOCK_27M;
+    sched.items[SCHED_LCD].second = -1;
+    sched.items[SCHED_LCD].proc = lcd_event;
 }
 
 uint32_t lcd_read_word(uint32_t addr) {
@@ -233,4 +224,16 @@ write_control:
     }
     bad_write_word(addr, value);
     return;
+}
+
+bool lcd_suspend(emu_snapshot *snapshot)
+{
+    snapshot->mem.lcd = lcd;
+    return true;
+}
+
+bool lcd_resume(const emu_snapshot *snapshot)
+{
+    lcd = snapshot->mem.lcd;
+    return true;
 }

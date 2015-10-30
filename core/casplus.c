@@ -155,10 +155,10 @@ uint16_t omap_read_keypad() {
     int row;
     for (row = 0; row < 8; row++)
         if (!(omap_keypad_row_mask & (1 << row)))
-            columns |= key_map[row];
+            columns |= keypad.key_map[row];
     // row 8 is controlled by GPIO 0x25
     if (!((omap_gpio[2].dataout | omap_gpio[2].direction) & 0x20))
-        columns |= key_map[8];
+        columns |= keypad.key_map[8];
     return columns;
 }
 
@@ -169,7 +169,7 @@ uint16_t omap_gpio_read(int which, uint32_t addr) {
             // GPIO 0x20-0x23: keypad columns 8-10
             // GPIO 0x26: "on" key?
             if (which == 0) return ~(omap_read_keypad() << 8 & 0xE000);
-            if (which == 2) return ~((omap_read_keypad() >> 8 & 0x0007) | (key_map[0] >> 3 & 0x40));
+            if (which == 2) return ~((omap_read_keypad() >> 8 & 0x0007) | (keypad.key_map[0] >> 3 & 0x40));
             return -1;
         case 0x34:
             return omap_gpio[which].direction;
@@ -284,7 +284,7 @@ uint32_t omap_read_word(uint32_t addr) {
         case 0xFFFBC410: return ++omap_32k_synch_timer;
         case 0xFFFEC000: return lcd_control;
         case 0xFFFEC010: return 1; // LcdStatus
-        case 0xFFFECC0C: return 0x12 | nand_writable; // EMIFS_CONFIG
+        case 0xFFFECC0C: return 0x12 | nand.nand_writable; // EMIFS_CONFIG
         case 0xFFFECF00: return -1;
     }
     return 0; //bad_read_word(addr);
@@ -328,7 +328,7 @@ void omap_write_word(uint32_t addr, uint32_t value) {
         return omap_int_write_word(addr, value);
     switch (addr) {
         case 0xFFFEC000: lcd_control = value; return;
-        case 0xFFFECC0C: nand_writable = value & 1; return; // EMIFS_CONFIG
+        case 0xFFFECC0C: nand.nand_writable = value & 1; return; // EMIFS_CONFIG
         case 0xFFFECE10: cpu_events |= EVENT_RESET; return;
     }
     //bad_write_word(addr, value);
@@ -342,9 +342,9 @@ void casplus_reset() {
     for (i = 0; i < 3; i++) {
         omap_timer[i].control = 0;
         omap_timer[i].load = 0xffffffff; // hack for U-Boot
-        sched_items[SCHED_CASPLUS_TIMER1+i].clock = CLOCK_AHB;
-        sched_items[SCHED_CASPLUS_TIMER1+i].second = -1;
-        sched_items[SCHED_CASPLUS_TIMER1+i].proc = omap_timer_event;
+        sched.items[SCHED_CASPLUS_TIMER1+i].clock = CLOCK_AHB;
+        sched.items[SCHED_CASPLUS_TIMER1+i].second = -1;
+        sched.items[SCHED_CASPLUS_TIMER1+i].proc = omap_timer_event;
     }
 
     omap_keypad_row_mask = 0xFFFF;

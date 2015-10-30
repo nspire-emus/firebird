@@ -20,9 +20,9 @@ void QMLBridge::keypadStateChanged(int keymap_id, bool state)
     //assert(col < COLS); Not needed.
 
     if(state)
-        key_map[row] |= 1 << col;
+        keypad.key_map[row] |= 1 << col;
     else
-        key_map[row] &= ~(1 << col);
+        keypad.key_map[row] &= ~(1 << col);
 }
 
 static QObject *buttons[ROWS][COLS];
@@ -41,15 +41,15 @@ void QMLBridge::registerNButton(int keymap_id, QVariant button)
 
 void QMLBridge::touchpadStateChanged(qreal x, qreal y, bool state)
 {
-    touchpad_down = touchpad_contact = state;
+    keypad.touchpad_down = keypad.touchpad_contact = state;
 
     if(state)
     {
-        touchpad_x = x * TOUCHPAD_X_MAX;
-        touchpad_y = (1.0f-y) * TOUCHPAD_Y_MAX;
+        keypad.touchpad_x = x * TOUCHPAD_X_MAX;
+        keypad.touchpad_y = (1.0f-y) * TOUCHPAD_Y_MAX;
     }
 
-    kpc.gpio_int_active |= 0x800;
+    keypad.kpc.gpio_int_active |= 0x800;
     keypad_int_check();
 }
 
@@ -191,5 +191,5 @@ void notifyTouchpadStateChanged(qreal x, qreal y, bool state)
 
 void notifyTouchpadStateChanged()
 {
-    notifyTouchpadStateChanged(float(touchpad_x)/TOUCHPAD_X_MAX, 1.0f-(float(touchpad_y)/TOUCHPAD_Y_MAX), touchpad_contact);
+    notifyTouchpadStateChanged(float(keypad.touchpad_x)/TOUCHPAD_X_MAX, 1.0f-(float(keypad.touchpad_y)/TOUCHPAD_Y_MAX), keypad.touchpad_contact);
 }

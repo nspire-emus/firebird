@@ -3,15 +3,14 @@
 #ifndef _H_CPU
 #define _H_CPU
 
+#include <stdint.h>
 #include <string.h>
-
-#include "emu.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-struct arm_state {  // Remember to update asmcode.S if this gets rearranged
+typedef struct arm_state {  // Remember to update asmcode.S if this gets rearranged
     uint32_t reg[16];    // Registers for current mode.
 
     uint32_t cpsr_low28; // CPSR bits 0-27
@@ -39,7 +38,8 @@ struct arm_state {  // Remember to update asmcode.S if this gets rearranged
     uint32_t r13_und[2], spsr_und;
 
     uint8_t  interrupts;
-} __attribute__((packed));
+    uint32_t cpu_events_state; // Only used for suspend and resume!
+} __attribute__((packed)) arm_state;
 extern struct arm_state arm __asm__("arm");
 
 #define MODE_USR 0x10
@@ -62,6 +62,19 @@ extern struct arm_state arm __asm__("arm");
 
 #define current_instr_size ((arm.cpsr_low28 & 0x20) ? 2 /* thumb */ : 4)
 
+// Needed for the assembler calling convention
+#ifdef __i386__
+    #ifdef FASTCALL
+        #undef FASTCALL
+    #endif
+    #define FASTCALL __attribute__((fastcall))
+#else
+    #define FASTCALL
+#endif
+
+typedef struct emu_snapshot emu_snapshot;
+bool cpu_resume(const emu_snapshot *s);
+bool cpu_suspend(emu_snapshot *s);
 void cpu_int_check();
 uint32_t FASTCALL get_cpsr() __asm__("get_cpsr");
 void set_cpsr_full(uint32_t cpsr);

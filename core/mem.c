@@ -1,6 +1,8 @@
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
 #include "emu.h"
 #include "os/os.h"
 #include "interrupt.h"
@@ -194,9 +196,10 @@ void add_reset_proc(void (*proc)(void))
     reset_procs[reset_proc_count++] = proc;
 }
 
-bool memory_initialize(uint32_t sdram_size) {
-    static int current_product = 0;
+static uint32_t current_product = 0;
 
+bool memory_initialize(uint32_t sdram_size)
+{
     // If the memory size or product differ, reinitialize
     if(mem_and_flags && (sdram_size != mem_areas[1].size || product != current_product))
         memory_deinitialize();
@@ -204,7 +207,15 @@ bool memory_initialize(uint32_t sdram_size) {
     if(mem_and_flags)
         return true;
 
-    current_product = product;
+    uint32_t total_mem = 0;
+    int i;
+
+    mem_and_flags = os_reserve(MEM_MAXSIZE * 2);
+    if(!mem_and_flags)
+    {
+        emuprintf("os_reserve failed!\n");
+        return false;
+    }
 
     mem_areas[0].size = 0x80000;
     mem_areas[1].base = 0x10000000;
@@ -217,31 +228,22 @@ bool memory_initialize(uint32_t sdram_size) {
         mem_areas[2].size = 0x20000;
     }
 
-    uint32_t total_mem = 0;
-    int i;
-
-    mem_and_flags = os_reserve(MEM_MAXSIZE * 2);
-    if(!mem_and_flags)
-    {
-        emuprintf("os_reserve failed!\n");
-        return false;
-    }
-
     for (i = 0; i != sizeof(mem_areas)/sizeof(*mem_areas); i++) {
         if (mem_areas[i].size) {
             mem_areas[i].ptr = mem_and_flags + total_mem;
             total_mem += mem_areas[i].size;
         }
     }
-    if (!mem_and_flags || total_mem > MEM_MAXSIZE ||
+    if (total_mem > MEM_MAXSIZE ||
             !os_commit(mem_and_flags, total_mem) ||
             !os_commit(mem_and_flags + MEM_MAXSIZE, total_mem))
     {
         emuprintf("Couldn't allocate memory\n");
-        os_free(mem_and_flags, MEM_MAXSIZE*2);
-        mem_and_flags = NULL;
+        memory_deinitialize();
         return false;
     }
+
+    current_product = product;
 
     if (product == 0x0D0) {
         // Lab cradle OS reads calibration data from F007xxxx,
@@ -251,7 +253,7 @@ bool memory_initialize(uint32_t sdram_size) {
         mem_areas[3].ptr = mem_areas[0].ptr;
     }
 
-    for (i = 0; i < 64; i++) {
+    for (int i = 0; i < 64; i++) {
         // will fallback to bad_* on non-memory addresses
         read_byte_map[i] = memory_read_byte;
         read_half_map[i] = memory_read_half;
@@ -284,7 +286,7 @@ bool memory_initialize(uint32_t sdram_size) {
     write_byte_map[0x90 >> 2] = apb_write_byte;
     write_half_map[0x90 >> 2] = apb_write_half;
     write_word_map[0x90 >> 2] = apb_write_word;
-    for (i = 0; i < 0x12; i++) {
+    for (int i = 0; i < 0x12; i++) {
         apb_map[i].read = bad_read_word;
         apb_map[i].write = bad_write_word;
     }
@@ -417,8 +419,59 @@ void memory_deinitialize()
         flush_translations();
         memset(mem_areas, 0, sizeof(mem_areas));
         os_free(mem_and_flags, MEM_MAXSIZE * 2);
+        mem_and_flags = NULL;
     }
 
-    mem_and_flags = NULL;
     reset_proc_count = 0;
+}
+
+bool memory_suspend(emu_snapshot *snapshot)
+{
+    assert(mem_and_flags);
+
+    snapshot->mem.sdram_size = mem_areas[1].size;
+    memcpy(snapshot->mem.mem_and_flags, mem_and_flags, MEM_MAXSIZE);
+
+    return gpio_suspend(snapshot)
+            && watchdog_suspend(snapshot)
+            && pmu_suspend(snapshot)
+            && keypad_suspend(snapshot)
+            && hdq1w_suspend(snapshot)
+            && usb_suspend(snapshot)
+            && lcd_suspend(snapshot)
+            && adc_suspend(snapshot)
+            && des_suspend(snapshot)
+            && sha256_suspend(snapshot)
+            && timer_suspend(snapshot)
+            && serial_suspend(snapshot)
+            && interrupt_suspend(snapshot)
+            && memctl_cx_suspend(snapshot)
+            && serial_cx_suspend(snapshot);
+}
+
+bool memory_resume(const emu_snapshot *snapshot)
+{
+    if(!memory_initialize(snapshot->mem.sdram_size))
+        return false;
+
+    // Don't call memory_reset here as that would also reset some sched entries!
+
+    memcpy(mem_and_flags, snapshot->mem.mem_and_flags, MEM_MAXSIZE);
+    memset(mem_and_flags + MEM_MAXSIZE, 0, MEM_MAXSIZE); // Set all flags to 0
+
+    return gpio_resume(snapshot)
+            && watchdog_resume(snapshot)
+            && pmu_resume(snapshot)
+            && keypad_resume(snapshot)
+            && hdq1w_resume(snapshot)
+            && usb_resume(snapshot)
+            && lcd_resume(snapshot)
+            && adc_resume(snapshot)
+            && des_resume(snapshot)
+            && sha256_resume(snapshot)
+            && timer_resume(snapshot)
+            && serial_resume(snapshot)
+            && interrupt_resume(snapshot)
+            && memctl_cx_resume(snapshot)
+            && serial_cx_resume(snapshot);
 }

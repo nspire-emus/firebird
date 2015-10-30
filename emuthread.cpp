@@ -122,14 +122,33 @@ EmuThread::EmuThread(QObject *parent) :
 //Called occasionally, only way to do something in the same thread the emulator runs in.
 void EmuThread::doStuff()
 {
-    if(enter_debugger)
+    do
     {
-        enter_debugger = false;
-        debugger(DBG_USER, 0);
-    }
+        if(do_suspend)
+        {
+            emu_suspend(snapshot_path.c_str());
+            do_suspend = false;
+            //TODO: Signal
+        }
+        else if(do_resume)
+        {
+            emu_resume(snapshot_path.c_str());
+            do_resume = false;
+            //TODO: Signal
+        }
 
-    while(paused)
-        msleep(100);
+        if(enter_debugger)
+        {
+            //TODO: Signal that no longer paused
+            paused = false;
+            enter_debugger = false;
+            debugger(DBG_USER, 0);
+        }
+
+        if(paused)
+            msleep(100);
+
+    } while(paused);
 }
 
 void EmuThread::run()

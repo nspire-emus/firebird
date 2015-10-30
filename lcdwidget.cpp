@@ -16,31 +16,31 @@ LCDWidget::LCDWidget(QWidget *parent)
 void LCDWidget::mousePressEvent(QMouseEvent *event)
 {
     if(event->button() == Qt::RightButton)
-        touchpad_down = touchpad_contact = true;
+        keypad.touchpad_down = keypad.touchpad_contact = true;
     else
-        touchpad_contact = true;
+        keypad.touchpad_contact = true;
 
     if(event->x() >= 0 && event->x() < 320
             && event->y() >= 0 && event->y() < 240)
     {
-        touchpad_x = event->x() * TOUCHPAD_X_MAX/width();
-        touchpad_y = TOUCHPAD_Y_MAX - (event->y() * TOUCHPAD_Y_MAX/height());
+        keypad.touchpad_x = event->x() * TOUCHPAD_X_MAX/width();
+        keypad.touchpad_y = TOUCHPAD_Y_MAX - (event->y() * TOUCHPAD_Y_MAX/height());
     }
 
     notifyTouchpadStateChanged();
-    kpc.gpio_int_active |= 0x800;
+    keypad.kpc.gpio_int_active |= 0x800;
     keypad_int_check();
 }
 
 void LCDWidget::mouseReleaseEvent(QMouseEvent *event)
 {
     if(event->button() == Qt::RightButton)
-        touchpad_down = touchpad_contact = false;
+        keypad.touchpad_down = keypad.touchpad_contact = false;
     else
-        touchpad_contact = false;
+        keypad.touchpad_contact = false;
 
     notifyTouchpadStateChanged();
-    kpc.gpio_int_active |= 0x800;
+    keypad.kpc.gpio_int_active |= 0x800;
     keypad_int_check();
 }
 
@@ -59,16 +59,16 @@ void LCDWidget::mouseMoveEvent(QMouseEvent *event)
     if(new_y > TOUCHPAD_Y_MAX)
         new_y = TOUCHPAD_Y_MAX;
 
-    int vel_x = new_x - touchpad_x;
-    int vel_y = new_y - touchpad_y;
-    touchpad_vel_x = vel_x;
-    touchpad_vel_y = vel_y;
+    int vel_x = new_x - keypad.touchpad_x;
+    int vel_y = new_y - keypad.touchpad_y;
+    keypad.touchpad_vel_x = vel_x;
+    keypad.touchpad_vel_y = vel_y;
 
-    touchpad_x = new_x;
-    touchpad_y = new_y;
+    keypad.touchpad_x = new_x;
+    keypad.touchpad_y = new_y;
 
     notifyTouchpadStateChanged();
-    kpc.gpio_int_active |= 0x800;
+    keypad.kpc.gpio_int_active |= 0x800;
     keypad_int_check();
 }
 

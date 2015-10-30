@@ -24,7 +24,8 @@ void sdramctl_write_word(uint32_t addr, uint32_t value) {
     bad_write_word(addr, value);
 }
 
-uint32_t nandctl_ecc_memcfg;
+static memctl_cx_state memctl_cx;
+
 uint32_t nandctl_cx_read_word(uint32_t addr)
 {
     switch(addr - 0x8FFF1000)
@@ -32,7 +33,7 @@ uint32_t nandctl_cx_read_word(uint32_t addr)
     case 0x000: return 0x20; // memc_status (raw interrupt bit set when flash op complete?)
     case 0x004: return 0x56; // memif_cfg
     case 0x300: return 0x00; // ecc_status
-    case 0x304: return nandctl_ecc_memcfg; // ecc_memcfg
+    case 0x304: return memctl_cx.nandctl_ecc_memcfg; // ecc_memcfg
     case 0xFE0: return 0x51;
     case 0xFE4: return 0x13;
     case 0xFE8: return 0x34;
@@ -50,27 +51,38 @@ void nandctl_cx_write_word(uint32_t addr, uint32_t value)
     case 0x010: return; // direct_cmd
     case 0x014: return; // set_cycles
     case 0x018: return; // set_opmode
-    case 0x204: nand_writable = value & 1; return;
-    case 0x304: nandctl_ecc_memcfg = value; return;
+    case 0x204: nand.nand_writable = value & 1; return;
+    case 0x304: memctl_cx.nandctl_ecc_memcfg = value; return;
     case 0x308: return; // ecc_memcommand1
     case 0x30C: return; // ecc_memcommand2
     }
     bad_write_word(addr, value);
 }
 
-uint32_t memctl_cx_status;
-uint32_t memctl_cx_config;
+bool memctl_cx_suspend(emu_snapshot *snapshot)
+{
+    snapshot->mem.memctl_cx = memctl_cx;
+    return true;
+}
+
+bool memctl_cx_resume(const emu_snapshot *snapshot)
+{
+    memctl_cx = snapshot->mem.memctl_cx;
+    return true;
+}
+
 void memctl_cx_reset(void) {
-    memctl_cx_status = 0;
-    memctl_cx_config = 0;
+    memctl_cx.status = 0;
+    memctl_cx.config = 0;
+    memctl_cx.nandctl_ecc_memcfg = 0;
 }
 uint32_t memctl_cx_read_word(uint32_t addr) {
     if(addr >= 0x8FFF1000)
         return nandctl_cx_read_word(addr);
 
     switch (addr - 0x8FFF0000) {
-        case 0x0000: return memctl_cx_status | 0x80;
-        case 0x000C: return memctl_cx_config;
+        case 0x0000: return memctl_cx.status | 0x80;
+        case 0x000C: return memctl_cx.config;
         case 0x0FE0: return 0x40;
         case 0x0FE4: return 0x13;
         case 0x0FE8: return 0x14;
@@ -85,14 +97,14 @@ void memctl_cx_write_word(uint32_t addr, uint32_t value) {
     switch (addr - 0x8FFF0000) {
         case 0x0004:
             switch (value) {
-                case 0: memctl_cx_status = 1; return; // go
-                case 1: memctl_cx_status = 3; return; // sleep
-                case 2: case 3: memctl_cx_status = 2; return; // wakeup, pause
-                case 4: memctl_cx_status = 0; return; // configure
+                case 0: memctl_cx.status = 1; return; // go
+                case 1: memctl_cx.status = 3; return; // sleep
+                case 2: case 3: memctl_cx.status = 2; return; // wakeup, pause
+                case 4: memctl_cx.status = 0; return; // configure
             }
             break;
         case 0x0008: return;
-        case 0x000C: memctl_cx_config = value; return;
+        case 0x000C: memctl_cx.config = value; return;
         case 0x0010: return; // refresh_prd
         case 0x0018: return; // t_dqss
         case 0x0028: return; // t_rcd
@@ -106,6 +118,18 @@ void memctl_cx_write_word(uint32_t addr, uint32_t value) {
 
 /* 90000000 */
 struct gpio_state gpio;
+
+bool gpio_resume(const emu_snapshot *snapshot)
+{
+    gpio = snapshot->mem.gpio;
+    return true;
+}
+
+bool gpio_suspend(emu_snapshot *snapshot)
+{
+    snapshot->mem.gpio = gpio;
+    return true;
+}
 
 void gpio_reset() {
     memset(&gpio, 0, sizeof gpio);
@@ -155,8 +179,20 @@ void gpio_write(uint32_t addr, uint32_t value) {
 }
 
 /* 90010000, 900C0000, 900D0000 */
-struct timerpair timerpairs[3];
-#define ADDR_TO_TP(addr) (&timerpairs[((addr) >> 16) % 5])
+static timer_state timer;
+#define ADDR_TO_TP(addr) (&timer.pairs[((addr) >> 16) % 5])
+
+bool timer_resume(const emu_snapshot *snapshot)
+{
+    timer = snapshot->mem.timer;
+    return true;
+}
+
+bool timer_suspend(emu_snapshot *snapshot)
+{
+    snapshot->mem.timer = timer;
+    return true;
+}
 
 uint32_t timer_read(uint32_t addr) {
     struct timerpair *tp = ADDR_TO_TP(addr);
@@ -189,7 +225,7 @@ void timer_write(uint32_t addr, uint32_t value) {
     bad_write_word(addr, value);
 }
 static void timer_int_check(struct timerpair *tp) {
-    int_set(INT_TIMER0 + (tp - timerpairs), tp->int_status & tp->int_mask);
+    int_set(INT_TIMER0 + (tp - timer.pairs), tp->int_status & tp->int_mask);
 }
 void timer_advance(struct timerpair *tp, int ticks) {
     struct timer *t;
@@ -224,19 +260,19 @@ static void timer_event(int index) {
     // TODO: should use seperate schedule item for each timer,
     //       only fired on significant events
     event_repeat(index, 1);
-    timer_advance(&timerpairs[0], 703);
-    timer_advance(&timerpairs[1], 1);
-    timer_advance(&timerpairs[2], 1);
+    timer_advance(&timer.pairs[0], 703);
+    timer_advance(&timer.pairs[1], 1);
+    timer_advance(&timer.pairs[2], 1);
 }
 void timer_reset() {
-    memset(timerpairs, 0, sizeof timerpairs);
+    memset(timer.pairs, 0, sizeof timer.pairs);
     int i;
     for (i = 0; i < 3; i++) {
-        timerpairs[i].timers[0].control = 0x10;
-        timerpairs[i].timers[1].control = 0x10;
+        timer.pairs[i].timers[0].control = 0x10;
+        timer.pairs[i].timers[1].control = 0x10;
     }
-    sched_items[SCHED_TIMERS].clock = CLOCK_32K;
-    sched_items[SCHED_TIMERS].proc = timer_event;
+    sched.items[SCHED_TIMERS].clock = CLOCK_32K;
+    sched.items[SCHED_TIMERS].proc = timer_event;
 }
 
 /* 90030000 and 90040000 */
@@ -250,13 +286,20 @@ void unknown_cx_write(uint32_t addr, uint32_t value) {
 }
 
 /* 90060000 */
-struct {
-    uint32_t load;
-    uint32_t value;
-    uint8_t control;
-    uint8_t interrupt;
-    uint8_t locked;
-} watchdog;
+static watchdog_state watchdog;
+
+bool watchdog_resume(const emu_snapshot *snapshot)
+{
+    watchdog = snapshot->mem.watchdog;
+    return true;
+}
+
+bool watchdog_suspend(emu_snapshot *snapshot)
+{
+    snapshot->mem.watchdog = watchdog;
+    return true;
+}
+
 static void watchdog_reload() {
     if (watchdog.control & 1) {
         if (watchdog.load == 0)
@@ -280,9 +323,9 @@ void watchdog_reset() {
     memset(&watchdog, 0, sizeof watchdog);
     watchdog.load = 0xFFFFFFFF;
     watchdog.value = 0xFFFFFFFF;
-    sched_items[SCHED_WATCHDOG].clock = CLOCK_APB;
-    sched_items[SCHED_WATCHDOG].second = -1;
-    sched_items[SCHED_WATCHDOG].proc = watchdog_event;
+    sched.items[SCHED_WATCHDOG].clock = CLOCK_APB;
+    sched.items[SCHED_WATCHDOG].second = -1;
+    sched.items[SCHED_WATCHDOG].proc = watchdog_event;
 }
 uint32_t watchdog_read(uint32_t addr) {
     switch (addr & 0xFFF) {
@@ -388,7 +431,7 @@ void rtc_cx_write(uint32_t addr, uint32_t value) {
 
 /* 900A0000 */
 uint32_t misc_read(uint32_t addr) {
-    struct timerpair *tp = &timerpairs[((addr - 0x10) >> 3) & 3];
+    struct timerpair *tp = &timer.pairs[((addr - 0x10) >> 3) & 3];
     static const struct { uint32_t hi, lo; } idreg[4] = {
     { 0x00000000, 0x00000000 },
     { 0x04000001, 0x00010105 },
@@ -422,7 +465,7 @@ uint32_t misc_read(uint32_t addr) {
     return bad_read_word(addr);
 }
 void misc_write(uint32_t addr, uint32_t value) {
-    struct timerpair *tp = &timerpairs[(addr - 0x10) >> 3 & 3];
+    struct timerpair *tp = &timer.pairs[(addr - 0x10) >> 3 & 3];
     switch (addr & 0x0FFF) {
         case 0x04: return;
         case 0x08: cpu_events |= EVENT_RESET; return;
@@ -443,6 +486,19 @@ void misc_write(uint32_t addr, uint32_t value) {
 
 /* 900B0000 */
 struct pmu_state pmu;
+
+bool pmu_resume(const emu_snapshot *snapshot)
+{
+    pmu = snapshot->mem.pmu;
+    return true;
+}
+
+bool pmu_suspend(emu_snapshot *snapshot)
+{
+    snapshot->mem.pmu = pmu;
+    return true;
+}
+
 void pmu_reset(void) {
     memset(&pmu, 0, sizeof pmu);
     // No idea what the clock speeds should actually be on reset,
@@ -463,7 +519,7 @@ uint32_t pmu_read(uint32_t addr) {
         case 0x20: return pmu.disable2;
         case 0x24: return pmu.clocks;
             /* Bit 4 clear when ON key pressed */
-        case 0x28: return 0x114 & ~(key_map[0] >> 5 & 0x10);
+        case 0x28: return 0x114 & ~(keypad.key_map[0] >> 5 & 0x10);
     }
     return bad_read_word(addr);
 }
@@ -512,22 +568,27 @@ void pmu_write(uint32_t addr, uint32_t value) {
 }
 
 /* 90010000, 900C0000(?), 900D0000 */
-struct cx_timer {
-    uint32_t load;
-    uint32_t value;
-    uint8_t prescale;
-    uint8_t control;
-    uint8_t interrupt;
-    uint8_t reload;
-} timer_cx[3][2];
+static timer_cx_state timer_cx;
+
+bool timer_cx_resume(const emu_snapshot *snapshot)
+{
+    timer_cx = snapshot->mem.timer_cx;
+    return true;
+}
+
+bool timer_cx_suspend(emu_snapshot *snapshot)
+{
+    snapshot->mem.timer_cx = timer_cx;
+    return true;
+}
 
 void timer_cx_int_check(int which) {
-    int_set(INT_TIMER0+which, (timer_cx[which][0].interrupt & timer_cx[which][0].control >> 5)
-            | (timer_cx[which][1].interrupt & timer_cx[which][1].control >> 5));
+    int_set(INT_TIMER0+which, (timer_cx.timer[which][0].interrupt & timer_cx.timer[which][0].control >> 5)
+            | (timer_cx.timer[which][1].interrupt & timer_cx.timer[which][1].control >> 5));
 }
 uint32_t timer_cx_read(uint32_t addr) {
     int which = (addr >> 16) % 5;
-    struct cx_timer *t = &timer_cx[which][addr >> 5 & 1];
+    struct cx_timer *t = &timer_cx.timer[which][addr >> 5 & 1];
     switch (addr & 0xFFFF) {
         case 0x0000: case 0x0020: return t->load;
         case 0x0004: case 0x0024: return t->value;
@@ -549,7 +610,7 @@ uint32_t timer_cx_read(uint32_t addr) {
 }
 void timer_cx_write(uint32_t addr, uint32_t value) {
     int which = (addr >> 16) % 5;
-    struct cx_timer *t = &timer_cx[which][addr >> 5 & 1];
+    struct cx_timer *t = &timer_cx.timer[which][addr >> 5 & 1];
     switch (addr & 0xFFFF) {
         case 0x0000: case 0x0020: t->reload = 1; /* fallthrough */
         case 0x0018: case 0x0038: t->load = value; return;
@@ -564,7 +625,7 @@ void timer_cx_write(uint32_t addr, uint32_t value) {
 void timer_cx_advance(int which) {
     int i;
     for (i = 0; i < 2; i++) {
-        struct cx_timer *t = &timer_cx[which][i];
+        struct cx_timer *t = &timer_cx.timer[which][i];
         t->prescale++;
         if (!(t->control & 0x80))
             continue;
@@ -600,22 +661,35 @@ static void timer_cx_event(int index) {
     timer_cx_advance(2);
 }
 void timer_cx_reset() {
-    memset(timer_cx, 0, sizeof(timer_cx));
+    memset(timer_cx.timer, 0, sizeof(timer_cx.timer));
     int which, i;
     for (which = 0; which < 3; which++) {
         for (i = 0; i < 2; i++) {
-            timer_cx[which][i].value = 0xFFFFFFFF;
-            timer_cx[which][i].control = 0x20;
+            timer_cx.timer[which][i].value = 0xFFFFFFFF;
+            timer_cx.timer[which][i].control = 0x20;
         }
     }
-    sched_items[SCHED_TIMERS].clock = CLOCK_32K;
-    sched_items[SCHED_TIMERS].proc = timer_cx_event;
+    sched.items[SCHED_TIMERS].clock = CLOCK_32K;
+    sched.items[SCHED_TIMERS].proc = timer_cx_event;
 }
 
 /* 900F0000 */
-uint8_t lcd_contrast;
+hdq1w_state hdq1w;
+
+bool hdq1w_resume(const emu_snapshot *snapshot)
+{
+    hdq1w = snapshot->mem.hdq1w;
+    return true;
+}
+
+bool hdq1w_suspend(emu_snapshot *snapshot)
+{
+    snapshot->mem.hdq1w = hdq1w;
+    return true;
+}
+
 void hdq1w_reset() {
-    lcd_contrast = 0;
+    hdq1w.lcd_contrast = 0;
 }
 uint32_t hdq1w_read(uint32_t addr) {
     switch (addr & 0xFFFF) {
@@ -623,7 +697,7 @@ uint32_t hdq1w_read(uint32_t addr) {
         case 0x0C: return 0;
         case 0x10: return 0;
         case 0x14: return 0;
-        case 0x20: return lcd_contrast;
+        case 0x20: return hdq1w.lcd_contrast;
     }
     return bad_read_word(addr);
 }
@@ -632,7 +706,7 @@ void hdq1w_write(uint32_t addr, uint32_t value) {
         case 0x04: return;
         case 0x0C: return;
         case 0x14: return;
-        case 0x20: lcd_contrast = value; return;
+        case 0x20: hdq1w.lcd_contrast = value; return;
     }
     bad_write_word(addr, value);
 }
@@ -771,17 +845,20 @@ uint32_t unknown_BC_read_word(uint32_t addr) {
 }
 
 /* C4000000: ADC (Analog-to-Digital Converter) */
-struct {
-    uint32_t int_status;
-    uint32_t int_mask;
-    struct adc_channel {
-        uint32_t unknown;
-        uint32_t count;
-        uint32_t address;
-        uint16_t value;
-        uint16_t speed;
-    } channel[7];
-} adc;
+static adc_state adc;
+
+bool adc_resume(const emu_snapshot *snapshot)
+{
+    adc = snapshot->mem.adc;
+    return true;
+}
+
+bool adc_suspend(emu_snapshot *snapshot)
+{
+    snapshot->mem.adc = adc;
+    return true;
+}
+
 static uint16_t adc_read_channel(int n) {
     if (pmu.disable2 & 0x10)
         return 0x3FF;

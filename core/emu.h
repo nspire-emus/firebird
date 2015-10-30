@@ -5,7 +5,11 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#include "cpu.h"
 #include "flash.h"
+#include "mem.h"
+#include "lcd.h"
+#include "schedule.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -14,16 +18,6 @@ extern "C" {
 // Can also be set manually
 #if !defined(__i386__) && !defined(__x86_64__) && !defined(__arm__)
 #define NO_TRANSLATION
-#endif
-
-// Needed for the assembler calling convention
-#ifdef __i386__
-    #ifdef FASTCALL
-        #undef FASTCALL
-    #endif
-    #define FASTCALL __attribute__((fastcall))
-#else
-    #define FASTCALL
 #endif
 
 // Helper for micro-optimization
@@ -45,10 +39,8 @@ extern uint32_t cpu_events __asm__("cpu_events");
 extern volatile bool exiting, debug_on_start, debug_on_warn, large_nand, large_sdram;
 extern BootOrder boot_order;
 extern bool do_translate;
-extern int product;
-extern int asic_user_flags;
-extern uint32_t boot2_base;
-extern const char *path_boot1, *path_boot2, *path_flash, *pre_manuf, *pre_boot2, *pre_diags, *pre_os;
+extern uint32_t product, asic_user_flags;
+extern const char *path_boot1, *path_flash;
 
 #define emulate_casplus (product == 0x0C0)
 // 0C-0E (CAS, lab cradle, plain Nspire) use old ASIC
@@ -87,7 +79,20 @@ void gui_show_speed(double speed);
 void gui_usblink_changed(bool state);
 void gui_debugger_entered_or_left(bool entered);
 
+typedef struct emu_snapshot {
+    uint32_t sig; // 0xCAFEBEEF
+    int product, asic_user_flags;
+    char path_boot1[512];
+    char path_flash[512];
+    sched_state sched;
+    arm_state cpu_state;
+    mem_snapshot mem;
+    flash_snapshot flash;
+} emu_snapshot;
+
 int emulate(unsigned int port_gdb, unsigned int port_rdbg);
+bool emu_suspend(const char *file);
+bool emu_resume(const char *file);
 void emu_cleanup();
 
 #ifdef __cplusplus

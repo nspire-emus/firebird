@@ -17,18 +17,29 @@ enum sched_item_index {
         SCHED_WATCHDOG,
         SCHED_NUM_ITEMS
 };
+
 #define SCHED_CASPLUS_TIMER1 SCHED_KEYPAD
 #define SCHED_CASPLUS_TIMER2 SCHED_LCD
 #define SCHED_CASPLUS_TIMER3 SCHED_TIMERS
-extern struct sched_item {
+
+struct sched_item {
         enum clock_id clock;
         int second; // -1 = disabled
         uint32_t tick;
         uint32_t cputick;
         void (*proc)(int index);
-} sched_items[SCHED_NUM_ITEMS];
+};
+
+typedef struct sched_state {
+    struct sched_item items[SCHED_NUM_ITEMS];
+} sched_state;
+
+extern sched_state sched;
 
 void sched_reset(void);
+typedef struct emu_snapshot emu_snapshot;
+bool sched_resume(const emu_snapshot *snapshot);
+bool sched_suspend(emu_snapshot *snapshot);
 void event_repeat(int index, uint32_t ticks);
 void sched_update_next_event(uint32_t cputick);
 uint32_t sched_process_pending_events();

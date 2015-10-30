@@ -12,7 +12,7 @@
 
 #include "core/usblink_queue.h"
 #include "core/flash.h"
-#include "core/lcd.h"
+#include "core/emu.h"
 #include "core/misc.h"
 
 #include "mainwindow.h"
@@ -66,6 +66,12 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->actionXModem, SIGNAL(triggered()), this, SLOT(xmodemSend()));
     ui->actionConnect->setShortcut(QKeySequence(Qt::Key_F10));
     ui->actionConnect->setAutoRepeat(false);
+
+    //Menu "State"
+    connect(ui->actionResume, SIGNAL(triggered()), this, SLOT(resume()));
+    connect(ui->actionSuspend, SIGNAL(triggered()), this, SLOT(suspend()));
+    connect(ui->actionResume_from_file, SIGNAL(triggered()), this, SLOT(resumeFromFile()));
+    connect(ui->actionSuspend_to_file, SIGNAL(triggered()), this, SLOT(suspendToFile()));
 
     //Menu "Flash"
     connect(ui->actionSave, SIGNAL(triggered()), this, SLOT(saveFlash()));
@@ -313,6 +319,18 @@ void MainWindow::usblink_progress_callback(int progress, void *data)
     emit mw->usblink_progress_changed(progress);
 }
 
+void MainWindow::suspendToPath(QString path)
+{
+    emu_thread->snapshot_path = path.toStdString();
+    emu_thread->do_suspend = true;
+}
+
+void MainWindow::resumeFromPath(QString path)
+{
+    emu_thread->snapshot_path = path.toStdString();
+    emu_thread->do_resume = true;
+}
+
 void MainWindow::reload_filebrowser()
 {
     if(!refresh_filebrowser)
@@ -488,6 +506,34 @@ void MainWindow::usblinkChanged(bool state)
     ui->actionConnect->setChecked(state);
     ui->buttonUSB->setText(state ? tr("Disconnect USB") : tr("Connect USB"));
     ui->buttonUSB->setChecked(state);
+}
+
+void MainWindow::resume()
+{
+    QString default_snapshot = settings->value("snapshotPath").toString();
+    if(!default_snapshot.isEmpty())
+        resumeFromPath(default_snapshot);
+}
+
+void MainWindow::suspend()
+{
+    QString default_snapshot = settings->value("snapshotPath").toString();
+    if(!default_snapshot.isEmpty())
+        suspendToPath(default_snapshot);
+}
+
+void MainWindow::resumeFromFile()
+{
+    QString snapshot = QFileDialog::getOpenFileName(this, "Select snapshot to resume from");
+    if(!snapshot.isEmpty())
+        resumeFromPath(snapshot);
+}
+
+void MainWindow::suspendToFile()
+{
+    QString snapshot = QFileDialog::getSaveFileName(this, "Select snapshot to suspend to");
+    if(!snapshot.isEmpty())
+        suspendToPath(snapshot);
 }
 
 void MainWindow::saveFlash()

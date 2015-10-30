@@ -1,9 +1,11 @@
+#include <fcntl.h>
 #include <ctype.h>
 #include <setjmp.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/mman.h>
 #include "emu.h"
 #include "cpu.h"
 #include "schedule.h"
@@ -28,12 +30,11 @@ int throttle_delay = 10; /* in milliseconds */
 uint32_t cpu_events;
 
 bool do_translate = true;
-int asic_user_flags;
-bool turbo_mode;
+uint32_t product = 0x0E0, asic_user_flags = 0;
+bool turbo_mode = false;
 
 volatile bool exiting, debug_on_start, debug_on_warn, large_nand, large_sdram;
 BootOrder boot_order = ORDER_DEFAULT;
-int product = 0x0E0;
 uint32_t boot2_base;
 const char *path_boot1 = NULL, *path_boot2 = NULL, *path_flash = NULL, *pre_manuf = NULL, *pre_boot2 = NULL, *pre_diags = NULL, *pre_os = NULL;
 
@@ -146,17 +147,12 @@ int emulate(unsigned int port_gdb, unsigned int port_rdbg)
     if(debug_on_start)
         cpu_events |= EVENT_DEBUG_STEP;
 
-    if (path_flash) {
-        if(!flash_open(path_flash))
+    if (!path_flash
+        || !flash_open(path_flash))
             return 1;
-    } else {
-        //const char *preload_filename[4] = {pre_manuf, pre_boot2, pre_diags, pre_os};
-        //if(!flash_create_new(large_nand, preload_filename, product, large_sdram))
-            return 1;
-    }
 
     uint32_t sdram_size;
-    flash_read_settings(&sdram_size);
+    flash_read_settings(&sdram_size, &product, &asic_user_flags);
 
     flash_set_bootorder(boot_order);
 
@@ -206,64 +202,6 @@ reset:
 
     gdbstub_reset();
 
-    if (path_boot2) {
-        FILE *boot2_file = fopen(path_boot2, "rb");
-        if(!boot2_file)
-        {
-            gui_perror(path_boot2);
-            return 1;
-        }
-
-        /* Start from BOOT2. (needs to be re-loaded on each reset since
-         * it can get overwritten in memory) */
-        fseek(boot2_file, 0, SEEK_END);
-        uint32_t boot2_size = ftell(boot2_file);
-        fseek(boot2_file, 0, SEEK_SET);
-        uint8_t *boot2_ptr = phys_mem_ptr(boot2_base, boot2_size);
-        if (!boot2_ptr) {
-            fclose(boot2_file);
-            emuprintf("Address %08X is not in RAM.\n", boot2_base);
-            return 1;
-        }
-        fread(boot2_ptr, 1, boot2_size, boot2_file);
-        arm.reg[15] = boot2_base;
-        if (boot2_ptr[3] < 0xE0)
-            emuprintf("%s does not appear to be an uncompressed BOOT2 image.\n", path_boot2);
-
-        fclose(boot2_file);
-
-        if (!emulate_casplus) {
-            /* To enter maintenance mode (home+enter+P), address A4012ECC
-             * must contain an array indicating those keys before BOOT2 starts */
-            uint8_t *shared = phys_mem_ptr(0xA4012EB0, 0x200);
-            memcpy(&shared[0x1C], (void *)key_map, 0x12);
-
-            /* BOOT1 is expected to store the address of a function pointer table
-             * to A4012EE8. OS 3.0 calls some of these functions... */
-            static const struct {
-                uint32_t ptrs[8];
-                uint16_t code[16];
-            } stuff = { {
-                        0x10020+0x01, // function 0: return *r0
-                        0x10020+0x05, // function 1: *r0 = r1
-                        0x10020+0x09, // function 2: *r0 |= r1
-                        0x10020+0x11, // function 3: *r0 &= ~r1
-                        0x10020+0x19, // function 4: *r0 ^= r1
-                        0x10020+0x20, // function 5: related to C801xxxx (not implemented)
-                        0x10020+0x03, // function 6: related to 9011xxxx (not implemented)
-                        0x10020+0x03, // function 7: related to 9011xxxx (not implemented)
-                      }, {
-                0x6800,0x4770,               // return *r0
-                0x6001,0x4770,               // *r0 = r1
-                0x6802,0x430A,0x6002,0x4770, // *r0 |= r1
-                0x6802,0x438A,0x6002,0x4770, // *r0 &= ~r1
-                0x6802,0x404A,0x6002,0x4770, // *r0 ^= r1
-            } };
-            memcpy(&rom[0x10000], &stuff, sizeof stuff);
-            RAM_FLAGS(&rom[0x10040]) |= RF_EXEC_HACK;
-            *(uint32_t *)&shared[0x38] = 0x10000;
-        }
-    }
     addr_cache_flush();
     flush_translations();
 
@@ -271,8 +209,8 @@ reset:
 
     memory_reset();
 
-    sched_items[SCHED_THROTTLE].clock = CLOCK_27M;
-    sched_items[SCHED_THROTTLE].proc = throttle_interval_event;
+    sched.items[SCHED_THROTTLE].clock = CLOCK_27M;
+    sched.items[SCHED_THROTTLE].proc = throttle_interval_event;
 
     sched_update_next_event(0);
 
@@ -317,8 +255,97 @@ reset:
     return 0;
 }
 
+bool emu_suspend(const char *file)
+{
+    int fp = open(file, O_RDWR | O_CREAT, (mode_t) 0620);
+    if(fp == -1)
+        return false;
+
+    size_t size = sizeof(emu_snapshot) + flash_suspend_flexsize();
+    if(ftruncate(fp, size))
+    {
+        close(fp);
+        return false;
+    }
+
+    struct emu_snapshot *snapshot = mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_SHARED, fp, 0);
+    if((intptr_t) snapshot == -1)
+    {
+        close(fp);
+        return false;
+    }
+
+    snapshot->product = product;
+    snapshot->asic_user_flags = asic_user_flags;
+    strncpy(snapshot->path_boot1, path_boot1, sizeof(snapshot->path_boot1) - 1);
+    strncpy(snapshot->path_flash, path_flash, sizeof(snapshot->path_flash) - 1);
+
+    if(!flash_suspend(snapshot)
+            || !cpu_suspend(snapshot)
+            || !sched_suspend(snapshot)
+            || !memory_suspend(snapshot))
+    {
+        munmap(snapshot, size);
+        close(fp);
+    }
+
+    snapshot->sig = 0xCAFEBEEF;
+
+    munmap(snapshot, size);
+    close(fp);
+    return true;
+}
+
+bool emu_resume(const char *file)
+{
+    emu_cleanup();
+
+    int fp = open(file, O_RDONLY);
+    if(fp == -1)
+        return false;
+
+    size_t size = lseek(fp, 0, SEEK_END);
+    lseek(fp, 0, SEEK_SET);
+
+    struct emu_snapshot *snapshot = mmap(NULL, size, PROT_READ, MAP_PRIVATE, fp, 0);
+    if((intptr_t) snapshot == -1)
+    {
+        close(fp);
+        return false;
+    }
+
+    uint32_t sdram_size;
+    if(size < sizeof(emu_snapshot)
+            || snapshot->sig != 0xCAFEBEEF
+            || !flash_resume(snapshot)
+            || !flash_read_settings(&sdram_size, &product, &asic_user_flags)
+            || !cpu_resume(snapshot)
+            || !sched_resume(snapshot)
+            || !memory_resume(snapshot))
+    {
+        emu_cleanup();
+        munmap(snapshot, size);
+        close(fp);
+        return false;
+    }
+
+    #ifndef NO_TRANSLATION
+        translate_deinit();
+        translate_init();
+    #endif
+
+    addr_cache_flush();
+
+    munmap(snapshot, size);
+    close(fp);
+    exiting = false;
+    return true;
+}
+
 void emu_cleanup()
 {
+    exiting = true;
+
     if(debugger_input)
         fclose(debugger_input);
 

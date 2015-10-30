@@ -5,7 +5,7 @@
 #include "mem.h"
 
 /* DC000000: Interrupt controller */
-struct interrupt_state intr;
+interrupt_state intr;
 
 static void get_current_int(int is_fiq, int *current) {
     uint32_t masked_status = intr.status & intr.mask[is_fiq];
@@ -171,4 +171,16 @@ void int_reset() {
     intr.noninverted = -1;
     intr.priority_limit[0] = 8;
     intr.priority_limit[1] = 8;
+}
+
+bool interrupt_suspend(emu_snapshot *snapshot)
+{
+    snapshot->mem.intr = intr;
+    return true;
+}
+
+bool interrupt_resume(const emu_snapshot *snapshot)
+{
+    intr = snapshot->mem.intr;
+    return true;
 }

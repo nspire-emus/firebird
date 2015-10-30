@@ -18,7 +18,7 @@ extern "C" {
 #define INT_TIMER2   19
 #define INT_LCD      21
 
-extern struct interrupt_state {
+typedef struct interrupt_state {
 	uint32_t active;
 	uint32_t raw_status;         // .active ^ ~.noninverted
 	uint32_t sticky_status;      // set on rising transition of .raw_status
@@ -31,7 +31,9 @@ extern struct interrupt_state {
 	uint32_t noninverted;        // +200: which interrupts not to invert in .raw_status
 	uint32_t sticky;             // +204: which interrupts to use .sticky_status
 	uint8_t  priority[32];       // +3xx: priority per interrupt (0=max, 7=min)
-} intr;
+} interrupt_state;
+
+extern interrupt_state intr;
 
 uint32_t int_read_word(uint32_t addr);
 void int_write_word(uint32_t addr, uint32_t value);
@@ -39,6 +41,9 @@ uint32_t int_cx_read_word(uint32_t addr);
 void int_cx_write_word(uint32_t addr, uint32_t value);
 void int_set(uint32_t int_num, bool on);
 void int_reset();
+typedef struct emu_snapshot emu_snapshot;
+bool interrupt_suspend(emu_snapshot *snapshot);
+bool interrupt_resume(const emu_snapshot *snapshot);
 
 #ifdef __cplusplus
 }

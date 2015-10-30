@@ -24,10 +24,8 @@ static uint16_t checksum(union packet *p) {
 }
 
 /* Current packet being sent/received to/from calculator */
-union packet packet_buf;
-int packet_size;
-int packet_pos;
-int packet_bit;
+static union packet packet_buf;
+static int packet_size, packet_pos, packet_bit;
 
 bool sending = false;
 bool start_send = false;
@@ -52,12 +50,12 @@ void (*packet_callback)();
 
 /* Code for sending variable files (.8XP and such) to the calculator */
 FILE *var_file;
-int state;
+static int nand_no;
 int bytes_remaining;
 
 static void send_variable_callback() {
-    printf("Sending variable: part %d of 7\n", state);
-    switch (state++) {
+    printf("Sending variable: part %d of 7\n", nand_no);
+    switch (nand_no++) {
         case 0: /* Send RTS */
             packet_buf.machine_ID = 0x23; /* computer sending to TI-83+ or TI-84+ */
             packet_buf.command_ID = 0xC9;
@@ -102,7 +100,7 @@ static void send_variable_callback() {
             send_packet();
             printf("%d bytes left in file\n", bytes_remaining);
             if (bytes_remaining > 0) /* more variables in file */
-                state = 0;
+                nand_no = 0;
             return;
         case 7: /* EOT sent */
             printf("Variable transfer complete.\n");
@@ -129,7 +127,7 @@ uint16_t app_packet_size;
 static void send_app_callback() {
 more:
     //printf("send_app_callback() state=%d pos=%d\n", state, app_buffer_pos);
-    switch (state++) {
+    switch (nand_no++) {
         case 0:
 new_page:
             //*(uint16_t *)&packet_buf.data[6] = app_offset;
@@ -236,7 +234,7 @@ new_page:
         case 6: /* ACK received */
             if (packet_buf.command_ID != 0x56) break;
             if (bytes_remaining != 0) {
-                state = 0;
+                nand_no = 0;
                 goto more;
             }
 send_EOT:
@@ -244,7 +242,7 @@ send_EOT:
             packet_buf.command_ID = 0x92;
             packet_buf.data_length = 0;
             send_packet();
-            state = 7;
+            nand_no = 7;
             return;
         case 7: /* EOT sent */
             printf("App transfer complete\n");
@@ -316,7 +314,7 @@ bad_format:
     if (var_file)
         fclose(var_file);
     var_file = f;
-    state = 0;
+    nand_no = 0;
     packet_callback();
 }
 

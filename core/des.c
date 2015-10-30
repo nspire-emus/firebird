@@ -1,11 +1,10 @@
 #include <stdbool.h>
 #include <string.h>
+
+#include "emu.h"
 #include "mem.h"
 
-static uint32_t des_block[2];
-static uint32_t des_key[6];
-static struct des_ks_entry { uint32_t odd, even; } des_key_schedule[3][16];
-static bool des_key_schedule_valid;
+static des_state des;
 
 static uint32_t des_SP[8][64]; // Table of permuted S-box outputs
 
@@ -75,16 +74,16 @@ static void des_make_key_schedule() {
 	};
 
 	int keypart;
-	int decrypting = des_key[1] >> 30 & 1;
+    int decrypting = des.key[1] >> 30 & 1;
 	for (keypart = 0; keypart < 3; keypart++) {
 		int bit, round;
 
 		uint32_t C = 0, D = 0;
 		for (bit = 0; bit < 28; bit++) {
 			int keybit = PC_1[bit];
-			C |= (des_key[keypart << 1 | keybit >> 5] >> (keybit & 31) & 1) << bit;
+            C |= (des.key[keypart << 1 | keybit >> 5] >> (keybit & 31) & 1) << bit;
 			keybit = PC_1[28 + bit];
-			D |= (des_key[keypart << 1 | keybit >> 5] >> (keybit & 31) & 1) << bit;
+            D |= (des.key[keypart << 1 | keybit >> 5] >> (keybit & 31) & 1) << bit;
 		}
 
 		for (round = 0; round < 16; round++) {
@@ -100,8 +99,8 @@ static void des_make_key_schedule() {
 			}
 
 			struct des_ks_entry *p = 
-			        &des_key_schedule[decrypting ? 2 - keypart : keypart]
-			                         [(decrypting ^ keypart) & 1 ? 15 - round : round];
+                    &des.key_schedule[decrypting ? 2 - keypart : keypart]
+                                     [((decrypting ^ keypart) & 1) ? 15 - round : round];
 			p->odd = (K_left  <<  6 & 0x3F000000)
 			       | (K_left  << 10 & 0x003F0000)
 			       | (K_right >> 10 & 0x00003F00)
@@ -112,7 +111,7 @@ static void des_make_key_schedule() {
 			        | (K_right       & 0x0000003F);
 		}
 	}
-	des_key_schedule_valid = true;
+    des.key_schedule_valid = true;
 }
 
 static void des_process_block(uint32_t L, uint32_t R) {
@@ -130,13 +129,13 @@ static void des_process_block(uint32_t L, uint32_t R) {
 	temp = (L       ^ R) & 0xAAAAAAAA; R ^= temp; L ^= temp;
 	L = ROL(L, 1);
 
-	if (!des_key_schedule_valid)
+    if (!des.key_schedule_valid)
 		des_make_key_schedule();
 
 	for (keypart = 0; keypart < 3; keypart++) {
 		for (round = 0; round < 16; round++) {
-			uint32_t odd  = des_key_schedule[keypart][round].odd  ^ ROR(R, 4);
-			uint32_t even = des_key_schedule[keypart][round].even ^ R;
+            uint32_t odd  = des.key_schedule[keypart][round].odd  ^ ROR(R, 4);
+            uint32_t even = des.key_schedule[keypart][round].even ^ R;
 			L ^= des_SP[1-1][odd >> 24 & 0x3F] ^ des_SP[2-1][even >> 24 & 0x3F]
 			   ^ des_SP[3-1][odd >> 16 & 0x3F] ^ des_SP[4-1][even >> 16 & 0x3F]
 			   ^ des_SP[5-1][odd >>  8 & 0x3F] ^ des_SP[6-1][even >>  8 & 0x3F]
@@ -155,34 +154,46 @@ static void des_process_block(uint32_t L, uint32_t R) {
     temp = (L >> 16 ^ R) & 0x0000FFFF; R ^= temp; L ^= temp << 16;
     temp = (L >>  4 ^ R) & 0x0F0F0F0F; R ^= temp; L ^= temp <<  4;
 
-    des_block[0] = R;
-    des_block[1] = L;
+    des.block[0] = R;
+    des.block[1] = L;
 }
 
 void des_reset(void) {
-    memset(des_block, 0, sizeof des_block);
-    memset(des_key, 0, sizeof des_key);
-    des_key_schedule_valid = false;
+    memset(des.block, 0, sizeof des.block);
+    memset(des.key, 0, sizeof des.key);
+    des.key_schedule_valid = false;
 }
 
 uint32_t des_read_word(uint32_t addr) {
     switch (addr & 0x3FFFFFF) {
-        case 0x10000: return des_block[0];
-        case 0x10004: return des_block[1];
+        case 0x10000: return des.block[0];
+        case 0x10004: return des.block[1];
     }
     return bad_read_word(addr);
 }
 
 void des_write_word(uint32_t addr, uint32_t value) {
     switch (addr & 0x3FFFFFF) {
-        case 0x10000: des_block[0] = value; return;
-        case 0x10004: des_process_block(value, des_block[0]); return;
+        case 0x10000: des.block[0] = value; return;
+        case 0x10004: des_process_block(value, des.block[0]); return;
         case 0x10008: case 0x1000C:
         case 0x10010: case 0x10014:
         case 0x10018: case 0x1001C:
-            des_key[(addr - 8) >> 2 & 7] = value;
-            des_key_schedule_valid = false;
+            des.key[(addr - 8) >> 2 & 7] = value;
+            des.key_schedule_valid = false;
             return;
     }
     bad_write_word(addr, value);
+}
+
+bool des_suspend(emu_snapshot *snapshot)
+{
+    snapshot->mem.des = des;
+    return true;
+}
+
+bool des_resume(const emu_snapshot *snapshot)
+{
+    des = snapshot->mem.des;
+    return true;
 }

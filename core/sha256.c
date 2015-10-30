@@ -2,8 +2,7 @@
 #include "emu.h"
 #include "mem.h"
 
-static uint32_t hash_state[8];
-static uint32_t hash_block[16];
+static sha256_state sha256;
 
 #define ROR(x, y) ((x) >> (y) | (x) << (32 - (y)))
 
@@ -12,7 +11,7 @@ static inline void initialize() {
         0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a,
         0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19
     };
-    memcpy(hash_state, initial_state, 32);
+    memcpy(sha256.hash_state, initial_state, 32);
 }
 
 static void process_block() {
@@ -31,21 +30,21 @@ static void process_block() {
     uint32_t w[64];
     int i;
 
-    memcpy(w, hash_block, 64);
+    memcpy(w, sha256.hash_block, 64);
     for (i = 16; i < 64; i++) {
         uint32_t s0 = ROR(w[i-15], 7) ^ ROR(w[i-15], 18) ^ (w[i-15] >> 3);
         uint32_t s1 = ROR(w[i-2], 17) ^ ROR(w[i-2], 19) ^ (w[i-2] >> 10);
         w[i] = w[i-16] + s0 + w[i-7] + s1;
     }
 
-    a = hash_state[0];
-    b = hash_state[1];
-    c = hash_state[2];
-    d = hash_state[3];
-    e = hash_state[4];
-    f = hash_state[5];
-    g = hash_state[6];
-    h = hash_state[7];
+    a = sha256.hash_state[0];
+    b = sha256.hash_state[1];
+    c = sha256.hash_state[2];
+    d = sha256.hash_state[3];
+    e = sha256.hash_state[4];
+    f = sha256.hash_state[5];
+    g = sha256.hash_state[6];
+    h = sha256.hash_state[7];
 
     for (i = 0; i < 64; i++) {
         uint32_t s0 = ROR(a, 2) ^ ROR(a, 13) ^ ROR(a, 22);
@@ -65,19 +64,19 @@ static void process_block() {
         a = t1 + t2;
     }
 
-    hash_state[0] += a;
-    hash_state[1] += b;
-    hash_state[2] += c;
-    hash_state[3] += d;
-    hash_state[4] += e;
-    hash_state[5] += f;
-    hash_state[6] += g;
-    hash_state[7] += h;
+    sha256.hash_state[0] += a;
+    sha256.hash_state[1] += b;
+    sha256.hash_state[2] += c;
+    sha256.hash_state[3] += d;
+    sha256.hash_state[4] += e;
+    sha256.hash_state[5] += f;
+    sha256.hash_state[6] += g;
+    sha256.hash_state[7] += h;
 }
 
 void sha256_reset(void) {
-    memset(hash_state, 0, sizeof hash_state);
-    memset(hash_block, 0, sizeof hash_block);
+    memset(sha256.hash_state, 0, sizeof sha256.hash_state);
+    memset(sha256.hash_block, 0, sizeof sha256.hash_block);
 }
 
 uint32_t sha256_read_word(uint32_t addr) {
@@ -86,7 +85,7 @@ uint32_t sha256_read_word(uint32_t addr) {
         case 0x08: return 0x500; //?
         case 0x60: case 0x64: case 0x68: case 0x6C:
         case 0x70: case 0x74: case 0x78: case 0x7C:
-            return hash_state[addr >> 2 & 7];
+            return sha256.hash_state[addr >> 2 & 7];
     }
     return bad_read_word(addr);
 }
@@ -95,7 +94,7 @@ void sha256_write_word(uint32_t addr, uint32_t value) {
     switch (addr & 0x3FFFFFF) {
         case 0x00:
             if (value & 0x10) {
-                memset(hash_state, 0, sizeof hash_state);
+                memset(sha256.hash_state, 0, sizeof sha256.hash_state);
             } else {
                 if ((value & 0xE) == 0xA) // 0A or 0B: first block
                     initialize();
@@ -108,8 +107,20 @@ void sha256_write_word(uint32_t addr, uint32_t value) {
         case 0x20: case 0x24: case 0x28: case 0x2C:
         case 0x30: case 0x34: case 0x38: case 0x3C:
         case 0x40: case 0x44: case 0x48: case 0x4C:
-            hash_block[(addr - 0x10) >> 2 & 15] = value;
+            sha256.hash_block[(addr - 0x10) >> 2 & 15] = value;
             return;
     }
     bad_write_word(addr, value);
+}
+
+bool sha256_suspend(emu_snapshot *snapshot)
+{
+    snapshot->mem.sha256 = sha256;
+    return true;
+}
+
+bool sha256_resume(const emu_snapshot *snapshot)
+{
+    sha256 = snapshot->mem.sha256;
+    return true;
 }
