@@ -90,9 +90,9 @@ typedef struct emu_snapshot {
     flash_snapshot flash;
 } emu_snapshot;
 
-int emulate(unsigned int port_gdb, unsigned int port_rdbg);
+bool emu_start(unsigned int port_gdb, unsigned int port_rdbg, const char *snapshot);
+void emu_loop(bool reset);
 bool emu_suspend(const char *file);
-bool emu_resume(const char *file);
 void emu_cleanup();
 
 #ifdef __cplusplus

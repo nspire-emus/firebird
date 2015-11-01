@@ -446,7 +446,8 @@ bool memory_suspend(emu_snapshot *snapshot)
             && serial_suspend(snapshot)
             && interrupt_suspend(snapshot)
             && memctl_cx_suspend(snapshot)
-            && serial_cx_suspend(snapshot);
+            && serial_cx_suspend(snapshot)
+            && timer_cx_suspend(snapshot);
 }
 
 bool memory_resume(const emu_snapshot *snapshot)
@@ -454,7 +455,7 @@ bool memory_resume(const emu_snapshot *snapshot)
     if(!memory_initialize(snapshot->mem.sdram_size))
         return false;
 
-    // Don't call memory_reset here as that would also reset some sched entries!
+    memory_reset();
 
     memcpy(mem_and_flags, snapshot->mem.mem_and_flags, MEM_MAXSIZE);
     memset(mem_and_flags + MEM_MAXSIZE, 0, MEM_MAXSIZE); // Set all flags to 0
@@ -473,5 +474,6 @@ bool memory_resume(const emu_snapshot *snapshot)
             && serial_resume(snapshot)
             && interrupt_resume(snapshot)
             && memctl_cx_resume(snapshot)
-            && serial_cx_resume(snapshot);
+            && serial_cx_resume(snapshot)
+            && timer_cx_resume(snapshot);
 }

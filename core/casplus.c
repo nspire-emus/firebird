@@ -359,6 +359,6 @@ void casplus_reset() {
 
     omap_32k_synch_timer = 0;
 
-    clock_rates[CLOCK_CPU] = 78000000;
-    clock_rates[CLOCK_AHB] = 78000000;
+    sched.clock_rates[CLOCK_CPU] = 78000000;
+    sched.clock_rates[CLOCK_AHB] = 78000000;
 }

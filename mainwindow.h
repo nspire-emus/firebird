@@ -69,6 +69,9 @@ public slots:
     void setUSBPath(QString path);
     void setGDBPort(int port);
     void setRDBGPort(int port);
+    void setSuspendOnClose(bool b);
+    void setResumeOnOpen(bool b);
+    void changeSnapshotPath();
 
     //Tool bar (above screen)
     void showSpeed(double percent);

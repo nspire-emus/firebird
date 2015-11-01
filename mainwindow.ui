@@ -211,7 +211,7 @@
     <item>
      <widget class="QTabWidget" name="tabWidget">
       <property name="currentIndex">
-       <number>4</number>
+       <number>2</number>
       </property>
       <widget class="QWidget" name="tabDebugger">
        <attribute name="icon">
@@ -315,7 +315,7 @@
         <item>
          <widget class="QToolBox" name="toolBox">
           <property name="currentIndex">
-           <number>3</number>
+           <number>1</number>
           </property>
           <widget class="QWidget" name="page">
            <property name="geometry">
@@ -425,6 +425,99 @@
             </item>
            </layout>
           </widget>
+          <widget class="QWidget" name="page_5">
+           <property name="geometry">
+            <rect>
+             <x>0</x>
+             <y>0</y>
+             <width>338</width>
+             <height>124</height>
+            </rect>
+           </property>
+           <attribute name="label">
+            <string>Snapshot</string>
+           </attribute>
+           <layout class="QVBoxLayout" name="verticalLayout_9">
+            <item>
+             <layout class="QGridLayout" name="gridLayout_4">
+              <item row="1" column="0">
+               <layout class="QHBoxLayout" name="horizontalLayout_8">
+                <item>
+                 <widget class="QLabel" name="label_9">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="text">
+                   <string>Snapshot location:</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QLabel" name="labelSnapshotPath">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="text">
+                   <string>(none)</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="buttonChangeSnapshotPath">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="text">
+                   <string>Change</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+              <item row="2" column="0">
+               <layout class="QHBoxLayout" name="horizontalLayout_9">
+                <item>
+                 <widget class="QCheckBox" name="checkSuspend">
+                  <property name="text">
+                   <string>Suspend on close</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QCheckBox" name="checkResume">
+                  <property name="text">
+                   <string>Resume on open</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+             </layout>
+            </item>
+            <item>
+             <spacer name="verticalSpacer_6">
+              <property name="orientation">
+               <enum>Qt::Vertical</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>20</width>
+                <height>40</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+           </layout>
+          </widget>
           <widget class="QWidget" name="page_2">
            <property name="geometry">
             <rect>
@@ -481,7 +574,7 @@
                 <item>
                  <widget class="QRadioButton" name="orderBoot2">
                   <property name="text">
-                   <string>Boot2</string>
+                   <string>Boot&amp;2</string>
                   </property>
                   <property name="checked">
                    <bool>true</bool>
@@ -734,7 +827,7 @@
    </widget>
    <widget class="QMenu" name="menuState">
     <property name="title">
-     <string>State</string>
+     <string>S&amp;napshot</string>
     </property>
     <addaction name="actionSuspend"/>
     <addaction name="actionResume"/>
@@ -867,7 +960,7 @@
      <normaloff>:/icons/resources/icons/system-suspend.png</normaloff>:/icons/resources/icons/system-suspend.png</iconset>
    </property>
    <property name="text">
-    <string>S&amp;uspend to file</string>
+    <string>Save &amp;to file</string>
    </property>
   </action>
   <action name="actionResume_from_file">
@@ -876,7 +969,7 @@
      <normaloff>:/icons/resources/icons/system-suspend-hibernate.png</normaloff>:/icons/resources/icons/system-suspend-hibernate.png</iconset>
    </property>
    <property name="text">
-    <string>Resume &amp;from file</string>
+    <string>Load &amp;from file</string>
    </property>
   </action>
  </widget>

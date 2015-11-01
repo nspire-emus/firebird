@@ -95,6 +95,9 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->spinGDB, SIGNAL(valueChanged(int)), this, SLOT(setGDBPort(int)));
     connect(ui->spinRDBG, SIGNAL(valueChanged(int)), this, SLOT(setRDBGPort(int)));
     connect(ui->orderDiags, SIGNAL(toggled(bool)), this, SLOT(setBootOrder(bool)));
+    connect(ui->checkSuspend, SIGNAL(toggled(bool)), this, SLOT(setSuspendOnClose(bool)));
+    connect(ui->checkResume, SIGNAL(toggled(bool)), this, SLOT(setResumeOnOpen(bool)));
+    connect(ui->buttonChangeSnapshotPath, SIGNAL(clicked()), this, SLOT(changeSnapshotPath()));
 
     //Set up monospace fonts
     QFont monospace = QFontDatabase::systemFont(QFontDatabase::FixedFont);
@@ -123,14 +126,24 @@ MainWindow::MainWindow(QWidget *parent) :
     setUSBPath(settings->value("usbdir", QString("ndless")).toString());
     setGDBPort(settings->value("gdbPort", 3333).toUInt());
     setRDBGPort(settings->value("rdbgPort", 3334).toUInt());
+    ui->checkSuspend->setChecked(settings->value("suspendOnClose", false).toBool());
+    ui->checkResume->setChecked(settings->value("resumeOnOpen", false).toBool());
+    if(!settings->value("snapshotPath").toString().isEmpty())
+        ui->labelSnapshotPath->setText(settings->value("snapshotPath").toString());
+
     setBootOrder(false);
 
-    bool autostart = settings->value("emuAutostart", false).toBool();
-    setAutostart(autostart);
-    if(emu.boot1 != "" && emu.flash != "" && autostart)
-        emu.start();
+    if(settings->value("resumeOnOpen").toBool())
+        resume();
     else
-        ui->statusbar->showMessage(trUtf8("Start the emulation via Emulation->Restart."));
+    {
+        bool autostart = settings->value("emuAutostart", false).toBool();
+        setAutostart(autostart);
+        if(emu.boot1 != "" && emu.flash != "" && autostart)
+            emu.start();
+        else
+            ui->statusbar->showMessage(trUtf8("Start the emulation via Emulation->Restart."));
+    }
 
     #ifdef Q_OS_MAC
         QTimer::singleShot(50, [&] {dockVisibilityChanged(false);}); // Trigger dock update (after UI was shown)
@@ -329,6 +342,7 @@ void MainWindow::resumeFromPath(QString path)
 {
     emu_thread->snapshot_path = path.toStdString();
     emu_thread->do_resume = true;
+    restart();
 }
 
 void MainWindow::reload_filebrowser()
@@ -473,6 +487,26 @@ void MainWindow::setRDBGPort(int port)
     ui->spinRDBG->setValue(port);
 }
 
+void MainWindow::setSuspendOnClose(bool b)
+{
+    settings->setValue("suspendOnClose", b);
+}
+
+void MainWindow::setResumeOnOpen(bool b)
+{
+    settings->setValue("resumeOnOpen", b);
+}
+
+void MainWindow::changeSnapshotPath()
+{
+    QString path = QFileDialog::getSaveFileName(this, tr("Select snapshot location"));
+    if(path.isNull())
+        return;
+
+    settings->setValue("snapshotPath", path);
+    ui->labelSnapshotPath->setText(path);
+}
+
 void MainWindow::showSpeed(double percent)
 {
     ui->buttonSpeed->setText(tr("Speed: %1 %").arg(percent, 1, 'f', 0));
@@ -513,6 +547,8 @@ void MainWindow::resume()
     QString default_snapshot = settings->value("snapshotPath").toString();
     if(!default_snapshot.isEmpty())
         resumeFromPath(default_snapshot);
+    else
+        QMessageBox::warning(this, tr("Can't resume"), tr("No snapshot path (Settings->Snapshot) given"));
 }
 
 void MainWindow::suspend()
@@ -520,18 +556,20 @@ void MainWindow::suspend()
     QString default_snapshot = settings->value("snapshotPath").toString();
     if(!default_snapshot.isEmpty())
         suspendToPath(default_snapshot);
+    else
+        QMessageBox::warning(this, tr("Can't suspend"), tr("No snapshot path (Settings->Snapshot) given"));
 }
 
 void MainWindow::resumeFromFile()
 {
-    QString snapshot = QFileDialog::getOpenFileName(this, "Select snapshot to resume from");
+    QString snapshot = QFileDialog::getOpenFileName(this, tr("Select snapshot to resume from"));
     if(!snapshot.isEmpty())
         resumeFromPath(snapshot);
 }
 
 void MainWindow::suspendToFile()
 {
-    QString snapshot = QFileDialog::getSaveFileName(this, "Select snapshot to suspend to");
+    QString snapshot = QFileDialog::getSaveFileName(this, tr("Select snapshot to suspend to"));
     if(!snapshot.isEmpty())
         suspendToPath(snapshot);
 }
@@ -549,6 +587,14 @@ void MainWindow::createFlash()
 
 void MainWindow::closeEvent(QCloseEvent *e)
 {
+    if(settings->value("suspendOnClose").toBool() && emu_thread->isRunning() && exiting == false)
+    {
+        qDebug("Suspending...");
+        suspend();
+        while(emu_thread->do_suspend)
+            sleep(1);
+    }
+
     qDebug("Terminating emulator thread...");
 
     if(emu.stop())

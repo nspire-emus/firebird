@@ -504,9 +504,9 @@ void pmu_reset(void) {
     // No idea what the clock speeds should actually be on reset,
     // but we have to set them to something
     pmu.clocks = pmu.clocks_load = emulate_cx ? 0x0F1002 : 0x141002;
-    clock_rates[CLOCK_CPU] = 90000000;
-    clock_rates[CLOCK_AHB] = 45000000;
-    clock_rates[CLOCK_APB] = 22500000;
+    sched.clock_rates[CLOCK_CPU] = 90000000;
+    sched.clock_rates[CLOCK_AHB] = 45000000;
+    sched.clock_rates[CLOCK_APB] = 22500000;
 }
 uint32_t pmu_read(uint32_t addr) {
     switch (addr & 0x003F) {
@@ -569,7 +569,7 @@ void pmu_write(uint32_t addr, uint32_t value) {
 
 /* 90010000, 900C0000(?), 900D0000 */
 static timer_cx_state timer_cx;
-
+static void timer_cx_event(int index);
 bool timer_cx_resume(const emu_snapshot *snapshot)
 {
     timer_cx = snapshot->mem.timer_cx;

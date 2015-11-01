@@ -8,7 +8,7 @@ extern "C" {
 #endif
 
 enum clock_id { CLOCK_CPU, CLOCK_AHB, CLOCK_APB, CLOCK_27M, CLOCK_12M, CLOCK_32K };
-extern uint32_t clock_rates[6];
+
 enum sched_item_index {
         SCHED_THROTTLE,
         SCHED_KEYPAD,
@@ -32,6 +32,9 @@ struct sched_item {
 
 typedef struct sched_state {
     struct sched_item items[SCHED_NUM_ITEMS];
+    uint32_t clock_rates[6];
+    uint32_t next_cputick;
+    int next_index; // -1 if no more events this second
 } sched_state;
 
 extern sched_state sched;

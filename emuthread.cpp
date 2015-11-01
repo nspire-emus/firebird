@@ -130,12 +130,6 @@ void EmuThread::doStuff()
             do_suspend = false;
             //TODO: Signal
         }
-        else if(do_resume)
-        {
-            emu_resume(snapshot_path.c_str());
-            do_resume = false;
-            //TODO: Signal
-        }
 
         if(enter_debugger)
         {
@@ -158,7 +152,12 @@ void EmuThread::run()
     path_boot1 = boot1.c_str();
     path_flash = flash.c_str();
 
-    int ret = emulate(port_gdb, port_rdbg);
+    bool do_reset = !do_resume;
+    bool ret = emu_start(port_gdb, port_rdbg, do_resume ? snapshot_path.c_str() : nullptr);
+    do_resume = false;
+
+    if(ret)
+        emu_loop(do_reset);
 
     emit exited(ret);
 }
@@ -195,8 +194,12 @@ void EmuThread::setPaused(bool paused)
 
 bool EmuThread::stop()
 {
+    if(!isRunning())
+        return true;
+
     exiting = true;
     paused = false;
+    do_suspend = false;
     setTurboMode(true);
     if(!this->wait(200))
     {

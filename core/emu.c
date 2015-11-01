@@ -139,29 +139,66 @@ void throttle_interval_event(int index) {
 		throttle_timer_wait();
 }
 
-int emulate(unsigned int port_gdb, unsigned int port_rdbg)
+bool emu_start(unsigned int port_gdb, unsigned int port_rdbg, const char *snapshot_file)
 {
-    int i;
-
-    // Enter debug mode?
     if(debug_on_start)
         cpu_events |= EVENT_DEBUG_STEP;
 
-    if (!path_flash
-        || !flash_open(path_flash))
-            return 1;
+    if(snapshot_file)
+    {
+        // Open snapshot
+        int fp = open(snapshot_file, O_RDONLY);
+        if(fp == -1)
+            return false;
 
-    uint32_t sdram_size;
-    flash_read_settings(&sdram_size, &product, &asic_user_flags);
+        size_t size = lseek(fp, 0, SEEK_END);
+        lseek(fp, 0, SEEK_SET);
 
-    flash_set_bootorder(boot_order);
+        struct emu_snapshot *snapshot = mmap(NULL, size, PROT_READ, MAP_PRIVATE, fp, 0);
+        close(fp);
 
-    if(!memory_initialize(sdram_size))
-        return 1;
+        if((intptr_t) snapshot == -1)
+            return false;
+
+        //sched_reset();
+        sched.items[SCHED_THROTTLE].clock = CLOCK_27M;
+        sched.items[SCHED_THROTTLE].proc = throttle_interval_event;
+
+        // Resume components
+        uint32_t sdram_size;
+        if(size < sizeof(emu_snapshot)
+                || snapshot->sig != 0xCAFEBEEF
+                || !flash_resume(snapshot)
+                || !flash_read_settings(&sdram_size, &product, &asic_user_flags)
+                || !cpu_resume(snapshot)
+                || !memory_resume(snapshot)
+                || !sched_resume(snapshot))
+        {
+            emu_cleanup();
+            munmap(snapshot, size);
+            return false;
+        }
+
+        munmap(snapshot, size);
+    }
+    else
+    {
+        if (!path_flash
+            || !flash_open(path_flash))
+                return false;
+
+        uint32_t sdram_size;
+        flash_read_settings(&sdram_size, &product, &asic_user_flags);
+
+        flash_set_bootorder(boot_order);
+
+        if(!memory_initialize(sdram_size))
+            return false;
+    }
 
     uint8_t *rom = mem_areas[0].ptr;
     memset(rom, -1, 0x80000);
-    for (i = 0x00000; i < 0x80000; i += 4) {
+    for (int i = 0x00000; i < 0x80000; i += 4) {
         RAM_FLAGS(&rom[i]) = RF_READ_ONLY;
     }
     if (path_boot1) {
@@ -169,7 +206,7 @@ int emulate(unsigned int port_gdb, unsigned int port_rdbg)
         FILE *f = fopen(path_boot1, "rb");
         if (!f) {
             gui_perror(path_boot1);
-            return 1;
+            return false;
         }
         fread(rom, 1, 0x80000, f);
         fclose(f);
@@ -192,34 +229,41 @@ int emulate(unsigned int port_gdb, unsigned int port_rdbg)
     if(port_rdbg)
         rdebug_bind(port_rdbg);
 
-reset:
-    memset(mem_areas[1].ptr, 0, mem_areas[1].size);
+    return true;
+}
 
-    memset(&arm, 0, sizeof arm);
-    arm.control = 0x00050078;
-    arm.cpsr_low28 = MODE_SVC | 0xC0;
-    cpu_events &= EVENT_DEBUG_STEP;
+void emu_loop(bool reset)
+{
+    if(reset)
+    {
+    reset:
+        memset(mem_areas[1].ptr, 0, mem_areas[1].size);
+
+        memset(&arm, 0, sizeof arm);
+        arm.control = 0x00050078;
+        arm.cpsr_low28 = MODE_SVC | 0xC0;
+        cpu_events &= EVENT_DEBUG_STEP;
+
+        sched_reset();
+        sched.items[SCHED_THROTTLE].clock = CLOCK_27M;
+        sched.items[SCHED_THROTTLE].proc = throttle_interval_event;
+
+        memory_reset();
+    }
 
     gdbstub_reset();
 
     addr_cache_flush();
     flush_translations();
 
-    sched_reset();
-
-    memory_reset();
-
-    sched.items[SCHED_THROTTLE].clock = CLOCK_27M;
-    sched.items[SCHED_THROTTLE].proc = throttle_interval_event;
-
     sched_update_next_event(0);
 
     exiting = false;
 
-// TODO: try to properly fix that (it causes a ICE on clang)
-#ifndef IS_IOS_BUILD
-    __builtin_setjmp(restart_after_exception);
-#endif
+    // TODO: try to properly fix that (it causes a ICE on clang)
+    #ifndef IS_IOS_BUILD
+        __builtin_setjmp(restart_after_exception);
+    #endif
 
     while (!exiting) {
         sched_process_pending_events();
@@ -250,9 +294,6 @@ reset:
                 cpu_arm_loop();
         }
     }
-
-    emu_cleanup();
-    return 0;
 }
 
 bool emu_suspend(const char *file)
@@ -293,52 +334,6 @@ bool emu_suspend(const char *file)
 
     munmap(snapshot, size);
     close(fp);
-    return true;
-}
-
-bool emu_resume(const char *file)
-{
-    emu_cleanup();
-
-    int fp = open(file, O_RDONLY);
-    if(fp == -1)
-        return false;
-
-    size_t size = lseek(fp, 0, SEEK_END);
-    lseek(fp, 0, SEEK_SET);
-
-    struct emu_snapshot *snapshot = mmap(NULL, size, PROT_READ, MAP_PRIVATE, fp, 0);
-    if((intptr_t) snapshot == -1)
-    {
-        close(fp);
-        return false;
-    }
-
-    uint32_t sdram_size;
-    if(size < sizeof(emu_snapshot)
-            || snapshot->sig != 0xCAFEBEEF
-            || !flash_resume(snapshot)
-            || !flash_read_settings(&sdram_size, &product, &asic_user_flags)
-            || !cpu_resume(snapshot)
-            || !sched_resume(snapshot)
-            || !memory_resume(snapshot))
-    {
-        emu_cleanup();
-        munmap(snapshot, size);
-        close(fp);
-        return false;
-    }
-
-    #ifndef NO_TRANSLATION
-        translate_deinit();
-        translate_init();
-    #endif
-
-    addr_cache_flush();
-
-    munmap(snapshot, size);
-    close(fp);
-    exiting = false;
     return true;
 }
 
