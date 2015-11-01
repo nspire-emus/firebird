@@ -120,7 +120,7 @@ void throttle_interval_event(int index) {
 
     rdebug_recv();
 
-    gui_do_stuff();
+    gui_do_stuff(true);
 
     os_time_t interval_end;
     os_query_time(&interval_end);

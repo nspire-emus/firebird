@@ -15,6 +15,7 @@
 #include <string.h>
 #include <errno.h>
 #include <unistd.h>
+#include <poll.h>
 
 #ifdef __MINGW32__
 #include <winsock2.h>
@@ -115,6 +116,28 @@ static int range_translated(uint32_t range_start, uint32_t range_end) {
 /* Returns -1 on disconnection */
 static char get_debug_char(void) {
     char c;
+
+    while(true)
+    {
+        struct pollfd pfd;
+        pfd.fd = socket_fd;
+        pfd.events = POLLIN;
+        int p = poll(&pfd, 1, 100);
+        if(p == -1) // Disconnected
+            return -1;
+
+        if(p) // Data available
+            break;
+
+        else // No data available
+        {
+            if(exiting)
+                return -1;
+
+            gui_do_stuff(false);
+        }
+    }
+
     int r = recv(socket_fd, &c, 1, 0);
     if (r == -1) {
         // only for debugging - log_socket_error("Failed to recv from GDB stub socket");
@@ -137,7 +160,7 @@ static void set_nonblocking(int socket, bool nonblocking) {
     ioctlsocket(socket, FIONBIO, &mode);
 #else
     int ret = fcntl(socket, F_GETFL, 0);
-    fcntl(socket, F_SETFL, nonblocking ? ret | O_NONBLOCK : ret & ~O_NONBLOCK);
+    fcntl(socket, F_SETFL, nonblocking ? (ret | O_NONBLOCK) : (ret & ~O_NONBLOCK));
 #endif
 }
 
@@ -652,7 +675,7 @@ void gdbstub_recv(void) {
         if (ret == -1)
             return;
         socket_fd = ret;
-        set_nonblocking(socket_fd, false);
+        set_nonblocking(socket_fd, true);
         /* Disable Nagle for low latency */
         on = 1;
 #ifdef __MINGW32__

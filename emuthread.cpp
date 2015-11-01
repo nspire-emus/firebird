@@ -15,9 +15,9 @@
 
 EmuThread *emu_thread = nullptr;
 
-void gui_do_stuff()
+void gui_do_stuff(bool wait)
 {
-    emu_thread->doStuff();
+    emu_thread->doStuff(wait);
 }
 
 void gui_debug_printf(const char *fmt, ...)
@@ -67,6 +67,7 @@ char *gui_debug_prompt()
         QEventLoop ev;
         ev.connect(main_window, SIGNAL(debuggerCommand()), &ev, SLOT(quit()));
         ev.exec();
+
         return main_window->debug_command.data();
     #endif
 }
@@ -120,7 +121,7 @@ EmuThread::EmuThread(QObject *parent) :
 }
 
 //Called occasionally, only way to do something in the same thread the emulator runs in.
-void EmuThread::doStuff()
+void EmuThread::doStuff(bool wait)
 {
     do
     {
@@ -139,10 +140,10 @@ void EmuThread::doStuff()
             debugger(DBG_USER, 0);
         }
 
-        if(paused)
+        if(paused && wait)
             msleep(100);
 
-    } while(paused);
+    } while(paused && wait);
 }
 
 void EmuThread::run()

@@ -67,7 +67,7 @@ void add_reset_proc(void (*proc)(void));
 extern void *restart_after_exception[32];
 
 // GUI callbacks
-void gui_do_stuff();
+void gui_do_stuff(bool wait);
 int gui_getchar();
 void gui_putchar(char c);
 void gui_debug_printf(const char *fmt, ...);

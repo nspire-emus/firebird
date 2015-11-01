@@ -663,7 +663,7 @@ void rdebug_recv(void) {
         if (ret == -1)
             return;
         socket_fd = ret;
-        set_nonblocking(socket_fd, false);
+        set_nonblocking(socket_fd, true);
         /* Disable Nagle for low latency */
         on = 1;
 #ifdef __MINGW32__
@@ -676,22 +676,37 @@ void rdebug_recv(void) {
         gui_debug_printf("Remote debug: connected.\n");
         return;
     }
-    fd_set rfds;
-    FD_ZERO(&rfds);
-    FD_SET((unsigned)socket_fd, &rfds);
-    struct timeval zero = {0, 0};
-    ret = select(socket_fd + 1, &rfds, NULL, NULL, &zero);
-    if (ret == -1 && errno == EBADF) {
-        gui_debug_printf("Remote debug: connection closed.\n");
-#ifdef __MINGW32__
-        closesocket(socket_fd);
-#else
-        close(socket_fd);
-#endif
-        socket_fd = 0;
+
+    while(true)
+    {
+        fd_set rfds;
+        FD_ZERO(&rfds);
+        FD_SET((unsigned)socket_fd, &rfds);
+        struct timeval zero = {0, 100000};
+        ret = select(socket_fd + 1, &rfds, NULL, NULL, &zero);
+        if (ret == -1 && errno == EBADF) {
+            gui_debug_printf("Remote debug: connection closed.\n");
+            #ifdef __MINGW32__
+                closesocket(socket_fd);
+            #else
+                close(socket_fd);
+            #endif
+            socket_fd = 0;
+        }
+        else if (!ret) // No data available
+        {
+            if(exiting)
+            {
+                close(socket_fd);
+                socket_fd = 0;
+                return;
+            }
+
+            gui_do_stuff(false);
+        }
+        else // Data available
+            break;
     }
-    else if (!ret)
-        return; // nothing receivable
 
     size_t buf_remain = sizeof(rdebug_inbuf) - rdebug_inbuf_used;
     if (!buf_remain) {

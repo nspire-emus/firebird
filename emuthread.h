@@ -9,7 +9,7 @@ class EmuThread : public QThread
 public:
     explicit EmuThread(QObject *parent = 0);
 
-    void doStuff();
+    void doStuff(bool wait);
     void throttleTimerWait();
 
     volatile bool paused = false, do_suspend = false, do_resume = false;
