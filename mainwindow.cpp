@@ -95,6 +95,7 @@ MainWindow::MainWindow(QWidget *parent) :
     //File transfer
     connect(ui->refreshButton, SIGNAL(clicked(bool)), this, SLOT(reload_filebrowser()));
     connect(this, SIGNAL(usblink_progress_changed(int)), this, SLOT(changeProgress(int)), Qt::QueuedConnection);
+    connect(ui->treeWidget, SIGNAL(itemChanged(QTreeWidgetItem*,int)), this, SLOT(usblink_dirlist_dataChanged(QTreeWidgetItem*,int)));
 
     //Settings
     connect(ui->checkDebugger, SIGNAL(toggled(bool)), this, SLOT(setDebuggerOnStartup(bool)));
@@ -315,8 +316,10 @@ void MainWindow::usblink_dirlist_callback_nested(struct usblink_file *file, void
 
     //Add directory entry to tree widget item (parent)
     QTreeWidgetItem *item = new QTreeWidgetItem({QString::fromUtf8(file->filename), file->is_dir ? "" : naturalSize(file->size)});
+    item->setFlags(Qt::ItemIsSelectable | Qt::ItemIsDragEnabled | Qt::ItemIsEditable | Qt::ItemIsEnabled);
     item->setData(0, Qt::UserRole, QVariant(file->is_dir));
     item->setData(1, Qt::UserRole, QVariant(false));
+    item->setData(2, Qt::UserRole, QVariant(QString::fromUtf8(file->filename)));
     w->addChild(item);
 }
 
@@ -339,8 +342,10 @@ void MainWindow::usblink_dirlist_callback(struct usblink_file *file, void *data)
 
     //Add directory entry to tree widget
     QTreeWidgetItem *item = new QTreeWidgetItem({QString::fromUtf8(file->filename), file->is_dir ? "" : naturalSize(file->size)});
+    item->setFlags(Qt::ItemIsSelectable | Qt::ItemIsDragEnabled | Qt::ItemIsEditable | Qt::ItemIsEnabled);
     item->setData(0, Qt::UserRole, QVariant(file->is_dir));
     item->setData(1, Qt::UserRole, QVariant(false));
+    item->setData(2, Qt::UserRole, QVariant(QString::fromUtf8(file->filename)));
     w->addTopLevelItem(item);
 }
 
@@ -379,6 +384,30 @@ void MainWindow::reload_filebrowser()
 void MainWindow::changeProgress(int value)
 {
     ui->progressBar->setValue(value);
+}
+
+static void usblink_move_progress(int progress, void *user_data)
+{
+    auto *item = reinterpret_cast<QTreeWidgetItem*>(user_data);
+
+    if(progress == 100) // Success
+        item->setData(2, Qt::UserRole, item->data(0, Qt::DisplayRole)); // Set internal name to new name
+    else if(progress < 0) // Failure
+        item->setData(0, Qt::DisplayRole, item->data(2, Qt::UserRole)); // Reset display name to old name
+}
+
+void MainWindow::usblink_dirlist_dataChanged(QTreeWidgetItem *item, int column)
+{
+    // Only the name can be changed
+    if(column != 0)
+        return;
+
+    std::string filepath = usblink_path_item(item->parent()).toStdString();
+
+    std::string old_name = item->data(2, Qt::UserRole).toString().toStdString(),
+             new_name = item->data(0, Qt::DisplayRole).toString().toStdString();
+
+    usblink_queue_move(filepath + "/" + old_name, filepath + "/" + new_name, usblink_move_progress, item);
 }
 
 void MainWindow::selectBoot1(QString path)

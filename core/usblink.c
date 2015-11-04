@@ -47,7 +47,8 @@ enum File_Action {
 
 enum USB_Mode {
     File_Send = 0,
-    Dirlist
+    Dirlist,
+    Rename
 } mode;
 
 uint16_t usblink_data_checksum(struct packet *packet) {
@@ -69,7 +70,7 @@ uint8_t usblink_header_checksum(struct packet *packet) {
 }
 
 static void dump_packet(char *type, void *data, uint32_t size) {
-    if (log_enabled[LOG_USB])
+    //if (log_enabled[LOG_USB])
     {
         uint32_t i;
         emuprintf("%s", type);
@@ -394,7 +395,7 @@ bool usblink_put_file(const char *filepath, const char *folder, usblink_progress
     out->ack = 0;
     out->seqno = next_seqno();
     uint8_t *data = out->data;
-    *data++ = 3;
+    *data++ = File_Put;
     *data++ = 1;
     data += sprintf((char *)data, "/%s/%s", folder, filename) + 1;
     *(uint32_t *)data = BSWAP32(put_file_size); data += 4;
@@ -426,8 +427,43 @@ void usblink_send_os(const char *filepath, usblink_progress_cb callback, void *u
     out->ack = 0;
     out->seqno = next_seqno();
     uint8_t *data = out->data;
-    *data++ = 3;
+    *data++ = File_Put;
     *(uint32_t *)data = BSWAP32(put_file_size); data += 4;
+    out->data_size = data - out->data;
+    usblink_send_packet();
+}
+
+void usblink_move(const char *old_path, const char *new_path, usblink_progress_cb callback, void *user_data)
+{
+    mode = Rename;
+    current_file_callback = callback;
+    current_file_user_data = user_data;
+
+    /* Send the first packet */
+    struct packet *out = &usblink_send_buffer;
+    out->src.service = SID_File;
+    out->dst.service = BSWAP16(0x4060);
+    out->ack = 0;
+    out->seqno = next_seqno();
+    uint8_t *data = out->data;
+    *data++ = File_Rename;
+    *data++ = 1;
+    unsigned int size = sprintf((char *)data, "%s", old_path) + 1;
+    data += size;
+    while(size < 8)
+    {
+        *data++ = 0;
+        ++size;
+    }
+
+    size = sprintf((char *)data, "%s", new_path) + 1;
+    data += size;
+    while(size < 8)
+    {
+        *data++ = 0;
+        ++size;
+    }
+
     out->data_size = data - out->data;
     usblink_send_packet();
 }

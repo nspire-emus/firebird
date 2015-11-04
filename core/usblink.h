@@ -26,6 +26,7 @@ typedef void (*usblink_progress_cb)(int progress, void *user_data);
 
 void usblink_dirlist(const char *path, usblink_dirlist_cb callback, void *user_data);
 bool usblink_put_file(const char *filepath, const char *folder, usblink_progress_cb callback, void *user_data);
+void usblink_move(const char *old_path, const char *new_path, usblink_progress_cb callback, void *user_data);
 void usblink_send_os(const char *filepath, usblink_progress_cb callback, void *user_data);
 
 void usblink_reset();

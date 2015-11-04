@@ -11,6 +11,7 @@ struct usblink_queue_action {
         PUT_FILE,
         SEND_OS,
         DIRLIST,
+        MOVE,
     } action;
 
     //Members only used if the appropriate action is set
@@ -78,6 +79,9 @@ void usblink_queue_do()
     case usblink_queue_action::DIRLIST:
         usblink_dirlist(action.path.c_str(), dirlist_callback, action.user_data);
         break;
+    case usblink_queue_action::MOVE:
+        usblink_move(action.filepath.c_str(), action.path.c_str(), progress_callback, action.user_data);
+        break;
     }
 }
 
@@ -130,6 +134,19 @@ void usblink_queue_send_os(const char *filepath, usblink_progress_cb callback, v
     action.user_data = user_data;
     action.filepath = filepath;
     action.progress_callback = callback;
+
+    usblink_queue.push(action);
+}
+
+
+void usblink_queue_move(std::string old_path, std::string new_path, usblink_progress_cb callback, void *user_data)
+{
+    usblink_queue_action action;
+    action.action = usblink_queue_action::MOVE;
+    action.user_data = user_data;
+    action.filepath = old_path;
+    action.path = new_path;
+    action.progress_callback = callback,
 
     usblink_queue.push(action);
 }

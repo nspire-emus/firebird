@@ -4,6 +4,7 @@
 #include <QMainWindow>
 #include <QSettings>
 #include <QLabel>
+#include <QTreeWidgetItem>
 
 #include "emuthread.h"
 #include "flashdialog.h"
@@ -67,6 +68,7 @@ public slots:
     //File transfer
     void reload_filebrowser();
     void changeProgress(int value);
+    void usblink_dirlist_dataChanged(QTreeWidgetItem *item, int column);
 
     //Settings
     void selectBoot1();
