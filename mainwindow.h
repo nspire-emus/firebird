@@ -51,6 +51,7 @@ public slots:
     void serialChar(const char c);
 
     //Debugging
+    void debugInputRequested(bool b);
     void debugStr(QString str);
     void debugCommand();
 
@@ -77,12 +78,10 @@ public slots:
     void showSpeed(double percent);
 
 signals:
-    void debuggerCommand();
+    void debuggerCommand(QString input);
     void usblink_progress_changed(int progress);
 
 public:
-    QByteArray debug_command;
-
     //usblink callbacks
     static void usblink_dirlist_callback_nested(struct usblink_file *file, void *data);
     static void usblink_dirlist_callback(struct usblink_file *file, void *data);
@@ -93,6 +92,8 @@ private:
     void resumeFromPath(QString path);
     void selectBoot1(QString path);
     void selectFlash(QString path);
+
+    void raiseDebugger();
 
     Ui::MainWindow *ui = nullptr;
 

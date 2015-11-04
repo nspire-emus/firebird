@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>714</width>
-    <height>368</height>
+    <height>369</height>
    </rect>
   </property>
   <property name="acceptDrops">
@@ -245,6 +245,9 @@
         </item>
         <item>
          <widget class="QLineEdit" name="lineEdit">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
           <property name="font">
            <font>
             <family>Droid Sans Mono</family>
@@ -322,8 +325,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>279</width>
-             <height>92</height>
+             <width>289</width>
+             <height>101</height>
             </rect>
            </property>
            <attribute name="label">
@@ -430,8 +433,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>338</width>
-             <height>124</height>
+             <width>326</width>
+             <height>116</height>
             </rect>
            </property>
            <attribute name="label">
@@ -523,8 +526,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>246</width>
-             <height>100</height>
+             <width>247</width>
+             <height>101</height>
             </rect>
            </property>
            <attribute name="label">
@@ -633,8 +636,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>161</width>
-             <height>40</height>
+             <width>166</width>
+             <height>41</height>
             </rect>
            </property>
            <attribute name="label">
@@ -658,8 +661,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>148</width>
-             <height>80</height>
+             <width>154</width>
+             <height>78</height>
             </rect>
            </property>
            <attribute name="label">
@@ -794,7 +797,7 @@
      <x>0</x>
      <y>0</y>
      <width>714</width>
-     <height>26</height>
+     <height>20</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuEmulation">

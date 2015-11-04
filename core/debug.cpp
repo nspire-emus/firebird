@@ -15,6 +15,9 @@
 #include <fcntl.h>
 #include <netinet/tcp.h>
 #endif
+
+#include <condition_variable>
+
 #include "armsnippets.h"
 #include "debug.h"
 #include "interrupt.h"
@@ -28,6 +31,18 @@
 #include "gdbstub.h"
 
 char target_folder[256];
+
+// Used for debugger input
+static std::mutex debug_input_m;
+static std::condition_variable debug_input_cv;
+static const char * volatile debug_input_cur = nullptr;
+
+static void debug_input_callback(const char *input)
+{
+    debug_input_cur = input;
+
+    debug_input_cv.notify_all();
+}
 
 void *virt_mem_ptr(uint32_t addr, uint32_t size) {
     // Note: this is not guaranteed to be correct when range crosses page boundary
@@ -560,13 +575,34 @@ static void native_debugger(void) {
     while (1) {
         if(debugger_input == NULL)
         {
-            char *cmd = gui_debug_prompt();
-            if(process_debug_cmd(cmd))
+            debug_input_cur = nullptr;
+
+            gui_debugger_request_input(debug_input_callback);
+
+            while(!debug_input_cur)
             {
-                //free(cmd);
-                break;
+                std::unique_lock<std::mutex> lk(debug_input_m);
+                debug_input_cv.wait_for(lk, std::chrono::milliseconds(100), []{return debug_input_cur;});
+                if(debug_input_cur || exiting)
+                    break;
+
+                gui_do_stuff(false);
             }
-            //free(cmd);
+
+            gui_debugger_request_input(nullptr);
+
+            if(exiting)
+                return;
+
+            char *copy = strdup(debug_input_cur);
+            if(!copy)
+                return;
+
+            if(process_debug_cmd(copy))
+                break;
+
+            free(copy);
+
             continue;
         }
         fflush(stdout);

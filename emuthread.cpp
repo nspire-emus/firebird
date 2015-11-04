@@ -59,17 +59,12 @@ void gui_debugger_entered_or_left(bool entered)
     emu_thread->debuggerEntered(entered);
 }
 
-char *gui_debug_prompt()
-{
-    #ifdef MOBILE_UI
-        return const_cast<char*>("c");
-    #else
-        QEventLoop ev;
-        ev.connect(main_window, SIGNAL(debuggerCommand()), &ev, SLOT(quit()));
-        ev.exec();
+static debug_input_cb debug_callback;
 
-        return main_window->debug_command.data();
-    #endif
+void gui_debugger_request_input(debug_input_cb callback)
+{
+    debug_callback = callback;
+    emu_thread->debugInputRequested(callback != nullptr);
 }
 
 void gui_putchar(char c)
@@ -186,6 +181,12 @@ void EmuThread::toggleTurbo()
 void EmuThread::enterDebugger()
 {
     enter_debugger = true;
+}
+
+void EmuThread::debuggerInput(QString str)
+{
+    debug_input = str.toStdString();
+    debug_callback(debug_input.c_str());
 }
 
 void EmuThread::setPaused(bool paused)

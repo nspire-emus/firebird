@@ -26,18 +26,21 @@ signals:
     void usblinkChanged(bool state);
     void turboModeChanged(bool state);
     void debuggerEntered(bool state);
+    void debugInputRequested(bool b);
 
 public slots:
     virtual void run() override;
     void setTurboMode(bool state);
     void toggleTurbo();
     void enterDebugger();
+    void debuggerInput(QString str);
     void setPaused(bool paused);
     bool stop();
     void reset();
 
 private:
     bool enter_debugger = false;
+    std::string debug_input;
 };
 
 extern EmuThread *emu_thread;

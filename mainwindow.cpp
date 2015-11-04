@@ -43,6 +43,10 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(&emu, SIGNAL(statusMsg(QString)), ui->statusbar, SLOT(showMessage(QString)), Qt::QueuedConnection);
     connect(&emu, SIGNAL(turboModeChanged(bool)), ui->buttonSpeed, SLOT(setChecked(bool)), Qt::QueuedConnection);
     connect(&emu, SIGNAL(usblinkChanged(bool)), this, SLOT(usblinkChanged(bool)), Qt::QueuedConnection);
+    connect(&emu, SIGNAL(debugInputRequested(bool)), this, SLOT(debugInputRequested(bool)), Qt::QueuedConnection);
+
+    //GUI -> Emu (no QueuedConnection possible, watch out!)
+    connect(this, SIGNAL(debuggerCommand(QString)), &emu, SLOT(debuggerInput(QString)));
 
     //Menu "Emulator"
     connect(ui->buttonReset, SIGNAL(clicked(bool)), &emu, SLOT(reset()));
@@ -210,25 +214,29 @@ void MainWindow::serialChar(const char c)
     }
 }
 
+void MainWindow::debugInputRequested(bool b)
+{
+    ui->lineEdit->setEnabled(b);
+
+    if(b)
+    {
+        raiseDebugger();
+        ui->lineEdit->setFocus();
+    }
+}
+
 void MainWindow::debugStr(QString str)
 {
     ui->debugConsole->moveCursor(QTextCursor::End);
     ui->debugConsole->insertPlainText(str);
 
-    // Activate the debugger
-    if(dock_debugger)
-    {
-        dock_debugger->setVisible(true);
-        dock_debugger->raise();
-    }
-    ui->tabWidget->setCurrentWidget(ui->tabDebugger);
+    raiseDebugger();
 }
 
 void MainWindow::debugCommand()
 {
-    debug_command = ui->lineEdit->text().toLatin1();
+    emit debuggerCommand(ui->lineEdit->text());
     ui->lineEdit->clear();
-    emit debuggerCommand();
 }
 
 static QString naturalSize(uint64_t bytes)
@@ -386,6 +394,16 @@ void MainWindow::selectFlash(QString path)
     ui->filenameFlash->setText(f.fileName());
 
     settings->setValue("flash", path);
+}
+
+void MainWindow::raiseDebugger()
+{
+    if(dock_debugger)
+    {
+        dock_debugger->setVisible(true);
+        dock_debugger->raise();
+    }
+    ui->tabWidget->setCurrentWidget(ui->tabDebugger);
 }
 
 void MainWindow::selectFlash()
