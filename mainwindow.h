@@ -47,6 +47,12 @@ public slots:
     void saveFlash();
     void createFlash();
 
+    //State
+    void started(bool success);
+    void resumed(bool success);
+    void suspended(bool success);
+    void stopped();
+
     //Serial
     void serialChar(const char c);
 
@@ -109,6 +115,10 @@ private:
     FlashDialog flash_dialog;
     // To make it possible to activate the debugger
     QDockWidget *dock_debugger = nullptr;
+
+    // Used for autosuspend on close.
+    // The close event has to be deferred until the suspend operation completed successfully.
+    bool close_after_suspend = false;
 };
 
 // Used as global instance by EmuThread and friends

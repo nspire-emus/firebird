@@ -44,6 +44,11 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(&emu, SIGNAL(turboModeChanged(bool)), ui->buttonSpeed, SLOT(setChecked(bool)), Qt::QueuedConnection);
     connect(&emu, SIGNAL(usblinkChanged(bool)), this, SLOT(usblinkChanged(bool)), Qt::QueuedConnection);
     connect(&emu, SIGNAL(debugInputRequested(bool)), this, SLOT(debugInputRequested(bool)), Qt::QueuedConnection);
+    connect(&emu, SIGNAL(started(bool)), this, SLOT(started(bool)), Qt::QueuedConnection);
+    connect(&emu, SIGNAL(paused(bool)), ui->actionPause, SLOT(setChecked(bool)), Qt::QueuedConnection);
+    connect(&emu, SIGNAL(resumed(bool)), this, SLOT(resumed(bool)), Qt::QueuedConnection);
+    connect(&emu, SIGNAL(suspended(bool)), this, SLOT(suspended(bool)), Qt::QueuedConnection);
+    connect(&emu, SIGNAL(stopped()), this, SLOT(stopped()), Qt::QueuedConnection);
 
     //GUI -> Emu (no QueuedConnection possible, watch out!)
     connect(this, SIGNAL(debuggerCommand(QString)), &emu, SLOT(debuggerInput(QString)));
@@ -146,7 +151,7 @@ MainWindow::MainWindow(QWidget *parent) :
         if(emu.boot1 != "" && emu.flash != "" && autostart)
             emu.start();
         else
-            ui->statusbar->showMessage(trUtf8("Start the emulation via Emulation->Restart."));
+            ui->statusbar->showMessage(tr("Start the emulation via Emulation->Restart."));
     }
 
     #ifdef Q_OS_MAC
@@ -342,15 +347,13 @@ void MainWindow::usblink_progress_callback(int progress, void *data)
 
 void MainWindow::suspendToPath(QString path)
 {
-    emu_thread->snapshot_path = path.toStdString();
-    emu_thread->do_suspend = true;
+    emu_thread->suspend(path.toStdString());
 }
 
 void MainWindow::resumeFromPath(QString path)
 {
-    emu_thread->snapshot_path = path.toStdString();
-    emu_thread->do_resume = true;
-    restart();
+    if(!emu_thread->resume(path.toStdString()))
+        QMessageBox::warning(this, tr("Could not reums"), tr("Try to restart this app."));
 }
 
 void MainWindow::reload_filebrowser()
@@ -603,14 +606,53 @@ void MainWindow::createFlash()
     flash_dialog.exec();
 }
 
-void MainWindow::closeEvent(QCloseEvent *e)
+void MainWindow::started(bool success)
 {
-    if(settings->value("suspendOnClose").toBool() && emu_thread->isRunning() && exiting == false)
+    if(success)
+        ui->statusbar->showMessage(tr("Emulation started."));
+    else
+        QMessageBox::warning(this, tr("Could not start the emulation"), tr("Starting the emulation failed.\nAre the paths to boot1 and flash correct?"));
+}
+
+void MainWindow::resumed(bool success)
+{
+    if(success)
+        ui->statusbar->showMessage(tr("Emulation resumed from snapshot."));
+    else
+        QMessageBox::warning(this, tr("Could not resume"), tr("Resuming failed.\nTry to fix the issue and try again."));
+}
+
+void MainWindow::suspended(bool success)
+{
+    if(success)
+        ui->statusbar->showMessage(tr("Snapshot saved."));
+    else
+        QMessageBox::warning(this, tr("Could not suspend"), tr("Suspending failed.\nTry to fix the issue and try again."));
+
+    if(close_after_suspend)
     {
+        if(!success)
+            close_after_suspend = false; // May try again
+        else
+            this->close();
+    }
+}
+
+void MainWindow::stopped()
+{
+    ui->statusbar->showMessage(tr("Emulation stopped."));
+}
+
+void MainWindow::closeEvent(QCloseEvent *e)
+{   
+    if(!close_after_suspend &&
+            settings->value("suspendOnClose").toBool() && emu_thread->isRunning() && exiting == false)
+    {
+        close_after_suspend = true;
         qDebug("Suspending...");
         suspend();
-        while(emu_thread->do_suspend)
-            sleep(1);
+        e->ignore();
+        return;
     }
 
     qDebug("Terminating emulator thread...");

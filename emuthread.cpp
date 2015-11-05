@@ -122,23 +122,23 @@ void EmuThread::doStuff(bool wait)
     {
         if(do_suspend)
         {
-            emu_suspend(snapshot_path.c_str());
+            bool success = emu_suspend(snapshot_path.c_str());
             do_suspend = false;
-            //TODO: Signal
+            emit suspended(success);
         }
 
         if(enter_debugger)
         {
             //TODO: Signal that no longer paused
-            paused = false;
+            is_paused = false;
             enter_debugger = false;
             debugger(DBG_USER, 0);
         }
 
-        if(paused && wait)
+        if(is_paused && wait)
             msleep(100);
 
-    } while(paused && wait);
+    } while(is_paused && wait);
 }
 
 void EmuThread::run()
@@ -149,13 +149,19 @@ void EmuThread::run()
     path_flash = flash.c_str();
 
     bool do_reset = !do_resume;
-    bool ret = emu_start(port_gdb, port_rdbg, do_resume ? snapshot_path.c_str() : nullptr);
+    bool success = emu_start(port_gdb, port_rdbg, do_resume ? snapshot_path.c_str() : nullptr);
+
+    if(do_resume)
+        emit resumed(success);
+    else
+        emit started(success);
+
     do_resume = false;
 
-    if(ret)
+    if(success)
         emu_loop(do_reset);
 
-    emit exited(ret);
+    emit stopped();
 }
 
 void EmuThread::throttleTimerWait()
@@ -191,7 +197,8 @@ void EmuThread::debuggerInput(QString str)
 
 void EmuThread::setPaused(bool paused)
 {
-    this->paused = paused;
+    this->is_paused = paused;
+    emit this->paused(paused);
 }
 
 bool EmuThread::stop()
@@ -200,7 +207,7 @@ bool EmuThread::stop()
         return true;
 
     exiting = true;
-    paused = false;
+    is_paused = false;
     do_suspend = false;
     setTurboMode(true);
     if(!this->wait(200))
@@ -219,4 +226,21 @@ void EmuThread::reset()
     usblink_queue_reset();
 
     cpu_events |= EVENT_RESET;
+}
+
+bool EmuThread::resume(const std::string &path)
+{
+    snapshot_path = path;
+    do_resume = true;
+    if(!stop())
+        return false;
+
+    start();
+    return true;
+}
+
+void EmuThread::suspend(const std::string &path)
+{
+    snapshot_path = path;
+    do_suspend = true;
 }
