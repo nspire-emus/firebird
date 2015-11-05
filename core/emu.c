@@ -111,10 +111,8 @@ void throttle_interval_event(int index) {
     usblink_queue_do();
 
     int c = gui_getchar();
-    if(c != -1) {
-        char ch = c;
-        serial_byte_in(ch);
-    }
+    if(c != -1)
+        serial_byte_in((char) c);
 
     gdbstub_recv();
 
@@ -129,8 +127,8 @@ void throttle_interval_event(int index) {
     static os_time_t prev;
     int64_t time = os_time_diff(interval_end, prev);
     if (time >= os_frequency_hz(perffreq)) {
-        double speed = (double)os_frequency_hz(perffreq) * (intervals - prev_intervals) / time;
-        gui_show_speed(speed * 4);
+        double speed = (double)10000000 * (intervals - prev_intervals) / time;
+        gui_show_speed(speed);
         prev_intervals = intervals;
         prev = interval_end;
     }
