@@ -209,7 +209,6 @@ bool EmuThread::stop()
     exiting = true;
     is_paused = false;
     do_suspend = false;
-    setTurboMode(true);
     if(!this->wait(200))
     {
         terminate();
