@@ -50,7 +50,7 @@ Rectangle {
                 anchors.fill: parent
             }
 
-            onClicked: Emu.reset();
+            onClicked: Emu.suspend();
         }
 
         ToolButton {
@@ -68,7 +68,7 @@ Rectangle {
                 anchors.fill: parent
             }
 
-            onClicked: Emu.setPaused(checked);
+            onClicked: Emu.resume()
         }
 
         ToolButton {

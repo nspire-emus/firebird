@@ -26,6 +26,8 @@ public:
         Q_INVOKABLE bool restart();
         Q_INVOKABLE void setPaused(bool b);
         Q_INVOKABLE void reset();
+        Q_INVOKABLE void suspend();
+        Q_INVOKABLE void resume();
         Q_INVOKABLE bool stop();
 
         Q_INVOKABLE bool saveFlash();
@@ -34,6 +36,8 @@ public:
         Q_INVOKABLE void setBoot1Path(QUrl path);
         Q_INVOKABLE QString getFlashPath();
         Q_INVOKABLE void setFlashPath(QUrl path);
+        Q_INVOKABLE QString getSnapshotPath();
+        Q_INVOKABLE void setSnapshotPath(QUrl path);
 
         Q_INVOKABLE QString basename(QString path);
 

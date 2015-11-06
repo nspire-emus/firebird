@@ -43,6 +43,18 @@ Rectangle {
         }
     }
 
+    FileDialog {
+        id: fileDialogSnapshot
+        visible: false
+        selectExisting: false
+        title: qsTr("Select Snapshot Location")
+
+        onAccepted: {
+            Emu.setSnapshotPath(fileDialogSnapshot.fileUrl);
+            snapshotName.text = Emu.basename(fileSnapshotFlash.fileUrl);
+        }
+    }
+
     GridLayout {
         id: gridLayout1
         rows: 2
@@ -96,6 +108,27 @@ Rectangle {
             text: qsTr("Select")
 
             onClicked: fileDialogFlash.visible = true
+        }
+
+        Label {
+            id: label3
+            color: title.color
+            text: qsTr("Snapshot location:")
+        }
+
+        Label {
+            id: snapshotName
+            color: title.color
+            text: qsTr("None")
+
+            Component.onCompleted: text = Emu.basename(Emu.getSnapshotPath())
+        }
+
+        Button {
+            id: button3
+            text: qsTr("Select")
+
+            onClicked: fileDialogSnapshot.visible = true
         }
     }
 }

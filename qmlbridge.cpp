@@ -117,6 +117,20 @@ void QMLBridge::reset()
     emu_thread.reset();
 }
 
+void QMLBridge::suspend()
+{
+    QString snapshot_path = settings.value("snapshotPath").toString();
+    if(!snapshot_path.isEmpty())
+        emu_thread.suspend(snapshot_path.toStdString());
+}
+
+void QMLBridge::resume()
+{
+    QString snapshot_path = settings.value("snapshotPath").toString();
+    if(!snapshot_path.isEmpty())
+        emu_thread.resume(snapshot_path.toStdString());
+}
+
 bool QMLBridge::stop()
 {
     return emu_thread.stop();
@@ -145,6 +159,16 @@ QString QMLBridge::getFlashPath()
 void QMLBridge::setFlashPath(QUrl path)
 {
     settings.setValue("flash", path.toLocalFile());
+}
+
+QString QMLBridge::getSnapshotPath()
+{
+    return settings.value("snapshotPath", "").toString();
+}
+
+void QMLBridge::setSnapshotPath(QUrl path)
+{
+    settings.setValue("snapshotPath", path.toLocalFile());
 }
 
 QString QMLBridge::basename(QString path)
