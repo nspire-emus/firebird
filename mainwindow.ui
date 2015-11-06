@@ -318,15 +318,15 @@
         <item>
          <widget class="QToolBox" name="toolBox">
           <property name="currentIndex">
-           <number>1</number>
+           <number>2</number>
           </property>
           <widget class="QWidget" name="page">
            <property name="geometry">
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>289</width>
-             <height>101</height>
+             <width>271</width>
+             <height>98</height>
             </rect>
            </property>
            <attribute name="label">
@@ -433,8 +433,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>326</width>
-             <height>116</height>
+             <width>263</width>
+             <height>78</height>
             </rect>
            </property>
            <attribute name="label">
@@ -526,8 +526,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>247</width>
-             <height>101</height>
+             <width>326</width>
+             <height>122</height>
             </rect>
            </property>
            <attribute name="label">
@@ -636,8 +636,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>166</width>
-             <height>41</height>
+             <width>157</width>
+             <height>40</height>
             </rect>
            </property>
            <attribute name="label">
@@ -661,8 +661,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>154</width>
-             <height>78</height>
+             <width>148</width>
+             <height>76</height>
             </rect>
            </property>
            <attribute name="label">
@@ -790,14 +790,14 @@
     </item>
    </layout>
   </widget>
-  <widget class="QStatusBar" name="statusbar"/>
+  <widget class="QStatusBar" name="statusBar"/>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
     <rect>
      <x>0</x>
      <y>0</y>
      <width>714</width>
-     <height>20</height>
+     <height>19</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuEmulation">
@@ -808,7 +808,6 @@
     <addaction name="actionPause"/>
     <addaction name="actionRestart"/>
     <addaction name="separator"/>
-    <addaction name="actionDebugger"/>
     <addaction name="separator"/>
     <addaction name="actionQuit"/>
    </widget>
@@ -825,6 +824,8 @@
     </property>
     <addaction name="actionScreenshot"/>
     <addaction name="actionConnect"/>
+    <addaction name="separator"/>
+    <addaction name="actionDebugger"/>
     <addaction name="separator"/>
     <addaction name="actionXModem"/>
    </widget>

@@ -31,6 +31,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+    ui->statusBar->addWidget(&status_label);
 
     // Register QtKeypadBridge for the virtual keyboard functionality
     ui->keypadWidget->installEventFilter(&qt_keypad_bridge);
@@ -40,7 +41,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(&emu, SIGNAL(serialChar(char)), this, SLOT(serialChar(char)), Qt::QueuedConnection);
     connect(&emu, SIGNAL(debugStr(QString)), this, SLOT(debugStr(QString))); //Not queued connection as it may cause a hang
     connect(&emu, SIGNAL(speedChanged(double)), this, SLOT(showSpeed(double)), Qt::QueuedConnection);
-    connect(&emu, SIGNAL(statusMsg(QString)), ui->statusbar, SLOT(showMessage(QString)), Qt::QueuedConnection);
+    connect(&emu, SIGNAL(statusMsg(QString)), this, SLOT(showStatusMsg(QString)), Qt::QueuedConnection);
     connect(&emu, SIGNAL(turboModeChanged(bool)), ui->buttonSpeed, SLOT(setChecked(bool)), Qt::QueuedConnection);
     connect(&emu, SIGNAL(usblinkChanged(bool)), this, SLOT(usblinkChanged(bool)), Qt::QueuedConnection);
     connect(&emu, SIGNAL(debugInputRequested(bool)), this, SLOT(debugInputRequested(bool)), Qt::QueuedConnection);
@@ -153,7 +154,7 @@ MainWindow::MainWindow(QWidget *parent) :
         if(emu.boot1 != "" && emu.flash != "" && autostart)
             emu.start();
         else
-            ui->statusbar->showMessage(tr("Start the emulation via Emulation->Restart."));
+            showStatusMsg(tr("Start the emulation via Emulation->Restart."));
     }
 
     #ifdef Q_OS_MAC
@@ -410,6 +411,7 @@ void MainWindow::updateUIActionState(bool emulation_running)
     ui->actionScreenshot->setEnabled(emulation_running);
     ui->actionConnect->setEnabled(emulation_running);
     ui->actionDebugger->setEnabled(emulation_running);
+    ui->actionXModem->setEnabled(emulation_running);
 
     ui->actionSuspend->setEnabled(emulation_running);
     ui->actionSuspend_to_file->setEnabled(emulation_running);
@@ -628,7 +630,7 @@ void MainWindow::started(bool success)
     updateUIActionState(success);
 
     if(success)
-        ui->statusbar->showMessage(tr("Emulation started."));
+        showStatusMsg(tr("Emulation started."));
     else
         QMessageBox::warning(this, tr("Could not start the emulation"), tr("Starting the emulation failed.\nAre the paths to boot1 and flash correct?"));
 }
@@ -638,7 +640,7 @@ void MainWindow::resumed(bool success)
     updateUIActionState(success);
 
     if(success)
-        ui->statusbar->showMessage(tr("Emulation resumed from snapshot."));
+        showStatusMsg(tr("Emulation resumed from snapshot."));
     else
         QMessageBox::warning(this, tr("Could not resume"), tr("Resuming failed.\nTry to fix the issue and try again."));
 }
@@ -646,7 +648,7 @@ void MainWindow::resumed(bool success)
 void MainWindow::suspended(bool success)
 {
     if(success)
-        ui->statusbar->showMessage(tr("Snapshot saved."));
+        showStatusMsg(tr("Snapshot saved."));
     else
         QMessageBox::warning(this, tr("Could not suspend"), tr("Suspending failed.\nTry to fix the issue and try again."));
 
@@ -662,7 +664,7 @@ void MainWindow::suspended(bool success)
 void MainWindow::stopped()
 {
     updateUIActionState(false);
-    ui->statusbar->showMessage(tr("Emulation stopped."));
+    showStatusMsg(tr("Emulation stopped."));
 }
 
 void MainWindow::closeEvent(QCloseEvent *e)
@@ -715,6 +717,11 @@ void MainWindow::dockVisibilityChanged(bool v)
 
     // Disable closability on the remaining one
     remaining->setFeatures(QDockWidget::DockWidgetMovable | QDockWidget::DockWidgetFloatable);
+}
+
+void MainWindow::showStatusMsg(QString str)
+{
+    status_label.setText(str);
 }
 
 void MainWindow::restart()

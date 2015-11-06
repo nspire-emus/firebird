@@ -3,6 +3,7 @@
 
 #include <QMainWindow>
 #include <QSettings>
+#include <QLabel>
 
 #include "emuthread.h"
 #include "flashdialog.h"
@@ -20,9 +21,10 @@ public:
     ~MainWindow();
 
 public slots:
+    //Miscellaneous
     void closeEvent(QCloseEvent *) override;
-
     void dockVisibilityChanged(bool v);
+    void showStatusMsg(QString str);
 
     //Drag & Drop
     void dropEvent(QDropEvent* event) override;
@@ -107,6 +109,9 @@ private:
     // On Mac you can't show docks after all of them are hidden...
     // Keep track of them to count whether that's about to happen
     std::vector<QDockWidget *> docks;
+
+    // Used to show a status message permanently
+    QLabel status_label;
 
     // Whether to call usblink_dirlist when the tab is selected
     // Small hack: static as used in static callbacks...
