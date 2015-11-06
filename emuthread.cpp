@@ -129,8 +129,7 @@ void EmuThread::doStuff(bool wait)
 
         if(enter_debugger)
         {
-            //TODO: Signal that no longer paused
-            is_paused = false;
+            setPaused(false);
             enter_debugger = false;
             debugger(DBG_USER, 0);
         }
@@ -207,7 +206,7 @@ bool EmuThread::stop()
         return true;
 
     exiting = true;
-    is_paused = false;
+    setPaused(false);
     do_suspend = false;
     if(!this->wait(200))
     {

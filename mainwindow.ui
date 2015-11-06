@@ -87,7 +87,7 @@
              </property>
              <property name="icon">
               <iconset resource="resources.qrc">
-               <normaloff>:/icons/resources/icons/media-playback-pause.png</normaloff>:/icons/resources/icons/media-playback-pause.png</iconset>
+               <normaloff>:/icons/resources/icons/Actions-media-playback-pause-icon.png</normaloff>:/icons/resources/icons/Actions-media-playback-pause-icon.png</iconset>
              </property>
              <property name="iconSize">
               <size>
@@ -877,7 +877,7 @@
    </property>
    <property name="icon">
     <iconset resource="resources.qrc">
-     <normaloff>:/icons/resources/icons/media-playback-pause.png</normaloff>:/icons/resources/icons/media-playback-pause.png</iconset>
+     <normaloff>:/icons/resources/icons/Actions-media-playback-pause-icon.png</normaloff>:/icons/resources/icons/Actions-media-playback-pause-icon.png</iconset>
    </property>
    <property name="text">
     <string>&amp;Pause</string>

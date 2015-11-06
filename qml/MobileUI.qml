@@ -38,14 +38,14 @@ Rectangle {
         }
 
         ToolButton {
-            id: resetButton
+            id: suspendButton
             anchors.horizontalCenter: parent.horizontalCenter
             Layout.fillWidth: true
             Layout.fillHeight: true
 
             Image {
                 fillMode: Image.PreserveAspectFit
-                source: "qrc:/icons/resources/icons/system-reboot.png"
+                source: "qrc:/icons/resources/icons/system-suspend.png"
                 anchors.margins: 3
                 anchors.fill: parent
             }
@@ -54,7 +54,7 @@ Rectangle {
         }
 
         ToolButton {
-            id: pauseButton
+            id: resumeButton
             anchors.horizontalCenter: parent.horizontalCenter
             Layout.fillWidth: true
             Layout.fillHeight: true
@@ -63,12 +63,12 @@ Rectangle {
 
             Image {
                 fillMode: Image.PreserveAspectFit
-                source: "qrc:/icons/resources/icons/media-playback-pause.png"
+                source: "qrc:/icons/resources/icons/system-suspend-hibernate.png"
                 anchors.margins: 3
                 anchors.fill: parent
             }
 
-            onCheckedChanged: Emu.setPaused(checked);
+            onClicked: Emu.setPaused(checked);
         }
 
         ToolButton {
