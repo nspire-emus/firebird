@@ -247,7 +247,7 @@ void emu_loop(bool reset)
     exiting = false;
 
     // TODO: try to properly fix that (it causes an ICE on clang)
-    #ifndef IS_IOS_BUILD
+    #ifndef __APPLE__
         __builtin_setjmp(restart_after_exception);
     #endif
 
