@@ -28,7 +28,9 @@ static void xmodem_next_packet() {
         xmodem_file = NULL;
         return;
     }
-    memset(&xmodem_buf[3 + len], 0x1A, 0x80 - len);
+
+    if(len < 0x80)
+        memset(&xmodem_buf[3 + len], 0x1A, 0x80 - len);
     for (i = 3; i < 0x83; i++) sum += xmodem_buf[i];
     xmodem_buf[0x83] = sum;
     xmodem_buf_pos = 0;
