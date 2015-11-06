@@ -188,7 +188,7 @@ HEADERS += \
 
 # For localization
 lupdate_only {
-SOURCES = qml/MobileControl2.qml \
+SOURCES += qml/MobileControl2.qml \
     qml/NButton.qml \
     qml/NAlphaButton.qml \
     qml/MobileUI.qml \

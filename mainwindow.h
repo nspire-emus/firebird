@@ -99,6 +99,7 @@ private:
     void selectBoot1(QString path);
     void selectFlash(QString path);
 
+    void updateUIActionState(bool emulation_running);
     void raiseDebugger();
 
     Ui::MainWindow *ui = nullptr;

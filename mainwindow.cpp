@@ -124,6 +124,8 @@ MainWindow::MainWindow(QWidget *parent) :
     settings = new QSettings();
 #endif
 
+    updateUIActionState(false);
+
     //Load settings
     setUIMode(settings->value("docksEnabled", true).toBool());
     restoreGeometry(settings->value("windowGeometry").toByteArray());
@@ -353,7 +355,7 @@ void MainWindow::suspendToPath(QString path)
 void MainWindow::resumeFromPath(QString path)
 {
     if(!emu_thread->resume(path.toStdString()))
-        QMessageBox::warning(this, tr("Could not reums"), tr("Try to restart this app."));
+        QMessageBox::warning(this, tr("Could not resume"), tr("Try to restart this app."));
 }
 
 void MainWindow::reload_filebrowser()
@@ -397,6 +399,21 @@ void MainWindow::selectFlash(QString path)
     ui->filenameFlash->setText(f.fileName());
 
     settings->setValue("flash", path);
+}
+
+void MainWindow::updateUIActionState(bool emulation_running)
+{
+    ui->actionReset->setEnabled(emulation_running);
+    ui->actionPause->setEnabled(emulation_running);
+    ui->actionRestart->setText(emulation_running ? tr("Re&start") : tr("&Start"));
+
+    ui->actionScreenshot->setEnabled(emulation_running);
+    ui->actionConnect->setEnabled(emulation_running);
+    ui->actionDebugger->setEnabled(emulation_running);
+
+    ui->actionSuspend->setEnabled(emulation_running);
+    ui->actionSuspend_to_file->setEnabled(emulation_running);
+    ui->actionSave->setEnabled(emulation_running);
 }
 
 void MainWindow::raiseDebugger()
@@ -608,6 +625,8 @@ void MainWindow::createFlash()
 
 void MainWindow::started(bool success)
 {
+    updateUIActionState(success);
+
     if(success)
         ui->statusbar->showMessage(tr("Emulation started."));
     else
@@ -616,6 +635,8 @@ void MainWindow::started(bool success)
 
 void MainWindow::resumed(bool success)
 {
+    updateUIActionState(success);
+
     if(success)
         ui->statusbar->showMessage(tr("Emulation resumed from snapshot."));
     else
@@ -640,6 +661,7 @@ void MainWindow::suspended(bool success)
 
 void MainWindow::stopped()
 {
+    updateUIActionState(false);
     ui->statusbar->showMessage(tr("Emulation stopped."));
 }
 
@@ -664,7 +686,6 @@ void MainWindow::closeEvent(QCloseEvent *e)
 
     QMainWindow::closeEvent(e);
 }
-
 
 // Workaround for bug on Mac: If all docks are hidden,
 // it's not possible to open the dock menu and show them again
