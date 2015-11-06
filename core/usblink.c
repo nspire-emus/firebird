@@ -159,7 +159,7 @@ send_data:
                 out->ack = 0;
                 out->seqno = next_seqno();
                 out->data[0] = File_Contents;
-                fread(&out->data[1], 1, len, put_file);
+                fread(out->data + 1, 1, len, put_file);
                 usblink_send_packet();
 
                 if(current_file_callback)
