@@ -547,9 +547,9 @@ void MainWindow::changeSnapshotPath()
     ui->labelSnapshotPath->setText(path);
 }
 
-void MainWindow::showSpeed(double percent)
+void MainWindow::showSpeed(double value)
 {
-    ui->buttonSpeed->setText(tr("Speed: %1 %").arg(percent, 1, 'f', 0));
+    ui->buttonSpeed->setText(tr("Speed: %1 %").arg(value * 100, 1, 'f', 0));
 }
 
 void MainWindow::screenshot()

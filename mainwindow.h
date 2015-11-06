@@ -83,7 +83,7 @@ public slots:
     void changeSnapshotPath();
 
     //Tool bar (above screen)
-    void showSpeed(double percent);
+    void showSpeed(double value);
 
 signals:
     void debuggerCommand(QString input);

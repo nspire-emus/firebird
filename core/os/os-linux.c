@@ -75,42 +75,6 @@ void *os_alloc_executable(size_t size)
     return ptr;
 }
 
-void os_query_time(os_time_t *t)
-{
-#ifdef __APPLE__ // for iOS and OS X - no clock_gettime so use clock_get_time
-    clock_serv_t cclock;
-    mach_timespec_t mts;
-    host_get_clock_service(mach_host_self(), SYSTEM_CLOCK, &cclock);
-    clock_get_time(cclock, &mts);
-    mach_port_deallocate(mach_task_self(), cclock);
-    t->tv_sec = mts.tv_sec;
-    t->tv_nsec = mts.tv_nsec;
-#else
-    clock_gettime(CLOCK_MONOTONIC, t);
-#endif
-}
-
-double os_time_diff(os_time_t x, os_time_t y)
-{
-    return (double)(x.tv_sec - y.tv_sec) * 10000000.0 + (x.tv_nsec - y.tv_nsec)/1000;
-}
-
-long long os_frequency_hz(os_frequency_t f)
-{
-    return f;
-}
-
-void os_query_frequency(os_frequency_t *f)
-{
-    *f = 2*1000*1000*1000; // 2GHz, good guess
-    FILE *freq = fopen("/sys/devices/system/cpu/cpu0/cpufreq/cpuinfo_max_freq", "r");
-    if(!freq)
-        return;
-
-    fscanf(freq, "%llu", f);
-    fclose(freq);
-}
-
 void make_writable(void *addr)
 {
     uintptr_t ps = sysconf(_SC_PAGE_SIZE);

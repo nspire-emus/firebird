@@ -2,16 +2,6 @@
 
 #include <conio.h>
 
-int os_kbhit()
-{
-    return _kbhit();
-}
-
-int os_getch()
-{
-    return _getch();
-}
-
 void *os_reserve(size_t size)
 {
     return VirtualAlloc(NULL, size, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
@@ -42,26 +32,6 @@ void os_sparse_decommit(void *page, size_t size)
 void *os_alloc_executable(size_t size)
 {
     return VirtualAlloc(NULL, size, MEM_RESERVE | MEM_COMMIT, PAGE_EXECUTE_READWRITE);
-}
-
-void os_query_time(os_time_t *t)
-{
-    QueryPerformanceCounter(t);
-}
-
-double os_time_diff(os_time_t x, os_time_t y)
-{
-    return (x.QuadPart - y.QuadPart);
-}
-
-long long os_frequency_hz(os_frequency_t f)
-{
-    return f.QuadPart/4;
-}
-
-void os_query_frequency(os_frequency_t *f)
-{
-    QueryPerformanceFrequency(f);
 }
 
 #define WIN32_LEAN_AND_MEAN

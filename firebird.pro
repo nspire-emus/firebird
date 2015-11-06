@@ -127,7 +127,6 @@ SOURCES += $$ASMCODE_IMPL \
     core/casplus.c \
     core/des.c \
     core/disasm.c \
-    core/emu.c \
     core/gdbstub.c \
     core/interrupt.c \
     core/keypad.c \
@@ -143,7 +142,8 @@ SOURCES += $$ASMCODE_IMPL \
     core/usblink.c \
     qtframebuffer.cpp \
     core/debug.cpp \
-    core/flash.cpp
+    core/flash.cpp \
+    core/emu.cpp
 
 FORMS += \
     mainwindow.ui \

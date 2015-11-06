@@ -1,25 +1,18 @@
+#include <chrono>
+#include <cstdint>
+#include <cctype>
+#include <csetjmp>
+
 #include <fcntl.h>
-#include <ctype.h>
-#include <setjmp.h>
-#include <stdarg.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include <sys/mman.h>
+
 #include "emu.h"
-#include "cpu.h"
-#include "schedule.h"
-#include "mem.h"
-#include "keypad.h"
 #include "translate.h"
 #include "debug.h"
 #include "mmu.h"
 #include "gdbstub.h"
-#include "flash.h"
-#include "misc.h"
+#include "usblink_queue.h"
 #include "os/os.h"
-
-#include <stdint.h>
 
 /* cycle_count_delta is a (usually negative) number telling what the time is relative
  * to the next scheduled event. See sched.c */
@@ -92,22 +85,20 @@ int exec_hack() {
     return 0;
 }
 
-os_frequency_t perffreq;
-int intervals = 0, prev_intervals = 0;
+extern "C" void usblink_timer();
 
-void throttle_interval_event(int index) {
+void throttle_interval_event(int index)
+{
     event_repeat(index, 27000000 / 100);
 
     /* Throttle interval (defined arbitrarily as 100Hz) - used for
      * keeping the emulator speed down, and other miscellaneous stuff
      * that needs to be done periodically */
+    static int intervals = 0, prev_intervals = 0;
     intervals += 1;
 
-    extern void usblink_timer();
     usblink_timer();
 
-    // It's declared in a C++ header, so we can't include it.
-    extern void usblink_queue_do();
     usblink_queue_do();
 
     int c = gui_getchar();
@@ -118,22 +109,21 @@ void throttle_interval_event(int index) {
 
     rdebug_recv();
 
-    gui_do_stuff(true);
-
-    os_time_t interval_end;
-    os_query_time(&interval_end);
-
-    // Show speed
-    static os_time_t prev;
-    int64_t time = os_time_diff(interval_end, prev);
-    if (time >= os_frequency_hz(perffreq)) {
-        double speed = (double)10000000 * (intervals - prev_intervals) / time;
+    // Calculate speed
+    auto interval_end = std::chrono::high_resolution_clock::now();
+    static auto prev = interval_end;
+    static double speed = 1.0;
+    auto time = std::chrono::duration_cast<std::chrono::microseconds>(interval_end - prev).count();
+    if (time >= 500000) {
+        speed = (double)10000 * (intervals - prev_intervals) / time;
         gui_show_speed(speed);
         prev_intervals = intervals;
         prev = interval_end;
     }
 
-    if (!turbo_mode)
+    gui_do_stuff(true);
+
+    if (!turbo_mode && speed > 0.7)
 		throttle_timer_wait();
 }
 
@@ -152,7 +142,7 @@ bool emu_start(unsigned int port_gdb, unsigned int port_rdbg, const char *snapsh
         size_t size = lseek(fp, 0, SEEK_END);
         lseek(fp, 0, SEEK_SET);
 
-        struct emu_snapshot *snapshot = mmap(NULL, size, PROT_READ, MAP_PRIVATE, fp, 0);
+        auto snapshot = (struct emu_snapshot *) mmap(NULL, size, PROT_READ, MAP_PRIVATE, fp, 0);
         close(fp);
 
         if((intptr_t) snapshot == -1)
@@ -196,9 +186,9 @@ bool emu_start(unsigned int port_gdb, unsigned int port_rdbg, const char *snapsh
 
     uint8_t *rom = mem_areas[0].ptr;
     memset(rom, -1, 0x80000);
-    for (int i = 0x00000; i < 0x80000; i += 4) {
+    for (int i = 0x00000; i < 0x80000; i += 4)
         RAM_FLAGS(&rom[i]) = RF_READ_ONLY;
-    }
+
     if (path_boot1) {
         /* Load the ROM */
         FILE *f = fopen(path_boot1, "rb");
@@ -216,8 +206,6 @@ bool emu_start(unsigned int port_gdb, unsigned int port_rdbg, const char *snapsh
 
     os_exception_frame_t frame;
     addr_cache_init(&frame);
-
-    os_query_frequency(&perffreq);
 
     throttle_timer_on();
 
@@ -258,7 +246,7 @@ void emu_loop(bool reset)
 
     exiting = false;
 
-    // TODO: try to properly fix that (it causes a ICE on clang)
+    // TODO: try to properly fix that (it causes an ICE on clang)
     #ifndef IS_IOS_BUILD
         __builtin_setjmp(restart_after_exception);
     #endif
@@ -307,7 +295,7 @@ bool emu_suspend(const char *file)
         return false;
     }
 
-    struct emu_snapshot *snapshot = mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_SHARED, fp, 0);
+    auto snapshot = (struct emu_snapshot *) mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_SHARED, fp, 0);
     if((intptr_t) snapshot == -1)
     {
         close(fp);
