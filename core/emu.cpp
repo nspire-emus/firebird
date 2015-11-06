@@ -337,6 +337,7 @@ void emu_cleanup()
         translate_deinit();
     #endif
 
+    memory_reset();
     memory_deinitialize();
     flash_close();
 
