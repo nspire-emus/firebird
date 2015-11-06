@@ -1,4 +1,4 @@
-Firebird Emu
+Firebird Emu [![Build Status](https://travis-ci.org/nspire-emus/firebird.svg)](https://travis-ci.org/nspire-emus/firebird)
 ==========
 
 This project is currently the community TI-Nspire emulator, originally created by Goplat.  
