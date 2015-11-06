@@ -11,6 +11,13 @@
 QMLBridge::QMLBridge(QObject *parent) : QObject(parent)
 {}
 
+QMLBridge::~QMLBridge()
+{
+    #ifdef MOBILE_UI
+        emu_thread.stop();
+    #endif
+}
+
 constexpr const int ROWS = 8, COLS = 11;
 
 void QMLBridge::keypadStateChanged(int keymap_id, bool state)

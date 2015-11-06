@@ -11,7 +11,7 @@ class QMLBridge : public QObject
     Q_OBJECT
 public:
     explicit QMLBridge(QObject *parent = 0);
-    ~QMLBridge() {}
+    ~QMLBridge();
 
     Q_INVOKABLE void keypadStateChanged(int keymap_id, bool state);
     Q_INVOKABLE void registerNButton(int keymap_id, QVariant button);
