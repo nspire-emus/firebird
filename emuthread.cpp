@@ -144,8 +144,8 @@ void EmuThread::run()
 {
     setTerminationEnabled();
 
-    path_boot1 = boot1.c_str();
-    path_flash = flash.c_str();
+    path_boot1 = boot1;
+    path_flash = flash;
 
     bool do_reset = !do_resume;
     bool success = emu_start(port_gdb, port_rdbg, do_resume ? snapshot_path.c_str() : nullptr);

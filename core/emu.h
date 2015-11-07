@@ -12,6 +12,9 @@
 #include "schedule.h"
 
 #ifdef __cplusplus
+#include <string>
+extern std::string path_boot1, path_flash;
+
 extern "C" {
 #endif
 
@@ -40,7 +43,6 @@ extern volatile bool exiting, debug_on_start, debug_on_warn, large_nand, large_s
 extern BootOrder boot_order;
 extern bool do_translate;
 extern uint32_t product, asic_user_flags;
-extern const char *path_boot1, *path_flash;
 
 #define emulate_casplus (product == 0x0C0)
 // 0C-0E (CAS, lab cradle, plain Nspire) use old ASIC

@@ -29,7 +29,7 @@ bool turbo_mode = false;
 volatile bool exiting, debug_on_start, debug_on_warn, large_nand, large_sdram;
 BootOrder boot_order = ORDER_DEFAULT;
 uint32_t boot2_base;
-const char *path_boot1 = NULL, *path_boot2 = NULL, *path_flash = NULL, *pre_manuf = NULL, *pre_boot2 = NULL, *pre_diags = NULL, *pre_os = NULL;
+std::string path_boot1, path_flash;
 
 void *restart_after_exception[32];
 
@@ -152,6 +152,10 @@ bool emu_start(unsigned int port_gdb, unsigned int port_rdbg, const char *snapsh
         sched.items[SCHED_THROTTLE].clock = CLOCK_27M;
         sched.items[SCHED_THROTTLE].proc = throttle_interval_event;
 
+        // TODO: Max length
+        path_boot1 = std::string(snapshot->path_boot1);
+        path_flash = std::string(snapshot->path_flash);
+
         // Resume components
         uint32_t sdram_size;
         if(size < sizeof(emu_snapshot)
@@ -171,8 +175,7 @@ bool emu_start(unsigned int port_gdb, unsigned int port_rdbg, const char *snapsh
     }
     else
     {
-        if (!path_flash
-            || !flash_open(path_flash))
+        if (!flash_open(path_flash.c_str()))
                 return false;
 
         uint32_t sdram_size;
@@ -189,16 +192,14 @@ bool emu_start(unsigned int port_gdb, unsigned int port_rdbg, const char *snapsh
     for (int i = 0x00000; i < 0x80000; i += 4)
         RAM_FLAGS(&rom[i]) = RF_READ_ONLY;
 
-    if (path_boot1) {
-        /* Load the ROM */
-        FILE *f = fopen(path_boot1, "rb");
-        if (!f) {
-            gui_perror(path_boot1);
-            return false;
-        }
-        fread(rom, 1, 0x80000, f);
-        fclose(f);
+    /* Load the ROM */
+    FILE *f = fopen(path_boot1.c_str(), "rb");
+    if (!f) {
+        gui_perror(path_boot1.c_str());
+        return false;
     }
+    fread(rom, 1, 0x80000, f);
+    fclose(f);
 
 #ifndef NO_TRANSLATION
     translate_init();
@@ -304,8 +305,9 @@ bool emu_suspend(const char *file)
 
     snapshot->product = product;
     snapshot->asic_user_flags = asic_user_flags;
-    strncpy(snapshot->path_boot1, path_boot1, sizeof(snapshot->path_boot1) - 1);
-    strncpy(snapshot->path_flash, path_flash, sizeof(snapshot->path_flash) - 1);
+    // TODO: Max length
+    strncpy(snapshot->path_boot1, path_boot1.c_str(), sizeof(snapshot->path_boot1) - 1);
+    strncpy(snapshot->path_flash, path_flash.c_str(), sizeof(snapshot->path_flash) - 1);
 
     if(!flash_suspend(snapshot)
             || !cpu_suspend(snapshot)
