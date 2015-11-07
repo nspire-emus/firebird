@@ -10,6 +10,13 @@ Rectangle {
     height: 480
     color: "#AAA"
 
+    Component.onCompleted: {
+        if(Emu.getFlashPath() !== ""
+            && Emu.getSnapshotPath() !== ""
+            && Emu.getBoot1Path() !== "")
+            Emu.resume();
+    }
+
     ColumnLayout {
         id: sidebar
         // In landscape mode fit whole framebuffer on screen
@@ -27,30 +34,65 @@ Rectangle {
             Layout.fillWidth: true
             Layout.fillHeight: true
 
+            Label {
+                id: label1
+                x: 12
+                text: qsTr("Start")
+                anchors.top: parent.top
+                anchors.topMargin: 0
+                anchors.horizontalCenter: parent.horizontalCenter
+                font.pointSize: 8
+            }
+
             Image {
+                anchors.top: label1.bottom
+                anchors.topMargin: -2
+                anchors.left: parent.left
+                anchors.leftMargin: 0
+                anchors.bottom: parent.bottom
+                anchors.bottomMargin: 0
+                anchors.right: parent.right
+                anchors.rightMargin: 0
                 fillMode: Image.PreserveAspectFit
-                anchors.fill: parent
                 anchors.margins: 3
                 source: "qrc:/icons/resources/icons/edit-bomb.png"
             }
+
 
             onClicked: Emu.restart();
         }
 
         ToolButton {
-            id: suspendButton
+            id: resetButton
             anchors.horizontalCenter: parent.horizontalCenter
             Layout.fillWidth: true
             Layout.fillHeight: true
 
-            Image {
-                fillMode: Image.PreserveAspectFit
-                source: "qrc:/icons/resources/icons/system-suspend.png"
-                anchors.margins: 3
-                anchors.fill: parent
+            Label {
+                id: label2
+                x: 12
+                text: qsTr("Reset")
+                anchors.top: parent.top
+                anchors.topMargin: 0
+                anchors.horizontalCenter: parent.horizontalCenter
+                font.pointSize: 8
             }
 
-            onClicked: Emu.suspend();
+            Image {
+                anchors.top: label2.bottom
+                anchors.topMargin: -2
+                anchors.left: parent.left
+                anchors.leftMargin: 0
+                anchors.bottom: parent.bottom
+                anchors.bottomMargin: 0
+                anchors.right: parent.right
+                anchors.rightMargin: 0
+                fillMode: Image.PreserveAspectFit
+                anchors.margins: 3
+                source: "qrc:/icons/resources/icons/system-reboot.png"
+            }
+
+            onClicked: Emu.reset();
         }
 
         ToolButton {
@@ -59,13 +101,28 @@ Rectangle {
             Layout.fillWidth: true
             Layout.fillHeight: true
 
-            checkable: true
+            Label {
+                id: label3
+                x: 12
+                text: qsTr("Resume")
+                anchors.top: parent.top
+                anchors.topMargin: 0
+                anchors.horizontalCenter: parent.horizontalCenter
+                font.pointSize: 8
+            }
 
             Image {
+                anchors.top: label3.bottom
+                anchors.topMargin: -2
+                anchors.left: parent.left
+                anchors.leftMargin: 0
+                anchors.bottom: parent.bottom
+                anchors.bottomMargin: 0
+                anchors.right: parent.right
+                anchors.rightMargin: 0
                 fillMode: Image.PreserveAspectFit
-                source: "qrc:/icons/resources/icons/system-suspend-hibernate.png"
                 anchors.margins: 3
-                anchors.fill: parent
+                source: "qrc:/icons/resources/icons/system-suspend-hibernate.png"
             }
 
             onClicked: Emu.resume()
@@ -77,11 +134,28 @@ Rectangle {
             Layout.fillWidth: true
             Layout.fillHeight: true
 
+            Label {
+                id: label4
+                x: 12
+                text: qsTr("Save")
+                anchors.top: parent.top
+                anchors.topMargin: 0
+                anchors.horizontalCenter: parent.horizontalCenter
+                font.pointSize: 8
+            }
+
             Image {
+                anchors.top: label4.bottom
+                anchors.topMargin: -2
+                anchors.left: parent.left
+                anchors.leftMargin: 0
+                anchors.bottom: parent.bottom
+                anchors.bottomMargin: 0
+                anchors.right: parent.right
+                anchors.rightMargin: 0
                 fillMode: Image.PreserveAspectFit
-                source: "qrc:/icons/resources/icons/media-floppy.png"
                 anchors.margins: 3
-                anchors.fill: parent
+                source: "qrc:/icons/resources/icons/media-floppy.png"
             }
 
             MessageDialog {
@@ -98,14 +172,32 @@ Rectangle {
                 icon: StandardIcon.Warning
             }
 
+            MessageDialog {
+                id: snapWarnDialog
+                title: qsTr("Warning")
+                text: qsTr("Flash saved, but no snapshot location configured.\nYou won't be able to resume.")
+                icon: StandardIcon.Warning
+            }
+
             onClicked: {
-                var path = Emu.getFlashPath();
-                if(path === "" || !Emu.saveFlash())
+                var flash_path = Emu.getFlashPath();
+                var snap_path = Emu.getSnapshotPath();
+
+                if(flash_path === "" || !Emu.saveFlash())
                     saveFailedDialog.visible = true;
                 else
-                    saveSuccessDialog.visible = true
+                {
+                    if(snap_path)
+                    {
+                        Emu.suspend();
+                        saveSuccessDialog.visible = true;
+                    }
+                    else
+                        snapWarnDialog.visible = true;
+                }
             }
         }
+
     }
 
     EmuScreen {
@@ -159,6 +251,8 @@ Rectangle {
 
                 MobileControl2 {
                     id: control2
+                    anchors.left: parent.left
+                    anchors.right: parent.right
                     //transform: Scale { origin.x: 0; origin.y: 0; xScale: controls.width/keypad.width; yScale: controls.width/keypad.width }
                 }
             }
