@@ -85,6 +85,8 @@ Rectangle {
         Button {
             id: button1
             text: qsTr("Select")
+            anchors.right: parent.right
+            anchors.rightMargin: 0
 
             onClicked: fileDialogBoot1.visible = true
         }
@@ -106,6 +108,8 @@ Rectangle {
         Button {
             id: button2
             text: qsTr("Select")
+            anchors.right: parent.right
+            anchors.rightMargin: 0
 
             onClicked: fileDialogFlash.visible = true
         }
@@ -113,7 +117,7 @@ Rectangle {
         Label {
             id: label3
             color: title.color
-            text: qsTr("Snapshot location:")
+            text: qsTr("Snapshot\nlocation:")
         }
 
         Label {
@@ -127,6 +131,8 @@ Rectangle {
         Button {
             id: button3
             text: qsTr("Select")
+            anchors.right: parent.right
+            anchors.rightMargin: 0
 
             onClicked: fileDialogSnapshot.visible = true
         }
