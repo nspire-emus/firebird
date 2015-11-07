@@ -324,7 +324,7 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
 
                 translated.raw = (i.raw & 0xFFFFFFF) | 0xE0000000;
 
-                int armreg[2] = {-1, -1};
+                unsigned int armreg[2] = {16, 16};
 
                 emit_ldr_armreg(R0, i.mult.rm);
                 armreg[R0] = i.mult.rm;
