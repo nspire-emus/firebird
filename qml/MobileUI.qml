@@ -17,6 +17,22 @@ Rectangle {
             Emu.resume();
     }
 
+    Connections {
+        target: Qt.application
+        onStateChanged: {
+            switch (Qt.application.state)
+            {
+                case Qt.ApplicationSuspended:
+                case Qt.ApplicationHidden:
+                    Emu.setPaused(true);
+                break;
+                case Qt.ApplicationActive:
+                    Emu.setPaused(false);
+                break;
+            }
+        }
+    }
+
     ColumnLayout {
         id: sidebar
         // In landscape mode fit whole framebuffer on screen
