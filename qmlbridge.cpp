@@ -176,8 +176,10 @@ QString QMLBridge::basename(QString path)
     if(path == "")
         return "None";
 
-    QFileInfo file_info(path);
-    return file_info.fileName();
+    std::string pathname = path.toStdString();
+    return QString::fromStdString(std::string(
+                std::find_if(pathname.rbegin(), pathname.rend(), [](char c) { return c == '/'; }).base(),
+            pathname.end()));
 }
 
 #endif
