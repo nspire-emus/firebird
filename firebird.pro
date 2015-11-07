@@ -24,6 +24,7 @@ INSTALLS += target desktop icon sendtool
 
 QMAKE_CFLAGS = -g -std=gnu11 -Wall -Wextra
 QMAKE_CXXFLAGS = -g -std=c++11 -Wall -Wextra
+LIBS += -lz
 
 # Override bad default options to enable better optimizations
 QMAKE_CFLAGS_RELEASE = -O3 -flto

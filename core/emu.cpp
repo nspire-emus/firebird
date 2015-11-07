@@ -6,6 +6,8 @@
 #include <fcntl.h>
 #include <sys/mman.h>
 
+#include <zlib.h>
+
 #include "emu.h"
 #include "translate.h"
 #include "debug.h"
@@ -127,6 +129,26 @@ void throttle_interval_event(int index)
 		throttle_timer_wait();
 }
 
+size_t gzip_filesize(const char *path)
+{
+    #if __BYTE_ORDER == __LITTLE_ENDIAN
+        int fp = open(path, O_RDONLY);
+        if(fp == -1)
+            return false;
+
+        // The last four bytes of a gzip file are the uncompressed size (% 2^32)
+        lseek(fp, -4, SEEK_END);
+        size_t ret;
+        if(read(fp, &ret, 4) != 4)
+            ret = 0;
+
+        close(fp);
+        return ret;
+    #else
+        #error "Not implemented"
+    #endif
+}
+
 bool emu_start(unsigned int port_gdb, unsigned int port_rdbg, const char *snapshot_file)
 {
     if(debug_on_start)
@@ -135,18 +157,28 @@ bool emu_start(unsigned int port_gdb, unsigned int port_rdbg, const char *snapsh
     if(snapshot_file)
     {
         // Open snapshot
-        int fp = open(snapshot_file, O_RDONLY);
-        if(fp == -1)
+        size_t snapshot_size = gzip_filesize(snapshot_file);
+        if(snapshot_size < sizeof(emu_snapshot))
             return false;
 
-        size_t size = lseek(fp, 0, SEEK_END);
-        lseek(fp, 0, SEEK_SET);
-
-        auto snapshot = (struct emu_snapshot *) mmap(NULL, size, PROT_READ, MAP_PRIVATE, fp, 0);
-        close(fp);
-
-        if((intptr_t) snapshot == -1)
+        gzFile gzf = gzopen(snapshot_file, "r");
+        if(!gzf)
             return false;
+
+        auto snapshot = (struct emu_snapshot *) malloc(snapshot_size);
+        if(!snapshot)
+        {
+            gzclose(gzf);
+            return false;
+        }
+
+        if((size_t) gzread(gzf, snapshot, snapshot_size) != snapshot_size)
+        {
+            gzclose(gzf);
+            free(snapshot);
+            return false;
+        }
+        gzclose(gzf);
 
         //sched_reset();
         sched.items[SCHED_THROTTLE].clock = CLOCK_27M;
@@ -156,10 +188,11 @@ bool emu_start(unsigned int port_gdb, unsigned int port_rdbg, const char *snapsh
         path_boot1 = std::string(snapshot->path_boot1);
         path_flash = std::string(snapshot->path_flash);
 
+        // TODO: Pass snapshot_size to flash_resume to avoid reading after the buffer
+
         // Resume components
         uint32_t sdram_size;
-        if(size < sizeof(emu_snapshot)
-                || snapshot->sig != 0xCAFEBEEF
+        if(snapshot->sig != 0xCAFEBEEF
                 || !flash_resume(snapshot)
                 || !flash_read_settings(&sdram_size, &product, &asic_user_flags)
                 || !cpu_resume(snapshot)
@@ -167,11 +200,11 @@ bool emu_start(unsigned int port_gdb, unsigned int port_rdbg, const char *snapsh
                 || !sched_resume(snapshot))
         {
             emu_cleanup();
-            munmap(snapshot, size);
+            free(snapshot);
             return false;
         }
 
-        munmap(snapshot, size);
+        free(snapshot);
     }
     else
     {
@@ -184,7 +217,10 @@ bool emu_start(unsigned int port_gdb, unsigned int port_rdbg, const char *snapsh
         flash_set_bootorder(boot_order);
 
         if(!memory_initialize(sdram_size))
+        {
+            emu_cleanup();
             return false;
+        }
     }
 
     uint8_t *rom = mem_areas[0].ptr;
@@ -196,6 +232,7 @@ bool emu_start(unsigned int port_gdb, unsigned int port_rdbg, const char *snapsh
     FILE *f = fopen(path_boot1.c_str(), "rb");
     if (!f) {
         gui_perror(path_boot1.c_str());
+        emu_cleanup();
         return false;
     }
     fread(rom, 1, 0x80000, f);
@@ -285,21 +322,13 @@ void emu_loop(bool reset)
 
 bool emu_suspend(const char *file)
 {
-    int fp = open(file, O_RDWR | O_CREAT, (mode_t) 0620);
-    if(fp == -1)
-        return false;
+    gzFile gzf = gzopen(file, "wb");
 
     size_t size = sizeof(emu_snapshot) + flash_suspend_flexsize();
-    if(ftruncate(fp, size))
+    auto snapshot = (struct emu_snapshot *) malloc(size);
+    if(!snapshot)
     {
-        close(fp);
-        return false;
-    }
-
-    auto snapshot = (struct emu_snapshot *) mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_SHARED, fp, 0);
-    if((intptr_t) snapshot == -1)
-    {
-        close(fp);
+        gzclose(gzf);
         return false;
     }
 
@@ -315,14 +344,17 @@ bool emu_suspend(const char *file)
             || !memory_suspend(snapshot))
     {
         munmap(snapshot, size);
-        close(fp);
+        gzclose(gzf);
+        return false;
     }
 
     snapshot->sig = 0xCAFEBEEF;
 
-    munmap(snapshot, size);
-    close(fp);
-    return true;
+    bool success = (size_t) gzwrite(gzf, snapshot, size) == size;
+
+    free(snapshot);
+    gzclose(gzf);
+    return success;
 }
 
 void emu_cleanup()
