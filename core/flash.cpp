@@ -497,11 +497,11 @@ static void ecc_fix(uint8_t *nand_data, struct nand_metrics nand_metrics, int pa
 
 static uint32_t load_file_part(uint8_t *nand_data, struct nand_metrics nand_metrics, uint32_t offset, FILE *f, uint32_t length) {
     uint32_t start = offset;
-    uint32_t page_data_size = (nand.metrics.page_size & ~0x7F);
+    uint32_t page_data_size = (nand_metrics.page_size & ~0x7F);
     while (length > 0) {
         uint32_t page = offset / page_data_size;
         uint32_t pageoff = offset % page_data_size;
-        if (page >= nand.metrics.num_pages) {
+        if (page >= nand_metrics.num_pages) {
             printf("Preload image(s) too large\n");
             return 0;
         }
@@ -509,7 +509,7 @@ static uint32_t load_file_part(uint8_t *nand_data, struct nand_metrics nand_metr
         uint32_t readsize = page_data_size - pageoff;
         if (readsize > length) readsize = length;
 
-        int ret = fread(&nand_data[page * nand.metrics.page_size + pageoff], 1, readsize, f);
+        int ret = fread(&nand_data[page * nand_metrics.page_size + pageoff], 1, readsize, f);
         if (ret <= 0)
             break;
         readsize = ret;
@@ -527,8 +527,8 @@ static uint32_t load_file(uint8_t *nand_data, struct nand_metrics nand_metrics, 
         return 0;
     }
     size_t offset = flash_partition_offset(p, &nand_metrics, nand_data);
-    offset /= nand.metrics.page_size;
-    offset *= nand.metrics.page_size & ~0x7F; // Convert offset into offset without spare bytes
+    offset /= nand_metrics.page_size;
+    offset *= nand_metrics.page_size & ~0x7F; // Convert offset into offset without spare bytes
     offset += off;
     uint32_t size = load_file_part(nand_data, nand_metrics, offset, f, -1);
     fclose(f);
@@ -570,7 +570,7 @@ static uint32_t load_file(uint8_t *nand_data, struct nand_metrics nand_metrics, 
 }*/
 
 static void preload(uint8_t *nand_data, struct nand_metrics nand_metrics, Partition p, const char *name, const char *filename) {
-    uint32_t page = flash_partition_offset(p, &nand_metrics, nand_data) / nand.metrics.page_size;
+    uint32_t page = flash_partition_offset(p, &nand_metrics, nand_data) / nand_metrics.page_size;
     uint32_t manifest_size, image_size;
 
     if (emulate_casplus && strcmp(name, "IMAGE") == 0) {
@@ -594,7 +594,7 @@ static void preload(uint8_t *nand_data, struct nand_metrics nand_metrics, Partit
             return;
     }
 
-    uint8_t *pagep = &nand_data[page * nand.metrics.page_size];
+    uint8_t *pagep = &nand_data[page * nand_metrics.page_size];
     sprintf((char *)&pagep[0], "***PRELOAD_%s***", name);
     *(uint32_t *)&pagep[20] = BSWAP32(0x55F00155);
     *(uint32_t *)&pagep[24] = BSWAP32(manifest_size);
@@ -659,7 +659,7 @@ bool flash_create_new(bool flag_large_nand, const char **preload_file, int produ
     struct nand_metrics nand_metrics;
     memcpy(&nand_metrics, &chips[flag_large_nand], sizeof(nand_metrics));
 
-    *size = nand.metrics.page_size * nand.metrics.num_pages;
+    *size = nand_metrics.page_size * nand_metrics.num_pages;
     uint8_t *nand_data = *nand_data_ptr = (uint8_t*) malloc(*size);
     if(!nand_data)
         return false;
@@ -683,7 +683,7 @@ bool flash_create_new(bool flag_large_nand, const char **preload_file, int produ
             manuf->ext.lcd_height = 240;
             manuf->ext.lcd_bpp = 16;
             manuf->ext.lcd_color = 1;
-            if (nand.metrics.page_size < 0x800) {
+            if (nand_metrics.page_size < 0x800) {
                 manuf->ext.offset_diags    = 0x160000;
                 manuf->ext.offset_boot2    = 0x004000;
                 manuf->ext.offset_bootdata = 0x150000;
@@ -703,12 +703,12 @@ bool flash_create_new(bool flag_large_nand, const char **preload_file, int produ
             manuf->ext.lcd_light_incr = 0x14;
             manuf->bootgfx_count = 0;
         }
-        ecc_fix(nand_data, nand_metrics, nand.metrics.page_size < 0x800 ? 4 : 1);
+        ecc_fix(nand_data, nand_metrics, nand_metrics.page_size < 0x800 ? 4 : 1);
     }
 
     if (preload_file[1]) load_file(nand_data, nand_metrics, PartitionBoot2, preload_file[1], 0); // Boot2 area
     size_t bootdata_offset = flash_partition_offset(PartitionBootdata, &nand_metrics, nand_data); // Bootdata
-    memset(nand_data + bootdata_offset, 0xFF, nand.metrics.page_size);
+    memset(nand_data + bootdata_offset, 0xFF, nand_metrics.page_size);
     memset(nand_data + bootdata_offset + 0x62, 0, 414);
     memcpy(nand_data + bootdata_offset, bootdata, sizeof(bootdata));
     if (preload_file[2]) load_file(nand_data, nand_metrics, PartitionDiags, preload_file[2], 0); // Diags area
