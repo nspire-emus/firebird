@@ -1,5 +1,6 @@
 #include "qtframebuffer.h"
 
+#include <array>
 #include <cassert>
 
 #include <QImage>
@@ -12,18 +13,17 @@
 
 QImage renderFramebuffer()
 {
-    static uint16_t *framebuffer = reinterpret_cast<uint16_t*>(malloc(320 * 240 * 2));
-    assert(framebuffer);
+    static std::array<uint16_t, 320 * 240 * 2> framebuffer;
 
     uint32_t bitfields[] = { 0x01F, 0x000, 0x000};
 
-    lcd_cx_draw_frame(framebuffer, bitfields);
+    lcd_cx_draw_frame(framebuffer.data(), bitfields);
     QImage::Format format = bitfields[0] == 0x00F ? QImage::Format_RGB444 : QImage::Format_RGB16;
 
     if(!emulate_cx)
     {
         format = QImage::Format_RGB444;
-        uint16_t *px = framebuffer;
+        uint16_t *px = framebuffer.data();
         for(unsigned int i = 0; i < 320*240; ++i)
         {
             uint8_t pix = *px & 0xF;
@@ -33,7 +33,7 @@ QImage renderFramebuffer()
         }
     }
 
-    QImage image(reinterpret_cast<const uchar*>(framebuffer), 320, 240, 320 * 2, format);
+    QImage image(reinterpret_cast<const uchar*>(framebuffer.data()), 320, 240, 320 * 2, format);
 
     return image;
 }
