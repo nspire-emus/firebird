@@ -1,6 +1,13 @@
 #include "os.h"
 
+#define WIN32_LEAN_AND_MEAN
 #include <conio.h>
+#include <windows.h>
+#include <stdio.h>
+#include <stdlib.h>
+
+#include "../emu.h"
+#include "../mmu.h"
 
 void *os_reserve(size_t size)
 {
@@ -33,13 +40,6 @@ void *os_alloc_executable(size_t size)
 {
     return VirtualAlloc(NULL, size, MEM_RESERVE | MEM_COMMIT, PAGE_EXECUTE_READWRITE);
 }
-
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include "../emu.h"
-#include "../mmu.h"
 
 static int addr_cache_exception(PEXCEPTION_RECORD er, void *x, void *y, void *z) {
     x = x; y = y; z = z; // unused parameters

@@ -15,11 +15,11 @@
 #include <string.h>
 #include <errno.h>
 #include <unistd.h>
-#include <poll.h>
 
 #ifdef __MINGW32__
 #include <winsock2.h>
 #else
+#include <poll.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <unistd.h>
@@ -117,26 +117,28 @@ static int range_translated(uint32_t range_start, uint32_t range_end) {
 static char get_debug_char(void) {
     char c;
 
-    while(true)
-    {
-        struct pollfd pfd;
-        pfd.fd = socket_fd;
-        pfd.events = POLLIN;
-        int p = poll(&pfd, 1, 100);
-        if(p == -1) // Disconnected
-            return -1;
-
-        if(p) // Data available
-            break;
-
-        else // No data available
+    #ifndef WIN32
+        while(true)
         {
-            if(exiting)
+            struct pollfd pfd;
+            pfd.fd = socket_fd;
+            pfd.events = POLLIN;
+            int p = poll(&pfd, 1, 100);
+            if(p == -1) // Disconnected
                 return -1;
 
-            gui_do_stuff(false);
+            if(p) // Data available
+                break;
+
+            else // No data available
+            {
+                if(exiting)
+                    return -1;
+
+                gui_do_stuff(false);
+            }
         }
-    }
+    #endif
 
     int r = recv(socket_fd, &c, 1, 0);
     if (r == -1) {

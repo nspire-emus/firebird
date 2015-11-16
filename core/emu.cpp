@@ -4,7 +4,6 @@
 #include <csetjmp>
 
 #include <fcntl.h>
-#include <sys/mman.h>
 
 #include <zlib.h>
 
@@ -343,7 +342,7 @@ bool emu_suspend(const char *file)
             || !sched_suspend(snapshot)
             || !memory_suspend(snapshot))
     {
-        munmap(snapshot, size);
+        free(snapshot);
         gzclose(gzf);
         return false;
     }
