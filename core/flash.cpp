@@ -9,6 +9,7 @@
 #include "flash.h"
 #include "mem.h"
 #include "cpu.h"
+#include "os/os.h"
 
 nand_state nand;
 static uint8_t *nand_data = NULL;
@@ -18,13 +19,14 @@ static const struct nand_metrics chips[] = {
     { 0xEC, 0xA1, 0x840, 6, 0x10000 }, // Samsung 1 GBit
 };
 
-bool nand_initialize(bool large) {
-    memcpy(&nand.metrics, &chips[large], sizeof(nand_metrics));
-    nand.state = 0xFF;
+bool nand_initialize(bool large, const char *filename) {
     if(nand_data)
         nand_deinitialize();
 
-    nand_data = (uint8_t*) malloc(nand.metrics.page_size * nand.metrics.num_pages);
+    memcpy(&nand.metrics, &chips[large], sizeof(nand_metrics));
+    nand.state = 0xFF;
+
+    nand_data = (uint8_t*) os_map_cow(filename, large ? 132*1024*1024 : 33*1024*1024);
     if(!nand_data)
         nand_deinitialize();
 
@@ -33,7 +35,9 @@ bool nand_initialize(bool large) {
 
 void nand_deinitialize()
 {
-    free(nand_data);
+    if(nand_data)
+        os_unmap_cow(nand_data, (nand.metrics.num_pages == 0x840) ? 132*1024*1024 : 33*1024*1024);
+
     nand_data = nullptr;
 }
 
@@ -412,7 +416,7 @@ bool flash_open(const char *filename) {
     }
     fseek(flash_file, 0, SEEK_END);
     uint32_t size = ftell(flash_file);
-    fseek(flash_file, 0, SEEK_SET);
+
     if (size == 33*1024*1024)
         large = false;
     else if (size == 132*1024*1024)
@@ -421,10 +425,9 @@ bool flash_open(const char *filename) {
         emuprintf("%s not a flash image (wrong size)\n", filename);
         return false;
     }
-    if(!nand_initialize(large))
-        return false;
 
-    if (!fread(nand_data, nand.metrics.page_size * nand.metrics.num_pages, 1, flash_file)) {
+    if(!nand_initialize(large, filename))
+    {
         emuprintf("Could not read flash image from %s\n", filename);
         return false;
     }

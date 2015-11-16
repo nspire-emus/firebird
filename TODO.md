@@ -1,11 +1,11 @@
-##Actual TODO:
+##TODO:
+* Implement on Windows: COW flash loading
+* Test on Windows: Timer, Suspend, Resume?
 * File transfer: Download, Rename, Move
 * Better debugger integration
-* Bug: Crash if EmuThread terminated and debugger command entered
 
 ##Wishlist:
-* More translations
-* Language selection at runtime ?
+* Language selection at runtime?
 * Skin loader/switcher
 * Embedded updater (checker/downloader/installer)
 * Scripting support, somehow

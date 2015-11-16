@@ -2,8 +2,9 @@
 #define _XOPEN_SOURCE
 
 #include <sys/mman.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 #include <stdio.h>
-#include <sys/time.h>
 #include <unistd.h>
 #ifdef __APPLE__
 #include <mach/clock.h>
@@ -23,7 +24,7 @@ void *os_reserve(size_t size)
     void *ptr = mmap((void*)0, size, PROT_READ|PROT_WRITE, MAP_SHARED|MAP_ANON, -1, 0);
 #endif
 
-    if((intptr_t)ptr == -1)
+    if(ptr == MAP_FAILED)
         return NULL;
 
     msync(ptr, size, MS_SYNC|MS_INVALIDATE);
@@ -68,14 +69,31 @@ void *os_alloc_executable(size_t size)
     void *ptr = mmap((void*)0x0, size, PROT_READ|PROT_WRITE|PROT_EXEC, MAP_SHARED|MAP_ANON, -1, 0);
 #endif
 
-    if((intptr_t)ptr == -1)
+    if(ptr == MAP_FAILED)
         return NULL;
 
     msync(ptr, size, MS_SYNC|MS_INVALIDATE);
     return ptr;
 }
 
-void make_writable(void *addr)
+void *os_map_cow(const char *filename, size_t size)
+{
+    int fd = open(filename, O_RDONLY);
+    if(fd == -1)
+        return NULL;
+
+    void *ret = mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_PRIVATE, fd, 0);
+
+    close(fd);
+    return ret == MAP_FAILED ? NULL : ret;
+}
+
+void os_unmap_cow(void *addr, size_t size)
+{
+    munmap(addr, size);
+}
+
+__attribute__((unused)) static void make_writable(void *addr)
 {
     uintptr_t ps = sysconf(_SC_PAGE_SIZE);
     void *prev = (void*)((uintptr_t)(addr) & (~(ps - 1)));

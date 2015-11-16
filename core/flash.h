@@ -10,7 +10,7 @@
 extern "C" {
 #endif
 
-bool nand_initialize(bool large);
+bool nand_initialize(bool large, const char *filename);
 void nand_deinitialize();
 void nand_write_command_byte(uint8_t command);
 void nand_write_address_byte(uint8_t byte);

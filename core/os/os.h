@@ -15,6 +15,9 @@ void *os_sparse_commit(void *page, size_t size);
 void os_sparse_decommit(void *page, size_t size);
 void *os_alloc_executable(size_t size);
 
+void *os_map_cow(const char *filename, size_t size);
+void os_unmap_cow(void *addr, size_t size);
+
 typedef struct { void *prev, *function; } os_exception_frame_t;
 void addr_cache_init(os_exception_frame_t *frame);
 void addr_cache_deinit();
