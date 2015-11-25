@@ -202,7 +202,6 @@ bool emu_start(unsigned int port_gdb, unsigned int port_rdbg, const char *snapsh
             free(snapshot);
             return false;
         }
-
         free(snapshot);
     }
     else
@@ -251,6 +250,8 @@ bool emu_start(unsigned int port_gdb, unsigned int port_rdbg, const char *snapsh
 
     if(port_rdbg)
         rdebug_bind(port_rdbg);
+
+    usblink_queue_reset();
 
     return true;
 }
