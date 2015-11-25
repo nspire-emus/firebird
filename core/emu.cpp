@@ -137,7 +137,7 @@ size_t gzip_filesize(const char *path)
 
         // The last four bytes of a gzip file are the uncompressed size (% 2^32)
         lseek(fp, -4, SEEK_END);
-        size_t ret;
+        size_t ret = 0;
         if(read(fp, &ret, 4) != 4)
             ret = 0;
 
