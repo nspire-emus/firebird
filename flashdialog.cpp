@@ -142,6 +142,9 @@ void FlashDialog::saveAs()
     if(!flash_create_new(is_cx, preload, product_values[ui->selectModel->currentIndex()], is_cx, &nand_data, &nand_size))
     {
         QMessageBox::critical(this, QString("Flash creation failed"), QString("Creating the flash file failed!"));
+
+        free(nand_data);
+
         return;
     }
 
@@ -156,6 +159,8 @@ void FlashDialog::saveAs()
     }
 
     free(nand_data);
+
+    flash_file.close();
 
     close();
 }
