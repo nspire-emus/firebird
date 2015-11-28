@@ -124,7 +124,7 @@ void throttle_interval_event(int index)
 
     gui_do_stuff(true);
 
-    if (!turbo_mode && speed > 0.7)
+    if (!turbo_mode)
 		throttle_timer_wait();
 }
 
