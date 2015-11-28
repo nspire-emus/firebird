@@ -461,6 +461,9 @@ void usblink_reset() {
 }
 
 void usblink_connect() {
+    if(usblink_connected)
+        return;
+
     prev_seqno = 0;
     usblink_state = 1;
 }
