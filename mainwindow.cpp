@@ -109,6 +109,9 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->checkResume, SIGNAL(toggled(bool)), this, SLOT(setResumeOnOpen(bool)));
     connect(ui->buttonChangeSnapshotPath, SIGNAL(clicked()), this, SLOT(changeSnapshotPath()));
 
+    //FlashDialog
+    connect(&flash_dialog, SIGNAL(flashCreated(QString)), this, SLOT(flashCreated(QString)));
+
     //Set up monospace fonts
     QFont monospace = QFontDatabase::systemFont(QFontDatabase::FixedFont);
     ui->debugConsole->setFont(monospace);
@@ -550,6 +553,12 @@ void MainWindow::changeSnapshotPath()
 void MainWindow::showSpeed(double value)
 {
     ui->buttonSpeed->setText(tr("Speed: %1 %").arg(value * 100, 1, 'f', 0));
+}
+
+void MainWindow::flashCreated(QString path)
+{
+    if(QMessageBox::question(this, tr("Apply new flash?"), tr("Do you want to work with the newly created flash image now?")) == QMessageBox::Yes)
+        this->selectFlash(path);
 }
 
 void MainWindow::screenshot()

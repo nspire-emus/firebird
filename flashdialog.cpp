@@ -163,4 +163,6 @@ void FlashDialog::saveAs()
     flash_file.close();
 
     close();
+
+    emit flashCreated(path);
 }

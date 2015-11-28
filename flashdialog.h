@@ -22,6 +22,9 @@ public slots:
     void selectDiags();
     void saveAs();
 
+signals:
+    void flashCreated(QString path);
+
 private:
     QString readVersion(QString file);
 

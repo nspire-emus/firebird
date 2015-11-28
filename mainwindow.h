@@ -85,6 +85,9 @@ public slots:
     //Tool bar (above screen)
     void showSpeed(double value);
 
+    //FlashDialog
+    void flashCreated(QString path);
+
 signals:
     void debuggerCommand(QString input);
     void usblink_progress_changed(int progress);
