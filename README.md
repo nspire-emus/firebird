@@ -33,4 +33,4 @@ You should then be able to Deploy to your iOS device. Don't forget to transfer t
 
 License
 -------
-This work (except the icons from the KDE project) is licensed under a [Creative Commons Attribution-ShareAlike 4.0 International License](http://creativecommons.org/licenses/by-sa/4.0/)
+This work (except the icons from the KDE project) is licensed under the GPLv3.
