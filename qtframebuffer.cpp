@@ -13,7 +13,7 @@
 
 QImage renderFramebuffer()
 {
-    static std::array<uint16_t, 320 * 240 * 2> framebuffer;
+    static std::array<uint16_t, 320 * 240> framebuffer;
 
     uint32_t bitfields[] = { 0x01F, 0x000, 0x000};
 
