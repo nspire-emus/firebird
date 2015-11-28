@@ -823,6 +823,7 @@
      <string>&amp;Tools</string>
     </property>
     <addaction name="actionScreenshot"/>
+    <addaction name="actionRecord_GIF"/>
     <addaction name="actionConnect"/>
     <addaction name="separator"/>
     <addaction name="actionDebugger"/>
@@ -974,6 +975,14 @@
    </property>
    <property name="text">
     <string>Load &amp;from file</string>
+   </property>
+  </action>
+  <action name="actionRecord_GIF">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>&amp;Record GIF</string>
    </property>
   </action>
  </widget>

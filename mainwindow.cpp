@@ -13,6 +13,7 @@
 #include "core/usblink_queue.h"
 #include "core/flash.h"
 #include "core/emu.h"
+#include "core/gif.h"
 #include "core/misc.h"
 
 #include "mainwindow.h"
@@ -71,6 +72,7 @@ MainWindow::MainWindow(QWidget *parent) :
     //Menu "Tools"
     connect(ui->buttonScreenshot, SIGNAL(clicked()), this, SLOT(screenshot()));
     connect(ui->actionScreenshot, SIGNAL(triggered()), this, SLOT(screenshot()));
+    connect(ui->actionRecord_GIF, SIGNAL(triggered()), this, SLOT(recordGIF()));
     connect(ui->actionConnect, SIGNAL(triggered()), this, SLOT(connectUSB()));
     connect(ui->buttonUSB, SIGNAL(clicked(bool)), this, SLOT(connectUSB()));
     connect(ui->actionXModem, SIGNAL(triggered()), this, SLOT(xmodemSend()));
@@ -571,6 +573,36 @@ void MainWindow::screenshot()
 
     if(!image.save(filename, "PNG"))
         QMessageBox::critical(this, tr("Screenshot failed"), tr("Failed to save screenshot!"));
+}
+
+void MainWindow::recordGIF()
+{
+    static QString path;
+
+    if(path.isEmpty())
+    {
+        // TODO: Use QTemporaryFile?
+        path = QDir::tempPath() + QDir::separator() + "firebird_tmp.gif";
+
+        gif_start_recording(path.toStdString().c_str(), 3);
+    }
+    else
+    {
+        if(gif_stop_recording())
+        {
+            QString filename = QFileDialog::getSaveFileName(this, tr("Save Screenshot"), QString(), "GIF images (*.gif)");
+            if(filename.isNull())
+                QFile(path).remove();
+            else
+                QFile(path).rename(filename);
+        }
+        else
+            QMessageBox::warning(this, tr("Failed recording GIF"), tr("A failure occured during recording"));
+
+        path = "";
+    }
+
+    ui->actionRecord_GIF->setChecked(!path.isEmpty());
 }
 
 void MainWindow::connectUSB()

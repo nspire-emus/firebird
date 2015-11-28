@@ -129,6 +129,7 @@ SOURCES += $$ASMCODE_IMPL \
     core/des.c \
     core/disasm.c \
     core/gdbstub.c \
+    core/gif.cpp \
     core/interrupt.c \
     core/keypad.c \
     core/lcd.c \
@@ -172,6 +173,8 @@ HEADERS += \
     core/emu.h \
     core/flash.h \
     core/gdbstub.h \
+    core/gif.h \
+    core/giflib.h \
     core/interrupt.h \
     core/keypad.h \
     core/lcd.h \

@@ -1,6 +1,8 @@
 #include <string.h>
 #include <stdint.h>
+
 #include "emu.h"
+#include "gif.h"
 #include "interrupt.h"
 #include "schedule.h"
 #include "mem.h"
@@ -150,6 +152,8 @@ static void lcd_event(int index) {
     lcd.framebuffer = lcd.upbase;
     lcd.int_status |= 0xC;
     int_set(INT_LCD, lcd.int_status & lcd.int_mask);
+
+    gif_new_frame();
 }
 
 void lcd_reset() {

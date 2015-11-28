@@ -34,10 +34,11 @@ public slots:
     void restart();
 
     //Menu "Tools"
-    void xmodemSend();
     void screenshot();
+    void recordGIF();
     void connectUSB();
     void usblinkChanged(bool state);
+    void xmodemSend();
 
     //Menu "State"
     void resume();
