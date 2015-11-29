@@ -324,6 +324,8 @@ bool memory_initialize(uint32_t sdram_size)
     read_word_map[0xB4 >> 2] = usb_read_word;
     write_word_map[0xB4 >> 2] = usb_write_word;
 
+    read_word_map[0xBC >> 2] = unknown_BC_read_word;
+
     read_word_map[0xC0 >> 2] = lcd_read_word;
     write_word_map[0xC0 >> 2] = lcd_write_word;
     add_reset_proc(lcd_reset);
@@ -364,8 +366,6 @@ bool memory_initialize(uint32_t sdram_size)
         read_word_map[0xB8 >> 2] = nand_phx_read_word;
         write_word_map[0xB8 >> 2] = nand_phx_write_word;
         add_reset_proc(nand_phx_reset);
-
-        read_word_map[0xBC >> 2] = unknown_BC_read_word;
 
         read_word_map[0xDC >> 2] = int_read_word;
         write_word_map[0xDC >> 2] = int_write_word;

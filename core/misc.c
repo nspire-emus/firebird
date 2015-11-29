@@ -840,6 +840,7 @@ void sramctl_write_word(uint32_t addr, uint32_t value) {
 uint32_t unknown_BC_read_word(uint32_t addr) {
     switch (addr & 0x3FFFFFF) {
         case 0xC: return 0;
+        case 0x1C: return 0;
     }
     return bad_read_word(addr);
 }
