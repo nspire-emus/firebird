@@ -1,6 +1,6 @@
 ##TODO:
 * Implement on Windows: COW flash loading
-* Test on Windows: Timer, Suspend, Resume?
+* Optimize x86_64 JIT: {read,write}_{byte,half,word} in asm
 * File transfer: Download, Rename, Move
 * Better debugger integration
 
@@ -12,3 +12,4 @@
 * Expose the calc as a fake USB one
 * Communication with USB peripherals over libusb
 * Different "kits": Selectable sets of flash/boot1/settings
+* Get the touchpad working in a way the OS's cursor likes
