@@ -393,6 +393,11 @@ void set_reg(uint8_t i, uint32_t value)
 void set_reg_pc(uint8_t i, uint32_t value)
 {
     arm.reg[i] = value;
+}
+
+void set_reg_bx(uint8_t i, uint32_t value)
+{
+    arm.reg[i] = value;
 
     if(i == 15 && (value & 1))
     {

@@ -279,7 +279,7 @@ void do_arm_instruction(Instruction i)
             uint32_t target = reg_pc(insn & 15);
             if (insn & 0x20)
                 arm.reg[14] = arm.reg[15];
-            set_reg_pc(15, target);
+            set_reg_bx(15, target);
         } else if ((insn & 0xFBF0FFF) == 0x10F0000) {
             /* MRS: Move reg <- status */
             set_reg(insn >> 12 & 15, (insn & 0x0400000) ? get_spsr() : get_cpsr());
@@ -439,12 +439,12 @@ void do_arm_instruction(Instruction i)
         // Byte access
         if(i.mem_proc.b)
         {
-            if(i.mem_proc.l) set_reg_pc(i.mem_proc.rd, read_byte(base));
+            if(i.mem_proc.l) set_reg_bx(i.mem_proc.rd, read_byte(base));
             else write_byte(base, reg_pc_mem(i.mem_proc.rd));
         }
         else
         {
-            if(i.mem_proc.l) set_reg_pc(i.mem_proc.rd, read_word(base));
+            if(i.mem_proc.l) set_reg_bx(i.mem_proc.rd, read_word(base));
             else write_word(base, reg_pc_mem(i.mem_proc.rd));
         }
 
@@ -510,7 +510,7 @@ void do_arm_instruction(Instruction i)
         }
         if (insn & (1 << 15)) {
             if (insn & (1 << 20)) // Load
-                set_reg_pc(15, read_word(addr));
+                set_reg_bx(15, read_word(addr));
             else // Store
                 write_word(addr, reg_pc_mem(15));
         }

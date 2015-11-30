@@ -99,6 +99,7 @@ uint32_t reg_pc(uint8_t i);
 uint32_t reg_pc_mem(uint8_t i);
 void set_reg(uint8_t i, uint32_t value);
 void set_reg_pc(uint8_t i, uint32_t value);
+void set_reg_bx(uint8_t i, uint32_t value);
 
 #ifdef __cplusplus
 }
