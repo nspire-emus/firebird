@@ -96,6 +96,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->refreshButton, SIGNAL(clicked(bool)), this, SLOT(reload_filebrowser()));
     connect(this, SIGNAL(usblink_progress_changed(int)), this, SLOT(changeProgress(int)), Qt::QueuedConnection);
     connect(ui->treeWidget, SIGNAL(itemChanged(QTreeWidgetItem*,int)), this, SLOT(usblink_dirlist_dataChanged(QTreeWidgetItem*,int)));
+    connect(ui->treeWidget, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(usblinkContextMenu(QPoint)));
 
     //Settings
     connect(ui->checkDebugger, SIGNAL(toggled(bool)), this, SLOT(setDebuggerOnStartup(bool)));
@@ -349,6 +350,30 @@ void MainWindow::usblink_dirlist_callback(struct usblink_file *file, void *data)
     w->addTopLevelItem(item);
 }
 
+void MainWindow::usblink_delete_callback(int progress, void *data)
+{
+    // Only remove the treewidget item if the delete operation was successful
+    if(progress != 100)
+        return;
+
+    QTreeWidgetItem *w = static_cast<QTreeWidgetItem*>(data);
+    if(w->parent())
+        w->parent()->takeChild(w->parent()->indexOfChild(w));
+    else
+        w->treeWidget()->takeTopLevelItem(w->treeWidget()->indexOfTopLevelItem(w));
+}
+
+void MainWindow::usblink_download_callback(int progress, void *data)
+{
+    usblink_progress_callback(progress, data);
+
+    if(progress < 0)
+    {
+        MainWindow *mw = static_cast<MainWindow*>(data);
+        QMessageBox::warning(mw, tr("Download failed"), tr("Could not download file."));
+    }
+}
+
 void MainWindow::usblink_progress_callback(int progress, void *data)
 {
     if(progress < 0 || progress > 100)
@@ -408,6 +433,52 @@ void MainWindow::usblink_dirlist_dataChanged(QTreeWidgetItem *item, int column)
              new_name = item->data(0, Qt::DisplayRole).toString().toStdString();
 
     usblink_queue_move(filepath + "/" + old_name, filepath + "/" + new_name, usblink_move_progress, item);
+}
+
+void MainWindow::usblinkContextMenu(QPoint pos)
+{
+    if(!ui->treeWidget->currentItem())
+        return;
+
+    QMenu *menu = new QMenu(this);
+    QAction *action_delete = new QAction(tr("Delete"), menu);
+
+    if(ui->treeWidget->currentItem()->data(0, Qt::UserRole).toBool() == false)
+    {
+        // Is not a directory
+        QAction *action_download = new QAction(tr("Download"), menu);
+        connect(action_download, SIGNAL(triggered()), this, SLOT(usblinkDownloadEntry()));
+        menu->addAction(action_download);
+    }
+    else if(ui->treeWidget->currentItem()->childCount() > 0)
+    {
+        // Non-empty directory
+        action_delete->setDisabled(true);
+    }
+
+    connect(action_delete, SIGNAL(triggered()), this, SLOT(usblinkDeleteEntry()));
+    menu->addAction(action_delete);
+
+    menu->popup(ui->treeWidget->viewport()->mapToGlobal(pos));
+}
+
+void MainWindow::usblinkDownloadEntry()
+{
+    if(!ui->treeWidget->currentItem()
+            || ui->treeWidget->currentItem()->data(0, Qt::UserRole).toBool()) // Is a directory
+        return;
+
+    QString dest = QFileDialog::getSaveFileName(this, tr("Chose save location"), QString(), tr("TNS file (*.tns)"));
+    if(!dest.isEmpty())
+        usblink_queue_download(usblink_path_item(ui->treeWidget->currentItem()).toStdString(), dest.toStdString(), usblink_download_callback, this);
+}
+
+void MainWindow::usblinkDeleteEntry()
+{
+    if(!ui->treeWidget->currentItem())
+        return;
+
+    usblink_queue_delete(usblink_path_item(ui->treeWidget->currentItem()).toStdString(), ui->treeWidget->currentItem()->data(0, Qt::UserRole).toBool(), usblink_delete_callback, ui->treeWidget->currentItem());
 }
 
 void MainWindow::selectBoot1(QString path)

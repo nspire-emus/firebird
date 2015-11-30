@@ -12,6 +12,9 @@ struct usblink_queue_action {
         SEND_OS,
         DIRLIST,
         MOVE,
+        DEL_FILE,
+        DEL_DIR,
+        GET_FILE
     } action;
 
     //Members only used if the appropriate action is set
@@ -45,9 +48,13 @@ static void progress_callback(int progress, void *user_data)
     assert(!usblink_queue.empty());
     if(usblink_queue.front().progress_callback != nullptr)
     {
-        if(usblink_queue.front().action == usblink_queue_action::PUT_FILE
-                || usblink_queue.front().action == usblink_queue_action::SEND_OS
-                || usblink_queue.front().action == usblink_queue_action::MOVE)
+        auto action = usblink_queue.front().action;
+        if(action == usblink_queue_action::PUT_FILE
+                || action == usblink_queue_action::SEND_OS
+                || action == usblink_queue_action::MOVE
+                || action == usblink_queue_action::DEL_DIR
+                || action == usblink_queue_action::DEL_FILE
+                || action == usblink_queue_action::GET_FILE)
             usblink_queue.front().progress_callback(progress, user_data);
         else
             assert(false);
@@ -60,7 +67,6 @@ static void progress_callback(int progress, void *user_data)
     }
 }
 
-//TODO: What if usblink_* fails?
 void usblink_queue_do()
 {
     bool b = false;
@@ -71,10 +77,12 @@ void usblink_queue_do()
     switch(action.action)
     {
     case usblink_queue_action::PUT_FILE:
-        usblink_put_file(action.filepath.c_str(), action.path.c_str(), progress_callback, action.user_data);
+        if(!usblink_put_file(action.filepath.c_str(), action.path.c_str(), progress_callback, action.user_data))
+            progress_callback(-1, action.user_data);
         break;
     case usblink_queue_action::SEND_OS:
-        usblink_send_os(action.filepath.c_str(), progress_callback, action.user_data);
+        if(!usblink_send_os(action.filepath.c_str(), progress_callback, action.user_data))
+            progress_callback(-1, action.user_data);
         break;
     case usblink_queue_action::DIRLIST:
         usblink_dirlist(action.path.c_str(), dirlist_callback, action.user_data);
@@ -82,6 +90,15 @@ void usblink_queue_do()
     case usblink_queue_action::MOVE:
         usblink_move(action.filepath.c_str(), action.path.c_str(), progress_callback, action.user_data);
         break;
+    case usblink_queue_action::DEL_DIR:
+        usblink_delete(action.path.c_str(), true, progress_callback, action.user_data);
+        break;
+    case usblink_queue_action::DEL_FILE:
+        usblink_delete(action.path.c_str(), false, progress_callback, action.user_data);
+        break;
+    case usblink_queue_action::GET_FILE:
+        if(!usblink_get_file(action.path.c_str(), action.filepath.c_str(), progress_callback, action.user_data))
+            progress_callback(-1, action.user_data);
     }
 }
 
@@ -104,6 +121,17 @@ void usblink_queue_reset()
     usblink_reset();
 }
 
+void usblink_queue_delete(std::string path, bool is_dir, usblink_progress_cb callback, void *user_data)
+{
+    usblink_queue_action action;
+    action.action = is_dir ? usblink_queue_action::DEL_DIR : usblink_queue_action::DEL_FILE;
+    action.user_data = user_data;
+    action.path = path;
+    action.progress_callback = callback;
+
+    usblink_queue.push(action);
+}
+
 void usblink_queue_dirlist(std::string path, usblink_dirlist_cb callback, void *user_data)
 {
     usblink_queue_action action;
@@ -111,6 +139,18 @@ void usblink_queue_dirlist(std::string path, usblink_dirlist_cb callback, void *
     action.user_data = user_data;
     action.path = path;
     action.dirlist_callback = callback;
+
+    usblink_queue.push(action);
+}
+
+void usblink_queue_download(std::string path, std::string destpath, usblink_progress_cb callback, void *user_data)
+{
+    usblink_queue_action action;
+    action.action = usblink_queue_action::GET_FILE;
+    action.user_data = user_data;
+    action.filepath = destpath;
+    action.path = path;
+    action.progress_callback = callback;
 
     usblink_queue.push(action);
 }
@@ -137,7 +177,6 @@ void usblink_queue_send_os(const char *filepath, usblink_progress_cb callback, v
 
     usblink_queue.push(action);
 }
-
 
 void usblink_queue_move(std::string old_path, std::string new_path, usblink_progress_cb callback, void *user_data)
 {

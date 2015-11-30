@@ -69,6 +69,9 @@ public slots:
     void reload_filebrowser();
     void changeProgress(int value);
     void usblink_dirlist_dataChanged(QTreeWidgetItem *item, int column);
+    void usblinkContextMenu(QPoint pos);
+    void usblinkDownloadEntry();
+    void usblinkDeleteEntry();
 
     //Settings
     void selectBoot1();
@@ -99,6 +102,8 @@ public:
     //usblink callbacks
     static void usblink_dirlist_callback_nested(struct usblink_file *file, void *data);
     static void usblink_dirlist_callback(struct usblink_file *file, void *data);
+    static void usblink_delete_callback(int progress, void *data);
+    static void usblink_download_callback(int progress, void *data);
     static void usblink_progress_callback(int progress, void *data);
 
 private:
