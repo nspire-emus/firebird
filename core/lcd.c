@@ -111,7 +111,11 @@ void lcd_cx_draw_frame(uint16_t *buffer, uint32_t *bitfields) {
             uint32_t i, bi = lcd.control >> 9 & 1;
             for (i = 0; i < 320; i++) {
                 uint16_t color = ((uint16_t *)in)[i ^ bi];
-                out[i] = color + (color & 0xFFE0) + (color >> 10 & 0x20);
+                uint8_t r = color & 0x1F,
+                        g = (color >> 5) & 0x1F,
+                        b = (color >> 10) & 0x1F;
+
+                out[i] = (r << 11) | (g << 6) | b | (color >> 10 & 0x20);
             }
             in += 160;
         } else if (mode == 5) {
