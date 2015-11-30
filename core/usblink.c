@@ -1,7 +1,8 @@
+#include <assert.h>
+#include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <assert.h>
 
 #include "emu.h"
 #include "usb.h"
@@ -70,14 +71,12 @@ uint8_t usblink_header_checksum(struct packet *packet) {
 }
 
 static void dump_packet(char *type, void *data, uint32_t size) {
-    //if (log_enabled[LOG_USB])
+    if (log_enabled[LOG_USB])
     {
         uint32_t i;
         emuprintf("%s", type);
-        for (i = 0; i < size && i < 24; i++)
-            emuprintf(" %02x", ((uint8_t *)data)[i]);
-        if (size > 24)
-            emuprintf("...");
+        for (i = 0; i < size; i++)
+            emuprintf(" %02x %c", ((uint8_t *)data)[i], isprint(((uint8_t *)data)[i]) ? ((uint8_t *)data)[i] : '?');
         emuprintf("\n");
     }
 }
@@ -320,7 +319,13 @@ void usblink_received_packet(uint8_t *data, uint32_t size) {
     switch (in->dst.service)
     {
     case SID_File:
-        put_file_next(in);
+        if(mode == Rename)
+        {
+            if(in->data_size == 2 && in->data[0] == 0xFF && current_file_callback)
+                current_file_callback(in->data[1] == 0x00 ? 100 : -1, current_file_user_data);
+        }
+        else
+            put_file_next(in);
         break;
     case SID_Dirlist:
         dirlist_next(in);
@@ -450,7 +455,7 @@ void usblink_move(const char *old_path, const char *new_path, usblink_progress_c
     *data++ = 1;
     unsigned int size = sprintf((char *)data, "%s", old_path) + 1;
     data += size;
-    while(size < 8)
+    while(size < 9)
     {
         *data++ = 0;
         ++size;
@@ -458,7 +463,7 @@ void usblink_move(const char *old_path, const char *new_path, usblink_progress_c
 
     size = sprintf((char *)data, "%s", new_path) + 1;
     data += size;
-    while(size < 8)
+    while(size < 10)
     {
         *data++ = 0;
         ++size;
