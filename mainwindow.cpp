@@ -164,6 +164,8 @@ MainWindow::MainWindow(QWidget *parent) :
             showStatusMsg(tr("Start the emulation via Emulation->Restart."));
     }
 
+    ui->lcdView->setFocus();
+
     #ifdef Q_OS_MAC
         QTimer::singleShot(50, [&] {dockVisibilityChanged(false);}); // Trigger dock update (after UI was shown)
     #endif
