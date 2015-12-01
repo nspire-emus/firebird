@@ -208,6 +208,10 @@ bool EmuThread::stop()
     exiting = true;
     setPaused(false);
     do_suspend = false;
+
+    // Cause the cpu core to leave the loop and check for events
+    cycle_count_delta = 0;
+
     if(!this->wait(200))
     {
         terminate();
