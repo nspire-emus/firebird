@@ -245,6 +245,9 @@ void get_file_next(struct packet *in)
     case 0x05: // Receive data packet
         put_file_size += in->data_size - 1;
 
+        if(put_file_size > put_file_size_orig)
+            in->data_size -= put_file_size_orig - put_file_size;
+
         if(current_file_callback)
         {
             static int old_progress = 101;
@@ -256,7 +259,7 @@ void get_file_next(struct packet *in)
 
         fwrite(in->data + 1, 1, in->data_size - 1, put_file);
 
-        if(in->data_size < 254)
+        if(in->data_size < 254 || put_file_size == put_file_size_orig)
         {
             // Send last packet
             struct packet *out = &usblink_send_buffer;
