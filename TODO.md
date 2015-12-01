@@ -1,7 +1,7 @@
 ##TODO:
 * Implement on Windows: COW flash loading
 * Optimize x86_64 JIT: {read,write}_{byte,half,word} in asm
-* File transfer: Download, Rename, Move
+* File transfer: Upload by Dropping into the file explorer tree, Move by D'n'D
 * Better debugger integration
 
 ##Wishlist:
