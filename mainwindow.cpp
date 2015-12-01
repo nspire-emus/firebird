@@ -578,23 +578,29 @@ void MainWindow::setUIMode(bool docks_enabled)
     QDockWidget *last_dock = nullptr;
     while(ui->tabWidget->count())
     {
-        QWidget *tab = ui->tabWidget->widget(0);
-        QDockWidget *dw = new QDockWidget(ui->tabWidget->tabText(0), this);
-        docks.push_back(dw);
+        QDockWidget *dw = new QDockWidget(ui->tabWidget->tabText(0));
+        dw->setWindowIcon(ui->tabWidget->tabIcon(0));
+        dw->setObjectName(dw->windowTitle());
+
         #ifdef Q_OS_MAC
             connect(dw, SIGNAL(visibilityChanged(bool)), this, SLOT(dockVisibilityChanged(bool)));
         #endif
+
+        docks.push_back(dw);
+
+        QWidget *tab = ui->tabWidget->widget(0);
         if(tab == ui->tabDebugger)
             dock_debugger = dw;
 
-        dw->setObjectName(ui->tabWidget->tabText(0));
-        tab->setParent(dw->widget());
-        addDockWidget(Qt::RightDockWidgetArea, dw);
         dw->setWidget(tab);
+
+        addDockWidget(Qt::RightDockWidgetArea, dw);
         if(last_dock != nullptr)
             tabifyDockWidget(last_dock, dw);
+
         last_dock = dw;
     }
+
     ui->tabWidget->setHidden(true);
     ui->uiDocks->setChecked(docks_enabled);
 }
@@ -811,7 +817,7 @@ void MainWindow::stopped()
 }
 
 void MainWindow::closeEvent(QCloseEvent *e)
-{   
+{
     if(!close_after_suspend &&
             settings->value("suspendOnClose").toBool() && emu_thread->isRunning() && exiting == false)
     {

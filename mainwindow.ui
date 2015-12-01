@@ -20,6 +20,9 @@
    <iconset resource="resources.qrc">
     <normaloff>:/icons/resources/firebird.png</normaloff>:/icons/resources/firebird.png</iconset>
   </property>
+  <property name="dockOptions">
+   <set>QMainWindow::AllowNestedDocks|QMainWindow::AllowTabbedDocks|QMainWindow::AnimatedDocks</set>
+  </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QHBoxLayout" name="horizontalLayout">
     <item>
