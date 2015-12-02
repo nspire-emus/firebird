@@ -96,6 +96,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(this, SIGNAL(usblink_progress_changed(int)), this, SLOT(changeProgress(int)), Qt::QueuedConnection);
     connect(ui->treeWidget, SIGNAL(itemChanged(QTreeWidgetItem*,int)), this, SLOT(usblink_dirlist_dataChanged(QTreeWidgetItem*,int)));
     connect(ui->treeWidget, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(usblinkContextMenu(QPoint)));
+    connect(this, SIGNAL(wantToAddTreeItem(QTreeWidgetItem*,QTreeWidgetItem*)), this, SLOT(addTreeItem(QTreeWidgetItem*,QTreeWidgetItem*)), Qt::QueuedConnection);
 
     //Settings
     connect(ui->checkDebugger, SIGNAL(toggled(bool)), this, SLOT(setDebuggerOnStartup(bool)));
@@ -320,7 +321,7 @@ void MainWindow::usblink_dirlist_callback_nested(struct usblink_file *file, void
     item->setData(0, Qt::UserRole, QVariant(file->is_dir));
     item->setData(1, Qt::UserRole, QVariant(false));
     item->setData(2, Qt::UserRole, QVariant(QString::fromUtf8(file->filename)));
-    w->addChild(item);
+    emit main_window->wantToAddTreeItem(item, w);
 }
 
 void MainWindow::usblink_dirlist_callback(struct usblink_file *file, void *data)
@@ -344,7 +345,7 @@ void MainWindow::usblink_dirlist_callback(struct usblink_file *file, void *data)
     item->setData(0, Qt::UserRole, QVariant(file->is_dir));
     item->setData(1, Qt::UserRole, QVariant(false));
     item->setData(2, Qt::UserRole, QVariant(QString::fromUtf8(file->filename)));
-    w->addTopLevelItem(item);
+    emit main_window->wantToAddTreeItem(item, nullptr);
 }
 
 void MainWindow::usblink_delete_callback(int progress, void *data)
@@ -473,6 +474,14 @@ void MainWindow::usblinkDeleteEntry()
         return;
 
     usblink_queue_delete(usblink_path_item(ui->treeWidget->currentItem()).toStdString(), ui->treeWidget->currentItem()->data(0, Qt::UserRole).toBool(), usblink_delete_callback, ui->treeWidget->currentItem());
+}
+
+void MainWindow::addTreeItem(QTreeWidgetItem *item, QTreeWidgetItem *parent)
+{
+    if(parent)
+        parent->addChild(item);
+    else
+        ui->treeWidget->addTopLevelItem(item);
 }
 
 void MainWindow::selectBoot1(QString path)

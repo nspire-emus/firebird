@@ -72,6 +72,7 @@ public slots:
     void usblinkContextMenu(QPoint pos);
     void usblinkDownloadEntry();
     void usblinkDeleteEntry();
+    void addTreeItem(QTreeWidgetItem *item, QTreeWidgetItem *parent); // Has to run in the UI thread
 
     //Settings
     void selectBoot1();
@@ -97,6 +98,7 @@ public slots:
 signals:
     void debuggerCommand(QString input);
     void usblink_progress_changed(int progress);
+    void wantToAddTreeItem(QTreeWidgetItem *item, QTreeWidgetItem *parent); // Has to run in the UI thread
 
 public:
     //usblink callbacks
