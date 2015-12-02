@@ -3,7 +3,7 @@
 #include "mmu.h"
 #include "mem.h"
 
-//TODO: Read breakpoints
+//TODO: Read breakpoints, alignment checks
 
 #if (!defined(__i386__) && !defined(__x86_64__) && !defined(__arm__)) || defined(NO_TRANSLATION)
 void flush_translations() {}
