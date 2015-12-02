@@ -23,7 +23,6 @@
 #include "qtkeypadbridge.h"
 
 MainWindow *main_window;
-bool MainWindow::refresh_filebrowser = true;
 // Change this if you change the UI
 static const constexpr int WindowStateVersion = 0;
 
@@ -306,8 +305,6 @@ void MainWindow::usblink_dirlist_callback_nested(struct usblink_file *file, void
     //End of enumeration or error
     if(!file)
     {
-        refresh_filebrowser = true;
-
         w->setData(1, Qt::UserRole, QVariant(true)); //Dir is now filled
         //Find a dir to fill with entries
         for(int i = 0; i < w->treeWidget()->topLevelItemCount(); ++i)
@@ -333,8 +330,6 @@ void MainWindow::usblink_dirlist_callback(struct usblink_file *file, void *data)
     //End of enumeration or error
     if(!file)
     {
-        refresh_filebrowser = true;
-
         //Find a dir to fill with entries
         for(int i = 0; i < w->topLevelItemCount(); ++i)
             if(usblink_dirlist_nested(w->topLevelItem(i)))
@@ -398,9 +393,6 @@ void MainWindow::resumeFromPath(QString path)
 
 void MainWindow::reload_filebrowser()
 {
-    if(!refresh_filebrowser)
-        return;
-
     if(!usblink_connected)
         usblink_connect();
 

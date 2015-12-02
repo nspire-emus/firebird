@@ -124,9 +124,6 @@ private:
     // Used to show a status message permanently
     QLabel status_label;
 
-    // Whether to call usblink_dirlist when the tab is selected
-    // Small hack: static as used in static callbacks...
-    static bool refresh_filebrowser;
     EmuThread emu;
     QSettings *settings = nullptr;
     FlashDialog flash_dialog;
