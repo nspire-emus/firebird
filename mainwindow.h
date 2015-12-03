@@ -24,7 +24,6 @@ public:
 public slots:
     //Miscellaneous
     void closeEvent(QCloseEvent *) override;
-    void dockVisibilityChanged(bool v);
     void showStatusMsg(QString str);
 
     //Drag & Drop
@@ -118,10 +117,6 @@ private:
     void raiseDebugger();
 
     Ui::MainWindow *ui = nullptr;
-
-    // On Mac you can't show docks after all of them are hidden...
-    // Keep track of them to count whether that's about to happen
-    std::vector<QDockWidget *> docks;
 
     // Used to show a status message permanently
     QLabel status_label;

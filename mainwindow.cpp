@@ -575,6 +575,9 @@ void MainWindow::setUIMode(bool docks_enabled)
         return;
     }
 
+    // Create "Docks" menu to make closing and opening docks more intuitive
+    QMenu *docks_menu = ui->menubar->addMenu(tr("Docks"));
+
     //Convert the tabs into QDockWidgets
     QDockWidget *last_dock = nullptr;
     while(ui->tabWidget->count())
@@ -583,11 +586,10 @@ void MainWindow::setUIMode(bool docks_enabled)
         dw->setWindowIcon(ui->tabWidget->tabIcon(0));
         dw->setObjectName(dw->windowTitle());
 
-        #ifdef Q_OS_MAC
-            connect(dw, SIGNAL(visibilityChanged(bool)), this, SLOT(dockVisibilityChanged(bool)));
-        #endif
-
-        docks.push_back(dw);
+        // Fill "Docks" menu
+        QAction *action = dw->toggleViewAction();
+        action->setIcon(dw->windowIcon());
+        docks_menu->addAction(action);
 
         QWidget *tab = ui->tabWidget->widget(0);
         if(tab == ui->tabDebugger)
@@ -837,36 +839,6 @@ void MainWindow::closeEvent(QCloseEvent *e)
         qDebug("Failed.");
 
     QMainWindow::closeEvent(e);
-}
-
-// Workaround for bug on Mac: If all docks are hidden,
-// it's not possible to open the dock menu and show them again
-void MainWindow::dockVisibilityChanged(bool v)
-{
-    // A dock got visible: make all of them closable
-    if(v)
-    {
-        for(auto dock : docks)
-            dock->setFeatures(QDockWidget::DockWidgetClosable | QDockWidget::DockWidgetMovable | QDockWidget::DockWidgetFloatable);
-        return;
-    }
-
-    // All but one dock hidden?
-    QDockWidget *remaining = nullptr;
-    for(auto dock : docks)
-        if(dock->isVisible())
-        {
-            if(remaining)
-                return; // Enough docks visible
-            else
-                remaining = dock;
-        }
-
-    if(!remaining)
-        return; // No dock visible?
-
-    // Disable closability on the remaining one
-    remaining->setFeatures(QDockWidget::DockWidgetMovable | QDockWidget::DockWidgetFloatable);
 }
 
 void MainWindow::showStatusMsg(QString str)
