@@ -51,7 +51,7 @@ Rectangle {
 
         onAccepted: {
             Emu.setSnapshotPath(fileDialogSnapshot.fileUrl);
-            snapshotName.text = Emu.basename(fileSnapshotFlash.fileUrl);
+            snapshotName.text = Emu.basename(fileDialogSnapshot.fileUrl);
         }
     }
 
