@@ -846,10 +846,18 @@
     <addaction name="actionSuspend_to_file"/>
     <addaction name="actionResume_from_file"/>
    </widget>
+   <widget class="QMenu" name="menuAbout">
+    <property name="title">
+     <string>Abo&amp;ut</string>
+    </property>
+    <addaction name="actionAbout_Firebird"/>
+    <addaction name="actionAbout_Qt"/>
+   </widget>
    <addaction name="menuEmulation"/>
    <addaction name="menuTools"/>
    <addaction name="menuState"/>
    <addaction name="menuFlash"/>
+   <addaction name="menuAbout"/>
   </widget>
   <action name="actionReset">
    <property name="icon">
@@ -989,6 +997,16 @@
    </property>
    <property name="text">
     <string>&amp;Record GIF</string>
+   </property>
+  </action>
+  <action name="actionAbout_Firebird">
+   <property name="text">
+    <string>About Firebird</string>
+   </property>
+  </action>
+  <action name="actionAbout_Qt">
+   <property name="text">
+    <string>About Qt</string>
    </property>
   </action>
  </widget>

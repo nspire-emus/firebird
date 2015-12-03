@@ -50,6 +50,9 @@ public slots:
     void saveFlash();
     void createFlash();
 
+    //Menu "About"
+    void showAbout();
+
     //State
     void started(bool success);
     void resumed(bool success);

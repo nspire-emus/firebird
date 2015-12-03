@@ -88,6 +88,10 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->actionSave, SIGNAL(triggered()), this, SLOT(saveFlash()));
     connect(ui->actionCreate_flash, SIGNAL(triggered()), this, SLOT(createFlash()));
 
+    //Menu "About"
+    connect(ui->actionAbout_Firebird, SIGNAL(triggered(bool)), this, SLOT(showAbout()));
+    connect(ui->actionAbout_Qt, SIGNAL(triggered(bool)), qApp, SLOT(aboutQt()));
+
     //Debugging
     connect(ui->lineEdit, SIGNAL(returnPressed()), this, SLOT(debugCommand()));
 
@@ -777,6 +781,32 @@ void MainWindow::createFlash()
     flash_dialog.exec();
 }
 
+
+void MainWindow::showAbout()
+{
+    #define STRINGIFYMAGIC(x) #x
+    #define STRINGIFY(x) STRINGIFYMAGIC(x)
+    QMessageBox about_box(this);
+    about_box.addButton(QMessageBox::Ok);
+    about_box.setIconPixmap(about_box.windowIcon().pixmap(about_box.windowIcon().actualSize(QSize(64, 64))));
+    about_box.setWindowTitle(tr("About Firebird"));
+    about_box.setText(tr("<h3>Firebird %1</h3>"
+                         "<a href='https://github.com/nspire-emus/firebird'>On GitHub</a><br><br>"
+                         "Authors:<br>"
+                         "Fabian Vogt (<a href='https://github.com/Vogtinator'>Vogtinator</a>)<br>"
+                         "Adrien Bertrand (<a href='https://github.com/adriweb'>Adriweb</a>)<br>"
+                         "Antonio Vasquez (<a href='https://github.com/antoniovazquezblanco'>antoniovazquezblanco</a>)<br>"
+                         "Lionel Debroux (<a href='https://github.com/debrouxl'>debrouxl</a>)<br>"
+                         "Based on nspire_emu v0.70 by Goplat<br><br>"
+                         "This work is licensed under the GPLv3.<br>"
+                         "To view a copy of this license, visit <a href='https://www.gnu.org/licenses/gpl-3.0.html'>https://www.gnu.org/licenses/gpl-3.0.html</a>").arg(STRINGIFY(FB_VERSION)));
+    about_box.setTextFormat(Qt::RichText);
+    about_box.show();
+    about_box.exec();
+    #undef STRINGIFY
+    #undef STRINGIFYMAGIC
+}
+
 void MainWindow::started(bool success)
 {
     updateUIActionState(success);
@@ -831,12 +861,8 @@ void MainWindow::closeEvent(QCloseEvent *e)
         return;
     }
 
-    qDebug("Terminating emulator thread...");
-
-    if(emu.stop())
-        qDebug("Successful!");
-    else
-        qDebug("Failed.");
+    if(emu.isRunning() && !emu.stop())
+        qDebug("Terminating emulator thread failed.");
 
     QMainWindow::closeEvent(e);
 }

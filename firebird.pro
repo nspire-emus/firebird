@@ -1,5 +1,8 @@
 lessThan(QT_MAJOR_VERSION, 5) : error("You need at least Qt 5 to build firebird!")
 
+# Version
+DEFINES += FB_VERSION=0.3-beta
+
 # JIT
 TRANSLATION_ENABLED = true
 
