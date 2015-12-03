@@ -30,7 +30,7 @@
 #include "usblink_queue.h"
 #include "gdbstub.h"
 
-char target_folder[256];
+std::string ln_target_folder;
 
 // Used for debugger input
 static std::mutex debug_input_m;
@@ -355,12 +355,12 @@ static int process_debug_cmd(char *cmdline) {
                 if (*(file + len - 1) == '"')
                     *(file + len - 1) = '\0';
                 usblink_connect();
-                usblink_queue_put_file(std::string(file), std::string(target_folder), nullptr, nullptr);
+                usblink_queue_put_file(std::string(file), std::string(ln_target_folder), nullptr, nullptr);
             }
         } else if (!strcasecmp(ln_cmd, "st")) {
             char *dir = strtok(NULL, " \n\r");
             if (dir)
-                strncpy(target_folder, dir, sizeof(target_folder));
+                ln_target_folder = dir;
             else
                 gui_debug_printf("Missing directory parameter.\n");
         }

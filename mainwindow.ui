@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>714</width>
-    <height>369</height>
+    <height>370</height>
    </rect>
   </property>
   <property name="acceptDrops">
@@ -261,6 +261,10 @@
        </layout>
       </widget>
       <widget class="QWidget" name="tabFiles">
+       <attribute name="icon">
+        <iconset resource="resources.qrc">
+         <normaloff>:/icons/resources/icons/document.png</normaloff>:/icons/resources/icons/document.png</iconset>
+       </attribute>
        <attribute name="title">
         <string>File Transfer</string>
        </attribute>
@@ -533,7 +537,7 @@
              <x>0</x>
              <y>0</y>
              <width>326</width>
-             <height>122</height>
+             <height>123</height>
             </rect>
            </property>
            <attribute name="label">
@@ -729,6 +733,10 @@
        </layout>
       </widget>
       <widget class="QWidget" name="tab">
+       <attribute name="icon">
+        <iconset resource="resources.qrc">
+         <normaloff>:/icons/resources/icons/preferences-desktop-keyboard.png</normaloff>:/icons/resources/icons/preferences-desktop-keyboard.png</iconset>
+       </attribute>
        <attribute name="title">
         <string>Keypad</string>
        </attribute>
@@ -995,18 +1003,26 @@
    <property name="checkable">
     <bool>true</bool>
    </property>
+   <property name="icon">
+    <iconset resource="resources.qrc">
+     <normaloff>:/icons/resources/icons/kmplayer.png</normaloff>:/icons/resources/icons/kmplayer.png</iconset>
+   </property>
    <property name="text">
     <string>&amp;Record GIF</string>
    </property>
   </action>
   <action name="actionAbout_Firebird">
+   <property name="icon">
+    <iconset resource="resources.qrc">
+     <normaloff>:/icons/resources/firebird.png</normaloff>:/icons/resources/firebird.png</iconset>
+   </property>
    <property name="text">
-    <string>About Firebird</string>
+    <string>&amp;About Firebird</string>
    </property>
   </action>
   <action name="actionAbout_Qt">
    <property name="text">
-    <string>About Qt</string>
+    <string>About &amp;Qt</string>
    </property>
   </action>
  </widget>

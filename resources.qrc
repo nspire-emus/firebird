@@ -15,6 +15,9 @@
         <file>resources/firebird.png</file>
         <file>resources/icons/system-suspend-hibernate.png</file>
         <file>resources/icons/system-suspend.png</file>
+        <file>resources/icons/kmplayer.png</file>
+        <file>resources/icons/preferences-desktop-keyboard.png</file>
+        <file>resources/icons/document.png</file>
     </qresource>
     <qresource prefix="/qml">
         <file>qml/Keypad.qml</file>

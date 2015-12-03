@@ -8,6 +8,10 @@
 #include <stdio.h>
 
 #ifdef __cplusplus
+
+#include <string>
+extern std::string ln_target_folder;
+
 extern "C" {
 #endif
 

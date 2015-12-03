@@ -10,11 +10,12 @@
 #include <QDockWidget>
 #include <QShortcut>
 
-#include "core/usblink_queue.h"
-#include "core/flash.h"
+#include "core/debug.h"
 #include "core/emu.h"
+#include "core/flash.h"
 #include "core/gif.h"
 #include "core/misc.h"
+#include "core/usblink_queue.h"
 
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
@@ -521,6 +522,7 @@ void MainWindow::updateUIActionState(bool emulation_running)
     ui->actionRestart->setText(emulation_running ? tr("Re&start") : tr("&Start"));
 
     ui->actionScreenshot->setEnabled(emulation_running);
+    ui->actionRecord_GIF->setEnabled(emulation_running);
     ui->actionConnect->setEnabled(emulation_running);
     ui->actionDebugger->setEnabled(emulation_running);
     ui->actionXModem->setEnabled(emulation_running);
@@ -580,7 +582,8 @@ void MainWindow::setUIMode(bool docks_enabled)
     }
 
     // Create "Docks" menu to make closing and opening docks more intuitive
-    QMenu *docks_menu = ui->menubar->addMenu(tr("Docks"));
+    QMenu *docks_menu = new QMenu(tr("Docks"));
+    ui->menubar->insertMenu(ui->menuAbout->menuAction(), docks_menu);
 
     //Convert the tabs into QDockWidgets
     QDockWidget *last_dock = nullptr;
@@ -627,6 +630,7 @@ void MainWindow::setBootOrder(bool diags_first)
 void MainWindow::setUSBPath(QString path)
 {
     settings->setValue("usbdir", path);
+    ln_target_folder = path.toStdString(); // For the "ln" debug cmd
     if(ui->pathTransfer->text() != path)
         ui->pathTransfer->setText(path);
 }
