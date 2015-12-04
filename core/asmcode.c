@@ -107,7 +107,8 @@ void FASTCALL write_byte(uint32_t addr, uint32_t value)
 
     entry += addr;
 
-    write_action((void*) entry);
+    if(RAM_FLAGS(entry & ~3) & DO_WRITE_ACTION)
+        write_action((void*) entry);
     *(uint8_t*)entry = value;
 }
 
@@ -133,7 +134,8 @@ void FASTCALL write_half(uint32_t addr, uint32_t value)
 
     entry += addr;
 
-    write_action((void*) entry);
+    if(RAM_FLAGS(entry & ~3) & DO_WRITE_ACTION)
+        write_action((void*) entry);
     *(uint16_t*)entry = value;
 }
 
@@ -158,6 +160,7 @@ void FASTCALL write_word(uint32_t addr, uint32_t value)
     }
     entry += addr;
 
-    write_action((void*) entry);
+    if(RAM_FLAGS(entry & ~3) & DO_WRITE_ACTION)
+        write_action((void*) entry);
     *(uint32_t*)entry = value;
 }

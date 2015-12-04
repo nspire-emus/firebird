@@ -58,8 +58,6 @@ uint32_t phys_mem_addr(void *ptr) {
     return -1; // should never happen
 }
 
-
-#define DO_READ_ACTION (RF_READ_BREAKPOINT)
 void read_action(void *ptr) {
     uint32_t addr = phys_mem_addr(ptr);
     if (!gdb_connected)
@@ -67,7 +65,6 @@ void read_action(void *ptr) {
     debugger(DBG_READ_BREAKPOINT, addr);
 }
 
-#define DO_WRITE_ACTION (RF_WRITE_BREAKPOINT | RF_CODE_TRANSLATED | RF_CODE_NO_TRANSLATE)
 void write_action(void *ptr) {
     uint32_t addr = phys_mem_addr(ptr);
     volatile uint32_t *flags = &RAM_FLAGS((size_t)ptr & ~3);

@@ -48,6 +48,9 @@ void *phys_mem_ptr(uint32_t addr, uint32_t size);
 #define RF_ARMLOADER_CB      256
 #define RFS_TRANSLATION_INDEX 9
 
+#define DO_READ_ACTION (RF_READ_BREAKPOINT)
+#define DO_WRITE_ACTION (RF_WRITE_BREAKPOINT | RF_CODE_TRANSLATED | RF_CODE_NO_TRANSLATE)
+
 uint8_t bad_read_byte(uint32_t addr);
 uint16_t bad_read_half(uint32_t addr);
 uint32_t bad_read_word(uint32_t addr);
