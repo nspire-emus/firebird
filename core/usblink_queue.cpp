@@ -31,6 +31,7 @@ static std::queue<usblink_queue_action> usblink_queue;
 static void dirlist_callback(struct usblink_file *f, bool is_error, void *user_data)
 {
     assert(!usblink_queue.empty());
+    assert(usblink_queue.front().user_data == user_data);
     assert(usblink_queue.front().action == usblink_queue_action::DIRLIST);
 
     if(usblink_queue.front().dirlist_callback != nullptr)
@@ -46,6 +47,7 @@ static void dirlist_callback(struct usblink_file *f, bool is_error, void *user_d
 static void progress_callback(int progress, void *user_data)
 {
     assert(!usblink_queue.empty());
+    assert(usblink_queue.front().user_data == user_data);
     if(usblink_queue.front().progress_callback != nullptr)
     {
         auto action = usblink_queue.front().action;

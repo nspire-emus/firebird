@@ -148,7 +148,8 @@ SOURCES += $$ASMCODE_IMPL \
     qtframebuffer.cpp \
     core/debug.cpp \
     core/flash.cpp \
-    core/emu.cpp
+    core/emu.cpp \
+    usblinktreewidget.cpp
 
 FORMS += \
     mainwindow.ui \
@@ -191,7 +192,8 @@ HEADERS += \
     core/usb.h \
     core/usblink.h \
     core/usblink_queue.h \
-    qtframebuffer.h
+    qtframebuffer.h \
+    usblinktreewidget.h
 
 # For localization
 lupdate_only {

@@ -97,12 +97,10 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->lineEdit, SIGNAL(returnPressed()), this, SLOT(debugCommand()));
 
     //File transfer
-    connect(ui->refreshButton, SIGNAL(clicked(bool)), this, SLOT(reloadFilebrowser()));
+    connect(ui->refreshButton, SIGNAL(clicked(bool)), ui->usblinkTree, SLOT(reloadFilebrowser()));
+    connect(ui->usblinkTree, SIGNAL(downloadProgress(int)), this, SLOT(usblinkDownload(int)), Qt::QueuedConnection);
+    connect(ui->usblinkTree, SIGNAL(uploadProgress(int)), this, SLOT(changeProgress(int)), Qt::QueuedConnection);
     connect(this, SIGNAL(usblink_progress_changed(int)), this, SLOT(changeProgress(int)), Qt::QueuedConnection);
-    connect(ui->treeWidget, SIGNAL(itemChanged(QTreeWidgetItem*,int)), this, SLOT(usblink_dirlist_dataChanged(QTreeWidgetItem*,int)));
-    connect(ui->treeWidget, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(usblinkContextMenu(QPoint)));
-    // This is a Qt::BlockingQueuedConnection as the usblink_dirlist_* family of functions needs to enumerate over the items directly after emitting the signal.
-    connect(this, SIGNAL(wantToAddTreeItem(QTreeWidgetItem*,QTreeWidgetItem*)), this, SLOT(addTreeItem(QTreeWidgetItem*,QTreeWidgetItem*)), Qt::BlockingQueuedConnection);
 
     //Settings
     connect(ui->checkDebugger, SIGNAL(toggled(bool)), this, SLOT(setDebuggerOnStartup(bool)));
@@ -140,6 +138,10 @@ MainWindow::MainWindow(QWidget *parent) :
 
     updateUIActionState(false);
 
+    //Migrate old settings
+    if(settings->value("usbdirNew", QString()).toString().isEmpty())
+        settings->setValue("usbdirNew", QString("/") + settings->value("usbdir", QString("ndless")).toString());
+
     //Load settings
     setUIMode(settings->value("docksEnabled", true).toBool());
     restoreGeometry(settings->value("windowGeometry").toByteArray());
@@ -148,7 +150,7 @@ MainWindow::MainWindow(QWidget *parent) :
     selectFlash(settings->value("flash", "").toString());
     setDebuggerOnStartup(settings->value("debugOnStart", false).toBool());
     setDebuggerOnWarning(settings->value("debugOnWarn", false).toBool());
-    setUSBPath(settings->value("usbdir", QString("ndless")).toString());
+    setUSBPath(settings->value("usbdirNew", QString("/ndless")).toString());
     setGDBPort(settings->value("gdbPort", 3333).toUInt());
     setRDBGPort(settings->value("rdbgPort", 3334).toUInt());
     ui->checkSuspend->setChecked(settings->value("suspendOnClose", false).toBool());
@@ -194,12 +196,19 @@ void MainWindow::dropEvent(QDropEvent *e)
     for(auto &&url : mime_data->urls())
     {
         QUrl local = url.toLocalFile();
-        usblink_queue_put_file(local.toString().toStdString(), settings->value("usbdir", QString("ndless")).toString().toStdString(), usblink_progress_callback, this);
+        usblink_queue_put_file(local.toString().toStdString(), settings->value("usbdirNew", QString("/ndless")).toString().toStdString(), usblink_progress_callback, this);
     }
 }
 
 void MainWindow::dragEnterEvent(QDragEnterEvent *e)
 {
+    if(e->mimeData()->hasUrls() == false)
+        return e->ignore();
+
+    for(QUrl &url : e->mimeData()->urls())
+        if(!url.fileName().endsWith(".tns"))
+            return e->ignore();
+
     e->accept();
 }
 
@@ -258,146 +267,28 @@ void MainWindow::debugCommand()
     ui->lineEdit->clear();
 }
 
-static QString naturalSize(uint64_t bytes)
+void MainWindow::usblinkDownload(int progress)
 {
-    if(bytes < 4ul * 1024)
-        return QString::number(bytes) + " B";
-    else if(bytes < 4ul * 1024 * 1024)
-        return QString::number(bytes / 1024) + " KiB";
-    else if(bytes < 4ull * 1024 * 1024 * 1024)
-        return QString::number(bytes / 1024 / 1024) + " MiB";
-    else
-        return QString("Too much");
-}
-
-QString MainWindow::usblink_path_item(QTreeWidgetItem *w)
-{
-    if(!w)
-        return "";
-
-    return usblink_path_item(w->parent()) + "/" + w->text(0);
-    // This crashes on 32-bit linux somehow
-    //return QString("%0/%1").arg(path_parent).arg(path_this);
-}
-
-bool MainWindow::usblink_dirlist_nested(QTreeWidgetItem *w)
-{
-    if(w->data(0, Qt::UserRole).value<bool>() == false) //Not a directory
-        return false;
-
-    if(w->data(1, Qt::UserRole).value<bool>() == false) //Not filled yet
-    {
-        std::string path_utf8 = usblink_path_item(w).toStdString();
-        usblink_queue_dirlist(path_utf8, MainWindow::usblink_dirlist_callback_nested, w);
-        return true;
-    }
-    else
-    {
-        for(int i = 0; i < w->childCount(); ++i)
-            if(usblink_dirlist_nested(w->child(i)))
-                return true;
-    }
-
-    return false;
-}
-
-void MainWindow::usblink_dirlist_callback_nested(struct usblink_file *file, bool is_error, void *data)
-{
-    QTreeWidgetItem *w = static_cast<QTreeWidgetItem*>(data);
-
-    //End of enumeration or error
-    if(!file)
-    {
-        w->setData(1, Qt::UserRole, QVariant(true)); //Dir is now filled
-
-        if(!is_error)
-        {
-            //Find a dir to fill with entries
-            for(int i = 0; i < w->treeWidget()->topLevelItemCount(); ++i)
-                if(usblink_dirlist_nested(w->treeWidget()->topLevelItem(i)))
-                    return;
-        }
-
-        // FIXME: If a file is transferred, this may never be set to false.
-        if(usblink_queue_size() == 1)
-            main_window->doing_dirlist = false;
-
-        return;
-    }
-
-    //Add directory entry to tree widget item (parent)
-    QString filename = QString::fromUtf8(file->filename);
-    QTreeWidgetItem *item = new QTreeWidgetItem({filename, file->is_dir ? "" : naturalSize(file->size)});
-    item->setFlags(Qt::ItemIsSelectable | Qt::ItemIsDragEnabled | Qt::ItemIsEditable | Qt::ItemIsEnabled);
-    item->setData(0, Qt::UserRole, QVariant(file->is_dir));
-    item->setData(1, Qt::UserRole, QVariant(false));
-    item->setData(2, Qt::UserRole, QVariant(filename));
-    emit main_window->wantToAddTreeItem(item, w);
-}
-
-void MainWindow::usblink_dirlist_callback(struct usblink_file *file, bool is_error, void *data)
-{
-    if(is_error)
-        return;
-
-    QTreeWidget *w = static_cast<QTreeWidget*>(data);
-
-    //End of enumeration or error
-    if(!file)
-    {
-        //Find a dir to fill with entries
-        for(int i = 0; i < w->topLevelItemCount(); ++i)
-            if(usblink_dirlist_nested(w->topLevelItem(i)))
-                return;
-
-        // FIXME: If a file is transferred, this may never be set to false.
-        if(usblink_queue_size() == 1)
-            main_window->doing_dirlist = false;
-
-        return;
-    }
-
-    //Add directory entry to tree widget
-    QString filename = QString::fromUtf8(file->filename);
-    QTreeWidgetItem *item = new QTreeWidgetItem({filename, file->is_dir ? "" : naturalSize(file->size)});
-    item->setFlags(Qt::ItemIsSelectable | Qt::ItemIsDragEnabled | Qt::ItemIsEditable | Qt::ItemIsEnabled);
-    item->setData(0, Qt::UserRole, QVariant(file->is_dir));
-    item->setData(1, Qt::UserRole, QVariant(false));
-    item->setData(2, Qt::UserRole, QVariant(file->filename));
-    emit main_window->wantToAddTreeItem(item, nullptr);
-}
-
-void MainWindow::usblink_delete_callback(int progress, void *data)
-{
-    // Only remove the treewidget item if the delete operation was successful
-    if(progress != 100)
-        return;
-
-    QTreeWidgetItem *w = static_cast<QTreeWidgetItem*>(data);
-    if(w->parent())
-        w->parent()->takeChild(w->parent()->indexOfChild(w));
-    else
-        w->treeWidget()->takeTopLevelItem(w->treeWidget()->indexOfTopLevelItem(w));
-}
-
-void MainWindow::usblink_download_callback(int progress, void *data)
-{
-    usblink_progress_callback(progress, data);
+    usblinkProgress(progress);
 
     if(progress < 0)
-    {
-        MainWindow *mw = static_cast<MainWindow*>(data);
-        QMessageBox::warning(mw, tr("Download failed"), tr("Could not download file."));
-    }
+        QMessageBox::warning(this, tr("Download failed"), tr("Could not download file."));
 }
 
-void MainWindow::usblink_progress_callback(int progress, void *data)
+void MainWindow::usblinkProgress(int progress)
 {
     if(progress < 0 || progress > 100)
         progress = 0; //No error handling here
 
-    MainWindow *mw = static_cast<MainWindow*>(data);
-    emit mw->usblink_progress_changed(progress);
+    emit usblink_progress_changed(progress);
+}
+
+void MainWindow::usblink_progress_callback(int progress, void *)
+{
+    if(progress < 0 || progress > 100)
+        progress = 0; //No error handling here
+
+    emit main_window->usblink_progress_changed(progress);
 }
 
 void MainWindow::suspendToPath(QString path)
@@ -411,100 +302,9 @@ void MainWindow::resumeFromPath(QString path)
         QMessageBox::warning(this, tr("Could not resume"), tr("Try to restart this app."));
 }
 
-void MainWindow::reloadFilebrowser()
-{
-    bool is_false = false;
-    if(!doing_dirlist.compare_exchange_strong(is_false, true))
-        usblink_queue_reset(); // The treeWidget is cleared, so references to items get invalid -> Get rid of them!
-
-    if(!usblink_connected)
-        usblink_connect();
-
-    ui->treeWidget->clear();
-    usblink_queue_dirlist("/", usblink_dirlist_callback, ui->treeWidget);
-}
-
 void MainWindow::changeProgress(int value)
 {
     ui->progressBar->setValue(value);
-}
-
-static void usblink_move_progress(int progress, void *user_data)
-{
-    auto *item = reinterpret_cast<QTreeWidgetItem*>(user_data);
-
-    if(progress == 100) // Success
-        item->setData(2, Qt::UserRole, item->data(0, Qt::DisplayRole)); // Set internal name to new name
-    else if(progress < 0) // Failure
-        item->setData(0, Qt::DisplayRole, item->data(2, Qt::UserRole)); // Reset display name to old name
-}
-
-void MainWindow::usblink_dirlist_dataChanged(QTreeWidgetItem *item, int column)
-{
-    // Only the name can be changed
-    if(column != 0)
-        return;
-
-    std::string filepath = usblink_path_item(item->parent()).toStdString();
-
-    std::string old_name = item->data(2, Qt::UserRole).toString().toStdString(),
-             new_name = item->data(0, Qt::DisplayRole).toString().toStdString();
-
-    usblink_queue_move(filepath + "/" + old_name, filepath + "/" + new_name, usblink_move_progress, item);
-}
-
-void MainWindow::usblinkContextMenu(QPoint pos)
-{
-    if(!ui->treeWidget->currentItem())
-        return;
-
-    QMenu *menu = new QMenu(this);
-    QAction *action_delete = new QAction(tr("Delete"), menu);
-
-    if(ui->treeWidget->currentItem()->data(0, Qt::UserRole).toBool() == false)
-    {
-        // Is not a directory
-        QAction *action_download = new QAction(tr("Download"), menu);
-        connect(action_download, SIGNAL(triggered()), this, SLOT(usblinkDownloadEntry()));
-        menu->addAction(action_download);
-    }
-    else if(ui->treeWidget->currentItem()->childCount() > 0)
-    {
-        // Non-empty directory
-        action_delete->setDisabled(true);
-    }
-
-    connect(action_delete, SIGNAL(triggered()), this, SLOT(usblinkDeleteEntry()));
-    menu->addAction(action_delete);
-
-    menu->popup(ui->treeWidget->viewport()->mapToGlobal(pos));
-}
-
-void MainWindow::usblinkDownloadEntry()
-{
-    if(!ui->treeWidget->currentItem()
-            || ui->treeWidget->currentItem()->data(0, Qt::UserRole).toBool()) // Is a directory
-        return;
-
-    QString dest = QFileDialog::getSaveFileName(this, tr("Chose save location"), QString(), tr("TNS file (*.tns)"));
-    if(!dest.isEmpty())
-        usblink_queue_download(usblink_path_item(ui->treeWidget->currentItem()).toStdString(), dest.toStdString(), usblink_download_callback, this);
-}
-
-void MainWindow::usblinkDeleteEntry()
-{
-    if(!ui->treeWidget->currentItem())
-        return;
-
-    usblink_queue_delete(usblink_path_item(ui->treeWidget->currentItem()).toStdString(), ui->treeWidget->currentItem()->data(0, Qt::UserRole).toBool(), usblink_delete_callback, ui->treeWidget->currentItem());
-}
-
-void MainWindow::addTreeItem(QTreeWidgetItem *item, QTreeWidgetItem *parent)
-{
-    if(parent)
-        parent->addChild(item);
-    else
-        ui->treeWidget->addTopLevelItem(item);
 }
 
 void MainWindow::selectBoot1(QString path)
@@ -647,7 +447,7 @@ void MainWindow::setBootOrder(bool diags_first)
 
 void MainWindow::setUSBPath(QString path)
 {
-    settings->setValue("usbdir", path);
+    settings->setValue("/usbdir", path);
     ln_target_folder = path.toStdString(); // For the "ln" debug cmd
     if(ui->pathTransfer->text() != path)
         ui->pathTransfer->setText(path);

@@ -270,10 +270,13 @@
        </attribute>
        <layout class="QVBoxLayout" name="verticalLayout_2">
         <item>
-         <widget class="QTreeWidget" name="treeWidget">
+         <widget class="USBLinkTreeWidget" name="usblinkTree">
           <property name="contextMenuPolicy">
            <enum>Qt::CustomContextMenu</enum>
           </property>
+          <attribute name="headerDefaultSectionSize">
+           <number>219</number>
+          </attribute>
           <column>
            <property name="text">
             <string>Filename</string>
@@ -1037,6 +1040,11 @@
    <extends>QWidget</extends>
    <header>lcdwidget.h</header>
    <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>USBLinkTreeWidget</class>
+   <extends>QTreeWidget</extends>
+   <header>usblinktreewidget.h</header>
   </customwidget>
  </customwidgets>
  <resources>

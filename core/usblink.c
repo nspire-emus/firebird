@@ -104,7 +104,7 @@ uint8_t next_seqno() {
 
 static usblink_dirlist_cb current_dirlist_callback;
 static usblink_progress_cb current_file_callback;
-static void *current_dirlist_user_data, *current_file_user_data;
+static void *current_user_data = NULL;
 
 FILE *put_file = NULL;
 uint32_t put_file_size, put_file_size_orig;
@@ -171,13 +171,13 @@ send_data:
                     //Not 100 as the completion is signaled seperately and mustn't happen more than once
                     int progress = ((put_file_size_orig-put_file_size) * 99) / put_file_size_orig;
                     if(old_progress != progress)
-                        current_file_callback(old_progress = progress, current_file_user_data);
+                        current_file_callback(old_progress = progress, current_user_data);
                 }
                 break;
             }
 
             if(current_file_callback)
-                current_file_callback(100, current_file_user_data);
+                current_file_callback(100, current_user_data);
 
             gui_status_printf("Send complete");
             throttle_timer_on();
@@ -199,7 +199,7 @@ send_data:
             break;
 fail:
             if(current_file_callback)
-                current_file_callback(status, current_file_user_data);
+                current_file_callback(status, current_user_data);
             emuprintf("Send failed\n");
             usblink_connected = false;
             gui_usblink_changed(false);
@@ -228,7 +228,7 @@ void get_file_next(struct packet *in)
             put_file_size = 0;
 
             if(current_file_callback)
-                    current_file_callback(0, current_file_user_data);
+                    current_file_callback(0, current_user_data);
 
             // Send next packet
             struct packet *out = &usblink_send_buffer;
@@ -255,7 +255,7 @@ void get_file_next(struct packet *in)
             // Not 100 as the completion is signaled seperately and mustn't happen more than once
             int progress = (put_file_size * 99) / put_file_size_orig;
             if(old_progress != progress)
-                current_file_callback(old_progress = progress, current_file_user_data);
+                current_file_callback(old_progress = progress, current_user_data);
         }
 
         fwrite(in->data + 1, 1, in->data_size - 1, put_file);
@@ -278,7 +278,7 @@ void get_file_next(struct packet *in)
             put_file = NULL;
 
             if(current_file_callback)
-                    current_file_callback(put_file_size == put_file_size_orig ? 100 : -1, current_file_user_data);
+                current_file_callback(put_file_size == put_file_size_orig ? 100 : -1, current_user_data);
         }
     }
 }
@@ -301,7 +301,7 @@ void usblink_dirlist(const char *dir, usblink_dirlist_cb callback, void *user_da
 {
     mode = Dirlist;
     current_dirlist_callback = callback;
-    current_dirlist_user_data = user_data;
+    current_user_data = user_data;
 
     /* Send the first packet */
     struct packet *out = &usblink_send_buffer;
@@ -336,10 +336,18 @@ void dirlist_next(struct packet *in)
             if(dirlist_success_action == Success_Next)
                 goto request_next;
             else
-                current_dirlist_callback(NULL, false, current_dirlist_user_data);
+            {
+                current_dirlist_callback(NULL, false, current_user_data);
+                current_dirlist_callback = NULL;
+            }
 
             break;
         case 0x11:
+            // It is possible that NavNet answers File_Dirlist_Done with FF 11 somehow.
+            // Ignore that..
+            if(dirlist_success_action == Success_Done)
+                break;
+
             //Enum done
             out->src.service = SID_Dirlist;
             out->dst.service = BSWAP16(0x4060);
@@ -355,7 +363,8 @@ void dirlist_next(struct packet *in)
             return;
         default:
             //Error
-            current_dirlist_callback(NULL, true, current_dirlist_user_data);
+            current_dirlist_callback(NULL, true, current_user_data);
+            current_dirlist_callback = NULL;
             gui_debug_printf("usblink error 0x%x\n", in->data[1]);
             return;
         }
@@ -368,7 +377,7 @@ void dirlist_next(struct packet *in)
         memcpy(&file_info.size, in->data + (in->data_size - 10), sizeof(uint32_t));
         file_info.size = BSWAP32(file_info.size);
 
-        current_dirlist_callback(&file_info, false, current_dirlist_user_data);
+        current_dirlist_callback(&file_info, false, current_user_data);
 
         request_next: //Request next entry
         out->src.service = SID_Dirlist;
@@ -396,7 +405,7 @@ void usblink_received_packet(uint8_t *data, uint32_t size) {
     case Rename:
     case Delete:
         if(in->data_size == 2 && in->data[0] == 0xFF && current_file_callback)
-            current_file_callback(in->data[1] == 0x00 ? 100 : -1, current_file_user_data);
+            current_file_callback(in->data[1] == 0x00 ? 100 : -1, current_user_data);
         break;
     case Dirlist:
         dirlist_next(in);
@@ -448,7 +457,7 @@ bool usblink_put_file(const char *filepath, const char *folder, usblink_progress
         return 1;
     }
 
-    current_file_user_data = user_data;
+    current_user_data = user_data;
     current_file_callback = callback;
 
     const char *filename = filepath;
@@ -479,7 +488,7 @@ bool usblink_put_file(const char *filepath, const char *folder, usblink_progress
     uint8_t *data = out->data;
     *data++ = File_Put;
     *data++ = 1;
-    data += sprintf((char *)data, "/%s/%s", folder, filename) + 1;
+    data += sprintf((char *)data, "%s/%s", folder, filename) + 1;
     *(uint32_t *)data = BSWAP32(put_file_size); data += 4;
     out->data_size = data - out->data;
     usblink_send_packet();
@@ -489,7 +498,7 @@ bool usblink_put_file(const char *filepath, const char *folder, usblink_progress
 bool usblink_send_os(const char *filepath, usblink_progress_cb callback, void *user_data) {
     mode = File_Send;
     current_file_callback = callback;
-    current_file_user_data = user_data;
+    current_user_data = user_data;
 
     FILE *f = fopen_utf8(filepath, "rb");
     if (!f)
@@ -521,7 +530,7 @@ void usblink_move(const char *old_path, const char *new_path, usblink_progress_c
 {
     mode = Rename;
     current_file_callback = callback;
-    current_file_user_data = user_data;
+    current_user_data = user_data;
 
     /* Send the first packet */
     struct packet *out = &usblink_send_buffer;
@@ -557,7 +566,7 @@ bool usblink_get_file(const char *path, const char *dest, usblink_progress_cb ca
 {
     mode = File_Receive;
     current_file_callback = callback;
-    current_file_user_data = user_data;
+    current_user_data = user_data;
 
     if (put_file)
         fclose(put_file);
@@ -593,7 +602,7 @@ void usblink_delete(const char *path, bool is_dir, usblink_progress_cb callback,
 {
     mode = Delete;
     current_file_callback = callback;
-    current_file_user_data = user_data;
+    current_user_data = user_data;
 
     /* Send the first packet */
     struct packet *out = &usblink_send_buffer;
