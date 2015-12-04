@@ -170,10 +170,6 @@ MainWindow::MainWindow(QWidget *parent) :
     }
 
     ui->lcdView->setFocus();
-
-    #ifdef Q_OS_MAC
-        QTimer::singleShot(50, [&] {dockVisibilityChanged(false);}); // Trigger dock update (after UI was shown)
-    #endif
 }
 
 MainWindow::~MainWindow()
