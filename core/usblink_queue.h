@@ -22,6 +22,6 @@ extern "C" void usblink_queue_do();
 
 // Resets usblink as well
 void usblink_queue_reset();
+unsigned int usblink_queue_size();
 
 #endif // USBLINK_QUEUE_H
-

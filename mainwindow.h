@@ -1,6 +1,8 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
+#include <atomic>
+
 #include <QMainWindow>
 #include <QSettings>
 #include <QLabel>
@@ -68,7 +70,7 @@ public slots:
     void debugCommand();
 
     //File transfer
-    void reload_filebrowser();
+    void reloadFilebrowser();
     void changeProgress(int value);
     void usblink_dirlist_dataChanged(QTreeWidgetItem *item, int column);
     void usblinkContextMenu(QPoint pos);
@@ -103,12 +105,16 @@ signals:
     void wantToAddTreeItem(QTreeWidgetItem *item, QTreeWidgetItem *parent); // Has to run in the UI thread
 
 public:
-    //usblink callbacks
-    static void usblink_dirlist_callback_nested(struct usblink_file *file, void *data);
-    static void usblink_dirlist_callback(struct usblink_file *file, void *data);
+    // usblink callbacks
+    static void usblink_dirlist_callback_nested(struct usblink_file *file, bool is_error, void *data);
+    static void usblink_dirlist_callback(struct usblink_file *file, bool is_error, void *data);
     static void usblink_delete_callback(int progress, void *data);
     static void usblink_download_callback(int progress, void *data);
     static void usblink_progress_callback(int progress, void *data);
+
+    // Helper functions for usblink callbacks
+    static bool usblink_dirlist_nested(QTreeWidgetItem *w);
+    static QString usblink_path_item(QTreeWidgetItem *w);
 
 private:
     void suspendToPath(QString path);
@@ -133,6 +139,8 @@ private:
     // Used for autosuspend on close.
     // The close event has to be deferred until the suspend operation completed successfully.
     bool close_after_suspend = false;
+    // To avoid concurrent dirlisting
+    std::atomic<bool> doing_dirlist{false};
 };
 
 // Used as global instance by EmuThread and friends

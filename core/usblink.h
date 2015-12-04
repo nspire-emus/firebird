@@ -19,7 +19,7 @@ struct usblink_file {
 };
 
 /* f = NULL marks end of enumeration or error */
-typedef void (*usblink_dirlist_cb)(struct usblink_file *f, void *user_data);
+typedef void (*usblink_dirlist_cb)(struct usblink_file *f, bool is_error, void *user_data);
 /* progress is 0-100 if successful or negative if an error occured.
    A value of 100 means complete and successful. */
 typedef void (*usblink_progress_cb)(int progress, void *user_data);

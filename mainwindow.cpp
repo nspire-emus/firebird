@@ -97,11 +97,12 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->lineEdit, SIGNAL(returnPressed()), this, SLOT(debugCommand()));
 
     //File transfer
-    connect(ui->refreshButton, SIGNAL(clicked(bool)), this, SLOT(reload_filebrowser()));
+    connect(ui->refreshButton, SIGNAL(clicked(bool)), this, SLOT(reloadFilebrowser()));
     connect(this, SIGNAL(usblink_progress_changed(int)), this, SLOT(changeProgress(int)), Qt::QueuedConnection);
     connect(ui->treeWidget, SIGNAL(itemChanged(QTreeWidgetItem*,int)), this, SLOT(usblink_dirlist_dataChanged(QTreeWidgetItem*,int)));
     connect(ui->treeWidget, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(usblinkContextMenu(QPoint)));
-    connect(this, SIGNAL(wantToAddTreeItem(QTreeWidgetItem*,QTreeWidgetItem*)), this, SLOT(addTreeItem(QTreeWidgetItem*,QTreeWidgetItem*)), Qt::QueuedConnection);
+    // This is a Qt::BlockingQueuedConnection as the usblink_dirlist_* family of functions needs to enumerate over the items directly after emitting the signal.
+    connect(this, SIGNAL(wantToAddTreeItem(QTreeWidgetItem*,QTreeWidgetItem*)), this, SLOT(addTreeItem(QTreeWidgetItem*,QTreeWidgetItem*)), Qt::BlockingQueuedConnection);
 
     //Settings
     connect(ui->checkDebugger, SIGNAL(toggled(bool)), this, SLOT(setDebuggerOnStartup(bool)));
@@ -269,7 +270,7 @@ static QString naturalSize(uint64_t bytes)
         return QString("Too much");
 }
 
-static QString usblink_path_item(QTreeWidgetItem *w)
+QString MainWindow::usblink_path_item(QTreeWidgetItem *w)
 {
     if(!w)
         return "";
@@ -279,15 +280,15 @@ static QString usblink_path_item(QTreeWidgetItem *w)
     //return QString("%0/%1").arg(path_parent).arg(path_this);
 }
 
-static bool usblink_dirlist_nested(QTreeWidgetItem *w)
+bool MainWindow::usblink_dirlist_nested(QTreeWidgetItem *w)
 {
     if(w->data(0, Qt::UserRole).value<bool>() == false) //Not a directory
         return false;
 
     if(w->data(1, Qt::UserRole).value<bool>() == false) //Not filled yet
     {
-        QByteArray path_utf8 = usblink_path_item(w).toUtf8();
-        usblink_queue_dirlist(path_utf8.data(), MainWindow::usblink_dirlist_callback_nested, w);
+        std::string path_utf8 = usblink_path_item(w).toStdString();
+        usblink_queue_dirlist(path_utf8, MainWindow::usblink_dirlist_callback_nested, w);
         return true;
     }
     else
@@ -300,7 +301,7 @@ static bool usblink_dirlist_nested(QTreeWidgetItem *w)
     return false;
 }
 
-void MainWindow::usblink_dirlist_callback_nested(struct usblink_file *file, void *data)
+void MainWindow::usblink_dirlist_callback_nested(struct usblink_file *file, bool is_error, void *data)
 {
     QTreeWidgetItem *w = static_cast<QTreeWidgetItem*>(data);
 
@@ -308,25 +309,37 @@ void MainWindow::usblink_dirlist_callback_nested(struct usblink_file *file, void
     if(!file)
     {
         w->setData(1, Qt::UserRole, QVariant(true)); //Dir is now filled
-        //Find a dir to fill with entries
-        for(int i = 0; i < w->treeWidget()->topLevelItemCount(); ++i)
-            if(usblink_dirlist_nested(w->treeWidget()->topLevelItem(i)))
-                return;
+
+        if(!is_error)
+        {
+            //Find a dir to fill with entries
+            for(int i = 0; i < w->treeWidget()->topLevelItemCount(); ++i)
+                if(usblink_dirlist_nested(w->treeWidget()->topLevelItem(i)))
+                    return;
+        }
+
+        // FIXME: If a file is transferred, this may never be set to false.
+        if(usblink_queue_size() == 1)
+            main_window->doing_dirlist = false;
 
         return;
     }
 
     //Add directory entry to tree widget item (parent)
-    QTreeWidgetItem *item = new QTreeWidgetItem({QString::fromUtf8(file->filename), file->is_dir ? "" : naturalSize(file->size)});
+    QString filename = QString::fromUtf8(file->filename);
+    QTreeWidgetItem *item = new QTreeWidgetItem({filename, file->is_dir ? "" : naturalSize(file->size)});
     item->setFlags(Qt::ItemIsSelectable | Qt::ItemIsDragEnabled | Qt::ItemIsEditable | Qt::ItemIsEnabled);
     item->setData(0, Qt::UserRole, QVariant(file->is_dir));
     item->setData(1, Qt::UserRole, QVariant(false));
-    item->setData(2, Qt::UserRole, QVariant(QString::fromUtf8(file->filename)));
+    item->setData(2, Qt::UserRole, QVariant(filename));
     emit main_window->wantToAddTreeItem(item, w);
 }
 
-void MainWindow::usblink_dirlist_callback(struct usblink_file *file, void *data)
+void MainWindow::usblink_dirlist_callback(struct usblink_file *file, bool is_error, void *data)
 {
+    if(is_error)
+        return;
+
     QTreeWidget *w = static_cast<QTreeWidget*>(data);
 
     //End of enumeration or error
@@ -337,15 +350,20 @@ void MainWindow::usblink_dirlist_callback(struct usblink_file *file, void *data)
             if(usblink_dirlist_nested(w->topLevelItem(i)))
                 return;
 
+        // FIXME: If a file is transferred, this may never be set to false.
+        if(usblink_queue_size() == 1)
+            main_window->doing_dirlist = false;
+
         return;
     }
 
     //Add directory entry to tree widget
-    QTreeWidgetItem *item = new QTreeWidgetItem({QString::fromUtf8(file->filename), file->is_dir ? "" : naturalSize(file->size)});
+    QString filename = QString::fromUtf8(file->filename);
+    QTreeWidgetItem *item = new QTreeWidgetItem({filename, file->is_dir ? "" : naturalSize(file->size)});
     item->setFlags(Qt::ItemIsSelectable | Qt::ItemIsDragEnabled | Qt::ItemIsEditable | Qt::ItemIsEnabled);
     item->setData(0, Qt::UserRole, QVariant(file->is_dir));
     item->setData(1, Qt::UserRole, QVariant(false));
-    item->setData(2, Qt::UserRole, QVariant(QString::fromUtf8(file->filename)));
+    item->setData(2, Qt::UserRole, QVariant(file->filename));
     emit main_window->wantToAddTreeItem(item, nullptr);
 }
 
@@ -393,8 +411,12 @@ void MainWindow::resumeFromPath(QString path)
         QMessageBox::warning(this, tr("Could not resume"), tr("Try to restart this app."));
 }
 
-void MainWindow::reload_filebrowser()
+void MainWindow::reloadFilebrowser()
 {
+    bool is_false = false;
+    if(!doing_dirlist.compare_exchange_strong(is_false, true))
+        usblink_queue_reset(); // The treeWidget is cleared, so references to items get invalid -> Get rid of them!
+
     if(!usblink_connected)
         usblink_connect();
 

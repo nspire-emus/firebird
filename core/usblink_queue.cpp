@@ -28,14 +28,14 @@ struct usblink_queue_action {
 static std::atomic_bool busy;
 static std::queue<usblink_queue_action> usblink_queue;
 
-static void dirlist_callback(struct usblink_file *f, void *user_data)
+static void dirlist_callback(struct usblink_file *f, bool is_error, void *user_data)
 {
     assert(!usblink_queue.empty());
     assert(usblink_queue.front().action == usblink_queue_action::DIRLIST);
-    if(usblink_queue.front().dirlist_callback == nullptr)
-        return;
 
-    usblink_queue.front().dirlist_callback(f, user_data);
+    if(usblink_queue.front().dirlist_callback != nullptr)
+        usblink_queue.front().dirlist_callback(f, is_error, user_data);
+
     if(!f)
     {
         usblink_queue.pop();
@@ -78,11 +78,17 @@ void usblink_queue_do()
     {
     case usblink_queue_action::PUT_FILE:
         if(!usblink_put_file(action.filepath.c_str(), action.path.c_str(), progress_callback, action.user_data))
+        {
             progress_callback(-1, action.user_data);
+            busy = false;
+        }
         break;
     case usblink_queue_action::SEND_OS:
         if(!usblink_send_os(action.filepath.c_str(), progress_callback, action.user_data))
+        {
             progress_callback(-1, action.user_data);
+            busy = false;
+        }
         break;
     case usblink_queue_action::DIRLIST:
         usblink_dirlist(action.path.c_str(), dirlist_callback, action.user_data);
@@ -98,7 +104,10 @@ void usblink_queue_do()
         break;
     case usblink_queue_action::GET_FILE:
         if(!usblink_get_file(action.path.c_str(), action.filepath.c_str(), progress_callback, action.user_data))
+        {
             progress_callback(-1, action.user_data);
+            busy = false;
+        }
     }
 }
 
@@ -109,7 +118,7 @@ void usblink_queue_reset()
         // Treat as error
         usblink_queue_action action = usblink_queue.front();
         if(action.dirlist_callback)
-            action.dirlist_callback(nullptr, action.user_data);
+            action.dirlist_callback(nullptr, true, action.user_data);
         else if(action.progress_callback)
             action.progress_callback(-1, action.user_data);
 
@@ -188,4 +197,9 @@ void usblink_queue_move(std::string old_path, std::string new_path, usblink_prog
     action.progress_callback = callback,
 
     usblink_queue.push(action);
+}
+
+unsigned int usblink_queue_size()
+{
+    return usblink_queue.size();
 }
