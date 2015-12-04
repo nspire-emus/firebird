@@ -7,6 +7,7 @@
 #include "emu.h"
 #include "usb.h"
 #include "usblink.h"
+#include "os/os.h"
 
 struct packet {
     uint16_t constant;
