@@ -578,7 +578,7 @@ void MainWindow::setUIMode(bool docks_enabled)
     }
 
     // Create "Docks" menu to make closing and opening docks more intuitive
-    QMenu *docks_menu = new QMenu(tr("Docks"));
+    QMenu *docks_menu = new QMenu(tr("Docks"), this);
     ui->menubar->insertMenu(ui->menuAbout->menuAction(), docks_menu);
 
     //Convert the tabs into QDockWidgets
