@@ -466,12 +466,15 @@ void gdbstub_loop(void) {
     uint32_t regbuf[NUMREGS];
     bool reply, set;
 
+    gui_debugger_entered_or_left(in_debugger = true);
+
     while (1) {
         remcomOutBuffer[0] = 0;
 
         ptr = getpacket();
         if (!ptr) {
             gdbstub_disconnect();
+            gui_debugger_entered_or_left(in_debugger = false);
             return;
         }
         reply = true;
@@ -574,6 +577,7 @@ parse_new_pc:
                 if (ptr && hexToInt(&ptr, &addr)) {
                     arm.reg[15] = addr;
                 }
+                gui_debugger_entered_or_left(in_debugger = false);
                 return;
             case 'q': /* qString Get value of String */
                 if (!strcmp("Offsets", ptr))
@@ -647,6 +651,8 @@ reply:
         if (reply)
             putpacket(remcomOutBuffer);
     }
+
+    gui_debugger_entered_or_left(in_debugger = false);
 }
 
 void gdbstub_reset(void) {
