@@ -456,7 +456,7 @@ bool usblink_put_file(const char *filepath, const char *folder, usblink_progress
         if (*p == ':' || *p == '/' || *p == '\\')
             filename = p + 1;
 
-    FILE *f = fopen(filepath, "rb");
+    FILE *f = fopen_utf8(filepath, "rb");
     if (!f) {
         gui_perror(filepath);
         return 0;
@@ -490,7 +490,7 @@ bool usblink_send_os(const char *filepath, usblink_progress_cb callback, void *u
     current_file_callback = callback;
     current_file_user_data = user_data;
 
-    FILE *f = fopen(filepath, "rb");
+    FILE *f = fopen_utf8(filepath, "rb");
     if (!f)
         return false;
     if (put_file)
@@ -560,7 +560,7 @@ bool usblink_get_file(const char *path, const char *dest, usblink_progress_cb ca
 
     if (put_file)
         fclose(put_file);
-    put_file = fopen(dest, "wb");
+    put_file = fopen_utf8(dest, "wb");
     if(!put_file)
         return false;
 

@@ -388,12 +388,12 @@ void MainWindow::usblink_progress_callback(int progress, void *data)
 
 void MainWindow::suspendToPath(QString path)
 {
-    emu_thread->suspend(path.toStdString());
+    emu_thread->suspend(path);
 }
 
 void MainWindow::resumeFromPath(QString path)
 {
-    if(!emu_thread->resume(path.toStdString()))
+    if(!emu_thread->resume(path))
         QMessageBox::warning(this, tr("Could not resume"), tr("Try to restart this app."));
 }
 
@@ -492,7 +492,7 @@ void MainWindow::addTreeItem(QTreeWidgetItem *item, QTreeWidgetItem *parent)
 void MainWindow::selectBoot1(QString path)
 {
     QFileInfo f(path);
-    emu.boot1 = path.toStdString();
+    emu.boot1 = path;
     ui->filenameBoot1->setText(f.fileName());
 
     settings->setValue("boot1", path);
@@ -500,7 +500,7 @@ void MainWindow::selectBoot1(QString path)
 
 void MainWindow::selectBoot1()
 {
-    QFileInfo f(QString::fromStdString(emu.flash));
+    QFileInfo f(emu.flash);
     QString path = QFileDialog::getOpenFileName(this, tr("Select boot1 file"), f.dir().absolutePath());
     if(!path.isNull())
         selectBoot1(path);
@@ -509,7 +509,7 @@ void MainWindow::selectBoot1()
 void MainWindow::selectFlash(QString path)
 {
     QFileInfo f(path);
-    emu.flash = path.toStdString();
+    emu.flash = path;
     ui->filenameFlash->setText(f.fileName());
 
     settings->setValue("flash", path);
@@ -544,7 +544,7 @@ void MainWindow::raiseDebugger()
 
 void MainWindow::selectFlash()
 {
-    QFileInfo f(QString::fromStdString(emu.flash));
+    QFileInfo f(emu.flash);
     QString path = QFileDialog::getOpenFileName(this, tr("Select flash file"), f.dir().absolutePath());
     if(!path.isNull())
         selectFlash(path);

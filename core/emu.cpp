@@ -227,7 +227,7 @@ bool emu_start(unsigned int port_gdb, unsigned int port_rdbg, const char *snapsh
         RAM_FLAGS(&rom[i]) = RF_READ_ONLY;
 
     /* Load the ROM */
-    FILE *f = fopen(path_boot1.c_str(), "rb");
+    FILE *f = fopen_utf8(path_boot1.c_str(), "rb");
     if (!f) {
         gui_perror(path_boot1.c_str());
         emu_cleanup();

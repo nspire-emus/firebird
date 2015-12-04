@@ -408,7 +408,7 @@ bool flash_open(const char *filename) {
     if(flash_file)
         fclose(flash_file);
 
-    flash_file = fopen(filename, "r+b");
+    flash_file = fopen_utf8(filename, "r+b");
 
     if (!flash_file) {
         gui_perror(filename);
@@ -428,6 +428,8 @@ bool flash_open(const char *filename) {
 
     if(!nand_initialize(large, filename))
     {
+        fclose(flash_file);
+        flash_file = NULL;
         emuprintf("Could not read flash image from %s\n", filename);
         return false;
     }
@@ -456,7 +458,7 @@ bool flash_save_changes() {
 }
 
 int flash_save_as(const char *filename) {
-    FILE *f = fopen(filename, "wb");
+    FILE *f = fopen_utf8(filename, "wb");
     if (!f) {
         emuprintf("NAND flash: could not open ");
         gui_perror(filename);
@@ -524,7 +526,7 @@ static uint32_t load_file_part(uint8_t *nand_data, struct nand_metrics nand_metr
 }
 
 static uint32_t load_file(uint8_t *nand_data, struct nand_metrics nand_metrics, Partition p, const char *filename, size_t off) {
-    FILE *f = fopen(filename, "rb");
+    FILE *f = fopen_utf8(filename, "rb");
     if (!f) {
         gui_perror(filename);
         return 0;

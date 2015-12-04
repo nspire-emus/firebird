@@ -40,7 +40,7 @@ static void xmodem_next_packet() {
 void xmodem_send(const char *filename) {
     if (xmodem_file)
         fclose(xmodem_file);
-    xmodem_file = fopen(filename, "rb");
+    xmodem_file = fopen_utf8(filename, "rb");
     if (!xmodem_file) {
         gui_perror(filename);
         return;

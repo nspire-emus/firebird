@@ -29,6 +29,8 @@
 #include <string.h>  // for memcpy and bzero
 #include <stdint.h>  // for integer typedefs
 
+#include "os/os.h"
+
 // Define these macros to hook into a custom memory allocator.
 // TEMP_MALLOC and TEMP_FREE will only be called in stack fashion - frees in the reverse order of mallocs
 // and any temp memory allocated by a function will be freed before it exits.
@@ -727,12 +729,7 @@ struct GifWriter
 // The delay value is the time between frames in hundredths of a second - note that not all viewers pay much attention to this value.
 bool GifBegin( GifWriter* writer, const char* filename, uint32_t width, uint32_t height, uint32_t delay)
 {
-#if _MSC_VER >= 1400
-	writer->f = 0;
-    fopen_s(&writer->f, filename, "wb");
-#else
-    writer->f = fopen(filename, "wb");
-#endif
+    writer->f = fopen_utf8(filename, "wb");
     if(!writer->f) return false;
     
     writer->firstFrame = true;

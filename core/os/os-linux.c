@@ -15,6 +15,11 @@
 #include "../debug.h"
 #include "../mmu.h"
 
+FILE *fopen_utf8(const char *filename, const char *mode)
+{
+    return fopen(filename, mode);
+}
+
 void *os_reserve(size_t size)
 {
 #ifdef __i386__

@@ -29,6 +29,7 @@
 #include "translate.h"
 #include "usblink_queue.h"
 #include "gdbstub.h"
+#include "os/os.h"
 
 std::string ln_target_folder;
 
@@ -447,7 +448,7 @@ static int process_debug_cmd(char *cmdline) {
             gui_debug_printf("Address range %08x-%08x is not in RAM.\n", start, start + size - 1);
             return 0;
         }
-        FILE *f = fopen(filename, frommem ? "wb" : "rb");
+        FILE *f = fopen_utf8(filename, frommem ? "wb" : "rb");
         if (!f) {
             gui_perror(filename);
             return 0;

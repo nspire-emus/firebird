@@ -1,8 +1,10 @@
 #include <ctype.h>
 #include <stdio.h>
 #include <string.h>
+
 #include "emu.h"
 #include "mem.h"
+#include "os/os.h"
 
 /* Emulation of the TI-84 Plus I/O link port */
 
@@ -260,7 +262,7 @@ cleanup:
 }
 
 void send_file(char *filename) {
-    FILE *f = fopen(filename, "rb");
+    FILE *f = fopen_utf8(filename, "rb");
     if (!f) {
         gui_perror(filename);
         return;

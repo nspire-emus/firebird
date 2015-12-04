@@ -5,6 +5,7 @@
 #include <cstdarg>
 #include <chrono>
 
+#include <QDir>
 #include <QEventLoop>
 #include <QTimer>
 
@@ -144,8 +145,8 @@ void EmuThread::run()
 {
     setTerminationEnabled();
 
-    path_boot1 = boot1;
-    path_flash = flash;
+    path_boot1 = QDir::toNativeSeparators(boot1).toStdString();
+    path_flash = QDir::toNativeSeparators(flash).toStdString();
 
     bool do_reset = !do_resume;
     bool success = emu_start(port_gdb, port_rdbg, do_resume ? snapshot_path.c_str() : nullptr);
@@ -230,9 +231,9 @@ void EmuThread::reset()
     cpu_events |= EVENT_RESET;
 }
 
-bool EmuThread::resume(const std::string &path)
+bool EmuThread::resume(QString path)
 {
-    snapshot_path = path;
+    snapshot_path = QDir::toNativeSeparators(path).toStdString();
     do_resume = true;
     if(!stop())
         return false;
@@ -241,8 +242,8 @@ bool EmuThread::resume(const std::string &path)
     return true;
 }
 
-void EmuThread::suspend(const std::string &path)
+void EmuThread::suspend(QString path)
 {
-    snapshot_path = path;
+    snapshot_path = QDir::toNativeSeparators(path).toStdString();
     do_suspend = true;
 }

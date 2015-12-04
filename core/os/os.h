@@ -3,10 +3,14 @@
 
 #include <stdlib.h>
 #include <stdint.h>
+#include <stdio.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+/* Some really crappy APIs don't use UTF-8 in fopen. */
+FILE *fopen_utf8(const char *filename, const char *mode);
 
 void *os_reserve(size_t size);
 void os_free(void *ptr, size_t size);
@@ -21,12 +25,6 @@ void os_unmap_cow(void *addr, size_t size);
 typedef struct { void *prev, *function; } os_exception_frame_t;
 void addr_cache_init(os_exception_frame_t *frame);
 void addr_cache_deinit();
-
-/*
-Useful links for this section:
-http://blog.nervus.org/managing-virtual-address-spaces-with-mmap/
-http://msdn.microsoft.com/en-us/library/windows/desktop/aa366887%28v=vs.85%29.aspx
-*/
 
 #ifdef __cplusplus
 }

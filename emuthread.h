@@ -12,7 +12,7 @@ public:
     void doStuff(bool wait);
     void throttleTimerWait();
 
-    std::string boot1, flash;
+    QString boot1, flash;
     unsigned int port_gdb = 0, port_rdbg = 0;
 
 signals:
@@ -44,8 +44,8 @@ public slots:
     void setPaused(bool is_paused);
     bool stop();
     void reset();
-    bool resume(const std::string &path);
-    void suspend(const std::string &path);
+    bool resume(QString path);
+    void suspend(QString path);
 
     // Emulation settings
     void setTurboMode(bool state);
