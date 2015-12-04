@@ -5,9 +5,23 @@
 #include <windows.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <fcntl.h>
+#include <share.h>
 
 #include "../emu.h"
 #include "../mmu.h"
+
+static HANDLE flash_mapping;
+static int flash_fd;
+
+FILE *fopen_utf8(const char *filename, const char *mode)
+{
+    wchar_t filename_w[MAX_PATH];
+    wchar_t mode_w[5];
+    MultiByteToWideChar(CP_UTF8, 0, filename, -1, filename_w, MAX_PATH);
+    MultiByteToWideChar(CP_UTF8, 0, mode, -1, mode_w, 5);
+    return _wfopen(filename_w, mode_w);
+}
 
 void *os_reserve(size_t size)
 {
@@ -39,6 +53,45 @@ void os_sparse_decommit(void *page, size_t size)
 void *os_alloc_executable(size_t size)
 {
     return VirtualAlloc(NULL, size, MEM_RESERVE | MEM_COMMIT, PAGE_EXECUTE_READWRITE);
+}
+
+void *os_map_cow(const char *filename, size_t size)
+{
+    (void)size;
+
+    wchar_t filename_w[MAX_PATH];
+    MultiByteToWideChar(CP_UTF8, 0, filename, -1, filename_w, MAX_PATH);
+
+    flash_fd = _wsopen(filename_w, _O_RDONLY, SH_DENYNO);
+    if(flash_fd == -1)
+        return NULL;
+
+    HANDLE flash_fhandle = (HANDLE)_get_osfhandle(flash_fd);
+
+    flash_mapping = CreateFileMapping(flash_fhandle, NULL, PAGE_WRITECOPY, 0, 0, NULL);
+    if(flash_mapping == NULL)
+    {
+        _close(flash_fd);
+        return NULL;
+    }
+
+    void *map = MapViewOfFile(flash_mapping, FILE_MAP_COPY, 0, 0, 0);
+    if (!map)
+    {
+        CloseHandle(flash_mapping);
+        _close(flash_fd);
+        return NULL;
+    }
+
+    return map;
+}
+
+void os_unmap_cow(void *addr, size_t size)
+{
+    (void)size;
+    UnmapViewOfFile(addr);
+    CloseHandle(flash_mapping);
+    _close(flash_fd);
 }
 
 static int addr_cache_exception(PEXCEPTION_RECORD er, void *x, void *y, void *z) {
