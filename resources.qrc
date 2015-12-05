@@ -29,6 +29,7 @@
         <file>qml/NDualButton.qml</file>
         <file>qml/MobileUI.qml</file>
         <file>qml/MobileControl2.qml</file>
+        <file>qml/SidebarButton.qml</file>
     </qresource>
     <qresource prefix="/i18n">
         <file>i18n/de_DE.qm</file>

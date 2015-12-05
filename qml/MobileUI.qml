@@ -37,6 +37,7 @@ Rectangle {
         id: sidebar
         // In landscape mode fit whole framebuffer on screen
         width: parent.width/350 > parent.height/240 ? parent.width-320*parent.height/240 : parent.width*0.15
+        onWidthChanged: update()
         anchors.bottom: controls.top
         anchors.bottomMargin: 0
         anchors.top: parent.top
@@ -44,135 +45,38 @@ Rectangle {
         anchors.left: screen.right
         anchors.leftMargin: 0
 
-        ToolButton {
+        SidebarButton {
             id: restartButton
-            anchors.horizontalCenter: parent.horizontalCenter
-            Layout.fillWidth: true
-            Layout.fillHeight: true
 
-            Label {
-                id: label1
-                x: 12
-                text: qsTr("Start")
-                anchors.top: parent.top
-                anchors.topMargin: 0
-                anchors.horizontalCenter: parent.horizontalCenter
-                font.pointSize: 8
-            }
-
-            Image {
-                anchors.top: label1.bottom
-                anchors.topMargin: -2
-                anchors.left: parent.left
-                anchors.leftMargin: 0
-                anchors.bottom: parent.bottom
-                anchors.bottomMargin: 0
-                anchors.right: parent.right
-                anchors.rightMargin: 0
-                fillMode: Image.PreserveAspectFit
-                anchors.margins: 3
-                source: "qrc:/icons/resources/icons/edit-bomb.png"
-            }
-
+            title: qsTr("Start")
+            icon: "qrc:/icons/resources/icons/edit-bomb.png"
 
             onClicked: Emu.restart();
         }
 
-        ToolButton {
+        SidebarButton {
             id: resetButton
-            anchors.horizontalCenter: parent.horizontalCenter
-            Layout.fillWidth: true
-            Layout.fillHeight: true
 
-            Label {
-                id: label2
-                x: 12
-                text: qsTr("Reset")
-                anchors.top: parent.top
-                anchors.topMargin: 0
-                anchors.horizontalCenter: parent.horizontalCenter
-                font.pointSize: 8
-            }
-
-            Image {
-                anchors.top: label2.bottom
-                anchors.topMargin: -2
-                anchors.left: parent.left
-                anchors.leftMargin: 0
-                anchors.bottom: parent.bottom
-                anchors.bottomMargin: 0
-                anchors.right: parent.right
-                anchors.rightMargin: 0
-                fillMode: Image.PreserveAspectFit
-                anchors.margins: 3
-                source: "qrc:/icons/resources/icons/system-reboot.png"
-            }
+            title: qsTr("Reset")
+            icon: "qrc:/icons/resources/icons/system-reboot.png"
 
             onClicked: Emu.reset();
         }
 
-        ToolButton {
+        SidebarButton {
             id: resumeButton
-            anchors.horizontalCenter: parent.horizontalCenter
-            Layout.fillWidth: true
-            Layout.fillHeight: true
 
-            Label {
-                id: label3
-                x: 12
-                text: qsTr("Resume")
-                anchors.top: parent.top
-                anchors.topMargin: 0
-                anchors.horizontalCenter: parent.horizontalCenter
-                font.pointSize: 8
-            }
-
-            Image {
-                anchors.top: label3.bottom
-                anchors.topMargin: -2
-                anchors.left: parent.left
-                anchors.leftMargin: 0
-                anchors.bottom: parent.bottom
-                anchors.bottomMargin: 0
-                anchors.right: parent.right
-                anchors.rightMargin: 0
-                fillMode: Image.PreserveAspectFit
-                anchors.margins: 3
-                source: "qrc:/icons/resources/icons/system-suspend-hibernate.png"
-            }
+            title: qsTr("Resume")
+            icon: "qrc:/icons/resources/icons/system-suspend-hibernate.png"
 
             onClicked: Emu.resume()
         }
 
-        ToolButton {
+        SidebarButton {
             id: saveButton
-            anchors.horizontalCenter: parent.horizontalCenter
-            Layout.fillWidth: true
-            Layout.fillHeight: true
 
-            Label {
-                id: label4
-                x: 12
-                text: qsTr("Save")
-                anchors.top: parent.top
-                anchors.topMargin: 0
-                anchors.horizontalCenter: parent.horizontalCenter
-                font.pointSize: 8
-            }
-
-            Image {
-                anchors.top: label4.bottom
-                anchors.topMargin: -2
-                anchors.left: parent.left
-                anchors.leftMargin: 0
-                anchors.bottom: parent.bottom
-                anchors.bottomMargin: 0
-                anchors.right: parent.right
-                anchors.rightMargin: 0
-                fillMode: Image.PreserveAspectFit
-                anchors.margins: 3
-                source: "qrc:/icons/resources/icons/media-floppy.png"
-            }
+            title: qsTr("Save")
+            icon: "qrc:/icons/resources/icons/media-floppy.png"
 
             MessageDialog {
                 id: saveSuccessDialog

@@ -90,12 +90,12 @@ bool QMLBridge::restart()
     std::string flash_path_str = (docsPath + "/flash.img").toStdString();
      if(access(boot1_path_str.c_str(), F_OK) != -1 && access(flash_path_str.c_str(), F_OK) != -1) {
          // Both files are good to use.
-        emu_thread.boot1 = boot1_path_str;
-        emu_thread.flash = flash_path_str;
+        emu_thread.boot1 = QString::fromStdString(boot1_path_str);
+        emu_thread.flash = QString::fromStdString(flash_path_str);
     }
 #else
-    emu_thread.boot1 = getBoot1Path().toStdString();
-    emu_thread.flash = getFlashPath().toStdString();
+    emu_thread.boot1 = getBoot1Path();
+    emu_thread.flash = getFlashPath();
 #endif
 
     if(emu_thread.boot1 != "" && emu_thread.flash != "") {
@@ -121,14 +121,14 @@ void QMLBridge::suspend()
 {
     QString snapshot_path = settings.value("snapshotPath").toString();
     if(!snapshot_path.isEmpty())
-        emu_thread.suspend(snapshot_path.toStdString());
+        emu_thread.suspend(snapshot_path);
 }
 
 void QMLBridge::resume()
 {
     QString snapshot_path = settings.value("snapshotPath").toString();
     if(!snapshot_path.isEmpty())
-        emu_thread.resume(snapshot_path.toStdString());
+        emu_thread.resume(snapshot_path);
 }
 
 bool QMLBridge::stop()
