@@ -237,7 +237,11 @@ bool emu_start(unsigned int port_gdb, unsigned int port_rdbg, const char *snapsh
     fclose(f);
 
 #ifndef NO_TRANSLATION
-    translate_init();
+    if(!translate_init())
+    {
+        gui_debug_printf("Could not init JIT, disabling translation.\n");
+        do_translate = false;
+    }
 #endif
 
     os_exception_frame_t frame;
