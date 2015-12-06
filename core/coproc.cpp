@@ -102,6 +102,7 @@ void do_cp15_mcr(uint32_t insn)
         case 0x080007: /* MCR p15, 0, <Rd>, c8, c7, 0: Invalidate TLB */
         case 0x080025: /* MCR p15, 0, <Rd>, c8, c5, 1: Invalidate instruction TLB entry */
         case 0x080026: /* MCR p15, 0, <Rd>, c8, c6, 1: Invalidate data TLB entry */
+        case 0x080027: /* MCR p15, 0, <Rd>, c8, c7, 1: Invalidate TLB (used by polydumper) */
             addr_cache_flush();
             break;
         case 0x070005: /* MCR p15, 0, <Rd>, c7, c5, 0: Invalidate ICache */
