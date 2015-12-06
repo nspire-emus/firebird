@@ -284,10 +284,7 @@ void emu_loop(bool reset)
 
     exiting = false;
 
-    // TODO: try to properly fix that (it causes an ICE on clang)
-    #ifndef __APPLE__
-        __builtin_setjmp(restart_after_exception);
-    #endif
+    __builtin_setjmp(restart_after_exception);
 
     while (!exiting) {
         sched_process_pending_events();
