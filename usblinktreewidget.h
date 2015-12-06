@@ -39,7 +39,7 @@ signals:
 public slots:
     void reloadFilebrowser();
     void customContextMenuRequested(QPoint pos); // Internal
-    void dataChanged(QTreeWidgetItem *item, int column); // Internal
+    void dataChangedHandler(QTreeWidgetItem *item, int column); // Internal
     void downloadEntry(); // Internal
     void deleteEntry(); // Internal
     void addTreeItem(QTreeWidgetItem *item, QTreeWidgetItem *parent); // Has to run in the UI thread. Internal

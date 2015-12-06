@@ -599,12 +599,14 @@ static void native_debugger(void) {
             if(!copy)
                 return;
 
-            if(process_debug_cmd(copy))
-                break;
+            int ret = process_debug_cmd(copy);
 
             free(copy);
 
-            continue;
+            if(ret)
+                break;
+            else
+                continue;
         }
         fflush(stdout);
         fflush(stderr);
