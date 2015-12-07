@@ -50,6 +50,11 @@ linux|macx|ios {
     SOURCES += core/os/os-linux.c
 }
 
+# This should not be required. But somehow, it is...
+android {
+    DEFINES += Q_OS_ANDROID
+}
+
 ios|android {
     DEFINES += MOBILE_UI
 }
