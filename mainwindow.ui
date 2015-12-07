@@ -560,8 +560,17 @@
                 </item>
                 <item>
                  <widget class="QLabel" name="filenameFlash">
+                  <property name="maximumSize">
+                   <size>
+                    <width>100</width>
+                    <height>20</height>
+                   </size>
+                  </property>
                   <property name="text">
                    <string>filename</string>
+                  </property>
+                  <property name="textFormat">
+                   <enum>Qt::PlainText</enum>
                   </property>
                  </widget>
                 </item>
@@ -578,8 +587,17 @@
                 </item>
                 <item>
                  <widget class="QLabel" name="filenameBoot1">
+                  <property name="maximumSize">
+                   <size>
+                    <width>100</width>
+                    <height>20</height>
+                   </size>
+                  </property>
                   <property name="text">
                    <string>filename</string>
+                  </property>
+                  <property name="textFormat">
+                   <enum>Qt::PlainText</enum>
                   </property>
                  </widget>
                 </item>

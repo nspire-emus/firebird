@@ -2,6 +2,7 @@
 * Optimize x86_64 JIT: {read,write}_{byte,half,word} in asm
 * File transfer: Move by D'n'D, create folders, drop folders, download folders
 * Better debugger integration
+* Implement QLabel with elide, like https://forum.qt.io/topic/24530/solved-shortening-a-label
 
 ##Wishlist:
 * Language selection at runtime?
