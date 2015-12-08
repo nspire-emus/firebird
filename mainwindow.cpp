@@ -39,86 +39,86 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->lcdView->installEventFilter(&qt_keypad_bridge);
 
     //Emu -> GUI (QueuedConnection as they're different threads)
-    connect(&emu, SIGNAL(serialChar(char)), this, SLOT(serialChar(char)), Qt::QueuedConnection);
-    connect(&emu, SIGNAL(debugStr(QString)), this, SLOT(debugStr(QString))); //Not queued connection as it may cause a hang
-    connect(&emu, SIGNAL(speedChanged(double)), this, SLOT(showSpeed(double)), Qt::QueuedConnection);
-    connect(&emu, SIGNAL(statusMsg(QString)), this, SLOT(showStatusMsg(QString)), Qt::QueuedConnection);
-    connect(&emu, SIGNAL(turboModeChanged(bool)), ui->buttonSpeed, SLOT(setChecked(bool)), Qt::QueuedConnection);
-    connect(&emu, SIGNAL(usblinkChanged(bool)), this, SLOT(usblinkChanged(bool)), Qt::QueuedConnection);
-    connect(&emu, SIGNAL(debugInputRequested(bool)), this, SLOT(debugInputRequested(bool)), Qt::QueuedConnection);
-    connect(&emu, SIGNAL(started(bool)), this, SLOT(started(bool)), Qt::QueuedConnection);
-    connect(&emu, SIGNAL(paused(bool)), ui->actionPause, SLOT(setChecked(bool)), Qt::QueuedConnection);
-    connect(&emu, SIGNAL(resumed(bool)), this, SLOT(resumed(bool)), Qt::QueuedConnection);
-    connect(&emu, SIGNAL(suspended(bool)), this, SLOT(suspended(bool)), Qt::QueuedConnection);
-    connect(&emu, SIGNAL(stopped()), this, SLOT(stopped()), Qt::QueuedConnection);
+    connect(&emu, &EmuThread::serialChar, this, &MainWindow::serialChar, Qt::QueuedConnection);
+    connect(&emu, &EmuThread::debugStr, this, &MainWindow::debugStr); //Not queued connection as it may cause a hang
+    connect(&emu, &EmuThread::speedChanged, this, &MainWindow::showSpeed, Qt::QueuedConnection);
+    connect(&emu, &EmuThread::statusMsg, this, &MainWindow::showStatusMsg, Qt::QueuedConnection);
+    connect(&emu, &EmuThread::turboModeChanged, ui->buttonSpeed, &QPushButton::setChecked, Qt::QueuedConnection);
+    connect(&emu, &EmuThread::usblinkChanged, this, &MainWindow::usblinkChanged, Qt::QueuedConnection);
+    connect(&emu, &EmuThread::debugInputRequested, this, &MainWindow::debugInputRequested, Qt::QueuedConnection);
+    connect(&emu, &EmuThread::started, this, &MainWindow::started, Qt::QueuedConnection);
+    connect(&emu, &EmuThread::paused, ui->actionPause, &QAction::setChecked, Qt::QueuedConnection);
+    connect(&emu, &EmuThread::resumed, this, &MainWindow::resumed, Qt::QueuedConnection);
+    connect(&emu, &EmuThread::suspended, this, &MainWindow::suspended, Qt::QueuedConnection);
+    connect(&emu, &EmuThread::stopped, this, &MainWindow::stopped, Qt::QueuedConnection);
 
     //GUI -> Emu (no QueuedConnection possible, watch out!)
-    connect(this, SIGNAL(debuggerCommand(QString)), &emu, SLOT(debuggerInput(QString)));
+    connect(this, &MainWindow::debuggerCommand, &emu, &EmuThread::debuggerInput);
 
     //Menu "Emulator"
-    connect(ui->buttonReset, SIGNAL(clicked(bool)), &emu, SLOT(reset()));
-    connect(ui->actionReset, SIGNAL(triggered()), &emu, SLOT(reset()));
-    connect(ui->actionRestart, SIGNAL(triggered()), this, SLOT(restart()));
-    connect(ui->actionDebugger, SIGNAL(triggered()), &emu, SLOT(enterDebugger()));
-    connect(ui->buttonPause, SIGNAL(clicked(bool)), &emu, SLOT(setPaused(bool)));
-    connect(ui->buttonPause, SIGNAL(clicked(bool)), ui->actionPause, SLOT(setChecked(bool)));
-    connect(ui->actionPause, SIGNAL(toggled(bool)), &emu, SLOT(setPaused(bool)));
-    connect(ui->actionPause, SIGNAL(toggled(bool)), ui->buttonPause, SLOT(setChecked(bool)));
-    connect(ui->buttonSpeed, SIGNAL(clicked(bool)), &emu, SLOT(setTurboMode(bool)));
+    connect(ui->buttonReset, &QPushButton::clicked, &emu, &EmuThread::reset);
+    connect(ui->actionReset, &QAction::triggered, &emu, &EmuThread::reset);
+    connect(ui->actionRestart, &QAction::triggered, this, &MainWindow::restart);
+    connect(ui->actionDebugger, &QAction::triggered, &emu, &EmuThread::enterDebugger);
+    connect(ui->buttonPause, &QPushButton::clicked, &emu, &EmuThread::setPaused);
+    connect(ui->buttonPause, &QPushButton::clicked, ui->actionPause, &QAction::setChecked);
+    connect(ui->actionPause, &QAction::toggled, &emu, &EmuThread::setPaused);
+    connect(ui->actionPause, &QAction::toggled, ui->buttonPause, &QPushButton::setChecked);
+    connect(ui->buttonSpeed, &QPushButton::clicked, &emu, &EmuThread::setTurboMode);
     QShortcut *shortcut = new QShortcut(QKeySequence(Qt::Key_F11), this);
     shortcut->setAutoRepeat(false);
-    connect(shortcut, SIGNAL(activated()), &emu, SLOT(toggleTurbo()));
+    connect(shortcut, &QShortcut::activated, &emu, &EmuThread::toggleTurbo);
 
     //Menu "Tools"
-    connect(ui->buttonScreenshot, SIGNAL(clicked()), this, SLOT(screenshot()));
-    connect(ui->actionScreenshot, SIGNAL(triggered()), this, SLOT(screenshot()));
-    connect(ui->actionRecord_GIF, SIGNAL(triggered()), this, SLOT(recordGIF()));
-    connect(ui->actionConnect, SIGNAL(triggered()), this, SLOT(connectUSB()));
-    connect(ui->buttonUSB, SIGNAL(clicked(bool)), this, SLOT(connectUSB()));
-    connect(ui->actionXModem, SIGNAL(triggered()), this, SLOT(xmodemSend()));
+    connect(ui->buttonScreenshot, &QPushButton::clicked, this, &MainWindow::screenshot);
+    connect(ui->actionScreenshot, &QAction::triggered, this, &MainWindow::screenshot);
+    connect(ui->actionRecord_GIF, &QAction::triggered, this, &MainWindow::recordGIF);
+    connect(ui->actionConnect, &QAction::triggered, this, &MainWindow::connectUSB);
+    connect(ui->buttonUSB, &QPushButton::clicked, this, &MainWindow::connectUSB);
+    connect(ui->actionXModem, &QAction::triggered, this, &MainWindow::xmodemSend);
     ui->actionConnect->setShortcut(QKeySequence(Qt::Key_F10));
     ui->actionConnect->setAutoRepeat(false);
 
     //Menu "State"
-    connect(ui->actionResume, SIGNAL(triggered()), this, SLOT(resume()));
-    connect(ui->actionSuspend, SIGNAL(triggered()), this, SLOT(suspend()));
-    connect(ui->actionResume_from_file, SIGNAL(triggered()), this, SLOT(resumeFromFile()));
-    connect(ui->actionSuspend_to_file, SIGNAL(triggered()), this, SLOT(suspendToFile()));
+    connect(ui->actionResume, &QAction::triggered, this, &MainWindow::resume);
+    connect(ui->actionSuspend, &QAction::triggered, this, &MainWindow::suspend);
+    connect(ui->actionResume_from_file, &QAction::triggered, this, &MainWindow::resumeFromFile);
+    connect(ui->actionSuspend_to_file, &QAction::triggered, this, &MainWindow::suspendToFile);
 
     //Menu "Flash"
-    connect(ui->actionSave, SIGNAL(triggered()), this, SLOT(saveFlash()));
-    connect(ui->actionCreate_flash, SIGNAL(triggered()), this, SLOT(createFlash()));
+    connect(ui->actionSave, &QAction::triggered, this, &MainWindow::saveFlash);
+    connect(ui->actionCreate_flash, &QAction::triggered, this, &MainWindow::createFlash);
 
     //Menu "About"
-    connect(ui->actionAbout_Firebird, SIGNAL(triggered(bool)), this, SLOT(showAbout()));
-    connect(ui->actionAbout_Qt, SIGNAL(triggered(bool)), qApp, SLOT(aboutQt()));
+    connect(ui->actionAbout_Firebird, &QAction::triggered, this, &MainWindow::showAbout);
+    connect(ui->actionAbout_Qt, &QAction::triggered, qApp, &QApplication::aboutQt);
 
     //Debugging
-    connect(ui->lineEdit, SIGNAL(returnPressed()), this, SLOT(debugCommand()));
+    connect(ui->lineEdit, &QLineEdit::returnPressed, this, &MainWindow::debugCommand);
 
     //File transfer
-    connect(ui->refreshButton, SIGNAL(clicked(bool)), ui->usblinkTree, SLOT(reloadFilebrowser()));
-    connect(ui->usblinkTree, SIGNAL(downloadProgress(int)), this, SLOT(usblinkDownload(int)), Qt::QueuedConnection);
-    connect(ui->usblinkTree, SIGNAL(uploadProgress(int)), this, SLOT(changeProgress(int)), Qt::QueuedConnection);
-    connect(this, SIGNAL(usblink_progress_changed(int)), this, SLOT(changeProgress(int)), Qt::QueuedConnection);
+    connect(ui->refreshButton, &QPushButton::clicked, ui->usblinkTree, &USBLinkTreeWidget::reloadFilebrowser);
+    connect(ui->usblinkTree, &USBLinkTreeWidget::downloadProgress, this, &MainWindow::usblinkDownload, Qt::QueuedConnection);
+    connect(ui->usblinkTree, &USBLinkTreeWidget::uploadProgress, this, &MainWindow::changeProgress, Qt::QueuedConnection);
+    connect(this, &MainWindow::usblink_progress_changed, this, &MainWindow::changeProgress, Qt::QueuedConnection);
 
     //Settings
-    connect(ui->checkDebugger, SIGNAL(toggled(bool)), this, SLOT(setDebuggerOnStartup(bool)));
-    connect(ui->checkWarning, SIGNAL(toggled(bool)), this, SLOT(setDebuggerOnWarning(bool)));
-    connect(ui->uiDocks, SIGNAL(toggled(bool)), this, SLOT(setUIMode(bool)));
-    connect(ui->checkAutostart, SIGNAL(toggled(bool)), this, SLOT(setAutostart(bool)));
-    connect(ui->fileBoot1, SIGNAL(pressed()), this, SLOT(selectBoot1()));
-    connect(ui->fileFlash, SIGNAL(pressed()), this, SLOT(selectFlash()));
-    connect(ui->pathTransfer, SIGNAL(textEdited(QString)), this, SLOT(setUSBPath(QString)));
-    connect(ui->spinGDB, SIGNAL(valueChanged(int)), this, SLOT(setGDBPort(int)));
-    connect(ui->spinRDBG, SIGNAL(valueChanged(int)), this, SLOT(setRDBGPort(int)));
-    connect(ui->orderDiags, SIGNAL(toggled(bool)), this, SLOT(setBootOrder(bool)));
-    connect(ui->checkSuspend, SIGNAL(toggled(bool)), this, SLOT(setSuspendOnClose(bool)));
-    connect(ui->checkResume, SIGNAL(toggled(bool)), this, SLOT(setResumeOnOpen(bool)));
-    connect(ui->buttonChangeSnapshotPath, SIGNAL(clicked()), this, SLOT(changeSnapshotPath()));
+    connect(ui->checkDebugger, &QCheckBox::toggled, this, &MainWindow::setDebuggerOnStartup);
+    connect(ui->checkWarning, &QCheckBox::toggled, this, &MainWindow::setDebuggerOnWarning);
+    connect(ui->uiDocks, &QRadioButton::toggled, this, &MainWindow::setUIMode);
+    connect(ui->checkAutostart, &QCheckBox::toggled, this, &MainWindow::setAutostart);
+    connect(ui->fileBoot1, &QPushButton::pressed, this, &MainWindow::selectBoot1);
+    connect(ui->fileFlash, &QPushButton::pressed, this, &MainWindow::selectFlash);
+    connect(ui->pathTransfer, &QLineEdit::textEdited, this, &MainWindow::setUSBPath);
+    connect(ui->spinGDB, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), this, &MainWindow::setGDBPort);
+    connect(ui->spinRDBG, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), this, &MainWindow::setRDBGPort);
+    connect(ui->orderDiags, &QRadioButton::toggled, this, &MainWindow::setBootOrder);
+    connect(ui->checkSuspend, &QCheckBox::toggled, this, &MainWindow::setSuspendOnClose);
+    connect(ui->checkResume, &QCheckBox::toggled, this, &MainWindow::setResumeOnOpen);
+    connect(ui->buttonChangeSnapshotPath, &QPushButton::clicked, this, &MainWindow::changeSnapshotPath);
 
     //FlashDialog
-    connect(&flash_dialog, SIGNAL(flashCreated(QString)), this, SLOT(flashCreated(QString)));
+    connect(&flash_dialog, &FlashDialog::flashCreated, this, &MainWindow::flashCreated);
 
     //Set up monospace fonts
     QFont monospace = QFontDatabase::systemFont(QFontDatabase::FixedFont);
@@ -131,7 +131,7 @@ MainWindow::MainWindow(QWidget *parent) :
     //On android the settings file is deleted everytime you update or uninstall,
     //so choose a better, safer, location
     QString path = QStandardPaths::writableLocation(QStandardPaths::GenericDataLocation);
-    settings = new QSettings(path + "/nspire_emu.ini", QSettings::IniFormat);
+    settings = new QSettings(path + QStringLiteral("/nspire_emu.ini"), QSettings::IniFormat);
 #else
     settings = new QSettings();
 #endif
@@ -139,34 +139,34 @@ MainWindow::MainWindow(QWidget *parent) :
     updateUIActionState(false);
 
     //Migrate old settings
-    if(settings->value("usbdirNew", QString()).toString().isEmpty())
-        settings->setValue("usbdirNew", QString("/") + settings->value("usbdir", QString("ndless")).toString());
+    if(settings->value(QStringLiteral("usbdirNew"), QString()).toString().isEmpty())
+        settings->setValue(QStringLiteral("usbdirNew"), QStringLiteral("/") + settings->value(QStringLiteral("usbdir"), QStringLiteral("ndless")).toString());
 
     //Load settings
-    setUIMode(settings->value("docksEnabled", true).toBool());
-    restoreGeometry(settings->value("windowGeometry").toByteArray());
-    restoreState(settings->value("windowState").toByteArray(), WindowStateVersion);
-    selectBoot1(settings->value("boot1", "").toString());
-    selectFlash(settings->value("flash", "").toString());
-    setDebuggerOnStartup(settings->value("debugOnStart", false).toBool());
-    setDebuggerOnWarning(settings->value("debugOnWarn", false).toBool());
-    setUSBPath(settings->value("usbdirNew", QString("/ndless")).toString());
-    setGDBPort(settings->value("gdbPort", 3333).toUInt());
-    setRDBGPort(settings->value("rdbgPort", 3334).toUInt());
-    ui->checkSuspend->setChecked(settings->value("suspendOnClose", false).toBool());
-    ui->checkResume->setChecked(settings->value("resumeOnOpen", false).toBool());
-    if(!settings->value("snapshotPath").toString().isEmpty())
-        ui->labelSnapshotPath->setText(settings->value("snapshotPath").toString());
+    setUIMode(settings->value(QStringLiteral("docksEnabled"), true).toBool());
+    restoreGeometry(settings->value(QStringLiteral("windowGeometry")).toByteArray());
+    restoreState(settings->value(QStringLiteral("windowState")).toByteArray(), WindowStateVersion);
+    setPathBoot1(settings->value(QStringLiteral("boot1"), QStringLiteral("")).toString());
+    setPathFlash(settings->value(QStringLiteral("flash"), QStringLiteral("")).toString());
+    setDebuggerOnStartup(settings->value(QStringLiteral("debugOnStart"), false).toBool());
+    setDebuggerOnWarning(settings->value(QStringLiteral("debugOnWarn"), false).toBool());
+    setUSBPath(settings->value(QStringLiteral("usbdirNew"), QStringLiteral("/ndless")).toString());
+    setGDBPort(settings->value(QStringLiteral("gdbPort"), 3333).toUInt());
+    setRDBGPort(settings->value(QStringLiteral("rdbgPort"), 3334).toUInt());
+    ui->checkSuspend->setChecked(settings->value(QStringLiteral("suspendOnClose"), false).toBool());
+    ui->checkResume->setChecked(settings->value(QStringLiteral("resumeOnOpen"), false).toBool());
+    if(!settings->value(QStringLiteral("snapshotPath")).toString().isEmpty())
+        ui->labelSnapshotPath->setText(settings->value(QStringLiteral("snapshotPath")).toString());
 
     setBootOrder(false);
 
-    if(settings->value("resumeOnOpen").toBool())
+    if(settings->value(QStringLiteral("resumeOnOpen")).toBool())
         resume();
     else
     {
-        bool autostart = settings->value("emuAutostart", false).toBool();
+        bool autostart = settings->value(QStringLiteral("emuAutostart"), false).toBool();
         setAutostart(autostart);
-        if(emu.boot1 != "" && emu.flash != "" && autostart)
+        if(!emu.boot1.isEmpty() && !emu.flash.isEmpty() && autostart)
             emu.start();
         else
             showStatusMsg(tr("Start the emulation via Emulation->Restart."));
@@ -177,8 +177,8 @@ MainWindow::MainWindow(QWidget *parent) :
 
 MainWindow::~MainWindow()
 {
-    settings->setValue("windowState", saveState(WindowStateVersion));
-    settings->setValue("windowGeometry", saveGeometry());
+    settings->setValue(QStringLiteral("windowState"), saveState(WindowStateVersion));
+    settings->setValue(QStringLiteral("windowGeometry"), saveGeometry());
 
     delete settings;
     delete ui;
@@ -196,7 +196,7 @@ void MainWindow::dropEvent(QDropEvent *e)
     for(auto &&url : mime_data->urls())
     {
         QUrl local = url.toLocalFile();
-        usblink_queue_put_file(local.toString().toStdString(), settings->value("usbdirNew", QString("/ndless")).toString().toStdString(), usblink_progress_callback, this);
+        usblink_queue_put_file(local.toString().toStdString(), settings->value(QStringLiteral("usbdirNew"), QStringLiteral("/ndless")).toString().toStdString(), usblink_progress_callback, this);
     }
 }
 
@@ -206,7 +206,7 @@ void MainWindow::dragEnterEvent(QDragEnterEvent *e)
         return e->ignore();
 
     for(QUrl &url : e->mimeData()->urls())
-        if(!url.fileName().endsWith(".tns"))
+        if(!url.fileName().endsWith(QStringLiteral(".tns")))
             return e->ignore();
 
     e->accept();
@@ -231,14 +231,14 @@ void MainWindow::serialChar(const char c)
             break;
 
         default:
-            if(c != '\n' && previous == '\r')
+            if(previous == '\r' && c != '\n')
             {
                 ui->serialConsole->moveCursor(QTextCursor::StartOfLine, QTextCursor::MoveAnchor);
                 ui->serialConsole->moveCursor(QTextCursor::End, QTextCursor::KeepAnchor);
                 ui->serialConsole->textCursor().removeSelectedText();
                 previous = 0;
             }
-            ui->serialConsole->insertPlainText(QString(c));
+            ui->serialConsole->insertPlainText(QChar::fromLatin1(c));
     }
 }
 
@@ -307,30 +307,30 @@ void MainWindow::changeProgress(int value)
     ui->progressBar->setValue(value);
 }
 
-void MainWindow::selectBoot1(QString path)
+void MainWindow::setPathBoot1(QString path)
 {
     QFileInfo f(path);
     emu.boot1 = path;
     ui->filenameBoot1->setText(f.fileName());
 
-    settings->setValue("boot1", path);
+    settings->setValue(QStringLiteral("boot1"), path);
 }
 
 void MainWindow::selectBoot1()
 {
     QFileInfo f(emu.flash);
     QString path = QFileDialog::getOpenFileName(this, tr("Select boot1 file"), f.dir().absolutePath());
-    if(!path.isNull())
-        selectBoot1(path);
+    if(!path.isEmpty())
+        setPathBoot1(path);
 }
 
-void MainWindow::selectFlash(QString path)
+void MainWindow::setPathFlash(QString path)
 {
     QFileInfo f(path);
     emu.flash = path;
     ui->filenameFlash->setText(f.fileName());
 
-    settings->setValue("flash", path);
+    settings->setValue(QStringLiteral("flash"), path);
 }
 
 void MainWindow::updateUIActionState(bool emulation_running)
@@ -364,14 +364,14 @@ void MainWindow::selectFlash()
 {
     QFileInfo f(emu.flash);
     QString path = QFileDialog::getOpenFileName(this, tr("Select flash file"), f.dir().absolutePath());
-    if(!path.isNull())
-        selectFlash(path);
+    if(!path.isEmpty())
+        setPathFlash(path);
 }
 
 void MainWindow::setDebuggerOnStartup(bool b)
 {
     debug_on_start = b;
-    settings->setValue("debugOnStart", b);
+    settings->setValue(QStringLiteral("debugOnStart"), b);
     if(ui->checkDebugger->isChecked() != b)
         ui->checkDebugger->setChecked(b);
 }
@@ -379,7 +379,7 @@ void MainWindow::setDebuggerOnStartup(bool b)
 void MainWindow::setDebuggerOnWarning(bool b)
 {
     debug_on_warn = b;
-    settings->setValue("debugOnWarn", b);
+    settings->setValue(QStringLiteral("debugOnWarn"), b);
     if(ui->checkWarning->isChecked() != b)
         ui->checkWarning->setChecked(b);
 }
@@ -390,7 +390,7 @@ void MainWindow::setUIMode(bool docks_enabled)
     if(docks_enabled == ui->tabWidget->isHidden())
         return;
 
-    settings->setValue("docksEnabled", docks_enabled);
+    settings->setValue(QStringLiteral("docksEnabled"), docks_enabled);
 
     // Enabling tabs needs a restart
     if(!docks_enabled)
@@ -435,7 +435,7 @@ void MainWindow::setUIMode(bool docks_enabled)
 
 void MainWindow::setAutostart(bool b)
 {
-    settings->setValue("emuAutostart", b);
+    settings->setValue(QStringLiteral("emuAutostart"), b);
     if(ui->checkAutostart->isChecked() != b)
         ui->checkAutostart->setChecked(b);
 }
@@ -447,7 +447,7 @@ void MainWindow::setBootOrder(bool diags_first)
 
 void MainWindow::setUSBPath(QString path)
 {
-    settings->setValue("/usbdir", path);
+    settings->setValue(QStringLiteral("/usbdir"), path);
     ln_target_folder = path.toStdString(); // For the "ln" debug cmd
     if(ui->pathTransfer->text() != path)
         ui->pathTransfer->setText(path);
@@ -455,7 +455,7 @@ void MainWindow::setUSBPath(QString path)
 
 void MainWindow::setGDBPort(int port)
 {
-    settings->setValue("gdbPort", port);
+    settings->setValue(QStringLiteral("gdbPort"), port);
     emu_thread->port_gdb = port;
     //valueChanged signal will only be emitted if the value actually changed
     ui->spinGDB->setValue(port);
@@ -463,7 +463,7 @@ void MainWindow::setGDBPort(int port)
 
 void MainWindow::setRDBGPort(int port)
 {
-    settings->setValue("rdbgPort", port);
+    settings->setValue(QStringLiteral("rdbgPort"), port);
     emu_thread->port_rdbg = port;
     //valueChanged signal will only be emitted if the value actually changed
     ui->spinRDBG->setValue(port);
@@ -471,21 +471,21 @@ void MainWindow::setRDBGPort(int port)
 
 void MainWindow::setSuspendOnClose(bool b)
 {
-    settings->setValue("suspendOnClose", b);
+    settings->setValue(QStringLiteral("suspendOnClose"), b);
 }
 
 void MainWindow::setResumeOnOpen(bool b)
 {
-    settings->setValue("resumeOnOpen", b);
+    settings->setValue(QStringLiteral("resumeOnOpen"), b);
 }
 
 void MainWindow::changeSnapshotPath()
 {
     QString path = QFileDialog::getSaveFileName(this, tr("Select snapshot location"));
-    if(path.isNull())
+    if(path.isEmpty())
         return;
 
-    settings->setValue("snapshotPath", path);
+    settings->setValue(QStringLiteral("snapshotPath"), path);
     ui->labelSnapshotPath->setText(path);
 }
 
@@ -497,15 +497,15 @@ void MainWindow::showSpeed(double value)
 void MainWindow::flashCreated(QString path)
 {
     if(QMessageBox::question(this, tr("Apply new flash?"), tr("Do you want to work with the newly created flash image now?")) == QMessageBox::Yes)
-        this->selectFlash(path);
+        this->setPathFlash(path);
 }
 
 void MainWindow::screenshot()
 {
     QImage image = renderFramebuffer();
 
-    QString filename = QFileDialog::getSaveFileName(this, tr("Save Screenshot"), QString(), "PNG images (*.png)");
-    if(filename.isNull())
+    QString filename = QFileDialog::getSaveFileName(this, tr("Save Screenshot"), QString(), tr("PNG images (*.png)"));
+    if(filename.isEmpty())
         return;
 
     if(!image.save(filename, "PNG"))
@@ -519,7 +519,7 @@ void MainWindow::recordGIF()
     if(path.isEmpty())
     {
         // TODO: Use QTemporaryFile?
-        path = QDir::tempPath() + QDir::separator() + "firebird_tmp.gif";
+        path = QDir::tempPath() + QDir::separator() + QStringLiteral("firebird_tmp.gif");
 
         gif_start_recording(path.toStdString().c_str(), 3);
     }
@@ -527,8 +527,8 @@ void MainWindow::recordGIF()
     {
         if(gif_stop_recording())
         {
-            QString filename = QFileDialog::getSaveFileName(this, tr("Save Screenshot"), QString(), "GIF images (*.gif)");
-            if(filename.isNull())
+            QString filename = QFileDialog::getSaveFileName(this, tr("Save Recording"), QString(), tr("GIF images (*.gif)"));
+            if(filename.isEmpty())
                 QFile(path).remove();
             else
                 QFile(path).rename(filename);
@@ -536,7 +536,7 @@ void MainWindow::recordGIF()
         else
             QMessageBox::warning(this, tr("Failed recording GIF"), tr("A failure occured during recording"));
 
-        path = "";
+        path = QString();
     }
 
     ui->actionRecord_GIF->setChecked(!path.isEmpty());
@@ -562,7 +562,7 @@ void MainWindow::usblinkChanged(bool state)
 
 void MainWindow::resume()
 {
-    QString default_snapshot = settings->value("snapshotPath").toString();
+    QString default_snapshot = settings->value(QStringLiteral("snapshotPath")).toString();
     if(!default_snapshot.isEmpty())
         resumeFromPath(default_snapshot);
     else
@@ -571,7 +571,7 @@ void MainWindow::resume()
 
 void MainWindow::suspend()
 {
-    QString default_snapshot = settings->value("snapshotPath").toString();
+    QString default_snapshot = settings->value(QStringLiteral("snapshotPath")).toString();
     if(!default_snapshot.isEmpty())
         suspendToPath(default_snapshot);
     else
@@ -621,7 +621,8 @@ void MainWindow::showAbout()
                          "Lionel Debroux (<a href='https://github.com/debrouxl'>debrouxl</a>)<br>"
                          "Based on nspire_emu v0.70 by Goplat<br><br>"
                          "This work is licensed under the GPLv3.<br>"
-                         "To view a copy of this license, visit <a href='https://www.gnu.org/licenses/gpl-3.0.html'>https://www.gnu.org/licenses/gpl-3.0.html</a>").arg(STRINGIFY(FB_VERSION)));
+                         "To view a copy of this license, visit <a href='https://www.gnu.org/licenses/gpl-3.0.html'>https://www.gnu.org/licenses/gpl-3.0.html</a>")
+                         .arg(QStringLiteral(STRINGIFY(FB_VERSION))));
     about_box.setTextFormat(Qt::RichText);
     about_box.show();
     about_box.exec();
@@ -674,7 +675,7 @@ void MainWindow::stopped()
 void MainWindow::closeEvent(QCloseEvent *e)
 {
     if(!close_after_suspend &&
-            settings->value("suspendOnClose").toBool() && emu_thread->isRunning() && exiting == false)
+            settings->value(QStringLiteral("suspendOnClose")).toBool() && emu_thread->isRunning() && exiting == false)
     {
         close_after_suspend = true;
         qDebug("Suspending...");
@@ -696,14 +697,14 @@ void MainWindow::showStatusMsg(QString str)
 
 void MainWindow::restart()
 {
-    if(emu.boot1 == "")
+    if(emu.boot1.isEmpty())
     {
         QMessageBox::critical(this, trUtf8("No boot1 set"), trUtf8("Before you can start the emulation, you have to select a proper boot1 file."));
         selectBoot1();
         return;
     }
 
-    if(emu.flash == "")
+    if(emu.flash.isEmpty())
     {
         QMessageBox::critical(this, trUtf8("No flash image loaded"), trUtf8("Before you can start the emulation, you have to load a proper flash file.\n"
                                                                             "You can create one via Flash->Create Flash in the menu."));
@@ -719,7 +720,7 @@ void MainWindow::restart()
 void MainWindow::xmodemSend()
 {
     QString filename = QFileDialog::getOpenFileName(this, tr("Select file to send"));
-    if(filename.isNull())
+    if(filename.isEmpty())
         return;
 
     std::string path = filename.toStdString();

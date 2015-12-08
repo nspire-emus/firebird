@@ -16,11 +16,11 @@ int main(int argc, char **argv)
     QApplication app(argc, argv);
 
     QTranslator appTranslator;
-    appTranslator.load(QLocale::system().name(), ":/i18n/i18n/");
+    appTranslator.load(QLocale::system().name(), QStringLiteral(":/i18n/i18n/"));
     app.installTranslator(&appTranslator);
 
-    QCoreApplication::setOrganizationName("ndless");
-    QCoreApplication::setApplicationName("firebird");
+    QCoreApplication::setOrganizationName(QStringLiteral("ndless"));
+    QCoreApplication::setApplicationName(QStringLiteral("firebird"));
     app.setAttribute(Qt::AA_UseHighDpiPixmaps);
 
     // Register QMLBridge for Keypad<->Emu communication
@@ -33,7 +33,7 @@ int main(int argc, char **argv)
         main_window = &mw;
         mw.show();
     #else
-        QQuickView mobile_ui(QUrl("qrc:/qml/qml/MobileUI.qml"));
+        QQuickView mobile_ui(QUrl(QStringLiteral("qrc:/qml/qml/MobileUI.qml")));
         mobile_ui.setResizeMode(QQuickView::SizeRootObjectToView);
         mobile_ui.show();
     #endif

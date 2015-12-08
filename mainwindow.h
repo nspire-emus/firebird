@@ -105,8 +105,8 @@ public:
 private:
     void suspendToPath(QString path);
     void resumeFromPath(QString path);
-    void selectBoot1(QString path);
-    void selectFlash(QString path);
+    void setPathBoot1(QString path);
+    void setPathFlash(QString path);
 
     void updateUIActionState(bool emulation_running);
     void raiseDebugger();

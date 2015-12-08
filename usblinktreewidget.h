@@ -38,6 +38,8 @@ signals:
 
 public slots:
     void reloadFilebrowser();
+
+private slots:
     void customContextMenuRequested(QPoint pos); // Internal
     void dataChangedHandler(QTreeWidgetItem *item, int column); // Internal
     void downloadEntry(); // Internal
@@ -45,6 +47,9 @@ public slots:
     void addTreeItem(QTreeWidgetItem *item, QTreeWidgetItem *parent); // Has to run in the UI thread. Internal
 
 private:
+    static QString naturalSize(uint64_t bytes);
+    static QTreeWidgetItem *itemForUSBLinkFile(usblink_file *file);
+
     // To avoid concurrent dirlisting
     std::atomic<bool> doing_dirlist{false};
 };

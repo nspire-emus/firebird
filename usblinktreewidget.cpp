@@ -12,11 +12,11 @@ static USBLinkTreeWidget *usblink_tree = nullptr;
 USBLinkTreeWidget::USBLinkTreeWidget(QWidget *parent)
     : QTreeWidget(parent)
 {
-    connect(this, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(customContextMenuRequested(QPoint)));
-    connect(this, SIGNAL(itemChanged(QTreeWidgetItem*,int)), this, SLOT(dataChangedHandler(QTreeWidgetItem*,int)));
+    connect(this, &QTreeWidget::customContextMenuRequested, this,  &USBLinkTreeWidget::customContextMenuRequested);
+    connect(this, &QTreeWidget::itemChanged, this, &USBLinkTreeWidget::dataChangedHandler);
     // This is a Qt::BlockingQueuedConnection as the usblink_dirlist_* family of functions needs to enumerate over the items directly after emitting the signal.
-    connect(this, SIGNAL(wantToAddTreeItem(QTreeWidgetItem*,QTreeWidgetItem*)), this, SLOT(addTreeItem(QTreeWidgetItem*,QTreeWidgetItem*)), Qt::BlockingQueuedConnection);
-    connect(this, SIGNAL(wantToReload()), this, SLOT(reloadFilebrowser()), Qt::QueuedConnection);
+    connect(this, &USBLinkTreeWidget::wantToAddTreeItem, this,  &USBLinkTreeWidget::addTreeItem, Qt::BlockingQueuedConnection);
+    connect(this, &USBLinkTreeWidget::wantToReload, this, &USBLinkTreeWidget::reloadFilebrowser, Qt::QueuedConnection);
 
     this->setAcceptDrops(true);
 
@@ -88,7 +88,7 @@ void USBLinkTreeWidget::customContextMenuRequested(QPoint pos)
     {
         // Is not a directory
         QAction *action_download = new QAction(tr("Download"), menu);
-        connect(action_download, SIGNAL(triggered()), this, SLOT(downloadEntry()));
+        connect(action_download, &QAction::triggered, this,  &USBLinkTreeWidget::downloadEntry);
         menu->addAction(action_download);
     }
     else if(this->currentItem()->childCount() > 0)
@@ -97,30 +97,30 @@ void USBLinkTreeWidget::customContextMenuRequested(QPoint pos)
         action_delete->setDisabled(true);
     }
 
-    connect(action_delete, SIGNAL(triggered()), this, SLOT(deleteEntry()));
+    connect(action_delete, &QAction::triggered, this,  &USBLinkTreeWidget::deleteEntry);
     menu->addAction(action_delete);
 
     menu->popup(this->viewport()->mapToGlobal(pos));
 }
 
-static QString naturalSize(uint64_t bytes)
+QString USBLinkTreeWidget::naturalSize(uint64_t bytes)
 {
     if(bytes < 4ul * 1024)
-        return QString::number(bytes) + " B";
+        return QString::number(bytes) + QStringLiteral(" B");
     else if(bytes < 4ul * 1024 * 1024)
-        return QString::number(bytes / 1024) + " KiB";
+        return QString::number(bytes / 1024) + QStringLiteral(" KiB");
     else if(bytes < 4ull * 1024 * 1024 * 1024)
-        return QString::number(bytes / 1024 / 1024) + " MiB";
+        return QString::number(bytes / 1024 / 1024) + QStringLiteral(" MiB");
     else
-        return QString("Too much");
+        return tr("Too much");
 }
 
 QString USBLinkTreeWidget::usblink_path_item(QTreeWidgetItem *w)
 {
     if(!w)
-        return "";
+        return QString();
 
-    return usblink_path_item(w->parent()) + "/" + w->text(0);
+    return usblink_path_item(w->parent()) + QStringLiteral("/") + w->text(0);
     // This crashes on 32-bit linux somehow
     //return QString("%0/%1").arg(path_parent).arg(path_this);
 }
@@ -128,14 +128,14 @@ QString USBLinkTreeWidget::usblink_path_item(QTreeWidgetItem *w)
 QStringList USBLinkTreeWidget::mimeTypes() const
 {
     // Accept everything here, decide based on the filename in dragEnterEvent
-    return QStringList("text/uri-list");
+    return QStringList(QStringLiteral("text/uri-list"));
 }
 
 void USBLinkTreeWidget::dragEnterEvent(QDragEnterEvent *e)
 {
     // Somehow caching this QList is necessary. Without this, the values vanished in the middle of the if() condition...
     QList<QUrl> urls = e->mimeData()->urls();
-    if(urls.size() == 1 && urls[0].fileName().endsWith(".tns"))
+    if(urls.size() == 1 && urls[0].fileName().endsWith(QStringLiteral(".tns")))
         QTreeWidget::dragEnterEvent(e);
     else
         e->ignore();
@@ -177,10 +177,10 @@ bool USBLinkTreeWidget::usblink_dirlist_nested(QTreeWidgetItem *w)
     return false;
 }
 
-static QTreeWidgetItem *itemForUSBLinkFile(struct usblink_file *file)
+QTreeWidgetItem *USBLinkTreeWidget::itemForUSBLinkFile(struct usblink_file *file)
 {
     QString filename = QString::fromUtf8(file->filename);
-    QTreeWidgetItem *item = new QTreeWidgetItem({filename, file->is_dir ? "" : naturalSize(file->size)});
+    QTreeWidgetItem *item = new QTreeWidgetItem({filename, file->is_dir ? QString() : naturalSize(file->size)});
     if(file->is_dir)
         item->setFlags(Qt::ItemIsSelectable | Qt::ItemIsDropEnabled | Qt::ItemIsEditable | Qt::ItemIsEnabled);
     else

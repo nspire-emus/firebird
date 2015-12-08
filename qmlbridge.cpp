@@ -98,7 +98,7 @@ bool QMLBridge::restart()
     emu_thread.flash = getFlashPath();
 #endif
 
-    if(emu_thread.boot1 != "" && emu_thread.flash != "") {
+    if(!emu_thread.boot1.isEmpty() && !emu_thread.flash.isEmpty()) {
         emu_thread.start();
         return true;
     } else {
@@ -119,14 +119,14 @@ void QMLBridge::reset()
 
 void QMLBridge::suspend()
 {
-    QString snapshot_path = settings.value("snapshotPath").toString();
+    QString snapshot_path = settings.value(QStringLiteral("snapshotPath")).toString();
     if(!snapshot_path.isEmpty())
         emu_thread.suspend(snapshot_path);
 }
 
 void QMLBridge::resume()
 {
-    QString snapshot_path = settings.value("snapshotPath").toString();
+    QString snapshot_path = settings.value(QStringLiteral("snapshotPath")).toString();
     if(!snapshot_path.isEmpty())
         emu_thread.resume(snapshot_path);
 }
@@ -143,38 +143,38 @@ bool QMLBridge::saveFlash()
 
 QString QMLBridge::getBoot1Path()
 {
-    return settings.value("boot1", "").toString();
+    return settings.value(QStringLiteral("boot1"), QString()).toString();
 }
 
 void QMLBridge::setBoot1Path(QUrl path)
 {
-    settings.setValue("boot1", path.toLocalFile());
+    settings.setValue(QStringLiteral("boot1"), path.toLocalFile());
 }
 
 QString QMLBridge::getFlashPath()
 {
-    return settings.value("flash", "").toString();
+    return settings.value(QStringLiteral("flash"), QString()).toString();
 }
 
 void QMLBridge::setFlashPath(QUrl path)
 {
-    settings.setValue("flash", path.toLocalFile());
+    settings.setValue(QStringLiteral("flash"), path.toLocalFile());
 }
 
 QString QMLBridge::getSnapshotPath()
 {
-    return settings.value("snapshotPath", "").toString();
+    return settings.value(QStringLiteral("snapshotPath"), QString()).toString();
 }
 
 void QMLBridge::setSnapshotPath(QUrl path)
 {
-    settings.setValue("snapshotPath", path.toLocalFile());
+    settings.setValue(QStringLiteral("snapshotPath"), path.toLocalFile());
 }
 
 QString QMLBridge::basename(QString path)
 {
-    if(path == "")
-        return "None";
+    if(path.isEmpty())
+        return tr("None");
 
     std::string pathname = path.toStdString();
     return QString::fromStdString(std::string(
@@ -195,7 +195,7 @@ void notifyKeypadStateChanged(int row, int col, bool state)
         return;
     }
 
-    QQmlProperty::write(buttons[row][col], "state", state);
+    QQmlProperty::write(buttons[row][col], QStringLiteral("state"), state);
 }
 
 QObject *qmlBridgeFactory(QQmlEngine *engine, QJSEngine *scriptEngine)

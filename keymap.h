@@ -11,8 +11,8 @@ struct HostKey {
     bool alt;
 };
 
-#define KEY(x, y) HostKey x{Qt::Key_##y, #y, false}
-#define ALT(x, y, z) HostKey x{Qt::Key_##y, z, true}
+#define KEY(x, y) HostKey x{Qt::Key_##y, QStringLiteral(#y), false}
+#define ALT(x, y, z) HostKey x{Qt::Key_##y,QStringLiteral(z), true}
 
 KEY(enter, Enter);
 KEY(tab, Tab);
@@ -100,7 +100,7 @@ ALT(ast, A, "*");
 ALT(pow_, P, "^");
 ALT(on, Escape, "On");
 
-HostKey none{static_cast<Qt::Key>(0), "", false};
+HostKey none{static_cast<Qt::Key>(0), QStringLiteral(""), false};
 
 HostKey keymap_tp[8][11] =
 {

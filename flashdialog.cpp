@@ -12,11 +12,11 @@ FlashDialog::FlashDialog(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    connect(ui->buttonBoot2, SIGNAL(clicked()), this, SLOT(selectBoot2()));
-    connect(ui->buttonManuf, SIGNAL(clicked()), this, SLOT(selectManuf()));
-    connect(ui->buttonOS, SIGNAL(clicked()), this, SLOT(selectOS()));
-    connect(ui->buttonDiags, SIGNAL(clicked(bool)), this, SLOT(selectDiags()));
-    connect(ui->buttonSave, SIGNAL(clicked()), this, SLOT(saveAs()));
+    connect(ui->buttonBoot2, &QPushButton::clicked, this, &FlashDialog::selectBoot2);
+    connect(ui->buttonManuf, &QPushButton::clicked, this, &FlashDialog::selectManuf);
+    connect(ui->buttonOS, &QPushButton::clicked, this, &FlashDialog::selectOS);
+    connect(ui->buttonDiags, &QPushButton::clicked, this, &FlashDialog::selectDiags);
+    connect(ui->buttonSave, &QPushButton::clicked, this, &FlashDialog::saveAs);
 }
 
 FlashDialog::~FlashDialog()
@@ -44,7 +44,7 @@ void FlashDialog::selectBoot2()
     QString path = QFileDialog::getOpenFileName(this, trUtf8("Select Boot2"));
     if(path.isEmpty() || !QFile(path).exists())
     {
-        boot2_path = "";
+        boot2_path = QString();
         ui->labelBoot2->setText(tr("None"));
         return;
     }
@@ -58,32 +58,32 @@ void FlashDialog::selectManuf()
     QString path = QFileDialog::getOpenFileName(this, trUtf8("Select Manuf"));
     if(path.isEmpty() || !QFile(path).exists())
     {
-        manuf_path = "";
+        manuf_path = QString();
         ui->labelManuf->setText(tr("None"));
         return;
     }
 
     manuf_path = path;
 
-    ui->labelManuf->setText("OK");
+    ui->labelManuf->setText(tr("Loaded"));
 }
 
 // Map of ui->selectModel indices to OS filename extensions
-const QString os_ext[] = { "*.tno", "*.tnc", "*.tco", "*.tcc" };
+const QString os_ext[] = { QStringLiteral("*.tno"), QStringLiteral("*.tnc"), QStringLiteral("*.tco"), QStringLiteral("*.tcc") };
 
 void FlashDialog::selectOS()
 {
     QString path = QFileDialog::getOpenFileName(this, trUtf8("Select OS file"), QString(), os_ext[ui->selectModel->currentIndex()]);
     if(path.isEmpty() || !QFile(path).exists())
     {
-        os_path = "";
+        os_path = QString();
         ui->labelOS->setText(tr("None"));
         return;
     }
 
     os_path = path;
 
-    ui->labelOS->setText("Unknown");
+    ui->labelOS->setText(tr("Unknown"));
 
     //Ugly way to display version
     QFile os(path);
@@ -95,12 +95,12 @@ void FlashDialog::selectOS()
     QTextStream ts(&header);
     ts >> filename >> version;
 
-    if(filename.endsWith(".tnc"))
-        version += " CAS";
-    else if(filename.endsWith(".tco"))
-        version += " CX";
-    else if(filename.endsWith(".tcc"))
-        version += " CX CAS";
+    if(filename.endsWith(QStringLiteral(".tnc")))
+        version += QStringLiteral(" CAS");
+    else if(filename.endsWith(QStringLiteral(".tco")))
+        version += QStringLiteral(" CX");
+    else if(filename.endsWith(QStringLiteral(".tcc")))
+        version += QStringLiteral(" CX CAS");
 
     ui->labelOS->setText(version);
 }
@@ -110,7 +110,7 @@ void FlashDialog::selectDiags()
     QString path = QFileDialog::getOpenFileName(this, trUtf8("Select Diags"));
     if(path.isEmpty() || !QFile(path).exists())
     {
-        diags_path = "";
+        diags_path = QString();
         ui->labelDiags->setText(tr("None"));
         return;
     }
@@ -141,7 +141,7 @@ void FlashDialog::saveAs()
 
     if(!flash_create_new(is_cx, preload, product_values[ui->selectModel->currentIndex()], is_cx, &nand_data, &nand_size))
     {
-        QMessageBox::critical(this, QString("Flash creation failed"), QString("Creating the flash file failed!"));
+        QMessageBox::critical(this, tr("Flash creation failed"), tr("Creating the flash file failed!"));
 
         free(nand_data);
 
@@ -151,7 +151,7 @@ void FlashDialog::saveAs()
     QFile flash_file(path);
     if(!flash_file.open(QFile::WriteOnly) || !flash_file.write(reinterpret_cast<char*>(nand_data), nand_size))
     {
-        QMessageBox::critical(this, QString("Flash saving failed"), QString("Saving the flash file failed!"));
+        QMessageBox::critical(this, tr("Flash saving failed"), tr("Saving the flash file failed!"));
 
         free(nand_data);
 
