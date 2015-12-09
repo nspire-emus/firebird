@@ -34,6 +34,10 @@ QMAKE_CFLAGS_RELEASE = -O3 -flto
 QMAKE_CXXFLAGS_RELEASE = -O3 -flto
 QMAKE_LFLAGS_RELEASE = -Wl,-O3 -flto
 
+# Apple's clang doesn't know about this one
+macx {
+    QMAKE_LFLAGS_RELEASE -= -Wl,-O3
+}
 # Disable those for iOS, Qt can't deal with bitcode generation
 ios {
     QMAKE_CFLAGS_RELEASE -= -flto
