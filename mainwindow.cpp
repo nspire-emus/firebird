@@ -42,6 +42,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(&emu, &EmuThread::serialChar, this, &MainWindow::serialChar, Qt::QueuedConnection);
     connect(&emu, &EmuThread::debugStr, this, &MainWindow::debugStr); //Not queued connection as it may cause a hang
     connect(&emu, &EmuThread::speedChanged, this, &MainWindow::showSpeed, Qt::QueuedConnection);
+    connect(&emu, &EmuThread::isBusy, this, &MainWindow::isBusy, Qt::QueuedConnection);
     connect(&emu, &EmuThread::statusMsg, this, &MainWindow::showStatusMsg, Qt::QueuedConnection);
     connect(&emu, &EmuThread::turboModeChanged, ui->buttonSpeed, &QPushButton::setChecked, Qt::QueuedConnection);
     connect(&emu, &EmuThread::usblinkChanged, this, &MainWindow::usblinkChanged, Qt::QueuedConnection);
@@ -124,8 +125,6 @@ MainWindow::MainWindow(QWidget *parent) :
     QFont monospace = QFontDatabase::systemFont(QFontDatabase::FixedFont);
     ui->debugConsole->setFont(monospace);
     ui->serialConsole->setFont(monospace);
-
-    qRegisterMetaType<QVector<int>>();
 
 #ifdef Q_OS_ANDROID
     //On android the settings file is deleted everytime you update or uninstall,
@@ -628,6 +627,14 @@ void MainWindow::showAbout()
     about_box.exec();
     #undef STRINGIFY
     #undef STRINGIFYMAGIC
+}
+
+void MainWindow::isBusy(bool busy)
+{
+    if(busy)
+        QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
+    else
+        QApplication::restoreOverrideCursor();
 }
 
 void MainWindow::started(bool success)

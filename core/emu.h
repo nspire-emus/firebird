@@ -75,6 +75,7 @@ void gui_putchar(char c); // Serial output
 void gui_debug_printf(const char *fmt, ...); // Debug output #1
 void gui_debug_vprintf(const char *fmt, va_list ap); // Debug output #2
 void gui_perror(const char *msg); // Error output
+void gui_set_busy(bool busy); // To change the cursor, for instance
 void gui_status_printf(const char *fmt, ...); // Status output
 void gui_show_speed(double speed); // Speed display output
 void gui_usblink_changed(bool state); // Notification for usblink state changes

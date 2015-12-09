@@ -148,8 +148,15 @@ size_t gzip_filesize(const char *path)
     #endif
 }
 
+struct gui_busy_raii {
+    gui_busy_raii() { gui_set_busy(true); }
+    ~gui_busy_raii() { gui_set_busy(false); }
+};
+
 bool emu_start(unsigned int port_gdb, unsigned int port_rdbg, const char *snapshot_file)
 {
+    gui_busy_raii gui_busy;
+
     if(debug_on_start)
         cpu_events |= EVENT_DEBUG_STEP;
 
@@ -326,6 +333,8 @@ void emu_loop(bool reset)
 
 bool emu_suspend(const char *file)
 {
+    gui_busy_raii gui_busy;
+
     gzFile gzf = gzopen(file, "wb");
 
     size_t size = sizeof(emu_snapshot) + flash_suspend_flexsize();

@@ -81,6 +81,11 @@ int gui_getchar()
     return -1;
 }
 
+void gui_set_busy(bool busy)
+{
+    emit emu_thread->isBusy(busy);
+}
+
 void gui_show_speed(double d)
 {
     emit emu_thread->speedChanged(d);

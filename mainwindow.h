@@ -56,6 +56,7 @@ public slots:
     void showAbout();
 
     //State
+    void isBusy(bool busy);
     void started(bool success);
     void resumed(bool success);
     void suspended(bool success);

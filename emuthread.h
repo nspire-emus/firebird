@@ -27,6 +27,7 @@ signals:
     void serialChar(char c);
 
     // Status
+    void isBusy(bool busy);
     void statusMsg(QString str);
     void speedChanged(double value);
     void usblinkChanged(bool state);
