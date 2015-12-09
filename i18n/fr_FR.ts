@@ -78,7 +78,7 @@
     <message>
         <location filename="../flashdialog.cpp" line="68"/>
         <source>Loaded</source>
-        <translation type="unfinished"></translation>
+        <translation>Chargé</translation>
     </message>
     <message>
         <location filename="../flashdialog.cpp" line="76"/>
@@ -98,22 +98,22 @@
     <message>
         <location filename="../flashdialog.cpp" line="144"/>
         <source>Flash creation failed</source>
-        <translation type="unfinished"></translation>
+        <translation>Erreur de création de l&apos;image flash</translation>
     </message>
     <message>
         <location filename="../flashdialog.cpp" line="144"/>
         <source>Creating the flash file failed!</source>
-        <translation type="unfinished"></translation>
+        <translation>Erreur de création du fichier de l&apos;image flash !</translation>
     </message>
     <message>
         <location filename="../flashdialog.cpp" line="154"/>
         <source>Flash saving failed</source>
-        <translation type="unfinished"></translation>
+        <translation>Erreur de sauvegarde de l&apos;image flash</translation>
     </message>
     <message>
         <location filename="../flashdialog.cpp" line="154"/>
         <source>Saving the flash file failed!</source>
-        <translation type="unfinished"></translation>
+        <translation>Erreur de sauvegarde du fichier de l&apos;image flash !</translation>
     </message>
 </context>
 <context>
@@ -199,32 +199,32 @@
     <message>
         <location filename="../mainwindow.ui" line="454"/>
         <source>Snapshot</source>
-        <translation type="unfinished"></translation>
+        <translation>Snapshot</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="470"/>
         <source>Snapshot location:</source>
-        <translation type="unfinished"></translation>
+        <translation>Emplacement du snapshot :</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="483"/>
         <source>(none)</source>
-        <translation type="unfinished"></translation>
+        <translation>(aucun)</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="496"/>
         <source>Change</source>
-        <translation type="unfinished"></translation>
+        <translation>Choisir</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="507"/>
         <source>Suspend on close</source>
-        <translation type="unfinished"></translation>
+        <translation>Pause à la fermeture</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="514"/>
         <source>Resume on open</source>
-        <translation type="unfinished"></translation>
+        <translation>Reprise au lancement</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="547"/>
@@ -250,52 +250,52 @@
     <message>
         <location filename="../mainwindow.ui" line="611"/>
         <source>Boot&amp;2</source>
-        <translation type="unfinished"></translation>
+        <translation>Boot&amp;2</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="880"/>
         <source>Abo&amp;ut</source>
-        <translation type="unfinished"></translation>
+        <translation>A propos...</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="984"/>
         <source>Send &amp;file over XModem</source>
-        <translation type="unfinished"></translation>
+        <translation>Envoyer un &amp;fichier par XModem</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="993"/>
         <source>&amp;Suspend</source>
-        <translation type="unfinished"></translation>
+        <translation>Mettre en pau&amp;se</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="1002"/>
         <source>&amp;Resume</source>
-        <translation type="unfinished"></translation>
+        <translation>&amp;Reprendre</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="1011"/>
         <source>Save &amp;to file</source>
-        <translation type="unfinished"></translation>
+        <translation>Enregistrer dans le fichier</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="1020"/>
         <source>Load &amp;from file</source>
-        <translation type="unfinished"></translation>
+        <translation>Charger depuis le fichier</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="1032"/>
         <source>&amp;Record GIF</source>
-        <translation type="unfinished"></translation>
+        <translation>Captu&amp;re GIF</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="1041"/>
         <source>&amp;About Firebird</source>
-        <translation type="unfinished"></translation>
+        <translation>&amp;A propos de Firebird</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="1046"/>
         <source>About &amp;Qt</source>
-        <translation type="unfinished"></translation>
+        <translation>A propos de &amp;Qt</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="621"/>
@@ -366,7 +366,7 @@
     <message>
         <location filename="../mainwindow.ui" line="870"/>
         <source>S&amp;napshot</source>
-        <translation type="unfinished"></translation>
+        <translation>S&amp;napshot</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="897"/>
@@ -381,7 +381,7 @@
     <message>
         <location filename="../mainwindow.ui" line="927"/>
         <source>&amp;Pause</source>
-        <translation type="unfinished"></translation>
+        <translation>&amp;Pause</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="939"/>
@@ -437,7 +437,7 @@
     <message>
         <location filename="../mainwindow.ui" line="17"/>
         <source>TI-Nspire Emulator</source>
-        <translation type="unfinished"></translation>
+        <translation>Emulateur TI-Nspire</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="112"/>
@@ -464,17 +464,17 @@
     <message>
         <location filename="../mainwindow.cpp" line="302"/>
         <source>Try to restart this app.</source>
-        <translation type="unfinished"></translation>
+        <translation>Essayer de redémarrer l&apos;application.</translation>
     </message>
     <message>
         <location filename="../mainwindow.cpp" line="275"/>
         <source>Download failed</source>
-        <translation type="unfinished"></translation>
+        <translation>Transfert échoué</translation>
     </message>
     <message>
         <location filename="../mainwindow.cpp" line="275"/>
         <source>Could not download file.</source>
-        <translation type="unfinished"></translation>
+        <translation>Le fichier n&apos;a pas pu être récupéré.</translation>
     </message>
     <message>
         <location filename="../mainwindow.cpp" line="322"/>
@@ -494,7 +494,7 @@
     <message>
         <location filename="../mainwindow.cpp" line="484"/>
         <source>Select snapshot location</source>
-        <translation type="unfinished"></translation>
+        <translation>Choisir l&apos;emplacement du snapshot :</translation>
     </message>
     <message>
         <location filename="../mainwindow.cpp" line="494"/>
@@ -504,12 +504,12 @@
     <message>
         <location filename="../mainwindow.cpp" line="499"/>
         <source>Apply new flash?</source>
-        <translation type="unfinished"></translation>
+        <translation>Appliquer les paramètres de flash ?</translation>
     </message>
     <message>
         <location filename="../mainwindow.cpp" line="499"/>
         <source>Do you want to work with the newly created flash image now?</source>
-        <translation type="unfinished"></translation>
+        <translation>Voulez-vous utiliser ces nouveaux paramètres de Flash ?</translation>
     </message>
     <message>
         <location filename="../mainwindow.cpp" line="507"/>
@@ -519,7 +519,7 @@
     <message>
         <location filename="../mainwindow.cpp" line="507"/>
         <source>PNG images (*.png)</source>
-        <translation type="unfinished"></translation>
+        <translation>Images PNG (*.png)</translation>
     </message>
     <message>
         <location filename="../mainwindow.cpp" line="512"/>
@@ -534,22 +534,22 @@
     <message>
         <location filename="../mainwindow.cpp" line="530"/>
         <source>GIF images (*.gif)</source>
-        <translation type="unfinished"></translation>
+        <translation>Images GIF (*.gif)</translation>
     </message>
     <message>
         <location filename="../mainwindow.cpp" line="530"/>
         <source>Save Recording</source>
-        <translation type="unfinished"></translation>
+        <translation>Enregistrer la capture</translation>
     </message>
     <message>
         <location filename="../mainwindow.cpp" line="537"/>
         <source>Failed recording GIF</source>
-        <translation type="unfinished"></translation>
+        <translation>Erreur de capture GIF</translation>
     </message>
     <message>
         <location filename="../mainwindow.cpp" line="537"/>
         <source>A failure occured during recording</source>
-        <translation type="unfinished"></translation>
+        <translation>Une erreur est survenue lors de la capture</translation>
     </message>
     <message>
         <location filename="../mainwindow.cpp" line="557"/>
@@ -560,97 +560,97 @@
     <message>
         <location filename="../mainwindow.cpp" line="569"/>
         <source>Can&apos;t resume</source>
-        <translation type="unfinished"></translation>
+        <translation>Impossible de reprendre</translation>
     </message>
     <message>
         <location filename="../mainwindow.cpp" line="569"/>
         <location filename="../mainwindow.cpp" line="578"/>
         <source>No snapshot path (Settings-&gt;Snapshot) given</source>
-        <translation type="unfinished"></translation>
+        <translation>Pas d&apos;emplacement de snapshot donné (Paramètres-&gt;Snapshot)</translation>
     </message>
     <message>
         <location filename="../mainwindow.cpp" line="578"/>
         <source>Can&apos;t suspend</source>
-        <translation type="unfinished"></translation>
+        <translation>Impossible de mettre en pause</translation>
     </message>
     <message>
         <location filename="../mainwindow.cpp" line="583"/>
         <source>Select snapshot to resume from</source>
-        <translation type="unfinished"></translation>
+        <translation>Choisir l&apos;emplacement du snapshot pour la reprise</translation>
     </message>
     <message>
         <location filename="../mainwindow.cpp" line="590"/>
         <source>Select snapshot to suspend to</source>
-        <translation type="unfinished"></translation>
+        <translation>Choisir l&apos;emplacement du snapshot pour la mise en pause</translation>
     </message>
     <message>
         <location filename="../mainwindow.cpp" line="614"/>
         <source>About Firebird</source>
-        <translation type="unfinished"></translation>
+        <translation>A propos de Firebird</translation>
     </message>
     <message>
         <location filename="../mainwindow.cpp" line="615"/>
         <source>&lt;h3&gt;Firebird %1&lt;/h3&gt;&lt;a href=&apos;https://github.com/nspire-emus/firebird&apos;&gt;On GitHub&lt;/a&gt;&lt;br&gt;&lt;br&gt;Authors:&lt;br&gt;Fabian Vogt (&lt;a href=&apos;https://github.com/Vogtinator&apos;&gt;Vogtinator&lt;/a&gt;)&lt;br&gt;Adrien Bertrand (&lt;a href=&apos;https://github.com/adriweb&apos;&gt;Adriweb&lt;/a&gt;)&lt;br&gt;Antonio Vasquez (&lt;a href=&apos;https://github.com/antoniovazquezblanco&apos;&gt;antoniovazquezblanco&lt;/a&gt;)&lt;br&gt;Lionel Debroux (&lt;a href=&apos;https://github.com/debrouxl&apos;&gt;debrouxl&lt;/a&gt;)&lt;br&gt;Based on nspire_emu v0.70 by Goplat&lt;br&gt;&lt;br&gt;This work is licensed under the GPLv3.&lt;br&gt;To view a copy of this license, visit &lt;a href=&apos;https://www.gnu.org/licenses/gpl-3.0.html&apos;&gt;https://www.gnu.org/licenses/gpl-3.0.html&lt;/a&gt;</source>
-        <translation type="unfinished"></translation>
+        <translation>&lt;h3&gt;Firebird %1&lt;/h3&gt;&lt;a href=&apos;https://github.com/nspire-emus/firebird&apos;&gt;Sur GitHub&lt;/a&gt;&lt;br&gt;&lt;br&gt;Auteurs:&lt;br&gt;Fabian Vogt (&lt;a href=&apos;https://github.com/Vogtinator&apos;&gt;Vogtinator&lt;/a&gt;)&lt;br&gt;Adrien Bertrand (&lt;a href=&apos;https://github.com/adriweb&apos;&gt;Adriweb&lt;/a&gt;)&lt;br&gt;Antonio Vasquez (&lt;a href=&apos;https://github.com/antoniovazquezblanco&apos;&gt;antoniovazquezblanco&lt;/a&gt;)&lt;br&gt;Lionel Debroux (&lt;a href=&apos;https://github.com/debrouxl&apos;&gt;debrouxl&lt;/a&gt;)&lt;br&gt;Basé sur nspire_emu v0.70 par Goplat&lt;br&gt;&lt;br&gt;Projet sous licence GPLv3.&lt;br&gt;Pour voir une opie de cette licence, visitez &lt;a href=&apos;https://www.gnu.org/licenses/gpl-3.0.html&apos;&gt;https://www.gnu.org/licenses/gpl-3.0.html&lt;/a&gt;</translation>
     </message>
     <message>
         <location filename="../mainwindow.cpp" line="638"/>
         <source>Emulation started.</source>
-        <translation type="unfinished"></translation>
+        <translation>Emulation démarrée.</translation>
     </message>
     <message>
         <location filename="../mainwindow.cpp" line="640"/>
         <source>Could not start the emulation</source>
-        <translation type="unfinished"></translation>
+        <translation>Impossible de démarrer l&apos;émulation</translation>
     </message>
     <message>
         <location filename="../mainwindow.cpp" line="640"/>
         <source>Starting the emulation failed.
 Are the paths to boot1 and flash correct?</source>
-        <translation type="unfinished"></translation>
+        <translation>Le démarrage de l&apos;émulation a échoué. Les emplacements des boot1 et flash sont-ils corrects ?</translation>
     </message>
     <message>
         <location filename="../mainwindow.cpp" line="648"/>
         <source>Emulation resumed from snapshot.</source>
-        <translation type="unfinished"></translation>
+        <translation>Emulation reprise depuis le snapshot.</translation>
     </message>
     <message>
         <location filename="../mainwindow.cpp" line="302"/>
         <location filename="../mainwindow.cpp" line="650"/>
         <source>Could not resume</source>
-        <translation type="unfinished"></translation>
+        <translation>Impossible de reprendre</translation>
     </message>
     <message>
         <location filename="../mainwindow.cpp" line="340"/>
         <source>&amp;Start</source>
-        <translation type="unfinished"></translation>
+        <translation>Démarrer</translation>
     </message>
     <message>
         <location filename="../mainwindow.cpp" line="650"/>
         <source>Resuming failed.
 Try to fix the issue and try again.</source>
-        <translation type="unfinished"></translation>
+        <translation>La reprise a échouée. Essayez de corriger le problème, puis retentez.</translation>
     </message>
     <message>
         <location filename="../mainwindow.cpp" line="656"/>
         <source>Snapshot saved.</source>
-        <translation type="unfinished"></translation>
+        <translation>Snapshot sauvegardé.</translation>
     </message>
     <message>
         <location filename="../mainwindow.cpp" line="658"/>
         <source>Could not suspend</source>
-        <translation type="unfinished"></translation>
+        <translation>Impossible de mettre en pause</translation>
     </message>
     <message>
         <location filename="../mainwindow.cpp" line="658"/>
         <source>Suspending failed.
 Try to fix the issue and try again.</source>
-        <translation type="unfinished"></translation>
+        <translation>Mise en pause échouée. Essayez de corriger le problème, puis retentez.</translation>
     </message>
     <message>
         <location filename="../mainwindow.cpp" line="672"/>
         <source>Emulation stopped.</source>
-        <translation type="unfinished"></translation>
+        <translation>Emulation arrêtée.</translation>
     </message>
     <message>
         <location filename="../mainwindow.cpp" line="702"/>
@@ -682,7 +682,7 @@ You can create one via Flash-&gt;Create Flash in the menu.</source>
     <message>
         <location filename="../mainwindow.cpp" line="722"/>
         <source>Select file to send</source>
-        <translation type="unfinished"></translation>
+        <translation>Choisir le fichier à envoyer</translation>
     </message>
 </context>
 <context>
@@ -705,7 +705,7 @@ You can create one via Flash-&gt;Create Flash in the menu.</source>
     <message>
         <location filename="../qml/MobileControl2.qml" line="50"/>
         <source>Select Snapshot Location</source>
-        <translation type="unfinished"></translation>
+        <translation>Choisir l&apos;emplacement du snapshot</translation>
     </message>
     <message>
         <location filename="../qml/MobileControl2.qml" line="74"/>
@@ -735,7 +735,7 @@ You can create one via Flash-&gt;Create Flash in the menu.</source>
         <location filename="../qml/MobileControl2.qml" line="120"/>
         <source>Snapshot
 location:</source>
-        <translation type="unfinished"></translation>
+        <translation>Emplacement du snapshot :</translation>
     </message>
 </context>
 <context>
@@ -743,22 +743,22 @@ location:</source>
     <message>
         <location filename="../qml/MobileUI.qml" line="51"/>
         <source>Start</source>
-        <translation type="unfinished"></translation>
+        <translation>Démarrage</translation>
     </message>
     <message>
         <location filename="../qml/MobileUI.qml" line="60"/>
         <source>Reset</source>
-        <translation type="unfinished"></translation>
+        <translation>Reset</translation>
     </message>
     <message>
         <location filename="../qml/MobileUI.qml" line="69"/>
         <source>Resume</source>
-        <translation type="unfinished"></translation>
+        <translation>Reperise</translation>
     </message>
     <message>
         <location filename="../qml/MobileUI.qml" line="78"/>
         <source>Save</source>
-        <translation type="unfinished"></translation>
+        <translation>Sauver</translation>
     </message>
     <message>
         <location filename="../qml/MobileUI.qml" line="83"/>
@@ -783,13 +783,13 @@ location:</source>
     <message>
         <location filename="../qml/MobileUI.qml" line="97"/>
         <source>Warning</source>
-        <translation type="unfinished">à un warning</translation>
+        <translation>Attention</translation>
     </message>
     <message>
         <location filename="../qml/MobileUI.qml" line="98"/>
         <source>Flash saved, but no snapshot location configured.
 You won&apos;t be able to resume.</source>
-        <translation type="unfinished"></translation>
+        <translation>Flash sauvée, mais aucun emplacement de snapshot configuré. Vous ne pourrez pas reprendre.</translation>
     </message>
 </context>
 <context>
@@ -797,18 +797,19 @@ You won&apos;t be able to resume.</source>
     <message>
         <location filename="../qmlbridge.cpp" line="105"/>
         <source>Error</source>
-        <translation type="unfinished">Erreur</translation>
+        <translation>Erreur</translation>
     </message>
     <message>
         <location filename="../qmlbridge.cpp" line="105"/>
         <source>You need to select a proper boot1 and flash image before.
 Swipe the keypad to the left to show the settings menu.</source>
-        <translation type="unfinished"></translation>
+        <translation>Vous avez besoin de choisir un boot1 et une images flash avant.
+Faites glisser le clavier versl a gauche pour afficher les paramètres.</translation>
     </message>
     <message>
         <location filename="../qmlbridge.cpp" line="177"/>
         <source>None</source>
-        <translation type="unfinished">Aucun</translation>
+        <translation>Aucun</translation>
     </message>
 </context>
 <context>
@@ -829,27 +830,27 @@ Swipe the keypad to the left to show the settings menu.</source>
     <message>
         <location filename="../usblinktreewidget.cpp" line="85"/>
         <source>Delete</source>
-        <translation type="unfinished"></translation>
+        <translation>Supprimer</translation>
     </message>
     <message>
         <location filename="../usblinktreewidget.cpp" line="90"/>
         <source>Download</source>
-        <translation type="unfinished"></translation>
+        <translation>Récupérer</translation>
     </message>
     <message>
         <location filename="../usblinktreewidget.cpp" line="115"/>
         <source>Too much</source>
-        <translation type="unfinished"></translation>
+        <translation>Trop</translation>
     </message>
     <message>
         <location filename="../usblinktreewidget.cpp" line="268"/>
         <source>Chose save location</source>
-        <translation type="unfinished"></translation>
+        <translation>Choisir l&apos;emplacement du fichier à récupérer</translation>
     </message>
     <message>
         <location filename="../usblinktreewidget.cpp" line="268"/>
         <source>TNS file (*.tns)</source>
-        <translation type="unfinished"></translation>
+        <translation>Fichier TNS (*.tns)</translation>
     </message>
 </context>
 </TS>
