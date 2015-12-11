@@ -94,6 +94,8 @@ void USBLinkTreeWidget::customContextMenuRequested(QPoint pos)
         action_new_folder->setDefaultWidget(line_new_folder);
 
         connect(line_new_folder, &QLineEdit::returnPressed, this, &USBLinkTreeWidget::newFolder);
+        // FIXME: Can this delete line_new_folder while in use by newFolder?
+        connect(line_new_folder, &QLineEdit::returnPressed, menu, &QMenu::close);
 
         menu->addAction(action_new_folder);
 
