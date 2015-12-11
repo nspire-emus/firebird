@@ -2,6 +2,8 @@
 #include <QFileDialog>
 #include <QMenu>
 #include <QMimeData>
+#include <QLineEdit>
+#include <QWidgetAction>
 
 #include "usblinktreewidget.h"
 
@@ -78,23 +80,35 @@ void USBLinkTreeWidget::reloadFilebrowser()
 
 void USBLinkTreeWidget::customContextMenuRequested(QPoint pos)
 {
-    if(!this->currentItem())
-        return;
-
     QMenu *menu = new QMenu(this);
     QAction *action_delete = new QAction(tr("Delete"), menu);
 
-    if(this->currentItem()->data(0, Qt::UserRole).toBool() == false)
+    context_menu_item = this->itemAt(pos);
+
+    if(context_menu_item == nullptr || context_menu_item->data(0, Qt::UserRole).toBool() == true)
+    {
+        // Is a directory
+        QWidgetAction *action_new_folder = new QWidgetAction(menu);
+        QLineEdit *line_new_folder = new QLineEdit(nullptr);
+        line_new_folder->setPlaceholderText(tr("New folder"));
+        action_new_folder->setDefaultWidget(line_new_folder);
+
+        connect(line_new_folder, &QLineEdit::returnPressed, this, &USBLinkTreeWidget::newFolder);
+
+        menu->addAction(action_new_folder);
+
+        if(context_menu_item == nullptr || context_menu_item->childCount() > 0)
+        {
+            // Non-empty directory
+            action_delete->setDisabled(true);
+        }
+    }
+    else
     {
         // Is not a directory
         QAction *action_download = new QAction(tr("Download"), menu);
         connect(action_download, &QAction::triggered, this,  &USBLinkTreeWidget::downloadEntry);
         menu->addAction(action_download);
-    }
-    else if(this->currentItem()->childCount() > 0)
-    {
-        // Non-empty directory
-        action_delete->setDisabled(true);
     }
 
     connect(action_delete, &QAction::triggered, this,  &USBLinkTreeWidget::deleteEntry);
@@ -261,21 +275,29 @@ void USBLinkTreeWidget::dataChangedHandler(QTreeWidgetItem *item, int column)
 
 void USBLinkTreeWidget::downloadEntry()
 {
-    if(!this->currentItem()
-            || this->currentItem()->data(0, Qt::UserRole).toBool()) // Is a directory
+    if(!context_menu_item
+            || context_menu_item->data(0, Qt::UserRole).toBool()) // Is a directory
         return;
 
     QString dest = QFileDialog::getSaveFileName(this, tr("Chose save location"), QString(), tr("TNS file (*.tns)"));
     if(!dest.isEmpty())
-        usblink_queue_download(usblink_path_item(this->currentItem()).toStdString(), dest.toStdString(), usblink_download_callback, this);
+        usblink_queue_download(usblink_path_item(context_menu_item).toStdString(), dest.toStdString(), usblink_download_callback, this);
 }
 
 void USBLinkTreeWidget::deleteEntry()
 {
-    if(!this->currentItem())
+    if(!context_menu_item)
         return;
 
-    usblink_queue_delete(usblink_path_item(this->currentItem()).toStdString(), this->currentItem()->data(0, Qt::UserRole).toBool(), usblink_delete_callback, this->currentItem());
+    usblink_queue_delete(usblink_path_item(context_menu_item).toStdString(), context_menu_item->data(0, Qt::UserRole).toBool(), usblink_delete_callback, context_menu_item);
+}
+
+void USBLinkTreeWidget::newFolder()
+{
+    auto *line_edit= qobject_cast<QLineEdit*>(QObject::sender());
+
+    // FIXME: Don't use usblink_upload_callback here, it may change behavior.
+    usblink_queue_new_dir((usblink_path_item(context_menu_item) + QStringLiteral("/") + line_edit->text()).toStdString(), usblink_upload_callback, this);
 }
 
 void USBLinkTreeWidget::addTreeItem(QTreeWidgetItem *item, QTreeWidgetItem *parent)

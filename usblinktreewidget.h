@@ -44,6 +44,7 @@ private slots:
     void dataChangedHandler(QTreeWidgetItem *item, int column); // Internal
     void downloadEntry(); // Internal
     void deleteEntry(); // Internal
+    void newFolder(); // Internal
     void addTreeItem(QTreeWidgetItem *item, QTreeWidgetItem *parent); // Has to run in the UI thread. Internal
 
 private:
@@ -52,6 +53,8 @@ private:
 
     // To avoid concurrent dirlisting
     std::atomic<bool> doing_dirlist{false};
+    // The item the context menu was requested on. Only valid in slots.
+    QTreeWidgetItem *context_menu_item;
 };
 
 #endif // USBLINKTREEWIDGET_H

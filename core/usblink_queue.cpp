@@ -13,6 +13,7 @@ struct usblink_queue_action {
         DIRLIST,
         MOVE,
         DEL_FILE,
+        NEW_DIR,
         DEL_DIR,
         GET_FILE
     } action;
@@ -54,6 +55,7 @@ static void progress_callback(int progress, void *user_data)
         if(action == usblink_queue_action::PUT_FILE
                 || action == usblink_queue_action::SEND_OS
                 || action == usblink_queue_action::MOVE
+                || action == usblink_queue_action::NEW_DIR
                 || action == usblink_queue_action::DEL_DIR
                 || action == usblink_queue_action::DEL_FILE
                 || action == usblink_queue_action::GET_FILE)
@@ -97,6 +99,9 @@ void usblink_queue_do()
         break;
     case usblink_queue_action::MOVE:
         usblink_move(action.filepath.c_str(), action.path.c_str(), progress_callback, action.user_data);
+        break;
+    case usblink_queue_action::NEW_DIR:
+        usblink_new_dir(action.path.c_str(), progress_callback, action.user_data);
         break;
     case usblink_queue_action::DEL_DIR:
         usblink_delete(action.path.c_str(), true, progress_callback, action.user_data);
@@ -185,6 +190,17 @@ void usblink_queue_send_os(const char *filepath, usblink_progress_cb callback, v
     action.user_data = user_data;
     action.filepath = filepath;
     action.progress_callback = callback;
+
+    usblink_queue.push(action);
+}
+
+void usblink_queue_new_dir(std::string path, usblink_progress_cb callback, void *user_data)
+{
+    usblink_queue_action action;
+    action.action = usblink_queue_action::NEW_DIR;
+    action.user_data = user_data;
+    action.path = path;
+    action.progress_callback = callback,
 
     usblink_queue.push(action);
 }
