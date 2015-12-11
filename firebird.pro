@@ -35,33 +35,25 @@ QMAKE_CXXFLAGS_RELEASE = -O3 -flto
 QMAKE_LFLAGS_RELEASE = -Wl,-O3 -flto
 
 # Apple's clang doesn't know about this one
-macx {
-    QMAKE_LFLAGS_RELEASE -= -Wl,-O3
-}
-# Disable those for iOS, Qt can't deal with bitcode generation
-ios {
+macx: QMAKE_LFLAGS_RELEASE -= -Wl,-O3
+
+# ios: The linker can't deal with LLVM bitcode directly (missing plugin?)
+# linux-clang: LTO causes "QObject::connect: signal not found"
+ios|linux-clang {
     QMAKE_CFLAGS_RELEASE -= -flto
     QMAKE_CXXFLAGS_RELEASE -= -flto
     QMAKE_LFLAGS_RELEASE -= -Wl,-O3 -flto
 }
 
-macx {
-    ICON = resources/logo.icns
-}
+macx: ICON = resources/logo.icns
 
 # This does also apply to android
-linux|macx|ios {
-    SOURCES += core/os/os-linux.c
-}
+linux|macx|ios: SOURCES += core/os/os-linux.c
 
 # This should not be required. But somehow, it is...
-android {
-    DEFINES += Q_OS_ANDROID
-}
+android: DEFINES += Q_OS_ANDROID
 
-ios|android {
-    DEFINES += MOBILE_UI
-}
+ios|android:  DEFINES += MOBILE_UI
 
 ios {
     DEFINES += IS_IOS_BUILD __arm__
