@@ -126,6 +126,9 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->debugConsole->setFont(monospace);
     ui->serialConsole->setFont(monospace);
 
+    //Without this line, Qt prints warning messages...
+    qRegisterMetaType<QVector<int>>();
+
 #ifdef Q_OS_ANDROID
     //On android the settings file is deleted everytime you update or uninstall,
     //so choose a better, safer, location
