@@ -261,7 +261,6 @@ char *getpacket(void) {
 
 retry:
         checksum = 0;
-        xmitcsum = -1;
         count = 0;
 
         /* now, read until a # or end of buffer is found */

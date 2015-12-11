@@ -153,6 +153,7 @@ new_page:
                 } while (isspace(c));
                 if (c != ':')
                     goto error;
+                record.reclen = 0;
                 for (pos = 0; pos < record.reclen + 5; pos++) {
                     int byte = 0;
                     for (i = 0; i < 2; i++) {

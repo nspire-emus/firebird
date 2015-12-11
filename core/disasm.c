@@ -471,7 +471,7 @@ uint32_t disasm_thumb_insn(uint32_t pc) {
         out += sprintf(out, "ldr\tr%d,[%08x]", insn >> 8 & 7, addr);
         uint32_t *ptr = virt_mem_ptr(addr, 4);
         if (ptr)
-            out += sprintf(out, " = %08x", *ptr);
+            sprintf(out, " = %08x", *ptr);
     } else if (insn < 0x6000) {
         static const char name[][6] = {
             "str", "strh", "strb", "ldrsb",

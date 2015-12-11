@@ -962,7 +962,7 @@ void flush_translations() {
         uint32_t *start = translation_table[index].start_ptr;
         uint32_t *end   = translation_table[index].end_ptr;
         for (; start < end; start++)
-            RAM_FLAGS(start) &= ~(RF_CODE_TRANSLATED | (-1 << RFS_TRANSLATION_INDEX));
+            RAM_FLAGS(start) &= ~(RF_CODE_TRANSLATED | (~0u << RFS_TRANSLATION_INDEX));
     }
     next_index = 0;
     insn_bufptr = insn_buffer;

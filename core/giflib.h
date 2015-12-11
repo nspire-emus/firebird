@@ -693,7 +693,7 @@ void GifWriteLzwImage(FILE* f, uint8_t* image, uint32_t left, uint32_t top,  uin
                     GifWriteCode(f, stat, clearCode, codeSize); // clear tree
                     
                     memset(codetree, 0, sizeof(GifLzwNode)*4096);
-                    curCode = -1;
+                    nextValue = -1;
                     codeSize = minCodeSize+1;
                     maxCode = clearCode+1;
                 }

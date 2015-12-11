@@ -34,7 +34,6 @@ std::string path_boot1, path_flash;
 
 void *restart_after_exception[32];
 
-const char log_type_tbl[] = LOG_TYPE_TBL;
 int log_enabled[MAX_LOG];
 FILE *log_file[MAX_LOG];
 void logprintf(int type, const char *str, ...) {
