@@ -296,7 +296,8 @@ void emu_loop(bool reset)
 
 // clang segfaults with that, for an iOS build :(
 #ifndef IS_IOS_BUILD
-    __builtin_setjmp(restart_after_exception);
+    // Workaround for LLVM bug #18974
+    while(__builtin_setjmp(restart_after_exception)){};
 #endif
 
     while (!exiting) {
