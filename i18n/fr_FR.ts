@@ -835,7 +835,7 @@ Faites glisser le clavier versl a gauche pour afficher les paramètres.</transla
     <message>
         <location filename="../usblinktreewidget.cpp" line="93"/>
         <source>New folder</source>
-        <translation type="unfinished"></translation>
+        <translation>Nouveau dossier</translation>
     </message>
     <message>
         <location filename="../usblinktreewidget.cpp" line="111"/>
