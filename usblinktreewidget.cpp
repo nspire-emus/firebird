@@ -148,7 +148,15 @@ void USBLinkTreeWidget::dragEnterEvent(QDragEnterEvent *e)
 {
     // Somehow caching this QList is necessary. Without this, the values vanished in the middle of the if() condition...
     QList<QUrl> urls = e->mimeData()->urls();
-    if(urls.size() == 1 && urls[0].fileName().endsWith(QStringLiteral(".tns")))
+    if(urls.size() != 1)
+        return e->ignore();
+
+    static const QStringList valid_suffixes = { QStringLiteral("tns"), QStringLiteral("tno"),
+                                          QStringLiteral("tnc"), QStringLiteral("tco"),
+                                          QStringLiteral("tcc") };
+
+    QFileInfo file(urls[0].fileName());
+    if(valid_suffixes.contains(file.suffix().toLower()))
         QTreeWidget::dragEnterEvent(e);
     else
         e->ignore();

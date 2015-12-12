@@ -205,8 +205,15 @@ void MainWindow::dragEnterEvent(QDragEnterEvent *e)
         return e->ignore();
 
     for(QUrl &url : e->mimeData()->urls())
-        if(!url.fileName().endsWith(QStringLiteral(".tns")))
+    {
+        static const QStringList valid_suffixes = { QStringLiteral("tns"), QStringLiteral("tno"),
+                                              QStringLiteral("tnc"), QStringLiteral("tco"),
+                                              QStringLiteral("tcc") };
+
+        QFileInfo file(url.fileName());
+        if(!valid_suffixes.contains(file.suffix().toLower()))
             return e->ignore();
+    }
 
     e->accept();
 }
@@ -451,7 +458,7 @@ void MainWindow::setBootOrder(bool diags_first)
 
 void MainWindow::setUSBPath(QString path)
 {
-    settings->setValue(QStringLiteral("/usbdir"), path);
+    settings->setValue(QStringLiteral("usbdirNew"), path);
     ln_target_folder = path.toStdString(); // For the "ln" debug cmd
     if(ui->pathTransfer->text() != path)
         ui->pathTransfer->setText(path);

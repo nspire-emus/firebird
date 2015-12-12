@@ -177,9 +177,6 @@ send_data:
                 break;
             }
 
-            if(current_file_callback)
-                current_file_callback(100, current_user_data);
-
             gui_status_printf("Send complete");
             throttle_timer_on();
             put_file_state = DONE;
@@ -200,11 +197,16 @@ send_data:
             break;
 fail:
             if(current_file_callback)
+            {
                 current_file_callback(status, current_user_data);
+                current_file_callback = NULL;
+            }
             emuprintf("Send failed\n");
             usblink_connected = false;
             gui_usblink_changed(false);
         case DONE:
+            if(current_file_callback)
+                current_file_callback((in->data_size == 2 && in->data[0] == 0xFF && in->data[1] == 00) ? 100 : 0, current_user_data);
             put_file_state = 0;
             fclose(put_file);
             put_file = NULL;
