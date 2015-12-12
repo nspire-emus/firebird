@@ -120,6 +120,10 @@ Rectangle {
         anchors.left: parent.left
         anchors.leftMargin: 0
 
+        focus: true
+        Keys.onPressed: Emu.keyPressed(event.key, event.modifiers)
+        Keys.onReleased: Emu.keyReleased(event.key, event.modifiers)
+
         Timer {
             interval: 20
             running: true; repeat: true

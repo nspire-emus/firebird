@@ -44,6 +44,9 @@ public:
         Q_INVOKABLE void registerToast(QVariant toast);
         Q_INVOKABLE void toastMessage(QString msg);
 
+        Q_INVOKABLE void keyPressed(int key, int modifiers);
+        Q_INVOKABLE void keyReleased(int key, int modifiers);
+
         EmuThread emu_thread;
 
     public slots:

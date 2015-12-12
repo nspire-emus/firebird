@@ -61,7 +61,66 @@ void paintFramebuffer(QPainter *p)
     }
 }
 
+QMLFramebuffer::QMLFramebuffer(QQuickItem *parent) : QQuickPaintedItem(parent)
+{
+    connect(&timer, &QTimer::timeout, this, &QMLFramebuffer::resetKeypad);
+}
+
 void QMLFramebuffer::paint(QPainter *p)
 {
     paintFramebuffer(p);
+}
+
+QVariant QMLFramebuffer::inputMethodQuery(Qt::InputMethodQuery query) const
+{
+    switch(query)
+    {
+    case Qt::ImEnabled:
+        return true;
+    case Qt::ImHints:
+        return Qt::ImhMultiLine;
+    default:
+        return {};
+    }
+}
+#include "qtkeypadbridge.h"
+void QMLFramebuffer::inputMethodEvent(QInputMethodEvent *ev)
+{
+    if(ev->commitString().length() <= ev->preeditString().length())
+        return;
+
+    for(int i = ev->preeditString().length(); i < ev->commitString().length(); ++i)
+    {
+        // From https://stackoverflow.com/questions/14034209/convert-string-representation-of-keycode-to-qtkey-or-any-int-and-back
+        QKeySequence seq(ev->commitString()[i]);
+        int keyCode;
+
+        if(seq.count() == 1)
+            keyCode = seq[0];
+        else {
+            assert(seq.count() == 0);
+
+            QKeyEvent k(QEvent::KeyPress, Qt::Key_Shift, Qt::NoModifier);
+            qt_keypad_bridge.keyPressEvent(&k);
+
+            // Add a non-modifier key "A" to the picture because QKeySequence
+            // seems to need that to acknowledge the modifier. We know that A has
+            // a keyCode of 65 (or 0x41 in hex)
+            seq = QKeySequence(ev->commitString()[i] + QStringLiteral("+A"));
+            assert(seq.count() == 1);
+            assert(seq[0] > 65);
+            keyCode = seq[0] - 65;
+        }
+
+        QKeyEvent k(QEvent::KeyPress, keyCode, Qt::NoModifier);
+        qt_keypad_bridge.keyPressEvent(&k);
+    }
+
+    timer.start(100);
+}
+
+void QMLFramebuffer::resetKeypad()
+{
+    memset(keypad.key_map, 0, sizeof(keypad.key_map));
+    keypad_int_check();
 }

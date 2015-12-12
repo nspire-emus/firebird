@@ -4,6 +4,7 @@
 #include <QMessageBox>
 
 #include "qmlbridge.h"
+#include "qtkeypadbridge.h"
 
 #include "core/flash.h"
 #include "core/keypad.h"
@@ -208,6 +209,18 @@ void QMLBridge::toastMessage(QString msg)
     }
 
     QQmlProperty::write(toast, QStringLiteral("text"), msg);
+}
+
+void QMLBridge::keyPressed(int key, int modifiers)
+{
+    QKeyEvent k(QEvent::KeyPress, key, static_cast<Qt::KeyboardModifier>(modifiers));
+    qt_keypad_bridge.keyPressEvent(&k);
+}
+
+void QMLBridge::keyReleased(int key, int modifiers)
+{
+    QKeyEvent k(QEvent::KeyRelease, key, static_cast<Qt::KeyboardModifier>(modifiers));
+    qt_keypad_bridge.keyReleaseEvent(&k);
 }
 
 void QMLBridge::started(bool success)

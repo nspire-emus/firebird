@@ -136,6 +136,16 @@ Rectangle {
 
             onClicked: fileDialogSnapshot.visible = true
         }
+
+        Button {
+            id: button4
+            text: qsTr("Show keypad")
+            anchors.right: parent.right
+            anchors.rightMargin: 0
+            visible: Qt.platform.os === "android" || Qt.platform.os === "ios"
+
+            onClicked: Qt.inputMethod.show()
+        }
     }
 }
 
