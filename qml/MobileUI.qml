@@ -160,7 +160,7 @@ Rectangle {
                 Rectangle {
                     id: iosmargin
                     // This is needed to avoid opening the control center
-                    height: Qt.platform === "ios" ? 20 : 0
+                    height: Qt.platform.os === "ios" ? 20 : 0
                 }
             }
 
