@@ -87,7 +87,7 @@ bool QMLBridge::restart()
 #if defined(Q_OS_IOS)
     QString docsPath = QStandardPaths::standardLocations(QStandardPaths::DocumentsLocation)[0];
     std::string boot1_path_str = (docsPath + QStringLiteral("/boot1.img")).toStdString();
-    std::string flash_path_str = (docsPath + QStringLiteral("/flash.img").toStdString();
+    std::string flash_path_str = (docsPath + QStringLiteral("/flash.img")).toStdString();
      if(access(boot1_path_str.c_str(), F_OK) != -1 && access(flash_path_str.c_str(), F_OK) != -1) {
          // Both files are good to use.
         emu_thread.boot1 = QString::fromStdString(boot1_path_str);

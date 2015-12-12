@@ -155,17 +155,25 @@ Rectangle {
             id: controlsRow
 
             Rectangle {
-                height: keypad.height*controls.width/keypad.width
+                id: mobilecontrol1
+                height: keypad.height*controls.width/keypad.width + iosmargin.height
                 width: controls.width
+                color: keypad.color
 
                 Keypad {
                     id: keypad
                     transform: Scale { origin.x: 0; origin.y: 0; xScale: controls.width/keypad.width; yScale: controls.width/keypad.width }
                 }
+
+                Rectangle {
+                    id: iosmargin
+                    // This is needed to avoid opening the control center
+                    height: Qt.platform === "ios" ? 20 : 0
+                }
             }
 
             Rectangle {
-                height: keypad.height*controls.width/keypad.width
+                height: mobilecontrol1.height
                 width: controls.width
                 color: keypad.color
 
