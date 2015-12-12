@@ -284,6 +284,11 @@ void MainWindow::usblinkProgress(int progress)
 
 void MainWindow::usblink_progress_callback(int progress, void *)
 {
+    // TODO: Don't do a full refresh
+    // Also refresh on error, in case of multiple transfers
+    if((progress == 100 || progress < 0) && usblink_queue_size() == 1)
+        main_window->ui->usblinkTree->wantToReload(); // Reload the file explorer after uploads finished
+
     if(progress < 0 || progress > 100)
         progress = 0; //No error handling here
 
