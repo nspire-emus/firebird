@@ -217,7 +217,7 @@ Rectangle {
 
             onTextChanged: {
                 parent.opacity = 1;
-                timer.start();
+                timer.restart();
             }
         }
 
