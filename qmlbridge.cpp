@@ -223,13 +223,13 @@ void QMLBridge::resumed(bool success)
     if(success)
         toastMessage(tr("Emulation resumed"));
     else
-        toastMessage(tr("Couldn't resume emulation"));
+        toastMessage(tr("Could not resume"));
 }
 
 void QMLBridge::suspended(bool success)
 {
     if(success)
-        toastMessage(tr("Snapshot saved"));
+        toastMessage(tr("Flash and snapshot saved")); // When clicking on save, flash is saved as well
     else
         toastMessage(tr("Couldn't save snapshot"));
 }

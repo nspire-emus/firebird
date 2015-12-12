@@ -642,7 +642,7 @@ void MainWindow::started(bool success)
     updateUIActionState(success);
 
     if(success)
-        showStatusMsg(tr("Emulation started."));
+        showStatusMsg(tr("Emulation started"));
     else
         QMessageBox::warning(this, tr("Could not start the emulation"), tr("Starting the emulation failed.\nAre the paths to boot1 and flash correct?"));
 }
@@ -652,7 +652,7 @@ void MainWindow::resumed(bool success)
     updateUIActionState(success);
 
     if(success)
-        showStatusMsg(tr("Emulation resumed from snapshot."));
+        showStatusMsg(tr("Emulation resumed from snapshot"));
     else
         QMessageBox::warning(this, tr("Could not resume"), tr("Resuming failed.\nTry to fix the issue and try again."));
 }
@@ -660,7 +660,7 @@ void MainWindow::resumed(bool success)
 void MainWindow::suspended(bool success)
 {
     if(success)
-        showStatusMsg(tr("Snapshot saved."));
+        showStatusMsg(tr("Snapshot saved"));
     else
         QMessageBox::warning(this, tr("Could not suspend"), tr("Suspending failed.\nTry to fix the issue and try again."));
 
@@ -676,7 +676,7 @@ void MainWindow::suspended(bool success)
 void MainWindow::stopped()
 {
     updateUIActionState(false);
-    showStatusMsg(tr("Emulation stopped."));
+    showStatusMsg(tr("Emulation stopped"));
 }
 
 void MainWindow::closeEvent(QCloseEvent *e)
