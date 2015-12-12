@@ -192,9 +192,6 @@ void MainWindow::dropEvent(QDropEvent *e)
     if(!mime_data->hasUrls())
         return;
 
-    if(!usblink_connected)
-        usblink_connect();
-
     for(auto &&url : mime_data->urls())
     {
         QUrl local = url.toLocalFile();

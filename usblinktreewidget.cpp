@@ -71,9 +71,6 @@ void USBLinkTreeWidget::reloadFilebrowser()
     if(!doing_dirlist.compare_exchange_strong(is_false, true))
         usblink_queue_reset(); // The treeWidget is cleared, so references to items get invalid -> Get rid of them!
 
-    if(!usblink_connected)
-        usblink_connect();
-
     this->clear();
     usblink_queue_dirlist("/", usblink_dirlist_callback, this);
 }
