@@ -5,12 +5,14 @@ import Ndless.Emu 1.0
 import QtQuick.Controls 1.3
 
 Rectangle {
-    id: rectangle1
+    id: mobileui
     width: 320
     height: 480
     color: "#AAA"
 
     Component.onCompleted: {
+        // FIXME: The toast might not yet be registered here
+
         if(Emu.getFlashPath() !== ""
             && Emu.getSnapshotPath() !== ""
             && Emu.getBoot1Path() !== "")
@@ -79,13 +81,6 @@ Rectangle {
             icon: "qrc:/icons/resources/icons/media-floppy.png"
 
             MessageDialog {
-                id: saveSuccessDialog
-                title: qsTr("Success")
-                text: qsTr("Flash saved.")
-                icon: StandardIcon.Information
-            }
-
-            MessageDialog {
                 id: saveFailedDialog
                 title: qsTr("Error")
                 text: qsTr("Failed to save changes!")
@@ -108,10 +103,7 @@ Rectangle {
                 else
                 {
                     if(snap_path)
-                    {
                         Emu.suspend();
-                        saveSuccessDialog.visible = true;
-                    }
                     else
                         snapWarnDialog.visible = true;
                 }
@@ -183,6 +175,57 @@ Rectangle {
                     anchors.right: parent.right
                     //transform: Scale { origin.x: 0; origin.y: 0; xScale: controls.width/keypad.width; yScale: controls.width/keypad.width }
                 }
+            }
+        }
+    }
+
+    Rectangle {
+        id: toast
+        x: 60
+        z: 1
+        width: message.width+2*5
+
+        anchors.top: parent.bottom
+        anchors.topMargin: -90
+        anchors.bottom: parent.bottom
+        anchors.bottomMargin: 61
+        anchors.horizontalCenter: parent.horizontalCenter
+
+        radius: 5
+        color: "#d3c7c7"
+        border.color: "#e66e6e6e"
+        border.width: 3
+
+        opacity: 0
+        visible: opacity > 0
+
+        Behavior on opacity { NumberAnimation { duration: 200 } }
+
+        Text {
+            id: message
+            text: "Text"
+            anchors.centerIn: parent
+            font.pixelSize: parent.height / 2
+
+            Component.onCompleted: Emu.registerToast(this)
+
+            Timer {
+                id: timer
+                interval: 2000
+                onTriggered: parent.parent.opacity = 0;
+            }
+
+            onTextChanged: {
+                parent.opacity = 1;
+                timer.start();
+            }
+        }
+
+        MouseArea {
+            anchors.fill: parent
+            onClicked: {
+                timer.stop();
+                parent.opacity = 0;
             }
         }
     }

@@ -41,10 +41,20 @@ public:
 
         Q_INVOKABLE QString basename(QString path);
 
+        Q_INVOKABLE void registerToast(QVariant toast);
+        Q_INVOKABLE void toastMessage(QString msg);
+
         EmuThread emu_thread;
+
+    public slots:
+        void started(bool success); // Not called on resume
+        void resumed(bool success);
+        void suspended(bool success);
+
     #endif
 
 private:
+    QObject *toast = nullptr;
     QSettings settings;
 };
 

@@ -9,7 +9,13 @@
 #include "core/keypad.h"
 
 QMLBridge::QMLBridge(QObject *parent) : QObject(parent)
-{}
+{
+    #ifdef MOBILE_UI
+        connect(&emu_thread, &EmuThread::started, this, &QMLBridge::started, Qt::QueuedConnection);
+        connect(&emu_thread, &EmuThread::resumed, this, &QMLBridge::resumed, Qt::QueuedConnection);
+        connect(&emu_thread, &EmuThread::suspended, this, &QMLBridge::suspended, Qt::QueuedConnection);
+    #endif
+}
 
 QMLBridge::~QMLBridge()
 {
@@ -82,7 +88,10 @@ bool QMLBridge::isMobile()
 bool QMLBridge::restart()
 {
     if(emu_thread.isRunning() && !emu_thread.stop())
+    {
+        toastMessage(tr("Could not stop emulation"));
         return false;
+    }
 
 #if defined(Q_OS_IOS)
     QString docsPath = QStandardPaths::standardLocations(QStandardPaths::DocumentsLocation)[0];
@@ -99,6 +108,7 @@ bool QMLBridge::restart()
 #endif
 
     if(!emu_thread.boot1.isEmpty() && !emu_thread.flash.isEmpty()) {
+        toastMessage(tr("Starting emulation"));
         emu_thread.start();
         return true;
     } else {
@@ -119,6 +129,7 @@ void QMLBridge::reset()
 
 void QMLBridge::suspend()
 {
+    toastMessage(tr("Suspending emulation"));
     QString snapshot_path = settings.value(QStringLiteral("snapshotPath")).toString();
     if(!snapshot_path.isEmpty())
         emu_thread.suspend(snapshot_path);
@@ -126,6 +137,7 @@ void QMLBridge::suspend()
 
 void QMLBridge::resume()
 {
+    toastMessage(tr("Resuming emulation"));
     QString snapshot_path = settings.value(QStringLiteral("snapshotPath")).toString();
     if(!snapshot_path.isEmpty())
         emu_thread.resume(snapshot_path);
@@ -180,6 +192,46 @@ QString QMLBridge::basename(QString path)
     return QString::fromStdString(std::string(
                 std::find_if(pathname.rbegin(), pathname.rend(), [](char c) { return c == '/'; }).base(),
             pathname.end()));
+}
+
+void QMLBridge::registerToast(QVariant toast)
+{
+    this->toast = toast.value<QObject*>();
+}
+
+void QMLBridge::toastMessage(QString msg)
+{
+    if(!toast)
+    {
+        qWarning() << "Warning: No toast QML component registered!";
+        return;
+    }
+
+    QQmlProperty::write(toast, QStringLiteral("text"), msg);
+}
+
+void QMLBridge::started(bool success)
+{
+    if(success)
+        toastMessage(tr("Emulation started"));
+    else
+        toastMessage(tr("Couldn't start emulation"));
+}
+
+void QMLBridge::resumed(bool success)
+{
+    if(success)
+        toastMessage(tr("Emulation resumed"));
+    else
+        toastMessage(tr("Couldn't resume emulation"));
+}
+
+void QMLBridge::suspended(bool success)
+{
+    if(success)
+        toastMessage(tr("Snapshot saved"));
+    else
+        toastMessage(tr("Couldn't save snapshot"));
 }
 
 #endif
