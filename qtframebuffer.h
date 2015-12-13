@@ -6,7 +6,7 @@
 class QMLFramebuffer : public QQuickPaintedItem
 {
 public:
-    QMLFramebuffer(QQuickItem *parent = 0) : QQuickPaintedItem(parent) {}
+    QMLFramebuffer(QQuickItem *parent = 0);
     virtual void paint(QPainter *p) override;
 };
 

@@ -11,6 +11,8 @@
 #include "core/lcd.h"
 #include "core/misc.h"
 
+#include "qtkeypadbridge.h"
+
 QImage renderFramebuffer()
 {
     static std::array<uint16_t, 320 * 240> framebuffer;
@@ -59,6 +61,12 @@ void paintFramebuffer(QPainter *p)
         p->setPen(Qt::white);
         p->drawText(p->window(), Qt::AlignCenter, QObject::tr("In debugger"));
     }
+}
+
+QMLFramebuffer::QMLFramebuffer(QQuickItem *parent)
+ : QQuickPaintedItem(parent)
+{
+    installEventFilter(&qt_keypad_bridge);
 }
 
 void QMLFramebuffer::paint(QPainter *p)
