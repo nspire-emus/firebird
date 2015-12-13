@@ -743,7 +743,7 @@ location:</source>
     <message>
         <location filename="../qml/MobileUI.qml" line="53"/>
         <source>Start</source>
-        <translation>Démarrage</translation>
+        <translation type="unfinished">Démarrer</translation>
     </message>
     <message>
         <location filename="../qml/MobileUI.qml" line="62"/>
@@ -753,7 +753,7 @@ location:</source>
     <message>
         <location filename="../qml/MobileUI.qml" line="71"/>
         <source>Resume</source>
-        <translation>Reperise</translation>
+        <translation type="unfinished">Reprendre</translation>
     </message>
     <message>
         <location filename="../qml/MobileUI.qml" line="80"/>
