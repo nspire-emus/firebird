@@ -15,15 +15,17 @@ CONFIG += c++11
 TEMPLATE = app
 TARGET = firebird
 
-# For make install support
-target.path = /usr/bin
-desktop.path = /usr/share/applications
-desktop.files += resources/firebird.desktop
-icon.path = /usr/share/icons
-icon.files += resources/firebird.png
-sendtool.path = /usr/bin
-sendtool.files = core/firebird-send
-INSTALLS += target desktop icon sendtool
+linux: !android {
+    # For make install support
+    target.path = /usr/bin
+    desktop.path = /usr/share/applications
+    desktop.files += resources/firebird.desktop
+    icon.path = /usr/share/icons
+    icon.files += resources/firebird.png
+    sendtool.path = /usr/bin
+    sendtool.files = core/firebird-send
+    INSTALLS += target desktop icon sendtool
+}
 
 QMAKE_CFLAGS = -g -std=gnu11 -Wall -Wextra
 QMAKE_CXXFLAGS = -g -std=c++11 -Wall -Wextra -D QT_NO_CAST_FROM_ASCII
@@ -53,7 +55,7 @@ linux|macx|ios: SOURCES += core/os/os-linux.c
 # This should not be required. But somehow, it is...
 android: DEFINES += Q_OS_ANDROID
 
-ios|android:  DEFINES += MOBILE_UI
+ios|android: DEFINES += MOBILE_UI
 
 ios {
     DEFINES += IS_IOS_BUILD __arm__
