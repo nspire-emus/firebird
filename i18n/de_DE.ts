@@ -186,7 +186,7 @@
     </message>
     <message>
         <location filename="../mainwindow.ui" line="416"/>
-        <location filename="../mainwindow.cpp" line="402"/>
+        <location filename="../mainwindow.cpp" line="414"/>
         <source>Docks</source>
         <translation>Docks</translation>
     </message>
@@ -384,7 +384,7 @@
     </message>
     <message>
         <location filename="../mainwindow.ui" line="939"/>
-        <location filename="../mainwindow.cpp" line="339"/>
+        <location filename="../mainwindow.cpp" line="351"/>
         <source>Re&amp;start</source>
         <translation>Neu&amp;start</translation>
     </message>
@@ -444,8 +444,8 @@
         <translation>Screenshot</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="556"/>
-        <location filename="../mainwindow.cpp" line="558"/>
+        <location filename="../mainwindow.cpp" line="568"/>
+        <location filename="../mainwindow.cpp" line="570"/>
         <source>Connect USB</source>
         <translation>USB verbinden</translation>
     </message>
@@ -455,234 +455,234 @@
         <translation>Die Emulation mit Emulation-&gt;Neustart starten.</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="397"/>
-        <location filename="../mainwindow.cpp" line="724"/>
+        <location filename="../mainwindow.cpp" line="409"/>
+        <location filename="../mainwindow.cpp" line="736"/>
         <source>Restart needed</source>
         <translation>Neustart benötigt</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="301"/>
+        <location filename="../mainwindow.cpp" line="313"/>
         <source>Try to restart this app.</source>
         <translation>Versuche, diese Anwendung neu zu starten.</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="274"/>
+        <location filename="../mainwindow.cpp" line="281"/>
         <source>Download failed</source>
         <translation>Download fehlgeschlagen</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="274"/>
+        <location filename="../mainwindow.cpp" line="281"/>
         <source>Could not download file.</source>
         <translation>Konnte Datei nicht herunterladen.</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="321"/>
+        <location filename="../mainwindow.cpp" line="333"/>
         <source>Select boot1 file</source>
         <translation>Datei für Boot1 auswählen</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="365"/>
+        <location filename="../mainwindow.cpp" line="377"/>
         <source>Select flash file</source>
         <translation>Flash-Image auswählen</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="397"/>
+        <location filename="../mainwindow.cpp" line="409"/>
         <source>You need to restart firebird to enable the tab interface.</source>
         <translation>Firebird muss neugestartet werden, um die Tabs-Oberfläche zu aktivieren.</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="483"/>
+        <location filename="../mainwindow.cpp" line="495"/>
         <source>Select snapshot location</source>
         <translation>Speicherort für Schnappschüsse wählen</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="493"/>
+        <location filename="../mainwindow.cpp" line="505"/>
         <source>Speed: %1 %</source>
         <translation>Geschwindigkeit: %1 %</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="498"/>
+        <location filename="../mainwindow.cpp" line="510"/>
         <source>Apply new flash?</source>
         <translation>Flash direkt nutzen?</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="498"/>
+        <location filename="../mainwindow.cpp" line="510"/>
         <source>Do you want to work with the newly created flash image now?</source>
         <translation>Direkt mit dem erstellten Flash-Abbild arbeiten?</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="506"/>
+        <location filename="../mainwindow.cpp" line="518"/>
         <source>Save Screenshot</source>
         <translation>Screenshot speichern</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="506"/>
+        <location filename="../mainwindow.cpp" line="518"/>
         <source>PNG images (*.png)</source>
         <translation>PNG Bilder (*.png)</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="511"/>
+        <location filename="../mainwindow.cpp" line="523"/>
         <source>Screenshot failed</source>
         <translation>Screenshot fehlgeschlagen</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="511"/>
+        <location filename="../mainwindow.cpp" line="523"/>
         <source>Failed to save screenshot!</source>
         <translation>Konnte Screenshot nicht speichern!</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="529"/>
+        <location filename="../mainwindow.cpp" line="541"/>
         <source>GIF images (*.gif)</source>
         <translation>GIF Animation (*.gif)</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="529"/>
+        <location filename="../mainwindow.cpp" line="541"/>
         <source>Save Recording</source>
         <translation>Aufnahme speichern</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="536"/>
+        <location filename="../mainwindow.cpp" line="548"/>
         <source>Failed recording GIF</source>
         <translation>Fehler bei GIF-Aufzeichnung</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="536"/>
+        <location filename="../mainwindow.cpp" line="548"/>
         <source>A failure occured during recording</source>
         <translation>Ein Fehler ist während der Aufzeichnung aufgetreten</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="556"/>
-        <location filename="../mainwindow.cpp" line="558"/>
+        <location filename="../mainwindow.cpp" line="568"/>
+        <location filename="../mainwindow.cpp" line="570"/>
         <source>Disconnect USB</source>
         <translation>USB trennen</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="568"/>
+        <location filename="../mainwindow.cpp" line="580"/>
         <source>Can&apos;t resume</source>
         <translation>Kann Snapshot nicht laden</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="568"/>
-        <location filename="../mainwindow.cpp" line="577"/>
+        <location filename="../mainwindow.cpp" line="580"/>
+        <location filename="../mainwindow.cpp" line="589"/>
         <source>No snapshot path (Settings-&gt;Snapshot) given</source>
         <translation>Kein Speicherort (Einstellungen-&gt;Snapshot) gegeben</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="577"/>
+        <location filename="../mainwindow.cpp" line="589"/>
         <source>Can&apos;t suspend</source>
         <translation>Kann Snapshot nicht speichern</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="582"/>
+        <location filename="../mainwindow.cpp" line="594"/>
         <source>Select snapshot to resume from</source>
         <translation>Zu ladenden Snapshot auswählen</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="589"/>
+        <location filename="../mainwindow.cpp" line="601"/>
         <source>Select snapshot to suspend to</source>
         <translation>Zu speichernden Snapshot auswählen</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="613"/>
+        <location filename="../mainwindow.cpp" line="625"/>
         <source>About Firebird</source>
         <translation>Über Firebird</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="614"/>
+        <location filename="../mainwindow.cpp" line="626"/>
         <source>&lt;h3&gt;Firebird %1&lt;/h3&gt;&lt;a href=&apos;https://github.com/nspire-emus/firebird&apos;&gt;On GitHub&lt;/a&gt;&lt;br&gt;&lt;br&gt;Authors:&lt;br&gt;Fabian Vogt (&lt;a href=&apos;https://github.com/Vogtinator&apos;&gt;Vogtinator&lt;/a&gt;)&lt;br&gt;Adrien Bertrand (&lt;a href=&apos;https://github.com/adriweb&apos;&gt;Adriweb&lt;/a&gt;)&lt;br&gt;Antonio Vasquez (&lt;a href=&apos;https://github.com/antoniovazquezblanco&apos;&gt;antoniovazquezblanco&lt;/a&gt;)&lt;br&gt;Lionel Debroux (&lt;a href=&apos;https://github.com/debrouxl&apos;&gt;debrouxl&lt;/a&gt;)&lt;br&gt;Based on nspire_emu v0.70 by Goplat&lt;br&gt;&lt;br&gt;This work is licensed under the GPLv3.&lt;br&gt;To view a copy of this license, visit &lt;a href=&apos;https://www.gnu.org/licenses/gpl-3.0.html&apos;&gt;https://www.gnu.org/licenses/gpl-3.0.html&lt;/a&gt;</source>
         <translation>&lt;h3&gt;Firebird %1&lt;/h3&gt;&lt;a href=&apos;https://github.com/nspire-emus/firebird&apos;&gt;Auf GitHub&lt;/a&gt;&lt;br&gt;&lt;br&gt;Autoren:&lt;br&gt;Fabian Vogt (&lt;a href=&apos;https://github.com/Vogtinator&apos;&gt;Vogtinator&lt;/a&gt;)&lt;br&gt;Adrien Bertrand (&lt;a href=&apos;https://github.com/adriweb&apos;&gt;Adriweb&lt;/a&gt;)&lt;br&gt;Antonio Vasquez (&lt;a href=&apos;https://github.com/antoniovazquezblanco&apos;&gt;antoniovazquezblanco&lt;/a&gt;)&lt;br&gt;Lionel Debroux (&lt;a href=&apos;https://github.com/debrouxl&apos;&gt;debrouxl&lt;/a&gt;)&lt;br&gt;Basierend auf nspire_emu v0.70 by Goplat&lt;br&gt;&lt;br&gt;This work is licensed under the GPLv3.&lt;br&gt;To view a copy of this license, visit &lt;a href=&apos;https://www.gnu.org/licenses/gpl-3.0.html&apos;&gt;https://www.gnu.org/licenses/gpl-3.0.html&lt;/a&gt;</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="645"/>
+        <location filename="../mainwindow.cpp" line="657"/>
         <source>Emulation started</source>
         <translation>Emulation gestartet</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="647"/>
+        <location filename="../mainwindow.cpp" line="659"/>
         <source>Could not start the emulation</source>
         <translation>Konnte Emulation nicht starten</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="647"/>
+        <location filename="../mainwindow.cpp" line="659"/>
         <source>Starting the emulation failed.
 Are the paths to boot1 and flash correct?</source>
         <translation>Starten der Emulation fehlgeschlagen.
 Sind die Pfade zu Boot1 und Flash korrekt?</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="655"/>
+        <location filename="../mainwindow.cpp" line="667"/>
         <source>Emulation resumed from snapshot</source>
         <translation>Emulation von Snapshot geladen</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="301"/>
-        <location filename="../mainwindow.cpp" line="657"/>
+        <location filename="../mainwindow.cpp" line="313"/>
+        <location filename="../mainwindow.cpp" line="669"/>
         <source>Could not resume</source>
         <translation>Konnte Snapshot nicht laden</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="339"/>
+        <location filename="../mainwindow.cpp" line="351"/>
         <source>&amp;Start</source>
         <translation>&amp;Starten</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="657"/>
+        <location filename="../mainwindow.cpp" line="669"/>
         <source>Resuming failed.
 Try to fix the issue and try again.</source>
         <translation>Laden des Schnappschusses fehlgeschlagen.
 Behebe den Fehler und versuche es erneut.</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="663"/>
+        <location filename="../mainwindow.cpp" line="675"/>
         <source>Snapshot saved</source>
         <translation>Snapshot gespeichert</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="665"/>
+        <location filename="../mainwindow.cpp" line="677"/>
         <source>Could not suspend</source>
         <translation>Konnte Snapshot nicht speichern</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="665"/>
+        <location filename="../mainwindow.cpp" line="677"/>
         <source>Suspending failed.
 Try to fix the issue and try again.</source>
         <translation>Speichern des Snapshots fehlgeschlagen.
 Behebe den Fehler und versuche es erneut.</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="679"/>
+        <location filename="../mainwindow.cpp" line="691"/>
         <source>Emulation stopped</source>
         <translation>Emulation gestoppt</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="709"/>
+        <location filename="../mainwindow.cpp" line="721"/>
         <source>No boot1 set</source>
         <translation>Kein boot1 gegeben</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="709"/>
+        <location filename="../mainwindow.cpp" line="721"/>
         <source>Before you can start the emulation, you have to select a proper boot1 file.</source>
         <translation>Bevor die Emulation gestartet werden kann, muss ein boot1 ausgewählt werden.</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="716"/>
+        <location filename="../mainwindow.cpp" line="728"/>
         <source>No flash image loaded</source>
         <translation>Kein Flash-Image geladen</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="716"/>
+        <location filename="../mainwindow.cpp" line="728"/>
         <source>Before you can start the emulation, you have to load a proper flash file.
 You can create one via Flash-&gt;Create Flash in the menu.</source>
         <translation>Bevor die Emulation gestartet werden kann, muss ein passendes Flash-Image ausgewählt werden.</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="724"/>
+        <location filename="../mainwindow.cpp" line="736"/>
         <source>Failed to restart emulator. Close and reopen this app.
 </source>
         <translation>Konnte Emulation nicht neu starten. Schließe diese Anwendung und starte sie neu.</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="729"/>
+        <location filename="../mainwindow.cpp" line="741"/>
         <source>Select file to send</source>
         <translation>Zu sendende Datei wählen</translation>
     </message>
@@ -837,12 +837,12 @@ Schieben sie die Tastatur nach links, um die Einstellungen zu ändern.</translat
     </message>
     <message>
         <location filename="../qmlbridge.cpp" line="224"/>
-        <source>Emulation resumed from snapshot</source>
-        <translation>Emulation von Snapshot geladen</translation>
+        <source>Emulation resumed</source>
+        <translation>Snapshot geladen</translation>
     </message>
     <message>
         <location filename="../qmlbridge.cpp" line="226"/>
-        <source>Couldn&apos;t resume</source>
+        <source>Could not resume</source>
         <translation>Konnte Snapshot nicht laden</translation>
     </message>
     <message>
@@ -892,12 +892,12 @@ Schieben sie die Tastatur nach links, um die Einstellungen zu ändern.</translat
         <translation>Zu viel</translation>
     </message>
     <message>
-        <location filename="../usblinktreewidget.cpp" line="281"/>
+        <location filename="../usblinktreewidget.cpp" line="289"/>
         <source>Chose save location</source>
         <translation>Speicherort wählen</translation>
     </message>
     <message>
-        <location filename="../usblinktreewidget.cpp" line="281"/>
+        <location filename="../usblinktreewidget.cpp" line="289"/>
         <source>TNS file (*.tns)</source>
         <translation>TNS Datei (*.tns)</translation>
     </message>

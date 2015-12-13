@@ -842,10 +842,6 @@ Faites glisser le clavier versl a gauche pour afficher les paramètres.</transla
         <translation>Impossible de reprendre</translation>
     </message>
     <message>
-        <source>Emulation resumed from snapshot</source>
-        <translation type="obsolete">Emulation reprise depuis le snapshot</translation>
-    </message>
-    <message>
         <location filename="../qmlbridge.cpp" line="232"/>
         <source>Flash and snapshot saved</source>
         <translation>Flash et snapshot sauvegardés</translation>
