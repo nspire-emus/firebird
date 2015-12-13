@@ -114,6 +114,7 @@ Rectangle {
 
     EmuScreen {
         id: screen
+        focus: true
         y: 0
         width: parent.width - sidebar.width
         height: width/320*240
