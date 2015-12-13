@@ -169,7 +169,7 @@
           </layout>
          </item>
          <item>
-          <widget class="LCDWidget" name="lcdView" native="true">
+          <widget class="LCDWidget" name="lcdView">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
              <horstretch>0</horstretch>
