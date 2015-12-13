@@ -2,6 +2,7 @@
 * Optimize x86_64 JIT: {read,write}_{byte,half,word} in asm
 * File transfer: Move by D'n'D, drop folders, download folders
 * Better debugger integration
+* Don't use a 60Hz timer for LCD redrawing, hook lcd_event instead
 * Implement QLabel with elide, like https://forum.qt.io/topic/24530/solved-shortening-a-label
 
 ##Wishlist:
