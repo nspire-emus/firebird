@@ -43,7 +43,7 @@ public slots:
     void xmodemSend();
 
     //Menu "State"
-    void resume();
+    bool resume();
     void suspend();
     void resumeFromFile();
     void suspendToFile();
@@ -105,7 +105,7 @@ public:
 
 private:
     void suspendToPath(QString path);
-    void resumeFromPath(QString path);
+    bool resumeFromPath(QString path);
     void setPathBoot1(QString path);
     void setPathFlash(QString path);
 

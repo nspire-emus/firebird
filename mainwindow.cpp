@@ -157,22 +157,22 @@ MainWindow::MainWindow(QWidget *parent) :
     setRDBGPort(settings->value(QStringLiteral("rdbgPort"), 3334).toUInt());
     ui->checkSuspend->setChecked(settings->value(QStringLiteral("suspendOnClose"), false).toBool());
     ui->checkResume->setChecked(settings->value(QStringLiteral("resumeOnOpen"), false).toBool());
+    bool autostart = settings->value(QStringLiteral("emuAutostart"), false).toBool();
+    setAutostart(autostart);
     if(!settings->value(QStringLiteral("snapshotPath")).toString().isEmpty())
         ui->labelSnapshotPath->setText(settings->value(QStringLiteral("snapshotPath")).toString());
 
     setBootOrder(false);
 
+    bool resumed = false;
     if(settings->value(QStringLiteral("resumeOnOpen")).toBool())
-        resume();
+        resumed = resume();
+
+    //If resumeOnOpen and emuAutostart are set, start only if resuming failed
+    if(!emu.boot1.isEmpty() && !emu.flash.isEmpty() && autostart && !resumed)
+        emu.start();
     else
-    {
-        bool autostart = settings->value(QStringLiteral("emuAutostart"), false).toBool();
-        setAutostart(autostart);
-        if(!emu.boot1.isEmpty() && !emu.flash.isEmpty() && autostart)
-            emu.start();
-        else
-            showStatusMsg(tr("Start the emulation via Emulation->Restart."));
-    }
+        showStatusMsg(tr("Start the emulation via Emulation->Restart."));
 
     ui->lcdView->setFocus();
 }
@@ -307,10 +307,15 @@ void MainWindow::suspendToPath(QString path)
     emu_thread->suspend(path);
 }
 
-void MainWindow::resumeFromPath(QString path)
+bool MainWindow::resumeFromPath(QString path)
 {
     if(!emu_thread->resume(path))
+    {
         QMessageBox::warning(this, tr("Could not resume"), tr("Try to restart this app."));
+        return false;
+    }
+
+    return true;
 }
 
 void MainWindow::changeProgress(int value)
@@ -571,13 +576,16 @@ void MainWindow::usblinkChanged(bool state)
     ui->buttonUSB->setChecked(state);
 }
 
-void MainWindow::resume()
+bool MainWindow::resume()
 {
     QString default_snapshot = settings->value(QStringLiteral("snapshotPath")).toString();
     if(!default_snapshot.isEmpty())
-        resumeFromPath(default_snapshot);
+        return resumeFromPath(default_snapshot);
     else
+    {
         QMessageBox::warning(this, tr("Can't resume"), tr("No snapshot path (Settings->Snapshot) given"));
+        return false;
+    }
 }
 
 void MainWindow::suspend()
