@@ -21,6 +21,7 @@ static uint32_t add(uint32_t left, uint32_t right, int carry, int setcc) {
     return sum;
 }
 
+// "uint8_t shift_val" is correct here. If it is a shift by register, only the bottom 8 bits are looked at.
 static uint32_t shift(uint32_t value, uint8_t shift_type, uint8_t shift_val, bool setcc, bool has_rs)
 {
     if(shift_val == 0)

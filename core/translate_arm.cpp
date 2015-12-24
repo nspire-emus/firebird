@@ -246,7 +246,7 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
     bool stop_here = false;
     // Start of instruction translation, without cond. jump
     uint32_t *translate_buffer_inst_real = translate_current;
-    // Whether this instruction can be cached (not possible if pc-relative)
+    // Whether this instruction can be cached (not possible if it is pc-dependant)
     bool cachable = true;
 
     // We know this already. end_ptr will be set after the loop
@@ -264,9 +264,9 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
         }
     #endif
 
-    // This loop is executed once per instruction
+    // This loop is executed once per instruction.
     // Due to the CPU being able to jump to each instruction seperately,
-    // there is no state preserved, so register mappings are reset.
+    // there is no state preserved between (virtual) instructions.
     while(1)
     {
         // Translate further?
@@ -301,7 +301,7 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
             while(cache_local.size--)
                 emit(*cache_local.ptr++);
 
-	    goto instruction_cachehit;
+            goto instruction_cachehit;
         }
 
         translate_buffer_inst_real = translate_current;
@@ -320,6 +320,7 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
                         || i.mult.rn == PC || i.mult.rd == PC)
                     goto unimpl; // PC as register not implemented
 
+                // Register renaming, see data processing below
                 Instruction translated;
 
                 translated.raw = (i.raw & 0xFFFFFFF) | 0xE0000000;
@@ -451,7 +452,7 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
                 //B(L)X
                 if(i.bx.l)
                 {
-                    cachable = false;
+                    cachable = false; // Not cachable, as using PC
                     emit_mov(R0, pc + 4);
                     emit_str_armreg(R0, LR);
                 }
@@ -459,6 +460,7 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
                 if(i.bx.rm == PC)
                     goto unimpl;
 
+                // Load destination into R0
                 emit_ldr_armreg(R0, i.bx.rm);
                 emit_jmp(reinterpret_cast<void*>(translation_next_bx));
 
@@ -621,7 +623,7 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
                 Instruction off;
                 off.raw = 0xe1a05000; // mov r5, something
                 off.raw |= insn & 0xFFF; // Copy shifter_operand
-                off.data_proc.rm = 1;
+                off.data_proc.rm = R1;
                 if(i.mem_proc.rm != PC)
                     emit_ldr_armreg(R1, i.mem_proc.rm);
                 else
@@ -642,7 +644,9 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
                 else
                     emit_al(0x0400005); // sub r0, r0, r5
 
-                // TODO: In case of data aborts, this is wrong.
+                // TODO: In case of data aborts, this is at the wrong time.
+                // It has to be stored AFTER the memory access, to be able
+                // to perform the access again after an abort.
                 if(i.mem_proc.w) // Writeback: final address into rn
                     emit_str_armreg(R0, i.mem_proc.rn);
             }
@@ -781,7 +785,7 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
             {
                 // PC already in R0 (last one loaded)
                 emit_jmp(reinterpret_cast<void*>(translation_next_bx));
-                stop_here = 1;
+                stop_here = true;
             }
         }
         else if((insn & 0xE000000) == 0xA000000)

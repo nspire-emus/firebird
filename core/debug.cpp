@@ -426,10 +426,10 @@ static int process_debug_cmd(char *cmdline) {
             } while (task != first);
         }
     } else if (!strcasecmp(cmd, "t+")) {
-        do_translate = 1;
+        do_translate = true;
     } else if (!strcasecmp(cmd, "t-")) {
         flush_translations();
-        do_translate = 0;
+        do_translate = false;
     } else if (!strcasecmp(cmd, "wm") || !strcasecmp(cmd, "wf")) {
         bool frommem = cmd[1] != 'f';
         char *filename = strtok(NULL, " \n\r");
