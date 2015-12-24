@@ -37,6 +37,7 @@ MainWindow::MainWindow(QWidget *parent) :
     // Register QtKeypadBridge for the virtual keyboard functionality
     ui->keypadWidget->installEventFilter(&qt_keypad_bridge);
     ui->lcdView->installEventFilter(&qt_keypad_bridge);
+    lcd.installEventFilter(&qt_keypad_bridge);
 
     //Emu -> GUI (QueuedConnection as they're different threads)
     connect(&emu, &EmuThread::serialChar, this, &MainWindow::serialChar, Qt::QueuedConnection);
