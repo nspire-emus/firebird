@@ -24,9 +24,9 @@ int main(int argc, char **argv)
     app.setAttribute(Qt::AA_UseHighDpiPixmaps);
 
     // Register QMLBridge for Keypad<->Emu communication
-    qmlRegisterSingletonType<QMLBridge>("Ndless.Emu", 1, 0, "Emu", qmlBridgeFactory);
+    qmlRegisterSingletonType<QMLBridge>("Firebird.Emu", 1, 0, "Emu", qmlBridgeFactory);
     // Register QtFramebuffer for QML display
-    qmlRegisterType<QMLFramebuffer>("Ndless.Emu", 1, 0, "EmuScreen");
+    qmlRegisterType<QMLFramebuffer>("Firebird.Emu", 1, 0, "EmuScreen");
 
     #ifndef MOBILE_UI
         MainWindow mw;

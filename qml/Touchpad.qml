@@ -1,5 +1,5 @@
 import QtQuick 2.0
-import Ndless.Emu 1.0
+import Firebird.Emu 1.0
 
 Rectangle {
     id: rectangle2
