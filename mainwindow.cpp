@@ -76,6 +76,8 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->actionRecord_GIF, &QAction::triggered, this, &MainWindow::recordGIF);
     connect(ui->actionConnect, &QAction::triggered, this, &MainWindow::connectUSB);
     connect(ui->buttonUSB, &QPushButton::clicked, this, &MainWindow::connectUSB);
+    connect(ui->actionLCD_Window, &QAction::triggered, this, &MainWindow::setExtLCD);
+    connect(&lcd, &LCDWidget::closed, ui->actionLCD_Window, &QAction::toggle);
     connect(ui->actionXModem, &QAction::triggered, this, &MainWindow::xmodemSend);
     ui->actionConnect->setShortcut(QKeySequence(Qt::Key_F10));
     ui->actionConnect->setAutoRepeat(false);
@@ -146,6 +148,8 @@ MainWindow::MainWindow(QWidget *parent) :
 
     //Load settings
     setUIMode(settings->value(QStringLiteral("docksEnabled"), true).toBool());
+    setExtLCD(settings->value(QStringLiteral("extLCDVisible")).toBool());
+    lcd.restoreGeometry(settings->value(QStringLiteral("extLCDGeometry")).toByteArray());
     restoreGeometry(settings->value(QStringLiteral("windowGeometry")).toByteArray());
     restoreState(settings->value(QStringLiteral("windowState")).toByteArray(), WindowStateVersion);
     setPathBoot1(settings->value(QStringLiteral("boot1"), QStringLiteral("")).toString());
@@ -179,6 +183,11 @@ MainWindow::MainWindow(QWidget *parent) :
 
 MainWindow::~MainWindow()
 {
+    // Save external LCD geometry
+    settings->setValue(QStringLiteral("extLCDGeometry"), lcd.saveGeometry());
+    settings->setValue(QStringLiteral("extLCDVisible"), lcd.isVisible());
+
+    // Save MainWindow state and geometry
     settings->setValue(QStringLiteral("windowState"), saveState(WindowStateVersion));
     settings->setValue(QStringLiteral("windowGeometry"), saveGeometry());
 
@@ -574,6 +583,16 @@ void MainWindow::usblinkChanged(bool state)
     ui->actionConnect->setChecked(state);
     ui->buttonUSB->setText(state ? tr("Disconnect USB") : tr("Connect USB"));
     ui->buttonUSB->setChecked(state);
+}
+
+void MainWindow::setExtLCD(bool state)
+{
+    if(state)
+        lcd.show();
+    else
+        lcd.hide();
+
+    ui->actionLCD_Window->setChecked(state);
 }
 
 bool MainWindow::resume()

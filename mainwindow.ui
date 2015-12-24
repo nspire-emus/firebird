@@ -169,7 +169,7 @@
           </layout>
          </item>
          <item>
-          <widget class="LCDWidget" name="lcdView">
+          <widget class="LCDWidget" name="lcdView" native="true">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
              <horstretch>0</horstretch>
@@ -861,6 +861,8 @@
     <addaction name="actionRecord_GIF"/>
     <addaction name="actionConnect"/>
     <addaction name="separator"/>
+    <addaction name="actionLCD_Window"/>
+    <addaction name="separator"/>
     <addaction name="actionDebugger"/>
     <addaction name="separator"/>
     <addaction name="actionXModem"/>
@@ -1044,6 +1046,14 @@
   <action name="actionAbout_Qt">
    <property name="text">
     <string>About &amp;Qt</string>
+   </property>
+  </action>
+  <action name="actionLCD_Window">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>&amp;External LCD</string>
    </property>
   </action>
  </widget>

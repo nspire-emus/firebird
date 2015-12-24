@@ -51,7 +51,7 @@ void paintFramebuffer(QPainter *p)
     else
     {
         QImage image = renderFramebuffer().scaled(p->window().size(), Qt::KeepAspectRatio, Qt::SmoothTransformation);
-        p->drawImage(p->window(), image);
+        p->drawImage((p->window().width() - image.width()) / 2, (p->window().height() - image.height()) / 2, image);
     }
 
     if(in_debugger)

@@ -10,6 +10,7 @@
 
 #include "emuthread.h"
 #include "flashdialog.h"
+#include "lcdwidget.h"
 
 namespace Ui {
 class MainWindow;
@@ -40,6 +41,7 @@ public slots:
     void recordGIF();
     void connectUSB();
     void usblinkChanged(bool state);
+    void setExtLCD(bool state);
     void xmodemSend();
 
     //Menu "State"
@@ -122,6 +124,9 @@ private:
     FlashDialog flash_dialog;
     // To make it possible to activate the debugger
     QDockWidget *dock_debugger = nullptr;
+
+    // Second LCDWidget for use as external window
+    LCDWidget lcd{this, Qt::Window};
 
     // Used for autosuspend on close.
     // The close event has to be deferred until the suspend operation completed successfully.

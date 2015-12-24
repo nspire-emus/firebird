@@ -4,13 +4,12 @@
 #include "qmlbridge.h"
 #include "qtframebuffer.h"
 
-LCDWidget::LCDWidget(QWidget *parent)
-    : QWidget(parent)
+LCDWidget::LCDWidget(QWidget *parent, Qt::WindowFlags f)
+    : QWidget(parent, f)
 {
     connect(&refresh_timer, SIGNAL(timeout()), this, SLOT(update()));
 
-    refresh_timer.setInterval(1000 / 60); // 60 fps
-    refresh_timer.start();
+    refresh_timer.setInterval(1000 / 30); // 30 fps
 }
 
 void LCDWidget::mousePressEvent(QMouseEvent *event)
@@ -70,6 +69,27 @@ void LCDWidget::mouseMoveEvent(QMouseEvent *event)
     notifyTouchpadStateChanged();
     keypad.kpc.gpio_int_active |= 0x800;
     keypad_int_check();
+}
+
+void LCDWidget::showEvent(QShowEvent *e)
+{
+    QWidget::showEvent(e);
+
+    refresh_timer.start();
+}
+
+void LCDWidget::hideEvent(QHideEvent *e)
+{
+    QWidget::hideEvent(e);
+
+    refresh_timer.stop();
+}
+
+void LCDWidget::closeEvent(QCloseEvent *e)
+{
+    QWidget::closeEvent(e);
+
+    emit closed();
 }
 
 void LCDWidget::paintEvent(QPaintEvent *)
