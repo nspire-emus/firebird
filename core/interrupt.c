@@ -12,7 +12,7 @@ static void get_current_int(int is_fiq, int *current) {
     int pri_limit = intr.priority_limit[is_fiq];
     int i;
     for (i = 0; i < 32; i++) {
-        if (masked_status & (1 << i) && intr.priority[i] < pri_limit) {
+        if (masked_status & (1u << i) && intr.priority[i] < pri_limit) {
             *current = i;
             pri_limit = intr.priority[i];
         }

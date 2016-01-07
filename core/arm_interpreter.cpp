@@ -100,10 +100,13 @@ static uint32_t addr_mode_2(Instruction i)
 
 static uint32_t rotated_imm(Instruction i, bool setcc)
 {
-    int32_t imm = i.data_proc.immed_8;
+    uint32_t imm = i.data_proc.immed_8;
     uint8_t count = i.data_proc.rotate_imm << 1;
-    imm = imm >> count | imm << (32 - count);
-    if(count != 0 && setcc)
+    if(count == 0)
+        return imm;
+
+    imm = (imm >> count) | (imm << (32 - count));
+    if(setcc)
         arm.cpsr_c = imm & (1 << 31);
     return imm;
 }

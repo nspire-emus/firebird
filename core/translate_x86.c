@@ -513,9 +513,11 @@ no_condition:
                 // Right operand is immediate
                 imm = insn & 0xFF;
                 int rotate = insn >> 7 & 30;
-                imm = imm >> rotate | imm << (32 - rotate);
                 if (rotate != 0)
+                {
+                    imm = (imm >> rotate) | (imm << (32 - rotate));
                     set_carry = imm >> 31;
+                }
             } else if (right_reg == 15) {
                 if (insn & 0xFF0) // Shifted PC?! Not likely.
                     goto unimpl;
@@ -875,7 +877,7 @@ data_proc_done:
                 emit_modrm_base_offset(ECX, ESI, offset);
                 if (load) {
                     emit_call((uint32_t)read_word);
-                    if (reg == addr_reg && (insn & -1 << reg & 0xFFFF)) {
+                    if (reg == addr_reg && (insn & ~0u << reg & 0xFFFF)) {
                         // Loading the address register, but there are still more
                         // registers to go. In case they cause a data abort, don't
                         // write to register yet; save it to EDI
@@ -908,7 +910,7 @@ data_proc_done:
             /* Branch, branch-and-link */
             if (insn & (1 << 24))
                 emit_mov_armreg_immediate(14, pc + 4);
-            emit_mov_x86reg_immediate(EAX, pc + 8 + ((int32_t)insn << 8 >> 6));
+            emit_mov_x86reg_immediate(EAX, pc + 8 + ((int32_t)(insn << 8) >> 6));
             emit_jump((uint32_t)translation_next);
             stop_here = 1;
         } else {

@@ -153,11 +153,11 @@ uint32_t apb_read_word(uint32_t addr) {
 }
 void apb_write_byte(uint32_t addr, uint8_t value) {
     if (addr >= 0x90120000) { bad_write_byte(addr, value); return; }
-    apb_map[addr >> 16 & 31].write(addr & ~3, value * 0x01010101);
+    apb_map[addr >> 16 & 31].write(addr & ~3, value * 0x01010101u);
 }
 void apb_write_half(uint32_t addr, uint16_t value) {
     if (addr >= 0x90120000) { bad_write_half(addr, value); return; }
-    apb_map[addr >> 16 & 31].write(addr & ~2, value * 0x00010001);
+    apb_map[addr >> 16 & 31].write(addr & ~2, value * 0x00010001u);
 }
 void apb_write_word(uint32_t addr, uint32_t value) {
     if (addr >= 0x90120000) { bad_write_word(addr, value); return; }
