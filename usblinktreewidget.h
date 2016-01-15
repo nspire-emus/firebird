@@ -10,7 +10,7 @@ class USBLinkTreeWidget : public QTreeWidget
     Q_OBJECT
 
 public:
-    USBLinkTreeWidget(QWidget *parent = 0);
+    explicit USBLinkTreeWidget(QWidget *parent = 0);
 
     // usblink callbacks
     static void usblink_dirlist_callback_nested(struct usblink_file *file, bool is_error, void *data);

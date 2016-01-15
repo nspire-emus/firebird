@@ -20,7 +20,7 @@ void lcd_draw_frame(uint8_t *buffer) {
     }
     int row;
     for (row = 0; row < 230; ++row) {
-        uint32_t pal_shift = lcd.control & (1 << 8) ? 11 : 1;
+        uint32_t pal_shift = (lcd.control & (1 << 8)) ? 11 : 1;
         int words = (320 / 32) * bpp;
         uint8_t *out = buffer + (row * 160);
         if (bpp < 16) {
@@ -41,14 +41,14 @@ void lcd_draw_frame(uint8_t *buffer) {
                 } while (bitpos != 0);
             } while (--words != 0);
         } else if (bpp == 16) {
-            uint32_t shift1 = pal_shift | (lcd.control & (1 << 9) ? 16 : 0);
+            uint32_t shift1 = pal_shift | ((lcd.control & (1 << 9)) ? 16 : 0);
             uint32_t shift2 = shift1 ^ 16;
             do {
                 uint32_t word = *in++;
                 *out++ = (word >> shift1 & 15) << 4 | (word >> shift2 & 15);
             } while (--words != 0);
         } else {
-            uint32_t shift = lcd.control & (1 << 8) ? 20 : 4;
+            uint32_t shift = (lcd.control & (1 << 8)) ? 20 : 4;
             do {
                 int color1 = *in++ >> shift;
                 int color2 = *in++ >> shift & 15;

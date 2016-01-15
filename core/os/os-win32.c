@@ -95,7 +95,7 @@ void os_unmap_cow(void *addr, size_t size)
 }
 
 static int addr_cache_exception(PEXCEPTION_RECORD er, void *x, void *y, void *z) {
-    x = x; y = y; z = z; // unused parameters
+    (void) x; (void) y; (void) z;
     if (er->ExceptionCode == EXCEPTION_ACCESS_VIOLATION) {
         if (addr_cache_pagefault((void *)er->ExceptionInformation[1]))
             return 0; // Continue execution
