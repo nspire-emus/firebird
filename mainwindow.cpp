@@ -557,7 +557,10 @@ void MainWindow::recordGIF()
             if(filename.isEmpty())
                 QFile(path).remove();
             else
+            {
+                QFile(filename).remove();
                 QFile(path).rename(filename);
+            }
         }
         else
             QMessageBox::warning(this, tr("Failed recording GIF"), tr("A failure occured during recording"));
