@@ -6,7 +6,9 @@
 #include "gif.h"
 #include "lcd.h"
 
-#include "giflib.h"
+// We can't modify giflib.h ourselves, so #include that here.
+#include "os/os.h"
+#include "gif-h/gif.h"
 
 struct RGB24 {
     uint8_t r, g, b, a;
@@ -25,7 +27,9 @@ bool gif_start_recording(const char *filename, unsigned int frameskip)
     framenr = framenrskip = frameskip;
     framedelay = 100 / (60/(frameskip+1));
 
-    if(GifBegin(&writer, filename, 320, 240, framedelay))
+    FILE *gif_file = fopen_utf8(filename, "w");
+
+    if(gif_file && GifBegin(&writer, gif_file, 320, 240, framedelay))
         recording = true;
 
     buffer.resize(320*240);

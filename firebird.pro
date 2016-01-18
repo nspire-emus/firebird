@@ -1,4 +1,4 @@
-lessThan(QT_MAJOR_VERSION, 5) : error("You need at least Qt 5 to build firebird!")
+lessThan(QT_MAJOR_VERSION, 5): error("You need at least Qt 5 to build firebird!")
 
 # Version
 DEFINES += FB_VERSION=0.31-dev
@@ -14,6 +14,9 @@ CONFIG += c++11
 
 TEMPLATE = app
 TARGET = firebird
+
+# Warn if git submodules not downloaded
+!exists("core/gif-h/gif.h"): error("You have to run 'git submodule init' and 'git submodule update' first.")
 
 linux: !android {
     # For make install support
@@ -181,7 +184,6 @@ HEADERS += \
     core/flash.h \
     core/gdbstub.h \
     core/gif.h \
-    core/giflib.h \
     core/interrupt.h \
     core/keypad.h \
     core/lcd.h \

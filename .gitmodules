@@ -1,0 +1,3 @@
+[submodule "core/gif-h"]
+	path = core/gif-h
+	url = https://github.com/jacobly0/gif-h
