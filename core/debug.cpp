@@ -40,6 +40,8 @@ static const char * volatile debug_input_cur = nullptr;
 
 static void debug_input_callback(const char *input)
 {
+    std::unique_lock<std::mutex> lk(debug_input_m);
+
     debug_input_cur = input;
 
     debug_input_cv.notify_all();
@@ -578,11 +580,12 @@ static void native_debugger(void) {
         {
             debug_input_cur = nullptr;
 
+            std::unique_lock<std::mutex> lk(debug_input_m);
+
             gui_debugger_request_input(debug_input_callback);
 
             while(!debug_input_cur)
             {
-                std::unique_lock<std::mutex> lk(debug_input_m);
                 debug_input_cv.wait_for(lk, std::chrono::milliseconds(100), []{return debug_input_cur;});
                 if(debug_input_cur || exiting)
                     break;
