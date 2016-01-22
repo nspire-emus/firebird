@@ -2,7 +2,7 @@
 #include <cassert>
 
 // Uncomment the following line to measure the time until the OS is loaded
- #define BENCHMARK
+// #define BENCHMARK
 #ifdef BENCHMARK
     #include <ctime>
 #endif
