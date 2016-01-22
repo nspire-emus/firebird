@@ -103,18 +103,21 @@ void do_cp15_mcr(uint32_t insn)
         case 0x080025: /* MCR p15, 0, <Rd>, c8, c5, 1: Invalidate instruction TLB entry */
         case 0x080026: /* MCR p15, 0, <Rd>, c8, c6, 1: Invalidate data TLB entry */
         case 0x080027: /* MCR p15, 0, <Rd>, c8, c7, 1: Invalidate TLB (used by polydumper) */
-            addr_cache_flush();
-            break;
         case 0x070005: /* MCR p15, 0, <Rd>, c7, c5, 0: Invalidate ICache */
         case 0x070025: /* MCR p15, 0, <Rd>, c7, c5, 1: Invalidate ICache line */
         case 0x070007: /* MCR p15, 0, <Rd>, c7, c7, 0: Invalidate ICache and DCache */
+            addr_cache_flush();
+            break;
+
         case 0x070026: /* MCR p15, 0, <Rd>, c7, c6, 1: Invalidate single DCache entry */
         case 0x07002A: /* MCR p15, 0, <Rd>, c7, c10, 1: Clean DCache line */
         case 0x07002E: /* MCR p15, 0, <Rd>, c7, c14, 1: Clean and invalidate single DCache entry */
         case 0x07008A: /* MCR p15, 0, <Rd>, c7, c10, 4: Drain write buffer */
         case 0x0F0000: /* MCR p15, 0, <Rd>, c15, c0, 0: Debug Override Register */
-            // Normally ignored, but somehow needed for linux to boot correctly
-            addr_cache_flush();
+            #ifdef SUPPORT_LINUX
+                // Normally ignored, but somehow needed for linux to boot correctly
+                addr_cache_flush();
+            #endif
             break;
         default:
             warn("Unknown coprocessor instruction MCR %08X", insn);

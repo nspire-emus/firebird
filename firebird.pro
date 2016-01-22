@@ -5,6 +5,9 @@ DEFINES += FB_VERSION=0.31-dev
 
 # JIT
 TRANSLATION_ENABLED = true
+# More accurate, but slower
+SUPPORT_LINUX = true
+ios|android: SUPPORT_LINUX = false
 
 # Localization
 TRANSLATIONS += i18n/de_DE.ts i18n/fr_FR.ts
@@ -111,6 +114,10 @@ contains(QMAKE_TARGET.arch, "x86_64") || contains(QMAKE_TARGET.arch, "arm") {
     !contains(ASMCODE_IMPL, "core/asmcode.c") {
         SOURCES += core/asmcode.c
     }
+}
+
+equals(SUPPORT_LINUX, true) {
+    DEFINES += SUPPORT_LINUX
 }
 
 # Default to armv7 on ARM for movw/movt. If your CPU doesn't support it, comment this out.
