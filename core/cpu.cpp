@@ -1,6 +1,12 @@
 #include <algorithm>
 #include <cassert>
 
+// Uncomment the following line to measure the time until the OS is loaded
+ #define BENCHMARK
+#ifdef BENCHMARK
+    #include <ctime>
+#endif
+
 #include "armsnippets.h"
 #include "asmcode.h"
 #include "cpu.h"
@@ -22,6 +28,20 @@ void cpu_arm_loop()
         Instruction *p = static_cast<Instruction*>(read_instruction(arm.reg[15]));
         if(!p)
             error("Bad PC: 0x%08x\n", arm.reg[15]);
+
+        #ifdef BENCHMARK
+            static clock_t start = 0;
+            if(arm.reg[15] == 0)
+            {
+                start = clock();
+                turbo_mode = true;
+            }
+            else if(arm.reg[15] == 0x10000000)
+            {
+                clock_t diff = clock() - start;
+                printf("%ld ms\n", diff / 1000);
+            }
+        #endif
 
         uint32_t *flags_ptr = &RAM_FLAGS(p);
 

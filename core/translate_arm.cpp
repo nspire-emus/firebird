@@ -14,12 +14,6 @@
 #include <cstdint>
 #include <cstdio>
 
-// Uncomment the following line to measure the time until Boot2
-#define BENCHMARK
-#ifdef BENCHMARK
-    #include <ctime>
-#endif
-
 // Uncomment the following line to support relative jumps if possible,
 // it doesn't work that often as the mmaped section is too far away.
 // #define REL_BRANCH
@@ -252,17 +246,6 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
     // We know this already. end_ptr will be set after the loop
     this_translation->jump_table = reinterpret_cast<void**>(jump_table_start);
     this_translation->start_ptr = insn_ptr_start;
-
-    #ifdef BENCHMARK
-        static clock_t start = 0;
-        if(pc == 0)
-            start = clock();
-        else if(pc == 0x10000000)
-        {
-            clock_t diff = clock() - start;
-            printf("%ld ms\n", diff / 1000);
-        }
-    #endif
 
     // This loop is executed once per instruction.
     // Due to the CPU being able to jump to each instruction seperately,
