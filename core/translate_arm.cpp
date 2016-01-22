@@ -566,6 +566,13 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
                     goto no_offset;
                 }
 
+                /* HACK: If flush_translations is not called in addr_cache_flush,
+                 * this caching here is broken even for the OS. */
+                #ifndef SUPPORT_LINUX
+                    emit_mov(R0, address);
+                    goto no_offset;
+                #endif
+
                 // Load: value very likely constant
                 uint32_t *ptr = reinterpret_cast<uint32_t*>(try_ptr(address));
                 if(!ptr)
