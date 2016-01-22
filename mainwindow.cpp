@@ -374,6 +374,8 @@ void MainWindow::updateUIActionState(bool emulation_running)
     ui->actionSuspend->setEnabled(emulation_running);
     ui->actionSuspend_to_file->setEnabled(emulation_running);
     ui->actionSave->setEnabled(emulation_running);
+
+    ui->buttonSpeed->setEnabled(emulation_running);
 }
 
 void MainWindow::raiseDebugger()
