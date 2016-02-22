@@ -278,7 +278,7 @@ void timer_reset() {
 /* 90030000 and 90040000 */
 uint32_t unknown_cx_read(uint32_t addr) {
     (void) addr;
-    return 0;
+    return (features & FEATURE_HWW) ? 0x4 : 0; /* No idea. */
 }
 void unknown_cx_write(uint32_t addr, uint32_t value) {
     (void) addr;

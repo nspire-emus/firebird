@@ -58,7 +58,36 @@ void lcd_draw_frame(uint8_t *buffer) {
     }
 }
 
-/* Draw the current screen into a 16bpp upside-down bitmap. */
+void lcd_cx_w_draw_frame(uint16_t *buffer)
+{
+    uint32_t mode = lcd.control >> 1 & 7;
+
+    if (mode != 6) {
+        // TODO: Support for other than 16bpp
+        return;
+    }
+
+    uint32_t bpp;
+    if (mode <= 5)
+        bpp = 1 << mode;
+    else
+        bpp = 16;
+
+    uint16_t *in = (uint16_t *)phys_mem_ptr(lcd.framebuffer, (320 * 240) / 8 * bpp);
+    if (!in || !lcd.framebuffer) {
+        memset(buffer, 0, 320 * 240 * 2);
+        return;
+    }
+
+    for (int col = 0; col < 320; ++col)
+    {
+        uint16_t *out = buffer + col;
+        for(int row = 0; row < 240; ++row, out += 320)
+            *out = *in++;
+    }
+}
+
+/* Draw the current screen into a 16bpp bitmap. */
 void lcd_cx_draw_frame(uint16_t *buffer, uint32_t *bitfields) {
     uint32_t mode = lcd.control >> 1 & 7;
     uint32_t bpp;
@@ -85,7 +114,11 @@ void lcd_cx_draw_frame(uint16_t *buffer, uint32_t *bitfields) {
         bitfields[2] = tmp;
     }
 
-    uint32_t *in = (uint32_t *)(intptr_t)phys_mem_ptr(lcd.framebuffer, (320 * 240) / 8 * bpp);
+    // HW-W features a new 240x320 LCD instead of the usual 320x240px one
+    if(features & FEATURE_HWW)
+        return lcd_cx_w_draw_frame(buffer);
+
+    uint32_t *in = (uint32_t *)phys_mem_ptr(lcd.framebuffer, (320 * 240) / 8 * bpp);
     if (!in || !lcd.framebuffer) {
         memset(buffer, 0, 320 * 240 * 2);
         return;

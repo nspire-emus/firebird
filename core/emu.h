@@ -39,10 +39,14 @@ extern uint32_t cpu_events __asm__("cpu_events");
 #define EVENT_WAITING 16
 
 // Settings
-extern volatile bool exiting, debug_on_start, debug_on_warn, large_nand, large_sdram;
+extern volatile bool exiting, debug_on_start, debug_on_warn;
 extern BootOrder boot_order;
 extern bool do_translate;
-extern uint32_t product, asic_user_flags;
+extern uint32_t product, features, asic_user_flags;
+
+#define FEATURE_CX 0x05
+#define FEATURE_HWJ 0x80
+#define FEATURE_HWW 0x100
 
 #define emulate_casplus (product == 0x0C0)
 // 0C-0E (CAS, lab cradle, plain Nspire) use old ASIC

@@ -24,10 +24,10 @@ int throttle_delay = 10; /* in milliseconds */
 uint32_t cpu_events;
 
 bool do_translate = true;
-uint32_t product = 0x0E0, asic_user_flags = 0;
+uint32_t product = 0x0E0, features = 0, asic_user_flags = 0;
 bool turbo_mode = false;
 
-volatile bool exiting, debug_on_start, debug_on_warn, large_nand, large_sdram;
+volatile bool exiting, debug_on_start, debug_on_warn;
 BootOrder boot_order = ORDER_DEFAULT;
 uint32_t boot2_base;
 std::string path_boot1, path_flash;
@@ -199,7 +199,7 @@ bool emu_start(unsigned int port_gdb, unsigned int port_rdbg, const char *snapsh
         uint32_t sdram_size;
         if(snapshot->sig != 0xCAFEBEEF
                 || !flash_resume(snapshot)
-                || !flash_read_settings(&sdram_size, &product, &asic_user_flags)
+                || !flash_read_settings(&sdram_size, &product, &features, &asic_user_flags)
                 || !cpu_resume(snapshot)
                 || !memory_resume(snapshot)
                 || !sched_resume(snapshot))
@@ -216,7 +216,7 @@ bool emu_start(unsigned int port_gdb, unsigned int port_rdbg, const char *snapsh
                 return false;
 
         uint32_t sdram_size;
-        flash_read_settings(&sdram_size, &product, &asic_user_flags);
+        flash_read_settings(&sdram_size, &product, &features, &asic_user_flags);
 
         flash_set_bootorder(boot_order);
 

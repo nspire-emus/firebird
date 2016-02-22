@@ -657,7 +657,7 @@ static uint8_t bootdata[] = {
     // Stuff we don't care about
 };
 
-bool flash_create_new(bool flag_large_nand, const char **preload_file, int product, bool large_sdram, uint8_t **nand_data_ptr, size_t *size) {
+bool flash_create_new(bool flag_large_nand, const char **preload_file, unsigned int product, unsigned int features, bool large_sdram, uint8_t **nand_data_ptr, size_t *size) {
     assert(nand_data_ptr);
     assert(size);
 
@@ -682,7 +682,7 @@ bool flash_create_new(bool flag_large_nand, const char **preload_file, int produ
         manuf->revision = product & 0xF;
         if (manuf->product >= 0x0F) {
             manuf->ext.signature = 0x4C9E5F91;
-            manuf->ext.features = 5;
+            manuf->ext.features = features;
             manuf->ext.default_keypad = 76; // Touchpad
             manuf->ext.lcd_width = 320;
             manuf->ext.lcd_height = 240;
@@ -722,7 +722,7 @@ bool flash_create_new(bool flag_large_nand, const char **preload_file, int produ
     return true;
 }
 
-bool flash_read_settings(uint32_t *sdram_size, uint32_t *product, uint32_t *asic_user_flags) {
+bool flash_read_settings(uint32_t *sdram_size, uint32_t *product, uint32_t *features, uint32_t *asic_user_flags) {
     assert(nand_data);
 
     *asic_user_flags = 0;
@@ -748,6 +748,7 @@ bool flash_read_settings(uint32_t *sdram_size, uint32_t *product, uint32_t *asic
             emuprintf("Invalid SDRAM size in flash\n");
             return false;
         }
+        *features = manuf->ext.features;
         *sdram_size = (4 * 1024 * 1024) << logsize;
     }
 

@@ -22,6 +22,8 @@ public slots:
     void selectDiags();
     void saveAs();
 
+    void hwTypeChanged(int i);
+
 signals:
     void flashCreated(QString path);
 

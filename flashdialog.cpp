@@ -17,6 +17,8 @@ FlashDialog::FlashDialog(QWidget *parent) :
     connect(ui->buttonOS, &QPushButton::clicked, this, &FlashDialog::selectOS);
     connect(ui->buttonDiags, &QPushButton::clicked, this, &FlashDialog::selectDiags);
     connect(ui->buttonSave, &QPushButton::clicked, this, &FlashDialog::saveAs);
+
+    connect(ui->selectModel, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), this, &FlashDialog::hwTypeChanged);
 }
 
 FlashDialog::~FlashDialog()
@@ -119,8 +121,17 @@ void FlashDialog::selectDiags()
     ui->labelDiags->setText(readVersion(diags_path));
 }
 
+void FlashDialog::hwTypeChanged(int i)
+{
+    // HW-rev can only be selected for CX (CAS)
+    ui->selectModelRev->setEnabled(i >= 2);
+}
+
 // Map of ui->selectModel indices to manuf product numbers
 const unsigned int product_values[] = { 0x0E0, 0x0C1, 0x100, 0x0F0 };
+
+// Map of ui->selectModelRev indices to manuf feature values
+const unsigned int feature_values[] = { 0x005, 0x085, 0x185 };
 
 void FlashDialog::saveAs()
 {
@@ -139,7 +150,7 @@ void FlashDialog::saveAs()
     uint8_t *nand_data;
     size_t nand_size;
 
-    if(!flash_create_new(is_cx, preload, product_values[ui->selectModel->currentIndex()], is_cx, &nand_data, &nand_size))
+    if(!flash_create_new(is_cx, preload, product_values[ui->selectModel->currentIndex()], feature_values[ui->selectModelRev->currentIndex()], is_cx, &nand_data, &nand_size))
     {
         QMessageBox::critical(this, tr("Flash creation failed"), tr("Creating the flash file failed!"));
 
