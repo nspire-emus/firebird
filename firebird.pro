@@ -45,6 +45,9 @@ QMAKE_LFLAGS_RELEASE = -Wl,-O3 -flto
 # Apple's clang doesn't know about this one
 macx: QMAKE_LFLAGS_RELEASE -= -Wl,-O3
 
+# This became needed, somehow.
+macx|ios: QMAKE_CXXFLAGS_RELEASE+= -stdlib=libc++
+
 # ios: The linker can't deal with LLVM bitcode directly (missing plugin?)
 # linux-clang: LTO causes "QObject::connect: signal not found"
 ios|linux-clang {
