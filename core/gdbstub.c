@@ -67,10 +67,10 @@ static void log_socket_error(const char *msg) {
 static char sockbuf[4096];
 static char *sockbufptr = sockbuf;
 
-static void flush_out_buffer(void) {
+static bool flush_out_buffer(void) {
     char *p = sockbuf;
     while (p != sockbufptr) {
-        int n = send(socket_fd, p, sockbufptr-p, 0);
+        int n = send(socket_fd, p, sockbufptr-p, MSG_NOSIGNAL);
         if (n == -1) {
 #ifdef __MINGW32__
             if (WSAGetLastError() == WSAEWOULDBLOCK)
@@ -80,15 +80,16 @@ static void flush_out_buffer(void) {
                 continue; // not ready to send
             else {
                 log_socket_error("Failed to send to GDB stub socket");
-                break;
+                return false;
             }
         }
         p += n;
     }
     sockbufptr = sockbuf;
+    return true;
 }
 
-static void put_debug_char(char c) {
+static bool put_debug_char(char c) {
     if (log_enabled[LOG_GDB]) {
         logprintf(LOG_GDB, "%c", c);
         fflush(stdout);
@@ -96,8 +97,11 @@ static void put_debug_char(char c) {
             logprintf(LOG_GDB, "\t");
     }
     if (sockbufptr == sockbuf + sizeof sockbuf)
-        flush_out_buffer();
+        if(!flush_out_buffer())
+            return false;
+
     *sockbufptr++ = c;
+    return true;
 }
 
 // returns 1 if at least one instruction translated in the range
@@ -283,19 +287,24 @@ retry:
             xmitcsum += hex(ch);
 
             if (checksum != xmitcsum) {
-                put_debug_char('-');	/* failed checksum */
-                flush_out_buffer();
+                if(!put_debug_char('-')	/* failed checksum */
+                   || !flush_out_buffer())
+                    return NULL;
             } else {
                 put_debug_char('+');	/* successful transfer */
 
                 /* if a sequence char is present, reply the sequence ID */
                 if(buffer[2] == ':') {
-                    put_debug_char(buffer[0]);
-                    put_debug_char(buffer[1]);
-                    flush_out_buffer();
+                    if(!put_debug_char(buffer[0])
+                       || !put_debug_char(buffer[1])
+                       || !flush_out_buffer())
+                        return NULL;
+
                     return &buffer[3];
                 }
-                flush_out_buffer();
+                if(!flush_out_buffer())
+                    return NULL;
+
                 return &buffer[0];
             }
         }
@@ -303,14 +312,16 @@ retry:
 }
 
 /* send the packet in buffer.  */
-static void putpacket(char *buffer) {
+static bool putpacket(char *buffer) {
     unsigned char checksum;
     int count;
     char ch;
 
     /*  $<packet info>#<checksum> */
     do {
-        put_debug_char('$');
+        if(!put_debug_char('$'))
+            return false;
+
         checksum = 0;
         count = 0;
 
@@ -320,12 +331,16 @@ static void putpacket(char *buffer) {
             count += 1;
         }
 
-        put_debug_char('#');
-        put_debug_char(hexchars[checksum >> 4]);
-        put_debug_char(hexchars[checksum & 0xf]);
-        flush_out_buffer();
+        if(!put_debug_char('#')
+           || !put_debug_char(hexchars[checksum >> 4])
+           || !put_debug_char(hexchars[checksum & 0xf])
+           || !flush_out_buffer())
+            return false;
+
         ch = get_debug_char();
     } while (ch != '+' && ch != (char) -1);
+
+    return true;
 }
 
 /* Indicate to caller of mem2hex or hex2mem that there has been an
@@ -434,7 +449,7 @@ static void set_registers(const uint32_t regbuf[NUMREGS]) {
 
 /* See GDB's documentation: D.3 Stop Reply Packets
  * stop reason and r can be null. */
-static void send_stop_reply(int signal, const char *stop_reason, const char *r) {
+static bool send_stop_reply(int signal, const char *stop_reason, const char *r) {
     char *ptr = remcomOutBuffer;
     ptr += sprintf(ptr, "T%02xthread:1;", signal);
     if (stop_reason) {
@@ -454,7 +469,7 @@ static void send_stop_reply(int signal, const char *stop_reason, const char *r) 
     ptr = mem2hex(&arm.reg[15], ptr, sizeof(uint32_t));
     *ptr++ = ';';
     *ptr = 0;
-    putpacket(remcomOutBuffer);
+    return putpacket(remcomOutBuffer);
 }
 
 void gdbstub_loop(void) {
@@ -479,7 +494,9 @@ void gdbstub_loop(void) {
         reply = true;
         switch (*ptr++) {
             case '?':
-                send_stop_reply(SIGNAL_TRAP, NULL, 0);
+                if(!send_stop_reply(SIGNAL_TRAP, NULL, 0))
+                    goto disconnect;
+
                 reply = false; // already done
                 break;
 
@@ -647,10 +664,12 @@ z:
 
 reply:
         /* reply to the request */
-        if (reply)
-            putpacket(remcomOutBuffer);
+        if (reply && !putpacket(remcomOutBuffer))
+            goto disconnect;
     }
 
+disconnect:
+    gdbstub_disconnect();
     gui_debugger_entered_or_left(in_debugger = false);
 }
 
