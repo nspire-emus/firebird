@@ -11,8 +11,8 @@ struct HostKey {
     bool alt;
 };
 
-#define KEY(x, y) HostKey x{Qt::Key_##y, QStringLiteral(#y), false}
-#define ALT(x, y, z) HostKey x{Qt::Key_##y,QStringLiteral(z), true}
+#define KEY(x, y) static HostKey x{Qt::Key_##y, QStringLiteral(#y), false}
+#define ALT(x, y, z) static HostKey x{Qt::Key_##y,QStringLiteral(z), true}
 
 KEY(enter, Enter);
 KEY(tab, Tab);
