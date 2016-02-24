@@ -384,7 +384,7 @@ bool memory_initialize(uint32_t sdram_size)
         apb_set_map(0x02, serial_cx_read, serial_cx_write);
         add_reset_proc(serial_cx_reset);
         apb_set_map(0x03, unknown_cx_read, unknown_cx_write);
-        apb_set_map(0x04, unknown_cx_read, unknown_cx_write);
+        apb_set_map(0x04, unknown_cx_w_read, unknown_cx_w_write);
         apb_set_map(0x05, touchpad_cx_read, touchpad_cx_write);
         add_reset_proc(touchpad_cx_reset);
         apb_set_map(0x09, rtc_cx_read, rtc_cx_write);

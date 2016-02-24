@@ -3,6 +3,8 @@
 #ifndef _H_MISC
 #define _H_MISC
 
+#include <stdint.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -99,6 +101,9 @@ void serial_byte_in(uint8_t byte);
 
 uint32_t unknown_cx_read(uint32_t addr);
 void unknown_cx_write(uint32_t addr, uint32_t value);
+
+uint32_t unknown_cx_w_read(uint32_t addr);
+void unknown_cx_w_write(uint32_t addr, uint32_t value);
 
 typedef struct watchdog_state {
     uint32_t load;

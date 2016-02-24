@@ -275,7 +275,7 @@ void timer_reset() {
     sched.items[SCHED_TIMERS].proc = timer_event;
 }
 
-/* 90030000 and 90040000 */
+/* 90030000 */
 uint32_t unknown_cx_read(uint32_t addr) {
     (void) addr;
     return (features & FEATURE_HWW) ? 0x4 : 0; /* No idea. */
@@ -283,6 +283,31 @@ uint32_t unknown_cx_read(uint32_t addr) {
 void unknown_cx_write(uint32_t addr, uint32_t value) {
     (void) addr;
     (void) value;
+}
+
+/* 90040000: SPI? */
+uint32_t unknown_cx_w_read(uint32_t addr) {
+    if ((features & FEATURE_HWW) == 0)
+        return 0;
+
+    switch (addr & 0xFF)
+    {
+    case 0xC:
+        return 0x6;
+    default:
+        return 0;
+    }
+}
+void unknown_cx_w_write(uint32_t addr, uint32_t value) {
+    if ((features & FEATURE_HWW) == 0)
+        return;
+
+    switch (addr & 0xFF)
+    {
+    default:
+        (void) value;
+        break;
+    }
 }
 
 /* 90060000 */
