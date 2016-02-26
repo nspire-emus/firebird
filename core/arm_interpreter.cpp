@@ -426,6 +426,8 @@ void do_arm_instruction(Instruction i)
             }
         }
     }
+    else if((insn & 0xFF000F0) == 0x7F000F0)
+        undefined_instruction();
     else if((insn & 0xC000000) == 0x4000000)
     {
         // LDR, STRB, etc.
