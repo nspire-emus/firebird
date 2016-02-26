@@ -115,7 +115,7 @@ void lcd_cx_draw_frame(uint16_t *buffer, uint32_t *bitfields) {
     }
 
     // HW-W features a new 240x320 LCD instead of the usual 320x240px one
-    if(features & FEATURE_HWW)
+    if((features & FEATURE_HWW) == FEATURE_HWW)
         return lcd_cx_w_draw_frame(buffer);
 
     uint32_t *in = (uint32_t *)phys_mem_ptr(lcd.framebuffer, (320 * 240) / 8 * bpp);
