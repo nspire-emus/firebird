@@ -61,12 +61,6 @@ void lcd_draw_frame(uint8_t *buffer) {
 void lcd_cx_w_draw_frame(uint16_t *buffer)
 {
     uint32_t mode = lcd.control >> 1 & 7;
-
-    if (mode != 6) {
-        // TODO: Support for other than 16bpp
-        return;
-    }
-
     uint32_t bpp;
     if (mode <= 5)
         bpp = 1 << mode;
@@ -74,17 +68,60 @@ void lcd_cx_w_draw_frame(uint16_t *buffer)
         bpp = 16;
 
     uint16_t *in = (uint16_t *)phys_mem_ptr(lcd.framebuffer, (320 * 240) / 8 * bpp);
-    if (!in || !lcd.framebuffer) {
+    if(!in || !lcd.framebuffer)
+    {
         memset(buffer, 0, 320 * 240 * 2);
         return;
     }
 
-    for (int col = 0; col < 320; ++col)
+    if(mode == 6)
     {
-        uint16_t *out = buffer + col;
-        for(int row = 0; row < 240; ++row, out += 320)
-            *out = *in++;
+        for (int col = 0; col < 320; ++col)
+        {
+            uint16_t *out = buffer + col;
+            for(int row = 0; row < 240; ++row, out += 320)
+                *out = *in++;
+        }
     }
+    else if(mode == 4)
+    {
+        for (int col = 0; col < 320; ++col)
+        {
+            uint16_t *out = buffer + col;
+            for(int row = 0; row < 240; ++row, out += 320)
+            {
+                uint16_t color = *in++;
+                uint8_t r = color & 0x1F,
+                        g = (color >> 5) & 0x1F,
+                        b = (color >> 10) & 0x1F;
+
+                *out = (r << 11) | (g << 6) | b | (color >> 10 & 0x20);
+            }
+        }
+    }
+    else if(mode == 2)
+    {
+        for (int col = 0; col < 320; ++col)
+        {
+            uint16_t *out = buffer + col;
+            uint32_t words = (240 / 32) * bpp;
+            uint32_t mask = (1 << bpp) - 1;
+            uint32_t bi = (lcd.control & (1 << 9)) ? 0 : 24;
+            if (!(lcd.control & (1 << 10)))
+                bi ^= (8 - bpp);
+            do {
+                uint32_t word = *in++;
+                int bitpos = 32;
+                do {
+                    uint16_t color = lcd.palette[word >> ((bitpos -= bpp) ^ bi) & mask];
+                    *out = color + (color & 0xFFE0) + (color >> 10 & 0x20);
+                    out += 320;
+                } while (bitpos != 0);
+            } while (--words != 0);
+        }
+    }
+    else // TODO: Support for other modes
+        return;
 }
 
 /* Draw the current screen into a 16bpp bitmap. */
