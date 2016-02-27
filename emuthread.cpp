@@ -137,7 +137,8 @@ void EmuThread::doStuff(bool wait)
         {
             setPaused(false);
             enter_debugger = false;
-            debugger(DBG_USER, 0);
+            if(!in_debugger)
+                debugger(DBG_USER, 0);
         }
 
         if(is_paused && wait)
