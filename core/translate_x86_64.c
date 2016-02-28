@@ -445,12 +445,12 @@ no_condition:
 
                 if (is_load) {
                     if (type == SB) {
-                        emit_call((uintptr_t)read_byte);
+                        emit_call_nosave((uintptr_t)read_byte_asm);
                         // movsx eax,al
                         emit_word(0xBE0F);
                         emit_byte(0xC0);
                     } else {
-                        emit_call((uintptr_t)read_half);
+                        emit_call_nosave((uintptr_t)read_half_asm);
                         if (type == SH) {
                             // cwde
                             emit_byte(0x98);
@@ -459,7 +459,7 @@ no_condition:
                     emit_mov_armreg_x86reg(data_reg, EAX);
                 } else {
                     emit_mov_x86reg_armreg(REG_ARG2, data_reg);
-                    emit_call((uintptr_t)write_half);
+                    emit_call_nosave((uintptr_t)write_half_asm);
                 }
 
                 if (post_index || pre_index)
@@ -847,7 +847,7 @@ data_proc_done:
 
             if (is_load) {
                 /* LDR/LDRB instruction */
-                emit_call(is_byteop ? (uintptr_t)read_byte : (uintptr_t)read_word);
+                emit_call_nosave(is_byteop ? (uintptr_t)read_byte_asm : (uintptr_t)read_word_asm);
                 if (data_reg != 15)
                     emit_mov_armreg_x86reg(data_reg, EAX);
             } else {
@@ -856,7 +856,7 @@ data_proc_done:
                     emit_mov_x86reg_immediate(REG_ARG2, pc + 12);
                 else
                     emit_mov_x86reg_armreg(REG_ARG2, data_reg);
-                emit_call(is_byteop ? (uintptr_t)write_byte : (uintptr_t)write_word);
+                emit_call_nosave(is_byteop ? (uintptr_t)write_byte_asm : (uintptr_t)write_word_asm);
             }
 
             if (pre_index || post_index) { // Writeback
@@ -909,7 +909,7 @@ data_proc_done:
                 emit_byte(0x8D); // LEA
                 emit_modrm_base_offset(REG_ARG1, EDX, offset);
                 if (load) {
-                    emit_call((uintptr_t)read_word);
+                    emit_call_nosave((uintptr_t)read_word_asm);
                     if (reg == addr_reg && (insn & ~0u << reg & 0xFFFF)) {
                         // Loading the address register, but there are still more
                         // registers to go. In case they cause a data abort, don't
@@ -923,7 +923,7 @@ data_proc_done:
                         emit_mov_x86reg_immediate(REG_ARG2, pc + 12);
                     else
                         emit_mov_x86reg_armreg(REG_ARG2, reg);
-                    emit_call((uintptr_t)write_word);
+                    emit_call_nosave((uintptr_t)write_word_asm);
                 }
                 offset += 4;
             }

@@ -20,9 +20,9 @@ translation_enter:
 	push	%rbx
 	push	%rsi
 	push	%rdi
-	mov	%rsp, in_translation_rsp(%rip)
+    mov     %rsp, in_translation_rsp(%rip)
 
-	lea	arm(%rip), %rbx
+    lea     arm(%rip), %rbx
 	mov		ARM_PC(%rbx), %eax
 	jmp		translation_next
 
@@ -35,11 +35,11 @@ translation_next_bx:
 translation_next:
 	mov		%eax, ARM_PC(%rbx)
 
-	lea	cycle_count_delta(%rip), %r8
+    lea     cycle_count_delta(%rip), %r8
 	cmpl	$0, (%r8)
 	jns		return
 
-	lea     cpu_events(%rip), %r8
+    lea     cpu_events(%rip), %r8
 	cmpl	$0, (%r8)
 	jnz		return
 
@@ -53,19 +53,19 @@ addr_ok:
 	testb	$RF_CODE_TRANSLATED, %dl
 	jz		return         // Not translated
 
-	lea	in_translation_pc_ptr(%rip), %r8
+    lea     in_translation_pc_ptr(%rip), %r8
 	mov 	%rax, (%r8)
 
 	shr 	$RFS_TRANSLATION_INDEX, %rdx
 	shl		$5, %rdx
-	lea	translation_table(%rip), %r8
+    lea     translation_table(%rip), %r8
 	add 	%r8, %rdx
 
 	// Add one cycle for each instruction from this point to the end
 	mov 	TRANS_END_PTR(%rdx), %rcx
 	sub 	%rax, %rcx
 	shr 	$2, %rcx
-	lea	cycle_count_delta(%rip), %r8
+    lea     cycle_count_delta(%rip), %r8
 	add 	%ecx, (%r8)
 
 	mov		%rax, %rcx
@@ -193,3 +193,141 @@ ror_carry_mult_32:
 	test	%eax, %eax
 	sets	ARM_FLAG_C(%rbx)
 	ret
+
+read_word_asm: .global read_word_asm
+    mov     %rdi, %rax
+    shr     $10, %rax
+    shl     $1, %rax
+    mov     addr_cache(%rip), %rbp
+    mov     (%rbp, %rax, 8), %rax
+    test    $3, %rax
+    jnz     rwa_miss
+    movl    (%rax, %rdi), %eax
+    ret
+rwa_miss:
+    push    %rsi
+    push    %rdx
+    push    %rcx
+    call    read_word
+    pop     %rsi
+    pop     %rdx
+    pop     %rcx
+    ret
+
+write_word_asm: .global write_word_asm
+    mov     %rdi, %rax
+    shr     $10, %rax
+    shl     $1, %rax
+    add     $1, %rax
+    mov     addr_cache(%rip), %rbp
+    mov     (%rbp, %rax, 8), %rax
+    test    $3, %rax
+    jnz     wwa_miss
+    movl    %esi, (%rax, %rdi)
+    add     $65*1024*1024, %rax
+    testq   $0x100, (%rax, %rdi)
+    jnz     write_action_asm
+    ret
+wwa_miss:
+    push    %rdx
+    push    %rcx
+    call    write_word
+    pop     %rsi
+    pop     %rdx
+    ret
+
+read_half_asm: .global read_half_asm
+    mov     %rdi, %rax
+    shr     $10, %rax
+    shl     $1, %rax
+    mov     addr_cache(%rip), %rbp
+    mov     (%rbp, %rax, 8), %rax
+    test    $3, %rax
+    jnz     rha_miss
+    movzwl  (%rax, %rdi), %eax
+    ret
+rha_miss:
+    push    %rsi
+    push    %rdx
+    push    %rcx
+    call    read_half
+    pop     %rsi
+    pop     %rdx
+    pop     %rcx
+    ret
+
+write_half_asm: .global write_half_asm
+    mov     %rdi, %rax
+    shr     $10, %rax
+    shl     $1, %rax
+    add     $1, %rax
+    mov     addr_cache(%rip), %rbp
+    mov     (%rbp, %rax, 8), %rax
+    test    $3, %rax
+    jnz     wha_miss
+    movw    %si, (%rax, %rdi)
+    add     $65*1024*1024, %rax
+    testq   $0x100, (%rax, %rdi)
+    jnz     write_action_asm
+    ret
+wha_miss:
+    push    %rdx
+    push    %rcx
+    call    write_half
+    pop     %rsi
+    pop     %rdx
+    ret
+
+read_byte_asm: .global read_byte_asm
+    mov     %rdi, %rax
+    shr     $10, %rax
+    shl     $1, %rax
+    mov     addr_cache(%rip), %rbp
+    mov     (%rbp, %rax, 8), %rax
+    test    $3, %rax
+    jnz     rba_miss
+    movzb   (%rax, %rdi), %rax
+    ret
+rba_miss:
+    push    %rsi
+    push    %rdx
+    push    %rcx
+    call    read_byte
+    pop     %rsi
+    pop     %rdx
+    pop     %rcx
+    ret
+
+write_byte_asm: .global write_byte_asm
+    mov     %rdi, %rax
+    shr     $10, %rax
+    shl     $1, %rax
+    add     $1, %rax
+    mov     addr_cache(%rip), %rbp
+    mov     (%rbp, %rax, 8), %rax
+    test    $3, %rax
+    jnz     wba_miss
+    xchg    %rsi, %rdx // Can't use %rsi directly
+    movb    %dl, (%rax, %rdi)
+    xchg    %rsi, %rdx
+    add     $65*1024*1024, %rax
+    testq   $0x100, (%rax, %rdi)
+    jnz     write_action_asm
+    ret
+wba_miss:
+    push    %rdx
+    push    %rcx
+    call    write_byte
+    pop     %rsi
+    pop     %rdx
+    ret
+
+write_action_asm:
+    add     %rax, %rdi
+    sub     $65*1024*1024, %rdi
+    push    %rdx
+    push    %rcx
+    call    write_action
+    pop     %rsi
+    pop     %rdx
+    ret
