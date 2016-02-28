@@ -1025,10 +1025,13 @@ void translate_fix_pc() {
         error("Couldn't get PC for fault");
     int index = flags >> RFS_TRANSLATION_INDEX;
 
+    assert(insnp >= translation_table[index].start_ptr);
+    assert(insnp < translation_table[index].end_ptr);
     // We may have jumped into the middle of a translation
-    arm.reg[15] -= (uint8_t*) in_translation_pc_ptr - (uint8_t*) translation_table[index].start_ptr;
+    arm.reg[15] -= (uint8_t*) insnp - (uint8_t*) translation_table[index].start_ptr;
 
-    for(unsigned int i = 0; ret_eip > translation_table[index].jump_table[i]; ++i)
+    unsigned int translation_insts = translation_table[index].end_ptr - translation_table[index].start_ptr;
+    for(unsigned int i = 0; ret_eip > translation_table[index].jump_table[i] && i < translation_insts; ++i)
         arm.reg[15] += 4;
 
     cycle_count_delta -= ((uintptr_t)translation_table[index].end_ptr - (uintptr_t)insnp) >> 2;
