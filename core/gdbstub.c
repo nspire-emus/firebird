@@ -68,6 +68,13 @@ static char sockbuf[4096];
 static char *sockbufptr = sockbuf;
 
 static bool flush_out_buffer(void) {
+#ifndef MSG_NOSIGNAL
+    #ifdef __APPLE__
+        #define MSG_NOSIGNAL SO_NOSIGPIPE
+    #else
+        #define MSG_NOSIGNAL 0
+    #endif
+#endif
     char *p = sockbuf;
     while (p != sockbufptr) {
         int n = send(socket_fd, p, sockbufptr-p, MSG_NOSIGNAL);
