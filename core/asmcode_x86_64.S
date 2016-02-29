@@ -198,20 +198,18 @@ read_word_asm: .global read_word_asm
     mov     %rdi, %rax
     shr     $10, %rax
     shl     $1, %rax
-    mov     addr_cache(%rip), %rbp
-    mov     (%rbp, %rax, 8), %rax
+    mov     addr_cache(%rip), %r8
+    mov     (%r8, %rax, 8), %rax
     test    $3, %rax
     jnz     rwa_miss
     movl    (%rax, %rdi), %eax
     ret
 rwa_miss:
-    push    %rsi
     push    %rdx
     push    %rcx
     call    read_word
-    pop     %rsi
-    pop     %rdx
     pop     %rcx
+    pop     %rdx
     ret
 
 write_word_asm: .global write_word_asm
@@ -219,8 +217,8 @@ write_word_asm: .global write_word_asm
     shr     $10, %rax
     shl     $1, %rax
     add     $1, %rax
-    mov     addr_cache(%rip), %rbp
-    mov     (%rbp, %rax, 8), %rax
+    mov     addr_cache(%rip), %r8
+    mov     (%r8, %rax, 8), %rax
     test    $3, %rax
     jnz     wwa_miss
     movl    %esi, (%rax, %rdi)
@@ -232,7 +230,7 @@ wwa_miss:
     push    %rdx
     push    %rcx
     call    write_word
-    pop     %rsi
+    pop     %rcx
     pop     %rdx
     ret
 
@@ -240,20 +238,18 @@ read_half_asm: .global read_half_asm
     mov     %rdi, %rax
     shr     $10, %rax
     shl     $1, %rax
-    mov     addr_cache(%rip), %rbp
-    mov     (%rbp, %rax, 8), %rax
+    mov     addr_cache(%rip), %r8
+    mov     (%r8, %rax, 8), %rax
     test    $3, %rax
     jnz     rha_miss
     movzwl  (%rax, %rdi), %eax
     ret
 rha_miss:
-    push    %rsi
     push    %rdx
     push    %rcx
     call    read_half
-    pop     %rsi
-    pop     %rdx
     pop     %rcx
+    pop     %rdx
     ret
 
 write_half_asm: .global write_half_asm
@@ -261,8 +257,8 @@ write_half_asm: .global write_half_asm
     shr     $10, %rax
     shl     $1, %rax
     add     $1, %rax
-    mov     addr_cache(%rip), %rbp
-    mov     (%rbp, %rax, 8), %rax
+    mov     addr_cache(%rip), %r8
+    mov     (%r8, %rax, 8), %rax
     test    $3, %rax
     jnz     wha_miss
     movw    %si, (%rax, %rdi)
@@ -274,7 +270,7 @@ wha_miss:
     push    %rdx
     push    %rcx
     call    write_half
-    pop     %rsi
+    pop     %rcx
     pop     %rdx
     ret
 
@@ -282,20 +278,18 @@ read_byte_asm: .global read_byte_asm
     mov     %rdi, %rax
     shr     $10, %rax
     shl     $1, %rax
-    mov     addr_cache(%rip), %rbp
-    mov     (%rbp, %rax, 8), %rax
+    mov     addr_cache(%rip), %r8
+    mov     (%r8, %rax, 8), %rax
     test    $3, %rax
     jnz     rba_miss
     movzb   (%rax, %rdi), %rax
     ret
 rba_miss:
-    push    %rsi
     push    %rdx
     push    %rcx
     call    read_byte
-    pop     %rsi
-    pop     %rdx
     pop     %rcx
+    pop     %rdx
     ret
 
 write_byte_asm: .global write_byte_asm
@@ -303,8 +297,8 @@ write_byte_asm: .global write_byte_asm
     shr     $10, %rax
     shl     $1, %rax
     add     $1, %rax
-    mov     addr_cache(%rip), %rbp
-    mov     (%rbp, %rax, 8), %rax
+    mov     addr_cache(%rip), %r8
+    mov     (%r8, %rax, 8), %rax
     test    $3, %rax
     jnz     wba_miss
     xchg    %rsi, %rdx // Can't use %rsi directly
@@ -318,7 +312,7 @@ wba_miss:
     push    %rdx
     push    %rcx
     call    write_byte
-    pop     %rsi
+    pop     %rcx
     pop     %rdx
     ret
 
@@ -328,6 +322,6 @@ write_action_asm:
     push    %rdx
     push    %rcx
     call    write_action
-    pop     %rsi
+    pop     %rcx
     pop     %rdx
     ret
