@@ -1019,7 +1019,7 @@ void translate_fix_pc() {
         return;
 
     uint32_t *insnp = in_translation_pc_ptr;
-    void *ret_eip = in_translation_rsp[-4];
+    void *ret_eip = in_translation_rsp[-1];
     uint32_t flags = RAM_FLAGS(insnp);
     if (!(flags & RF_CODE_TRANSLATED))
         error("Couldn't get PC for fault");
