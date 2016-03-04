@@ -99,6 +99,16 @@ void lcd_cx_w_draw_frame(uint16_t *buffer)
             }
         }
     }
+    else if(mode == 3)
+    {
+        uint8_t *in8 = (uint8_t*) in;
+        for (int col = 0; col < 320; ++col)
+        {
+            uint8_t *out8 = (uint8_t*)(buffer) + col;
+            for(int row = 0; row < 240; ++row, out8 += 320)
+                *out8 = *in8++;
+        }
+    }
     else if(mode == 2)
     {
         for (int col = 0; col < 320; ++col)
