@@ -24,7 +24,7 @@ void *os_reserve(size_t size)
 {
 #ifdef __i386__
     // Has to have bit 31 zero
-    void *ptr = mmap((void*)0x70000000, size, PROT_READ|PROT_WRITE, MAP_SHARED|MAP_ANON, -1, 0);
+    void *ptr = mmap((void*)0x70000000, size, PROT_READ|PROT_WRITE, MAP_SHARED|MAP_ANON|MAP_32BIT, -1, 0);
 #else
     void *ptr = mmap((void*)0, size, PROT_READ|PROT_WRITE, MAP_SHARED|MAP_ANON, -1, 0);
 #endif
@@ -77,7 +77,7 @@ void *os_alloc_executable(size_t size)
 #endif
 #if defined(__i386__) || defined(__x86_64__)
     // Has to be in 32-bit space for the JIT
-    void *ptr = mmap((void*)0x30000000, size, PROT_READ|PROT_WRITE|PROT_EXEC, MAP_SHARED|MAP_ANON, -1, 0);
+    void *ptr = mmap((void*)0x30000000, size, PROT_READ|PROT_WRITE|PROT_EXEC, MAP_SHARED|MAP_ANON|MAP_32BIT, -1, 0);
 #else
     void *ptr = mmap((void*)0x0, size, PROT_READ|PROT_WRITE|PROT_EXEC, MAP_SHARED|MAP_ANON, -1, 0);
 #endif
