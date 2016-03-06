@@ -7,8 +7,12 @@
 #include <stdio.h>
 #include <unistd.h>
 #ifdef __APPLE__
-#include <mach/clock.h>
-#include <mach/mach.h>
+    #include <mach/clock.h>
+    #include <mach/mach.h>
+#endif
+
+#ifndef MAP_32BIT
+    #define MAP_32BIT 0
 #endif
 
 #include "os.h"
