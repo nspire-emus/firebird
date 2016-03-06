@@ -3,6 +3,8 @@
 #ifndef _H_LCD
 #define _H_LCD
 
+#include <stdint.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif

@@ -99,18 +99,9 @@ void lcd_cx_w_draw_frame(uint16_t *buffer)
             }
         }
     }
-    else if(mode == 3)
+    else if(mode < 4)
     {
-        uint8_t *in8 = (uint8_t*) in;
-        for (int col = 0; col < 320; ++col)
-        {
-            uint8_t *out8 = (uint8_t*)(buffer) + col;
-            for(int row = 0; row < 240; ++row, out8 += 320)
-                *out8 = *in8++;
-        }
-    }
-    else if(mode == 2)
-    {
+        uint32_t *in32 = (uint32_t*) in;
         for (int col = 0; col < 320; ++col)
         {
             uint16_t *out = buffer + col;
@@ -120,7 +111,7 @@ void lcd_cx_w_draw_frame(uint16_t *buffer)
             if (!(lcd.control & (1 << 10)))
                 bi ^= (8 - bpp);
             do {
-                uint32_t word = *in++;
+                uint32_t word = *in32++;
                 int bitpos = 32;
                 do {
                     uint16_t color = lcd.palette[word >> ((bitpos -= bpp) ^ bi) & mask];
