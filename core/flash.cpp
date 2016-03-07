@@ -725,8 +725,9 @@ bool flash_create_new(bool flag_large_nand, const char **preload_file, unsigned 
 bool flash_read_settings(uint32_t *sdram_size, uint32_t *product, uint32_t *features, uint32_t *asic_user_flags) {
     assert(nand_data);
 
-    *asic_user_flags = 0;
     *sdram_size = 32 * 1024 * 1024;
+    *features = 0;
+    *asic_user_flags = 0;
 
     if (*(uint32_t *)&nand_data[0] == 0xFFFFFFFF) {
         // No manuf data = CAS+
