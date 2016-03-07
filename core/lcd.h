@@ -21,7 +21,7 @@ typedef struct lcd_state {
 } lcd_state;
 
 void lcd_draw_frame(uint8_t *buffer);
-void lcd_cx_draw_frame(uint16_t *buffer, uint32_t *colormasks);
+void lcd_cx_draw_frame(uint16_t *buffer);
 
 void lcd_reset(void);
 typedef struct emu_snapshot emu_snapshot;

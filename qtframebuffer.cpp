@@ -17,10 +17,8 @@ QImage renderFramebuffer()
 {
     static std::array<uint16_t, 320 * 240> framebuffer;
 
-    uint32_t bitfields[] = { 0x01F, 0x000, 0x000};
-
-    lcd_cx_draw_frame(framebuffer.data(), bitfields);
-    QImage::Format format = bitfields[0] == 0x00F ? QImage::Format_RGB444 : QImage::Format_RGB16;
+    lcd_cx_draw_frame(framebuffer.data());
+    QImage::Format format = QImage::Format_RGB16;
 
     if(!emulate_cx)
     {

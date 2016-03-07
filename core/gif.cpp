@@ -51,9 +51,7 @@ void gif_new_frame()
 
     static std::array<uint16_t, 320 * 240> framebuffer;
 
-    uint32_t bitfields[] = { 0x01F, 0x000, 0x000};
-
-    lcd_cx_draw_frame(framebuffer.data(), bitfields);
+    lcd_cx_draw_frame(framebuffer.data());
 
     if(!emulate_cx)
     {
