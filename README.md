@@ -13,15 +13,15 @@ Download:
 Screenshots/Videos:
 -------------------
 
-_Linux(video):_
+_Linux:_
 
-[![](http://i.imgur.com/eGJOMsSl.png)](http://webm.host/45aec/vid.webm)
+[![](http://i.imgur.com/eGJOMsSl.png)](http://i.imgur.com/eGJOMsS.png)
 
-_Windows:_ | _Android (video):_
+_Windows:_ | _Android:_
 --- | ---
-[![](https://i.imgur.com/aibTt9Cl.png)](https://i.imgur.com/aibTt9C.png) | [![](http://i.imgur.com/fpN81kom.png)](http://webm.host/c8884/vid.webm)
-_Mac OS X:_ | _iOS (video):_
-[![](https://i.imgur.com/5Rl7VTG.png)](https://i.imgur.com/YhqkwIN.png) | [![](https://i.imgur.com/Gly3Mzhm.png)](http://webm.host/bd282/vid.webm)
+[![](https://i.imgur.com/aibTt9Cl.png)](https://i.imgur.com/aibTt9C.png) | [![](http://i.imgur.com/fpN81kom.png)](http://i.imgur.com/fpN81ko.png)
+_Mac OS X:_ | _iOS:_
+[![](https://i.imgur.com/5Rl7VTG.png)](https://i.imgur.com/YhqkwIN.png) | [![](https://i.imgur.com/Gly3Mzhm.png)](https://i.imgur.com/Gly3Mzh.png)
 
 Building
 --------
