@@ -276,13 +276,29 @@ void timer_reset() {
 }
 
 /* 90030000 */
+static unknown_cx_state unknown_cx;
+
 uint32_t unknown_cx_read(uint32_t addr) {
-    (void) addr;
-    return (features & FEATURE_HWW) ? 0x4 : 0; /* No idea. */
+    if(addr == 0x90030200)
+        return unknown_cx.fade;
+    else
+        return (features & FEATURE_HWW) ? 0x4 : 0; /* No idea. */
 }
 void unknown_cx_write(uint32_t addr, uint32_t value) {
-    (void) addr;
-    (void) value;
+    if(addr == 0x90030200)
+        unknown_cx.fade = value;
+}
+
+bool unknown_cx_resume(const emu_snapshot *snapshot)
+{
+    unknown_cx = snapshot->mem.unknown_cx;
+    return true;
+}
+
+bool unknown_cx_suspend(emu_snapshot *snapshot)
+{
+    snapshot->mem.unknown_cx = unknown_cx;
+    return true;
 }
 
 /* 90040000: SPI? */

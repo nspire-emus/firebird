@@ -430,6 +430,7 @@ bool memory_suspend(emu_snapshot *snapshot)
     memcpy(snapshot->mem.mem_and_flags, mem_and_flags, MEM_MAXSIZE);
 
     return gpio_suspend(snapshot)
+            && unknown_cx_suspend(snapshot)
             && watchdog_suspend(snapshot)
             && pmu_suspend(snapshot)
             && keypad_suspend(snapshot)
@@ -458,6 +459,7 @@ bool memory_resume(const emu_snapshot *snapshot)
     memset(mem_and_flags + MEM_MAXSIZE, 0, MEM_MAXSIZE); // Set all flags to 0
 
     return gpio_resume(snapshot)
+            && unknown_cx_resume(snapshot)
             && watchdog_resume(snapshot)
             && pmu_resume(snapshot)
             && keypad_resume(snapshot)

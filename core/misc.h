@@ -99,6 +99,12 @@ uint32_t serial_cx_read(uint32_t addr);
 void serial_cx_write(uint32_t addr, uint32_t value);
 void serial_byte_in(uint8_t byte);
 
+typedef struct unknown_cx_state {
+    uint32_t fade; /* No idea. */
+} unknown_cx_state;
+
+bool unknown_cx_suspend(emu_snapshot *snapshot);
+bool unknown_cx_resume(const emu_snapshot *snapshot);
 uint32_t unknown_cx_read(uint32_t addr);
 void unknown_cx_write(uint32_t addr, uint32_t value);
 
