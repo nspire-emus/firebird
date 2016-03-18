@@ -105,7 +105,7 @@ void lcd_cx_w_draw_frame(uint16_t *buffer)
         for (int col = 0; col < 320; ++col)
         {
             uint16_t *out = buffer + col;
-            uint32_t words = (240 / 32) * bpp;
+            uint32_t words = (240 * bpp) / 32;
             uint32_t mask = (1 << bpp) - 1;
             uint32_t bi = (lcd.control & (1 << 9)) ? 0 : 24;
             if (!(lcd.control & (1 << 10)))
