@@ -673,6 +673,14 @@ bool flash_create_new(bool flag_large_nand, const char **preload_file, unsigned 
 
     if (preload_file[0]) {
         load_file(nand_data, nand_metrics, PartitionManuf, preload_file[0], 0);
+
+        // Overwrite some values to match the configuration
+        struct manuf_data_804 *manuf = (struct manuf_data_804 *)&nand_data[0x844];
+        manuf->product = product >> 4;
+        manuf->revision = product & 0xF;
+        if (product >= 0x0F)
+            manuf->ext.features = features;
+        ecc_fix(nand_data, nand_metrics, nand_metrics.page_size < 0x800 ? 4 : 1);
     } else if (!emulate_casplus) {
         *(uint32_t *)&nand_data[0] = 0x796EB03C;
         ecc_fix(nand_data, nand_metrics, 0);
