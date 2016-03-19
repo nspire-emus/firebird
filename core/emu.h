@@ -23,6 +23,11 @@ extern "C" {
 #define NO_TRANSLATION
 #endif
 
+// on iOS, setjmp and longjmp are broken
+#ifdef IS_IOS_BUILD
+#define NO_SETJMP
+#endif
+
 // Helper for micro-optimization
 #define unlikely(x) __builtin_expect(x, 0)
 #define likely(x) __builtin_expect(x, 1)

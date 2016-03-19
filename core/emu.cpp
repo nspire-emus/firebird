@@ -1,3 +1,4 @@
+#include <cassert>
 #include <chrono>
 #include <cstdint>
 #include <cctype>
@@ -73,7 +74,11 @@ void error(const char *fmt, ...) {
     va_end(va);
     debugger(DBG_EXCEPTION, 0);
     cpu_events |= EVENT_RESET;
-    __builtin_longjmp(restart_after_exception, 1);
+    #ifndef NO_SETJMP
+        __builtin_longjmp(restart_after_exception, 1);
+    #else
+        assert(false);
+    #endif
 }
 
 int exec_hack() {
@@ -295,7 +300,7 @@ void emu_loop(bool reset)
     exiting = false;
 
 // clang segfaults with that, for an iOS build :(
-#ifndef IS_IOS_BUILD
+#ifndef NO_SETJMP
     // Workaround for LLVM bug #18974
     while(__builtin_setjmp(restart_after_exception)){};
 #endif
