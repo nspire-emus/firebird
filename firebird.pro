@@ -233,7 +233,8 @@ armsnippets.commands = arm-none-eabi-gcc -fno-leading-underscore -c $$PWD/core/a
 QMAKE_EXTRA_TARGETS = armsnippets
 
 OTHER_FILES += \
-    TODO
+    TODO \
+    emscripten/main.cpp
 
 RESOURCES += \
     resources.qrc

@@ -39,7 +39,11 @@ typedef struct arm_state {  // Remember to update asmcode.S if this gets rearran
 
     uint8_t  interrupts;
     uint32_t cpu_events_state; // Only used for suspend and resume!
-} __attribute__((packed)) arm_state;
+}
+#ifndef __EMSCRIPTEN__
+__attribute__((packed))
+#endif
+arm_state;
 extern struct arm_state arm __asm__("arm");
 
 #define MODE_USR 0x10
