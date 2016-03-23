@@ -1,6 +1,6 @@
 CC := emcc
 CXX := em++
-FLAGS := -O3 --llvm-lto 3  -Wall -I.. -DNO_SETJMP -s USE_ZLIB=1
+FLAGS := -O3 --llvm-lto 3 -Wall -I.. -DNO_SETJMP -s USE_ZLIB=1
 CFLAGS := -std=c11 $(FLAGS)
 CXXFLAGS := -std=c++11 $(FLAGS)
 LFLAGS := --emrun -s TOTAL_MEMORY=800000000
@@ -17,7 +17,7 @@ CPPSOURCES := ../core/arm_interpreter.cpp ../core/coproc.cpp ../core/cpu.cpp ../
 OBJS = $(patsubst %.c, %.bc, $(CSOURCES))
 OBJS += $(patsubst %.cpp, %.bc, $(CPPSOURCES))
 
-all: $(OUTPUT).html
+all: $(OUTPUT).js
 
 %.bc: %.c
 	$(CC) $(CFLAGS) $< -o $@
@@ -28,7 +28,7 @@ all: $(OUTPUT).html
 test: $(OUTPUT).js
 	emrun --safe_firefox_profile --browser firefox $(OUTPUT).html boot1.img flash_3.1.img
 
-$(OUTPUT).html: $(OBJS)
+$(OUTPUT).js: $(OBJS)
 	$(CC) $(CFLAGS) $(LFLAGS) $^ -o $@ --preload-file boot1.img --preload-file flash_3.1.img
 
 clean:
