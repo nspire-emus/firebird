@@ -1,9 +1,9 @@
 CC := emcc
 CXX := em++
-FLAGS := -O3 --llvm-lto 3 -Wall -I.. -DNO_SETJMP -s USE_ZLIB=1
+FLAGS := -O3 --llvm-lto 3 --closure 1 -Wall -I.. -DNO_SETJMP -s USE_ZLIB=1
 CFLAGS := -std=c11 $(FLAGS)
 CXXFLAGS := -std=c++11 $(FLAGS)
-LFLAGS := --emrun -s TOTAL_MEMORY=800000000
+LFLAGS := --emrun -s TOTAL_MEMORY=500000000
 OUTPUT := firebird
 
 CSOURCES :=    ../core/armsnippets_loader.c ../core/asmcode.c ../core/casplus.c ../core/des.c ../core/disasm.c \
@@ -19,10 +19,10 @@ OBJS += $(patsubst %.cpp, %.bc, $(CPPSOURCES))
 
 all: $(OUTPUT).js
 
-%.bc: %.c
+%.bc: %.c Makefile
 	$(CC) $(CFLAGS) $< -o $@
 
-%.bc: %.cpp
+%.bc: %.cpp Makefile
 	$(CXX) $(CXXFLAGS) $< -o $@
 
 test: $(OUTPUT).js
