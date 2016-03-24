@@ -61,6 +61,9 @@ macx: ICON = resources/logo.icns
 # This does also apply to android
 linux|macx|ios: SOURCES += core/os/os-linux.c
 
+# To make it appear in Qt Creator
+emscripten: SOURCES += core/os/os-emscripten.c
+
 # This should not be required. But somehow, it is...
 android: DEFINES += Q_OS_ANDROID
 
@@ -234,7 +237,8 @@ QMAKE_EXTRA_TARGETS = armsnippets
 
 OTHER_FILES += \
     TODO \
-    emscripten/main.cpp
+    emscripten/main.cpp \
+    emscripten/Makefile
 
 RESOURCES += \
     resources.qrc

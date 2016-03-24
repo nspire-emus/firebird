@@ -5,6 +5,10 @@
 
 #include <algorithm>
 
+#ifdef __EMSCRIPTEN__
+    #include <emscripten.h>
+#endif
+
 #include "emu.h"
 #include "flash.h"
 #include "mem.h"
@@ -378,7 +382,7 @@ void nand_cx_write_word(uint32_t addr, uint32_t value) {
     bad_write_word(addr, value);
 }
 
-FILE *flash_file = NULL;
+static FILE *flash_file = NULL;
 
 typedef enum Partition {
     PartitionManuf=0,
@@ -408,14 +412,18 @@ bool flash_open(const char *filename) {
     if(flash_file)
         fclose(flash_file);
 
-    flash_file = fopen_utf8(filename, "r+b");
+    #ifdef __EMSCRIPTEN__
+        long size = EM_ASM_INT({flash_size()}, 0);
+    #else
+        flash_file = fopen_utf8(filename, "r+b");
 
-    if (!flash_file) {
-        gui_perror(filename);
-        return false;
-    }
-    fseek(flash_file, 0, SEEK_END);
-    uint32_t size = ftell(flash_file);
+        if (!flash_file) {
+            gui_perror(filename);
+            return false;
+        }
+        fseek(flash_file, 0, SEEK_END);
+        long size = ftell(flash_file);
+    #endif
 
     if (size == 33*1024*1024)
         large = false;

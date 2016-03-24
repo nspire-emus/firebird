@@ -1,8 +1,9 @@
 /* Declarations for cpu.c */
 
-#ifndef _H_CPU
-#define _H_CPU
+#ifndef CPU_H
+#define CPU_H
 
+#include <stdbool.h>
 #include <stdint.h>
 #include <string.h>
 

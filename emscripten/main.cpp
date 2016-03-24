@@ -6,8 +6,6 @@
 #include "core/debug.h"
 #include "core/emu.h"
 
-extern "C" {
-
 void gui_do_stuff(bool wait)
 {
 }
@@ -65,16 +63,16 @@ void throttle_timer_off() {}
 void throttle_timer_on() {}
 void throttle_timer_wait() {}
 
-uint16_t LCDbuffer16[320*240];
-
-void EMSCRIPTEN_KEEPALIVE paintLCD(uint32_t *dest)
+extern "C" void EMSCRIPTEN_KEEPALIVE paintLCD(uint32_t *dest)
 {
-    int i = 320*240;
+    static uint16_t LCDbuffer16[320*240];
+
     uint16_t* in = LCDbuffer16;
 
     lcd_cx_draw_frame(LCDbuffer16);
 
-    while (i--) {
+    for(int i = 320*240; i--;)
+    {
         *dest++ = ( ((*in & 0xf800) >> 8) | ((*in & 0x07e0) << 5) | ((*in & 0x1f) << 19))
                     | 0xFF000000;
         in++;
@@ -147,24 +145,13 @@ void emscripten_loop(bool reset)
     return;
 }
 
-int main(int argc, char **argv)
+extern "C" int EMSCRIPTEN_KEEPALIVE start()
 {
-    if (argc == 3)
-    {
-        path_boot1 = argv[1];
-        path_flash = argv[2];
-    } else {
-        path_boot1 = "boot1.img";
-        path_flash = "flash_3.1.img";
-    }
-    bool ret = emu_start(0, 0, NULL);
-    if(!ret)
+    if(!emu_start(0, 0, NULL))
         return -1;
 
     EM_ASM(initLCD());
 
     turbo_mode = false;
     emscripten_loop(true);
-}
-
 }
