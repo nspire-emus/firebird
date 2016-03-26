@@ -1,5 +1,3 @@
 *.bc
 firebird.js
 *.mem
-firebird.data
-*.img

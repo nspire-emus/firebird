@@ -114,7 +114,6 @@ void emscripten_loop(bool reset)
 {
     if(reset)
     {
-    reset:
         memset(mem_areas[1].ptr, 0, mem_areas[1].size);
 
         memset(&arm, 0, sizeof arm);
@@ -145,13 +144,18 @@ void emscripten_loop(bool reset)
     return;
 }
 
-extern "C" int EMSCRIPTEN_KEEPALIVE start()
+int main()
 {
+    path_boot1 = "boot1.img";
+    path_flash = "flash.img";
+
     if(!emu_start(0, 0, NULL))
-        return -1;
+        return 1;
 
     EM_ASM(initLCD());
 
-    turbo_mode = false;
+    turbo_mode = true;
     emscripten_loop(true);
+
+    return 0;
 }

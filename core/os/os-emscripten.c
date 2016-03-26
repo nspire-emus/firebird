@@ -1,5 +1,8 @@
 #include <assert.h>
+#include <fcntl.h>
 #include <stdio.h>
+#include <sys/mman.h>
+#include <sys/stat.h>
 
 #include <emscripten.h>
 
@@ -49,9 +52,14 @@ void *os_alloc_executable(size_t size)
 void *os_map_cow(const char *filename, size_t size)
 {
     assert(strcmp(filename, "flash.img") == 0);
-    void *content = malloc(size);
-    EM_ASM_({flash_load($0, $1);}, content, size);
-    return content;
+    int fd = open(filename, O_RDONLY);
+    if(fd == -1)
+        return NULL;
+
+    void *ret = mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_PRIVATE, fd, 0);
+
+    close(fd);
+    return ret == MAP_FAILED ? NULL : ret;
 }
 
 void os_unmap_cow(void *addr, size_t size)

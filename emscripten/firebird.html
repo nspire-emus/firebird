@@ -5,7 +5,7 @@
     <meta charset="utf-8">
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <title>Firebird-web</title>
-    <script src="firebird-util.js" type="text/javascript"></script>
+    <script src="firebird-utils.js" type="text/javascript"></script>
     <style>
         body {
             font-family: arial;
@@ -138,17 +138,19 @@
     <div class="spinner" id='spinner'></div>
     <div class="emscripten" id="status">Downloading...</div>
 
-    <span id='controls'>
-  <span><input type="checkbox" id="resize">Resize canvas</span>
-    <span><input type="checkbox" id="pointerLock" checked>Lock/hide mouse pointer &nbsp;&nbsp;&nbsp;</span>
-    </span>
-
     <div class="emscripten">
         <progress value="0" max="100" id="progress" hidden=1></progress>
     </div>
 
-    <div class="emscripten_border">
-        <canvas class="emscripten" id="canvas" oncontextmenu="event.preventDefault()"></canvas>
+    <div>
+	<div style="float: right;">
+	        <canvas class="emscripten" id="canvas" oncontextmenu="event.preventDefault()"></canvas>
+	</div>
+	<div style="float: left;">
+	        Boot1: <input type="file" id="boot1File" onChange="fileLoad(event, 'boot1.img')"></input><br>
+		Flash: <input type="file" id="flashFile" onChange="fileLoad(event, 'flash.img')"></input><br>
+		<button onClick="startEmulation()">Start emulation</button>
+	</div>
     </div>
     <textarea id="output" rows="8"></textarea>
 
@@ -253,33 +255,6 @@
         var script = document.createElement('script');
         script.src = "firebird.js";
         document.body.appendChild(script);
-
-        function initLCD() {
-            var c = document.getElementById("canvas");
-
-            var w = 320;
-            var h = 240;
-            c.width = w;
-            c.height = h;
-
-            var ctx = c.getContext('2d');
-            var imageData = ctx.getImageData(0, 0, w, h);
-            var bufSize = w * h * 4;
-            var bufPtr = Module._malloc(bufSize);
-            var buf = new Uint8Array(Module.HEAPU8.buffer, bufPtr, bufSize);
-
-            var wrappedPaint = Module.cwrap('paintLCD', 'void', ['number']);
-            repaint = function() {
-                wrappedPaint(buf.byteOffset);
-                imageData.data.set(buf);
-                ctx.putImageData(imageData, 0, 0);
-                window.requestAnimationFrame(repaint);
-            };
-            repaint();
-
-            //pressKey = Module.cwrap('press_key', 'void', ['number', 'number']);
-
-        };
     </script>
 
 </body>

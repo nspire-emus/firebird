@@ -1,6 +1,6 @@
 CC := emcc
 CXX := em++
-FLAGS := -O3 --llvm-lto 3 --closure 1 -Wall -I.. -DNO_SETJMP -s USE_ZLIB=1
+FLAGS := -O3 --llvm-lto 3 -Wall -I.. -DNO_SETJMP -s USE_ZLIB=1 -s DISABLE_EXCEPTION_CATCHING=1 -s INVOKE_RUN=0 -s NO_EXIT_RUNTIME=1 -s ASSERTIONS=0
 CFLAGS := -std=c11 $(FLAGS)
 CXXFLAGS := -std=c++11 $(FLAGS)
 LFLAGS := --emrun -s TOTAL_MEMORY=500000000
@@ -26,10 +26,10 @@ all: $(OUTPUT).js
 	$(CXX) $(CXXFLAGS) $< -o $@
 
 test: $(OUTPUT).js
-	emrun --safe_firefox_profile --browser firefox $(OUTPUT).html boot1.img
+	emrun --safe_firefox_profile --browser firefox $(OUTPUT).html
 
 $(OUTPUT).js: $(OBJS)
-	$(CC) $(CFLAGS) $(LFLAGS) $^ -o $@ --preload-file boot1.img
+	$(CC) $(CFLAGS) $(LFLAGS) $^ -o $@
 
 clean:
 	rm -f $(OBJS) $(OUTPUT).js $(OUTPUT).data $(OUTPUT).js.mem
