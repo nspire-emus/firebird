@@ -1,4 +1,6 @@
-function initLCD()
+var Module = { 'preRun': function() {
+
+initLCD = function()
 {
     var c = document.getElementById("canvas");
 
@@ -10,10 +12,10 @@ function initLCD()
     var ctx = c.getContext('2d');
     var imageData = ctx.getImageData(0, 0, w, h);
     var bufSize = w * h * 4;
-    var bufPtr = Module._malloc(bufSize);
-    var buf = new Uint8Array(Module.HEAPU8.buffer, bufPtr, bufSize);
+    var bufPtr = Module['_malloc'](bufSize);
+    var buf = new Uint8Array(Module['HEAPU8']['buffer'], bufPtr, bufSize);
 
-    var wrappedPaint = Module.cwrap('paintLCD', 'void', ['number']);
+    var wrappedPaint = Module['cwrap']('paintLCD', 'void', ['number']);
     repaint = function() {
         wrappedPaint(buf.byteOffset);
         imageData.data.set(buf);
@@ -23,13 +25,13 @@ function initLCD()
     repaint();
 }
 
-function fileLoaded(event, filename)
+fileLoaded = function(event, filename)
 {
     if (event.target.readyState == FileReader.DONE)
         FS.writeFile(filename, new Uint8Array(event.target.result), {encoding: 'binary'});
 }
 
-function fileLoad(event, filename)
+fileLoad = function(event, filename)
 {
     var file = event.target.files[0];
 
@@ -52,7 +54,10 @@ function fileLoad(event, filename)
     reader.readAsArrayBuffer(file);
 }
 
-function startEmulation()
+startEmulation = function()
 {
     return Module.callMain();
 }
+
+} // preRun function
+} // Module
