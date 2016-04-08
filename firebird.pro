@@ -64,8 +64,10 @@ linux|macx|ios: SOURCES += core/os/os-linux.c
 # To make it appear in Qt Creator
 emscripten: SOURCES += core/os/os-emscripten.c
 
-# This should not be required. But somehow, it is...
-android: DEFINES += Q_OS_ANDROID
+equals(QT_MAJOR_VERSION, 5): lessThan(QT_MINOR_VERSION, 6) {
+    # This should not be required. But somehow, it is...
+    android: DEFINES += Q_OS_ANDROID
+}
 
 ios|android: DEFINES += MOBILE_UI
 
