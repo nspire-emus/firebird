@@ -16,6 +16,7 @@ Rectangle {
 
     Text {
         id: label
+        text: "Foo"
         anchors.fill: parent
         anchors.centerIn: parent
         font.pixelSize: height/2

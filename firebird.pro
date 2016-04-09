@@ -135,6 +135,8 @@ contains(QMAKE_TARGET.arch, "arm") {
     QMAKE_LFLAGS += -march=armv7-a -marm # We're using LTO, so the linker has to get the same flags
 }
 
+QML_IMPORT_PATH += qml
+
 SOURCES += $$ASMCODE_IMPL \
     lcdwidget.cpp \
     mainwindow.cpp \

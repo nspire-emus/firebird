@@ -1,0 +1,3 @@
+module Firebird.Emu
+singleton Emu 1.0 Emu.qml
+EmuScreen 1.0 EmuScreen.qml
