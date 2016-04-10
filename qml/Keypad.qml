@@ -217,21 +217,18 @@ Rectangle {
 
         NNumButton {
             id: nNumButton1
-            width: 33
             text: "7"
             keymap_id: 40
         }
 
         NNumButton {
             id: nNumButton2
-            width: 33
             text: "8"
             keymap_id: 72
         }
 
         NNumButton {
             id: nNumButton3
-            width: 33
             text: "9"
             Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
             keymap_id: 36
@@ -239,56 +236,48 @@ Rectangle {
 
         NNumButton {
             id: nNumButton4
-            width: 33
             text: "4"
             keymap_id: 29
         }
 
         NNumButton {
             id: nNumButton5
-            width: 33
             text: "5"
             keymap_id: 61
         }
 
         NNumButton {
             id: nNumButton6
-            width: 33
             text: "6"
             keymap_id: 25
         }
 
         NNumButton {
             id: nNumButton7
-            width: 33
             text: "1"
             keymap_id: 18
         }
 
         NNumButton {
             id: nNumButton8
-            width: 33
             text: "2"
             keymap_id: 70
         }
 
         NNumButton {
             id: nNumButton9
-            width: 33
             text: "3"
             keymap_id: 14
         }
 
         NNumButton {
             id: nNumButton10
-            width: 33
             text: "0"
             keymap_id: 7
         }
 
         NNumButton {
             id: nNumButton11
-            width: 33
             text: "."
             keymap_id: 59
 
@@ -311,7 +300,6 @@ Rectangle {
 
         NNumButton {
             id: nNumButton12
-            width: 33
             text: "(-)"
             keymap_id: 3
 
