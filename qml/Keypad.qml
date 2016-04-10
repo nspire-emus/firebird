@@ -562,7 +562,7 @@ Rectangle {
             width: 50
             height: 11
             color: "#68cce0"
-            text: "  ≈"
+            text: "≈"
             font.bold: false
             anchors.bottom: nButton8.top
             anchors.bottomMargin: 1
