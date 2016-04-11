@@ -396,7 +396,7 @@ Rectangle {
         NAlphaButton { text: "L" ;keymap_id: 33 }
         NAlphaButton { text: "M" ;keymap_id: 28 }
         NAlphaButton { text: "N" ;keymap_id: 27 }
-        NAlphaButton { width: 21; text: " 🏳";keymap_id: 66 }
+        NAlphaButton { width: 21; text: " ⚑";keymap_id: 66 }
         NAlphaButton { width: 21; text: "," ;keymap_id: 87 }
         NAlphaButton { text: "O" ;keymap_id: 26 }
         NAlphaButton { text: "P" ;keymap_id: 24 }
@@ -418,7 +418,7 @@ Rectangle {
         NAlphaButton { text: "Z" ;keymap_id: 5 }
 
         NAlphaButton {
-            text: "❘____❘"
+            text: "space"
             keymap_id: 4
             anchors.right: nAlphaButtonU.right
             anchors.rightMargin: 0
@@ -475,8 +475,8 @@ Rectangle {
 
     NDualButton {
         id: nDualButton4
-        topText2: "{}"
-        topText1: "[]"
+        topText2: "{ }"
+        topText1: "[ ]"
         anchors.top: nDualButton3.bottom
         anchors.topMargin: 0
         id1: 60
