@@ -143,9 +143,9 @@ Rectangle {
 
     GridLayout {
         id: gridLayout1
+        rowSpacing: 10
         rows: 5
         columns: 3
-        rowSpacing: 8
         columnSpacing: 10
         antialiasing: false
         transformOrigin: Item.Center
@@ -154,7 +154,7 @@ Rectangle {
         anchors.left: nDualButton1.right
         anchors.leftMargin: 18
         anchors.bottom: nButton8.bottom
-        anchors.bottomMargin: -1
+        anchors.bottomMargin: 0
         anchors.top: rectangle3.bottom
         anchors.topMargin: 10
 
