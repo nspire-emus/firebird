@@ -499,6 +499,7 @@ void gdbstub_loop(void) {
             gui_debugger_entered_or_left(in_debugger = false);
             return;
         }
+
         reply = true;
         switch (*ptr++) {
             case '?':
@@ -526,7 +527,7 @@ void gdbstub_loop(void) {
                 break;
 
             case 'p': /* pn Read the value of register n */
-                if (hexToInt(&ptr, &addr) && (size_t)addr < sizeof(regbuf)) {
+                if (hexToInt(&ptr, &addr) && (size_t)addr < sizeof(regbuf)/sizeof(uint32_t)) {
                     mem2hex(get_registers(regbuf) + addr, remcomOutBuffer, sizeof(uint32_t));
                 } else {
                     strcpy(remcomOutBuffer,"E01");
@@ -537,7 +538,7 @@ void gdbstub_loop(void) {
                 ptr = strtok(ptr, "=");
                 if (hexToInt(&ptr, &addr)
                         && (ptr=strtok(NULL, ""))
-                        && (size_t)addr < sizeof(regbuf)
+                        && (size_t)addr < sizeof(regbuf)/sizeof(uint32_t)
                         // TODO hex2mem doesn't check the format
                         && hex2mem((char*)ptr, &get_registers(regbuf)[addr], sizeof(uint32_t))
                         ) {
@@ -601,6 +602,7 @@ parse_new_pc:
                 if (ptr && hexToInt(&ptr, &addr)) {
                     arm.reg[15] = addr;
                 }
+
                 gui_debugger_entered_or_left(in_debugger = false);
                 return;
             case 'q': /* qString Get value of String */
@@ -630,14 +632,31 @@ parse_new_pc:
                     /* Host information */
                     strcpy(remcomOutBuffer, "cputype:12;cpusubtype:7;endian:little;ptrsize:4;");
                 }
+                else if(!strcmp("Supported", ptr))
+                {
+                    /* Feature query */
+                    strcpy(remcomOutBuffer, "vContSupported");
+                }
+                else if(!strcmp("Symbol::", ptr))
+                {
+                    /* Symbols can be queried */
+                    strcpy(remcomOutBuffer, "OK");
+                }
+                else
+                    gui_debug_printf("Unsupported GDB cmd '%s'\n", ptr - 1);
+
+                break;
+            case 'v':
+                if(!strcmp("Cont?", ptr))
+                    strcpy(remcomOutBuffer, "");
+                else
+                    gui_debug_printf("Unsupported GDB cmd '%s'\n", ptr - 1);
+
                 break;
             case 'Z': /* 0|1|2|3|4,addr,kind  */
-                set = true;
-                goto z;
             case 'z': /* 0|1|2|3|4,addr,kind  */
-                set = false;
+                set = *(ptr - 1) == 'Z';
                 // kinds other than 4 aren't supported
-z:
                 ptr1 = ptr++;
                 ptr = strtok(ptr, ",");
                 if (ptr && hexToInt(&ptr, &addr) && (ramaddr = virt_mem_ptr(addr & ~3, 4))) {
