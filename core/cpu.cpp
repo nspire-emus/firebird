@@ -75,7 +75,11 @@ void cpu_arm_loop()
             {
                 if(*flags_ptr & RF_EXEC_BREAKPOINT)
                     gui_debug_printf("Breakpoint at 0x%08x\n", arm.reg[15]);
-                enter_debugger: debugger(DBG_EXEC_BREAKPOINT, 0);
+                enter_debugger:
+                uint32_t pc = arm.reg[15];
+                debugger(DBG_EXEC_BREAKPOINT, 0);
+                if(arm.reg[15] != pc)
+                    continue; // Debugger changed PC
             }
         }
 #ifndef NO_TRANSLATION
