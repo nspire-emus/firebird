@@ -1,11 +1,10 @@
-import QtQuick 2.0
+import QtQuick 2.3
 import QtQuick.Layouts 1.0
 
 Rectangle {
     id: rectangle1
     width: 265
     height: 340
-
     color: "#444"
 
     ColumnLayout {
@@ -147,7 +146,6 @@ Rectangle {
         rows: 5
         columns: 3
         columnSpacing: 10
-        antialiasing: false
         transformOrigin: Item.Center
         anchors.right: nDualButton7.left
         anchors.rightMargin: 18
@@ -446,7 +444,7 @@ Rectangle {
     NDualButton {
         id: nDualButton2
         x: 5
-        topText1: "ⁿ√x"
+        topText1: "<sup>n<sup>√x"
         topText2: "√"
         anchors.top: nDualButton1.bottom
         anchors.topMargin: 0
@@ -454,7 +452,7 @@ Rectangle {
         id2: 31
         anchors.left: parent.left
         anchors.leftMargin: 5
-        text2: "x²"
+        text2: "x<sup>2</sup>"
         text1: "^"
     }
 
@@ -469,8 +467,8 @@ Rectangle {
         id2: 21
         anchors.left: parent.left
         anchors.leftMargin: 5
-        text2: "10˟"
-        text1: "e˟"
+        text2: "10<sup>x</sup>"
+        text1: "e<sup>x</sup>"
     }
 
     NDualButton {
@@ -500,6 +498,14 @@ Rectangle {
         anchors.rightMargin: 5
         text2: "❘◫❘"
         text1: "❘□❘{□"
+
+        /*Image {
+                source: "qrc:/icons/resources/firebird.png"
+                anchors.fill: nDualButton5.button2
+                fillMode: Image.PreserveAspectFit
+                smooth: true
+                mipmap: true
+        }*/
     }
 
     NDualButton {

@@ -19,9 +19,11 @@ Rectangle {
         text: "Foo"
         anchors.fill: parent
         anchors.centerIn: parent
-        font.pixelSize: height/2
+        font.pixelSize: height*0.55
         color: font_color
         font.bold: true
+        // Workaround: Text.AutoText doesn't seem to work for properties (?)
+        textFormat: text.indexOf(">") == -1 ? Text.PlainText : Text.RichText
         verticalAlignment: Text.AlignVCenter
         horizontalAlignment: Text.AlignHCenter
     }

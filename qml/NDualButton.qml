@@ -6,6 +6,8 @@ Rectangle {
     property string text2: "b"
     property string topText1: "aa"
     property string topText2: "bb"
+    property alias button1: nbutton1
+    property alias button2: nbutton2
     property int id1: 1
     property int id2: 2
 
@@ -70,7 +72,7 @@ Rectangle {
         color: "#68cce0"
         text: topText1
         horizontalAlignment: Text.AlignHCenter
-        z: 2
+        z: -1
         font.pixelSize: 11
     }
 
@@ -84,7 +86,7 @@ Rectangle {
         text: topText2
         horizontalAlignment: Text.AlignHCenter
         font.pixelSize: 11
-        z: 2
+        z: -2
     }
 }
 
