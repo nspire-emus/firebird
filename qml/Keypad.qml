@@ -394,7 +394,15 @@ Rectangle {
         NAlphaButton { text: "L" ;keymap_id: 33 }
         NAlphaButton { text: "M" ;keymap_id: 28 }
         NAlphaButton { text: "N" ;keymap_id: 27 }
-        NAlphaButton { width: 21; text: " ⚑";keymap_id: 66 }
+        NAlphaButton { width: 21; text: "";keymap_id: 66;
+            Image {
+                source: "qrc:/keyimages/resources/keyimages/flag.png"
+                anchors.fill: parent
+                fillMode: Image.PreserveAspectFit
+                smooth: true
+                mipmap: true
+            }
+        }
         NAlphaButton { width: 21; text: "," ;keymap_id: 87 }
         NAlphaButton { text: "O" ;keymap_id: 26 }
         NAlphaButton { text: "P" ;keymap_id: 24 }
@@ -431,7 +439,7 @@ Rectangle {
         anchors.top: nButton7.bottom
         anchors.topMargin: 0
         topText1: "|≠≥▸"
-        topText2: "(?)"
+        topText2: ""
         id1: 51
         id2: 20
         anchors.left: parent.left
@@ -439,6 +447,16 @@ Rectangle {
         text2: "trig"
         text1: "="
 
+        Image {
+            source: "qrc:/keyimages/resources/keyimages/questionmark.png"
+            width: nDualButton1.button2.width * .55
+            anchors.bottom: nDualButton1.button2.top
+            anchors.left: nDualButton1.button2.left
+            anchors.leftMargin: nDualButton1.button2.width / 4
+            fillMode: Image.PreserveAspectFit
+            smooth: true
+            mipmap: true
+        }
     }
 
     NDualButton {
@@ -496,16 +514,23 @@ Rectangle {
         id2: 62
         anchors.right: parent.right
         anchors.rightMargin: 5
-        text2: "❘◫❘"
-        text1: "❘□❘{□"
+        text2: ""
+        text1: ""
 
-        /*Image {
-                source: "qrc:/icons/resources/firebird.png"
+        Image {
+                source: "qrc:/keyimages/resources/keyimages/templates.png"
+                anchors.fill: nDualButton5.button1
+                fillMode: Image.PreserveAspectFit
+                smooth: true
+                mipmap: true
+        }
+        Image {
+                source: "qrc:/keyimages/resources/keyimages/catalog.png"
                 anchors.fill: nDualButton5.button2
                 fillMode: Image.PreserveAspectFit
                 smooth: true
                 mipmap: true
-        }*/
+        }
     }
 
     NDualButton {
