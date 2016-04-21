@@ -35,4 +35,10 @@
         <file>i18n/de_DE.qm</file>
         <file>i18n/fr_FR.qm</file>
     </qresource>
+    <qresource prefix="/keyimages">
+        <file>resources/keyimages/questionmark.png</file>
+        <file>resources/keyimages/catalog.png</file>
+        <file>resources/keyimages/flag.png</file>
+        <file>resources/keyimages/templates.png</file>
+    </qresource>
 </RCC>
