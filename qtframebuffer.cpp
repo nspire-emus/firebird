@@ -5,6 +5,8 @@
 
 #include <QImage>
 #include <QPainter>
+#include <QGuiApplication>
+#include <QScreen>
 
 #include "core/debug.h"
 #include "core/emu.h"
@@ -40,24 +42,27 @@ QImage renderFramebuffer()
 
 void paintFramebuffer(QPainter *p)
 {
+    static const double devicePixelRatio = ((QGuiApplication*)QCoreApplication::instance())->primaryScreen()->devicePixelRatio();
+    QRect painterWindowScaled(p->window().topLeft(), p->window().size() / devicePixelRatio);
+
     if(hdq1w.lcd_contrast == 0)
     {
-        p->fillRect(p->window(), emulate_cx ? Qt::black : Qt::white);
+        p->fillRect(painterWindowScaled, emulate_cx ? Qt::black : Qt::white);
         p->setPen(emulate_cx ? Qt::white : Qt::black);
-        p->drawText(p->window(), Qt::AlignCenter, QObject::tr("LCD turned off"));
+        p->drawText(painterWindowScaled, Qt::AlignCenter, QObject::tr("LCD turned off"));
     }
     else
     {
-        QImage image = renderFramebuffer().scaled(p->window().size(), Qt::KeepAspectRatio, Qt::SmoothTransformation);
-        p->drawImage((p->window().width() - image.width()) / 2, (p->window().height() - image.height()) / 2, image);
+        QImage image = renderFramebuffer().scaled(painterWindowScaled.size(), Qt::KeepAspectRatio, Qt::SmoothTransformation);
+        p->drawImage((painterWindowScaled.width() - image.width()) / 2, (painterWindowScaled.height() - image.height()) / 2, image);
     }
 
     if(in_debugger)
     {
         p->setCompositionMode(QPainter::CompositionMode_SourceOver);
-        p->fillRect(p->window(), QColor(30, 30, 30, 150));
+        p->fillRect(painterWindowScaled, QColor(30, 30, 30, 150));
         p->setPen(Qt::white);
-        p->drawText(p->window(), Qt::AlignCenter, QObject::tr("In debugger"));
+        p->drawText(painterWindowScaled, Qt::AlignCenter, QObject::tr("In debugger"));
     }
 }
 
