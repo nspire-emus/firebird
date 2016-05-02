@@ -6,6 +6,21 @@
 
 QtKeypadBridge qt_keypad_bridge;
 
+void setKeypad(int key, bool state)
+{
+    int row = key / 11;
+    int col = key % 11;
+
+    if (state)
+        keypad.key_map[row] |= 1 << col;
+    else
+        keypad.key_map[row] &= ~(1 << col);
+
+    notifyKeypadStateChanged(row, col, state);
+    keypad_int_check();
+
+}
+
 void QtKeypadBridge::keyPressEvent(QKeyEvent *event)
 {
     Qt::Key key = static_cast<Qt::Key>(event->key());
@@ -28,27 +43,16 @@ void QtKeypadBridge::keyPressEvent(QKeyEvent *event)
         keypad.touchpad_y = TOUCHPAD_Y_MAX / 2;
         keypad.touchpad_x = TOUCHPAD_X_MAX;
         break;
-    case Qt::Key_Return:
-        key = Qt::Key_Enter;
-
     default:
-        auto& keymap = keymap_tp;
-        for(unsigned int row = 0; row < sizeof(keymap)/sizeof(*keymap); ++row)
+        int button = keyToKeypad(event);
+        if (button)
         {
-            for(unsigned int col = 0; col < sizeof(*keymap)/sizeof(**keymap); ++col)
-            {
-                if(key == keymap[row][col].key && keymap[row][col].alt == (bool(event->modifiers() & Qt::AltModifier) || bool(event->modifiers() & Qt::MetaModifier)))
-                {
-                    if(row == 0 && col == 9)
-                        keypad_on_pressed();
+            if (button == on)
+                keypad_on_pressed();
 
-                    keypad.key_map[row] |= 1 << col;
-                    notifyKeypadStateChanged(row, col, true);
-                    keypad_int_check();
-                    return;
-                }
-            }
+            setKeypad(button, true);
         }
+
         return;
     }
 
@@ -85,23 +89,16 @@ void QtKeypadBridge::keyReleaseEvent(QKeyEvent *event)
             && keypad.touchpad_x == TOUCHPAD_X_MAX)
             keypad.touchpad_contact = keypad.touchpad_down = false;
         break;
-    case Qt::Key_Return:
-        key = Qt::Key_Enter;
     default:
-        auto& keymap = keymap_tp;
-        for(unsigned int row = 0; row < sizeof(keymap)/sizeof(*keymap); ++row)
+        int button = keyToKeypad(event);
+        if (button != -1)
         {
-            for(unsigned int col = 0; col < sizeof(*keymap)/sizeof(**keymap); ++col)
-            {
-                if(key == keymap[row][col].key && keymap[row][col].alt == (bool(event->modifiers() & Qt::AltModifier) || bool(event->modifiers() & Qt::MetaModifier)))
-                {
-                    keypad.key_map[row] &= ~(1 << col);
-                    notifyKeypadStateChanged(row, col, false);
-                    keypad_int_check();
-                    return;
-                }
-            }
+            if (button == on)
+                keypad_on_pressed();
+
+            setKeypad(button, false);
         }
+
         return;
     }
 
