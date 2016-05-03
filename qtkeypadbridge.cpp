@@ -92,12 +92,7 @@ void QtKeypadBridge::keyReleaseEvent(QKeyEvent *event)
     default:
         int button = keyToKeypad(event);
         if (button != -1)
-        {
-            if (button == on)
-                keypad_on_pressed();
-
             setKeypad(button, false);
-        }
 
         return;
     }
