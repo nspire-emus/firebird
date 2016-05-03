@@ -32,12 +32,12 @@ int keyToKeypad(QKeyEvent *event)
     switch (button)
     {
         // Touchpad left buttons
-    case Qt::Key_Escape: case Qt::Key_Escape | ALT: return esc;
+    case Qt::Key_Escape: return esc;
     case Qt::Key_End: case Qt::Key_S | ALT: return pad;
     case Qt::Key_Tab: return tab;
 
         // Touchpad right buttons
-    case Qt::Key_Home: return on;
+    case Qt::Key_Home: case Qt::Key_Escape | ALT: return on;
     case Qt::Key_PageUp: case Qt::Key_D | ALT: return doc;
     case Qt::Key_PageDown: case Qt::Key_M | ALT: return menu;
 
