@@ -108,17 +108,32 @@ int keyToKeypad(QKeyEvent *event)
 
 void setKeypad(int key, bool state)
 {
+    static int last_row;
+    static int last_col;
+
     int row = key / 11;
     int col = key % 11;
 
-    if (state)
+    if (state) {
         keypad.key_map[row] |= 1 << col;
-    else
+        last_row = row;
+        last_col = col;
+    } else {
+        // If Shift was the only key pressed, then next operation is nop.
+        // If another key was pressed and released, then it also is nop.
+        // But if a shift modifiable key was and still is pressed when
+        // shift is released, then we need to release that key too because we
+        // are not going to get a release event for that key without shift.
+        if (key == keymap::shift || key == keymap::ctrl) {
+            keypad.key_map[last_row] &= ~(1 << last_col);
+            notifyKeypadStateChanged(last_row, last_col, state);
+        }
+
         keypad.key_map[row] &= ~(1 << col);
+    }
 
     notifyKeypadStateChanged(row, col, state);
     keypad_int_check();
-
 }
 
 void QtKeypadBridge::keyPressEvent(QKeyEvent *event)
