@@ -13,8 +13,7 @@ enum {
     af,     ae,     ad,     none4,  ac,     ab,     aa,     equ,    mult,   pow,    none5,
     none6,  var,    minus,  pright, dot,    pleft,  n5,     cat,    metrix, del,    pad,
     flag,   none7,  plus,   doc,    n2,     menu,   n8,     esc,    none8,  tab,    none9,
-    none10, none11, none12, none13, none14, none15, none16, none17, shift,  ctrl,   comma,
-    nobtn
+    none10, none11, none12, none13, none14, none15, none16, none17, shift,  ctrl,   comma
 };
 
 }
