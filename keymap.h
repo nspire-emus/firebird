@@ -3,6 +3,8 @@
 
 namespace keymap {
 
+constexpr const int ROWS = 8, COLS = 11;
+
 enum {
     ret,    enter,  none,   neg,    space,  az,     ay,     n0,     punct,  on,     none1,
     ax,     aw,     av,     n3,     au,     at,     as,     n1,     pi,     trig,   pow10,
