@@ -8,14 +8,12 @@
 
 QtKeypadBridge qt_keypad_bridge;
 
-constexpr const int ROWS = 8, COLS = 11;
-
 void setKeypad(int key, bool state)
 {
-    int row = key / COLS;
-    int col = key % COLS;
+    int row = key / keymap::COLS;
+    int col = key % keymap::COLS;
 
-    assert(row < ROWS);
+    assert(row < keymap::ROWS);
 
     if (state) {
         if (key == keymap::on)
