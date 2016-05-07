@@ -13,6 +13,7 @@ void setKeypad(int key, bool state)
     int row = key / keymap::COLS;
     int col = key % keymap::COLS;
 
+    assert(row >= 0);
     assert(row < keymap::ROWS);
 
     if (state) {
