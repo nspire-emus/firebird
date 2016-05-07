@@ -1,5 +1,6 @@
 #include "qtkeypadbridge.h"
 
+#include <cassert>
 #include "keymap.h"
 #include "core/keypad.h"
 #include "qmlbridge.h"
@@ -7,10 +8,14 @@
 
 QtKeypadBridge qt_keypad_bridge;
 
+constexpr const int ROWS = 8, COLS = 11;
+
 void setKeypad(int key, bool state)
 {
-    int row = key / 11;
-    int col = key % 11;
+    int row = key / COLS;
+    int col = key % COLS;
+
+    assert(row < ROWS);
 
     if (state) {
         if (key == keymap::on)
