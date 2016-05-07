@@ -1,8 +1,6 @@
 #ifndef KEYMAP_H
 #define KEYMAP_H
 
-//Don't use this as header file.
-
 namespace keymap {
 
 enum {
