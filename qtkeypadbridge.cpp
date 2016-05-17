@@ -81,13 +81,14 @@ void keyToKeypad(QKeyEvent *event)
         ,{Qt::Key_X, keymap::ax}
         ,{Qt::Key_Y, keymap::ay}
         ,{Qt::Key_Z, keymap::az}
-        ,{Qt::Key_Less, keymap::ee}
+        ,{Qt::Key_Comma | ALT, keymap::ee}
         ,{Qt::Key_E | ALT, keymap::ee}
         ,{Qt::Key_Bar, keymap::pi}
+        ,{Qt::Key_Backslash | ALT, keymap::pi}
         ,{Qt::Key_Comma, keymap::comma}
-        ,{Qt::Key_Question, keymap::punct}
+        ,{Qt::Key_Slash | ALT, keymap::punct}
         ,{Qt::Key_W | ALT, keymap::punct}
-        ,{Qt::Key_Greater, keymap::flag}
+        ,{Qt::Key_Period | ALT, keymap::flag}
         ,{Qt::Key_F | ALT, keymap::flag}
         ,{Qt::Key_Space, keymap::space}
         ,{Qt::Key_Enter | ALT, keymap::ret}
@@ -114,16 +115,20 @@ void keyToKeypad(QKeyEvent *event)
         ,{Qt::Key_Backslash, keymap::trig}
         ,{Qt::Key_T | ALT, keymap::trig}
         ,{Qt::Key_AsciiCircum, keymap::pow}
+        ,{Qt::Key_6 | ALT, keymap::pow}
         ,{Qt::Key_P | ALT, keymap::pow}
         ,{Qt::Key_At, keymap::squ}
+        ,{Qt::Key_2 | ALT, keymap::squ}
         ,{Qt::Key_2 | ALT, keymap::squ}
         ,{Qt::Key_BracketLeft, keymap::exp}
         ,{Qt::Key_X | ALT, keymap::exp}
         ,{Qt::Key_BracketRight, keymap::pow10}
         ,{Qt::Key_1 | ALT, keymap::pow10}
         ,{Qt::Key_ParenLeft, keymap::pleft}
+        ,{Qt::Key_9 | ALT, keymap::pleft}
         ,{Qt::Key_F1, keymap::pleft}
         ,{Qt::Key_ParenRight, keymap::pright}
+        ,{Qt::Key_0 | ALT, keymap::pright}
         ,{Qt::Key_F2, keymap::pright}
 
             // Right buttons
@@ -132,6 +137,7 @@ void keyToKeypad(QKeyEvent *event)
         ,{Qt::Key_Apostrophe, keymap::cat}
         ,{Qt::Key_C | ALT, keymap::cat}
         ,{Qt::Key_Asterisk, keymap::mult}
+        ,{Qt::Key_8 | ALT, keymap::mult}
         ,{Qt::Key_A | ALT, keymap::mult}
         ,{Qt::Key_Slash, keymap::div}
         ,{Qt::Key_F3, keymap::div}
