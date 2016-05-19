@@ -193,27 +193,19 @@ void keyToKeypad(QKeyEvent *event)
     {
         auto mkey = event->key();
 
-        // Compose alt into the unused bit of the keycode
+        if (event->modifiers() & Qt::ShiftModifier && mkey == Qt::Key_Alt)
+        {
+            std::cout << "Here" << std::endl;
+            setKeypad(keymap::shift, false);
+            return;
+        }
+
         if (event->modifiers() & Qt::AltModifier)
         {
-            if (event->modifiers() & Qt::ShiftModifier)
-            {
-                if (mkey == Qt::Key_Alt)
-                {
-                    // Release Shift and return
-                    auto pressed = pressed_keys.find(Qt::Key_Shift);
-
-                    if (pressed != pressed_keys.end())
-                    {
-                        setKeypad(*pressed, false);
-                        pressed_keys.erase(pressed);
-                    }
-                    return;
-                }
-                else if (mkey == Qt::Key_Shift)
-                    return; // Just ignore it
-            }
-            mkey |= ALT;
+            if (mkey == Qt::Key_Shift)
+                return; // Just ignore it
+            else
+                mkey |= ALT; // Compose alt into the unused bit of the keycode
         }
 
         auto translated = QtKeyMap.find(mkey);
