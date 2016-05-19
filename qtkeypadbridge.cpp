@@ -195,7 +195,6 @@ void keyToKeypad(QKeyEvent *event)
 
         if (event->modifiers() & Qt::ShiftModifier && mkey == Qt::Key_Alt)
         {
-            std::cout << "Here" << std::endl;
             setKeypad(keymap::shift, false);
             return;
         }
