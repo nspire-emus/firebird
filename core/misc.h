@@ -44,14 +44,16 @@ void gpio_reset();
 uint32_t gpio_read(uint32_t addr);
 void gpio_write(uint32_t addr, uint32_t value);
 
+struct timer {
+    uint16_t ticks;
+    uint16_t start_value;     /* Write value of +00 */
+    uint16_t value;           /* Read value of +00  */
+    uint16_t divider;         /* Value of +04 */
+    uint16_t control;         /* Value of +08 */
+};
+
 struct timerpair {
-    struct timer {
-            uint16_t ticks;
-            uint16_t start_value;     /* Write value of +00 */
-            uint16_t value;           /* Read value of +00  */
-            uint16_t divider;         /* Value of +04 */
-            uint16_t control;         /* Value of +08 */
-    } timers[2];
+    struct timer timers[2];
     uint16_t completion_value[6];
     uint8_t int_mask;
     uint8_t int_status;
@@ -151,15 +153,17 @@ void pmu_reset(void);
 uint32_t pmu_read(uint32_t addr);
 void pmu_write(uint32_t addr, uint32_t value);
 
+struct cx_timer {
+    uint32_t load;
+    uint32_t value;
+    uint8_t prescale;
+    uint8_t control;
+    uint8_t interrupt;
+    uint8_t reload;
+};
+
 typedef struct timer_cx_state {
-    struct cx_timer {
-        uint32_t load;
-        uint32_t value;
-        uint8_t prescale;
-        uint8_t control;
-        uint8_t interrupt;
-        uint8_t reload;
-    } timer[3][2];
+    struct cx_timer timer[3][2];
 } timer_cx_state;
 
 bool timer_cx_suspend(emu_snapshot *snapshot);
@@ -197,16 +201,18 @@ void sramctl_write_word(uint32_t addr, uint32_t value);
 
 uint32_t unknown_BC_read_word(uint32_t addr);
 
+struct adc_channel {
+    uint32_t unknown;
+    uint32_t count;
+    uint32_t address;
+    uint16_t value;
+    uint16_t speed;
+};
+
 typedef struct adc_state {
     uint32_t int_status;
     uint32_t int_mask;
-    struct adc_channel {
-        uint32_t unknown;
-        uint32_t count;
-        uint32_t address;
-        uint16_t value;
-        uint16_t speed;
-    } channel[7];
+    struct adc_channel channel[7];
 } adc_state;
 
 bool adc_suspend(emu_snapshot *snapshot);
