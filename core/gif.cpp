@@ -27,7 +27,7 @@ bool gif_start_recording(const char *filename, unsigned int frameskip)
     framenr = framenrskip = frameskip;
     framedelay = 100 / (60/(frameskip+1));
 
-    FILE *gif_file = fopen_utf8(filename, "w");
+    FILE *gif_file = fopen_utf8(filename, "wb");
 
     if(gif_file && GifBegin(&writer, gif_file, 320, 240, framedelay))
         recording = true;
