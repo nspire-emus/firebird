@@ -51,6 +51,8 @@ void paintFramebuffer(QPainter *p)
     static const double devicePixelRatio = 1;
 #endif
 
+    QRect painterWindowScaled(p->window().topLeft(), p->window().size() / devicePixelRatio);
+
     if(hdq1w.lcd_contrast == 0)
     {
         p->fillRect(painterWindowScaled, emulate_cx ? Qt::black : Qt::white);
