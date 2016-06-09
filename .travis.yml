@@ -6,11 +6,19 @@ before_install:
 - sudo apt-get update -qq
 
 install:
-- sudo apt-get install -qq g++-5 gcc-5; export CXX="g++-5" CC="gcc-5"; $CXX --version
-- sudo apt-get install -qq qt55base qt55declarative; source /opt/qt55/bin/qt55-env.sh
+- sudo apt-get install -y --force-yes -qq g++-5 gcc-5; export CXX="g++-5" CC="gcc-5"; $CXX --version
+- sudo apt-get install -y --force-yes -qq qt55base qt55declarative; source /opt/qt55/bin/qt55-env.sh
 
 script:
   - mkdir build
   - cd build
   - qmake ..
   - make -j4 CC=gcc-5 CXX=g++-5 LINK=g++-5
+
+notifications:
+  irc:
+    channels:
+      - "irc.choopa.net#firebird-emu"
+    on_success: change
+    on_failure: always
+    skip_join: true
