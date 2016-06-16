@@ -40,7 +40,7 @@ LIBS += -lz
 # Override bad default options to enable better optimizations
 QMAKE_CFLAGS_RELEASE = -O3 -flto
 QMAKE_CXXFLAGS_RELEASE = -O3 -flto
-QMAKE_LFLAGS_RELEASE = -Wl,-O3 -flto -fno-pie
+QMAKE_LFLAGS_RELEASE = -Wl,-O3 -flto
 QMAKE_LFLAGS += -fno-pie
 
 # Apple's clang doesn't know about this one
