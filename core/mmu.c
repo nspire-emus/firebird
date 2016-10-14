@@ -262,10 +262,5 @@ void addr_cache_flush() {
         addr_cache_invalidate(offset);
     }
 
-    /* Translations aren't position-independant.
-     * The OS still works as the code is loaded once into
-     * the address space and then never modified. */
-    #ifdef SUPPORT_LINUX
-        flush_translations();
-    #endif
+    flush_translations();
 }

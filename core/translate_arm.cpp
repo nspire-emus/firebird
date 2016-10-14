@@ -9,7 +9,7 @@
  */
 
 #include <algorithm>
-#include <map>
+#include <unordered_map>
 #include <cassert>
 #include <cstdint>
 #include <cstdio>
@@ -169,7 +169,7 @@ struct translation_cache_entry {
 uint32_t translation_cache_bits[0x10000000/32];
 uint32_t translation_cache_data[0x400000];
 uint32_t *translation_cache_data_current = translation_cache_data;
-std::map<uint32_t, translation_cache_entry> translation_cache;
+std::unordered_map<uint32_t, translation_cache_entry> translation_cache;
 
 translation_cache_entry *translation_cache_query(Instruction i)
 {
@@ -467,6 +467,14 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
                     || (reg_shift && i.data_proc.rs == PC))
                 goto unimpl;
 
+            // Shortcut for simple register mov (mov rd, rm)
+            if((i.raw & 0xFFF0FF0) == 0x1a00000)
+            {
+                emit_ldr_armreg(R0, i.data_proc.rm);
+                emit_str_armreg(R0, i.data_proc.rd);
+                goto instruction_translated;
+            }
+
             Instruction translated;
             translated.raw = (i.raw & 0xFFFFFFF) | 0xE0000000;
 
@@ -565,13 +573,6 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
                     emit_mov(R0, address);
                     goto no_offset;
                 }
-
-                /* HACK: If flush_translations is not called in addr_cache_flush,
-                 * this caching here is broken even for the OS. */
-                #ifndef SUPPORT_LINUX
-                    emit_mov(R0, address);
-                    goto no_offset;
-                #endif
 
                 // Load: value very likely constant
                 uint32_t *ptr = reinterpret_cast<uint32_t*>(try_ptr(address));

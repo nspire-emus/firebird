@@ -1,5 +1,5 @@
 ##TODO:
-* Optimize x86_64 JIT: {read,write}_{byte,half,word} in asm
+* Optimize ARM JIT: Implement literal pool
 * File transfer: Move by D'n'D, drop folders, download folders
 * Better debugger integration
 * Don't use a 60Hz timer for LCD redrawing, hook lcd_event instead
