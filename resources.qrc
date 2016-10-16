@@ -30,6 +30,14 @@
         <file>qml/MobileUI.qml</file>
         <file>qml/MobileControl2.qml</file>
         <file>qml/SidebarButton.qml</file>
+        <file>qml/ConfigPagesModel.qml</file>
+        <file>qml/Firebird/UIComponents/PageDelegate.qml</file>
+        <file>qml/Firebird/UIComponents/PageList.qml</file>
+        <file>qml/Firebird/UIComponents/qmldir</file>
+        <file>qml/FBConfigDialog.qml</file>
+        <file>qml/ConfigDebug.qml</file>
+        <file>qml/ConfigPageDebug.qml</file>
+        <file>qml/Firebird/UIComponents/ConfigPages.qml</file>
     </qresource>
     <qresource prefix="/i18n">
         <file>i18n/de_DE.qm</file>

@@ -222,15 +222,25 @@ HEADERS += \
 
 # For localization
 lupdate_only {
-SOURCES += qml/MobileControl2.qml \
+SOURCES += qml/Keypad.qml \
+    qml/MobileUI.qml \
+    qml/ConfigPagesModel.qml \
+    qml/NNumButton.qml \
+    qml/MobileControl2.qml \
+    qml/SidebarButton.qml \
+    qml/ConfigPageDebug.qml \
+    qml/NBigButton.qml \
     qml/NButton.qml \
     qml/NAlphaButton.qml \
-    qml/MobileUI.qml \
-    qml/NBigButton.qml \
-    qml/Touchpad.qml \
     qml/NDualButton.qml \
-    qml/Keypad.qml \
-    qml/NNumButton.qml
+    qml/ConfigDebug.qml \
+    qml/FBConfigDialog.qml \
+    qml/Touchpad.qml \
+    qml/Firebird/Emu/Emu.qml \
+    qml/Firebird/Emu/EmuScreen.qml \
+    qml/Firebird/UIComponents/PageDelegate.qml \
+    qml/Firebird/UIComponents/PageList.qml \
+    qml/Firebird/UIComponents/ConfigPages.qml
 }
 
 # Generate the binary arm code into armcode_bin.h

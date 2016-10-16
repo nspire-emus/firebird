@@ -1,0 +1,4 @@
+module Firebird.UIComponents
+PageDelegate 1.0 PageDelegate.qml
+PageList 1.0 PageList.qml
+ConfigPages 1.0 ConfigPages.qml

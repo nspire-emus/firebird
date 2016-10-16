@@ -844,6 +844,8 @@
     <addaction name="actionRestart"/>
     <addaction name="separator"/>
     <addaction name="separator"/>
+    <addaction name="actionConfiguration"/>
+    <addaction name="separator"/>
     <addaction name="actionQuit"/>
    </widget>
    <widget class="QMenu" name="menuFlash">
@@ -1054,6 +1056,15 @@
    </property>
    <property name="text">
     <string>&amp;External LCD</string>
+   </property>
+  </action>
+  <action name="actionConfiguration">
+   <property name="icon">
+    <iconset resource="resources.qrc">
+     <normaloff>:/icons/resources/icons/preferences-other.png</normaloff>:/icons/resources/icons/preferences-other.png</iconset>
+   </property>
+   <property name="text">
+    <string>Configuration</string>
    </property>
   </action>
  </widget>

@@ -9,6 +9,7 @@
 #include <QMimeData>
 #include <QDockWidget>
 #include <QShortcut>
+#include <QQmlComponent>
 
 #include "core/debug.h"
 #include "core/emu.h"
@@ -39,6 +40,10 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->lcdView->installEventFilter(&qt_keypad_bridge);
     lcd.installEventFilter(&qt_keypad_bridge);
 
+    // Create config dialog
+    ui->keypadWidget->engine()->addImportPath(QStringLiteral("qrc:/qml/qml"));
+    config_dialog = (new QQmlComponent(ui->keypadWidget->engine(), QUrl(QStringLiteral("qrc:/qml/qml/FBConfigDialog.qml")), this))->create();
+
     //Emu -> GUI (QueuedConnection as they're different threads)
     connect(&emu, SIGNAL(serialChar(char)), this, SLOT(serialChar(char)), Qt::QueuedConnection);
     connect(&emu, SIGNAL(debugStr(QString)), this, SLOT(debugStr(QString))); //Not queued connection as it may cause a hang
@@ -62,11 +67,13 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->actionReset, SIGNAL(triggered()), &emu, SLOT(reset()));
     connect(ui->actionRestart, SIGNAL(triggered()), this, SLOT(restart()));
     connect(ui->actionDebugger, SIGNAL(triggered()), &emu, SLOT(enterDebugger()));
+    connect(ui->actionConfiguration, SIGNAL(triggered()), this, SLOT(openConfiguration()));
     connect(ui->buttonPause, SIGNAL(clicked(bool)), &emu, SLOT(setPaused(bool)));
     connect(ui->buttonPause, SIGNAL(clicked(bool)), ui->actionPause, SLOT(setChecked(bool)));
     connect(ui->actionPause, SIGNAL(toggled(bool)), &emu, SLOT(setPaused(bool)));
     connect(ui->actionPause, SIGNAL(toggled(bool)), ui->buttonPause, SLOT(setChecked(bool)));
     connect(ui->buttonSpeed, SIGNAL(clicked(bool)), &emu, SLOT(setTurboMode(bool)));
+
     QShortcut *shortcut = new QShortcut(QKeySequence(Qt::Key_F11), this);
     shortcut->setAutoRepeat(false);
     connect(shortcut, SIGNAL(activated()), &emu, SLOT(toggleTurbo()));
@@ -768,6 +775,11 @@ void MainWindow::restart()
         emu.start();
     else
         QMessageBox::warning(this, trUtf8("Restart needed"), trUtf8("Failed to restart emulator. Close and reopen this app.\n"));
+}
+
+void MainWindow::openConfiguration()
+{
+    config_dialog->setProperty("visible", QVariant(true));
 }
 
 void MainWindow::xmodemSend()

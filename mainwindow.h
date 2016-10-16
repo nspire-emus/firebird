@@ -35,6 +35,7 @@ public slots:
 
     //Menu "Emulator"
     void restart();
+    void openConfiguration();
 
     //Menu "Tools"
     void screenshot();
@@ -127,6 +128,9 @@ private:
 
     // Second LCDWidget for use as external window
     LCDWidget lcd{this, Qt::Window};
+
+    // The QML Config Dialog
+    QObject *config_dialog = nullptr;
 
     // Used for autosuspend on close.
     // The close event has to be deferred until the suspend operation completed successfully.
