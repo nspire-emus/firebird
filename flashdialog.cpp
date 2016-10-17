@@ -12,13 +12,13 @@ FlashDialog::FlashDialog(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    connect(ui->buttonBoot2, &QPushButton::clicked, this, &FlashDialog::selectBoot2);
-    connect(ui->buttonManuf, &QPushButton::clicked, this, &FlashDialog::selectManuf);
-    connect(ui->buttonOS, &QPushButton::clicked, this, &FlashDialog::selectOS);
-    connect(ui->buttonDiags, &QPushButton::clicked, this, &FlashDialog::selectDiags);
-    connect(ui->buttonSave, &QPushButton::clicked, this, &FlashDialog::saveAs);
+    connect(ui->buttonBoot2, SIGNAL(clicked()), this, SLOT(selectBoot2()));
+    connect(ui->buttonManuf, SIGNAL(clicked()), this, SLOT(selectManuf()));
+    connect(ui->buttonOS, SIGNAL(clicked()), this, SLOT(selectOS()));
+    connect(ui->buttonDiags, SIGNAL(clicked(bool)), this, SLOT(selectDiags()));
+    connect(ui->buttonSave, SIGNAL(clicked()), this, SLOT(saveAs()));
 
-    connect(ui->selectModel, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), this, &FlashDialog::hwTypeChanged);
+    connect(ui->selectModel, SIGNAL(currentIndexChanged(int)), this, SLOT(hwTypeChanged(int)));
 }
 
 FlashDialog::~FlashDialog()
