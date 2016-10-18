@@ -40,89 +40,89 @@ MainWindow::MainWindow(QWidget *parent) :
     lcd.installEventFilter(&qt_keypad_bridge);
 
     //Emu -> GUI (QueuedConnection as they're different threads)
-    connect(&emu, &EmuThread::serialChar, this, &MainWindow::serialChar, Qt::QueuedConnection);
-    connect(&emu, &EmuThread::debugStr, this, &MainWindow::debugStr); //Not queued connection as it may cause a hang
-    connect(&emu, &EmuThread::speedChanged, this, &MainWindow::showSpeed, Qt::QueuedConnection);
-    connect(&emu, &EmuThread::isBusy, this, &MainWindow::isBusy, Qt::QueuedConnection);
-    connect(&emu, &EmuThread::statusMsg, this, &MainWindow::showStatusMsg, Qt::QueuedConnection);
-    connect(&emu, &EmuThread::turboModeChanged, ui->buttonSpeed, &QPushButton::setChecked, Qt::QueuedConnection);
-    connect(&emu, &EmuThread::usblinkChanged, this, &MainWindow::usblinkChanged, Qt::QueuedConnection);
-    connect(&emu, &EmuThread::debugInputRequested, this, &MainWindow::debugInputRequested, Qt::QueuedConnection);
-    connect(&emu, &EmuThread::started, this, &MainWindow::started, Qt::QueuedConnection);
-    connect(&emu, &EmuThread::paused, ui->actionPause, &QAction::setChecked, Qt::QueuedConnection);
-    connect(&emu, &EmuThread::resumed, this, &MainWindow::resumed, Qt::QueuedConnection);
-    connect(&emu, &EmuThread::suspended, this, &MainWindow::suspended, Qt::QueuedConnection);
-    connect(&emu, &EmuThread::stopped, this, &MainWindow::stopped, Qt::QueuedConnection);
+    connect(&emu, SIGNAL(serialChar(char)), this, SLOT(serialChar(char)), Qt::QueuedConnection);
+    connect(&emu, SIGNAL(debugStr(QString)), this, SLOT(debugStr(QString))); //Not queued connection as it may cause a hang
+    connect(&emu, SIGNAL(speedChanged(double)), this, SLOT(showSpeed(double)), Qt::QueuedConnection);
+    connect(&emu, SIGNAL(isBusy(bool)), this, SLOT(isBusy(bool)), Qt::QueuedConnection);
+    connect(&emu, SIGNAL(statusMsg(QString)), this, SLOT(showStatusMsg(QString)), Qt::QueuedConnection);
+    connect(&emu, SIGNAL(turboModeChanged(bool)), ui->buttonSpeed, SLOT(setChecked(bool)), Qt::QueuedConnection);
+    connect(&emu, SIGNAL(usblinkChanged(bool)), this, SLOT(usblinkChanged(bool)), Qt::QueuedConnection);
+    connect(&emu, SIGNAL(debugInputRequested(bool)), this, SLOT(debugInputRequested(bool)), Qt::QueuedConnection);
+    connect(&emu, SIGNAL(started(bool)), this, SLOT(started(bool)), Qt::QueuedConnection);
+    connect(&emu, SIGNAL(paused(bool)), ui->actionPause, SLOT(setChecked(bool)), Qt::QueuedConnection);
+    connect(&emu, SIGNAL(resumed(bool)), this, SLOT(resumed(bool)), Qt::QueuedConnection);
+    connect(&emu, SIGNAL(suspended(bool)), this, SLOT(suspended(bool)), Qt::QueuedConnection);
+    connect(&emu, SIGNAL(stopped()), this, SLOT(stopped()), Qt::QueuedConnection);
 
     //GUI -> Emu (no QueuedConnection possible, watch out!)
-    connect(this, &MainWindow::debuggerCommand, &emu, &EmuThread::debuggerInput);
+    connect(this, SIGNAL(debuggerCommand(QString)), &emu, SLOT(debuggerInput(QString)));
 
     //Menu "Emulator"
-    connect(ui->buttonReset, &QPushButton::clicked, &emu, &EmuThread::reset);
-    connect(ui->actionReset, &QAction::triggered, &emu, &EmuThread::reset);
-    connect(ui->actionRestart, &QAction::triggered, this, &MainWindow::restart);
-    connect(ui->actionDebugger, &QAction::triggered, &emu, &EmuThread::enterDebugger);
-    connect(ui->buttonPause, &QPushButton::clicked, &emu, &EmuThread::setPaused);
-    connect(ui->buttonPause, &QPushButton::clicked, ui->actionPause, &QAction::setChecked);
-    connect(ui->actionPause, &QAction::toggled, &emu, &EmuThread::setPaused);
-    connect(ui->actionPause, &QAction::toggled, ui->buttonPause, &QPushButton::setChecked);
-    connect(ui->buttonSpeed, &QPushButton::clicked, &emu, &EmuThread::setTurboMode);
+    connect(ui->buttonReset, SIGNAL(clicked(bool)), &emu, SLOT(reset()));
+    connect(ui->actionReset, SIGNAL(triggered()), &emu, SLOT(reset()));
+    connect(ui->actionRestart, SIGNAL(triggered()), this, SLOT(restart()));
+    connect(ui->actionDebugger, SIGNAL(triggered()), &emu, SLOT(enterDebugger()));
+    connect(ui->buttonPause, SIGNAL(clicked(bool)), &emu, SLOT(setPaused(bool)));
+    connect(ui->buttonPause, SIGNAL(clicked(bool)), ui->actionPause, SLOT(setChecked(bool)));
+    connect(ui->actionPause, SIGNAL(toggled(bool)), &emu, SLOT(setPaused(bool)));
+    connect(ui->actionPause, SIGNAL(toggled(bool)), ui->buttonPause, SLOT(setChecked(bool)));
+    connect(ui->buttonSpeed, SIGNAL(clicked(bool)), &emu, SLOT(setTurboMode(bool)));
     QShortcut *shortcut = new QShortcut(QKeySequence(Qt::Key_F11), this);
     shortcut->setAutoRepeat(false);
-    connect(shortcut, &QShortcut::activated, &emu, &EmuThread::toggleTurbo);
+    connect(shortcut, SIGNAL(activated()), &emu, SLOT(toggleTurbo()));
 
     //Menu "Tools"
-    connect(ui->buttonScreenshot, &QPushButton::clicked, this, &MainWindow::screenshot);
-    connect(ui->actionScreenshot, &QAction::triggered, this, &MainWindow::screenshot);
-    connect(ui->actionRecord_GIF, &QAction::triggered, this, &MainWindow::recordGIF);
-    connect(ui->actionConnect, &QAction::triggered, this, &MainWindow::connectUSB);
-    connect(ui->buttonUSB, &QPushButton::clicked, this, &MainWindow::connectUSB);
-    connect(ui->actionLCD_Window, &QAction::triggered, this, &MainWindow::setExtLCD);
-    connect(&lcd, &LCDWidget::closed, ui->actionLCD_Window, &QAction::toggle);
-    connect(ui->actionXModem, &QAction::triggered, this, &MainWindow::xmodemSend);
+    connect(ui->buttonScreenshot, SIGNAL(clicked()), this, SLOT(screenshot()));
+    connect(ui->actionScreenshot, SIGNAL(triggered()), this, SLOT(screenshot()));
+    connect(ui->actionRecord_GIF, SIGNAL(triggered()), this, SLOT(recordGIF()));
+    connect(ui->actionConnect, SIGNAL(triggered()), this, SLOT(connectUSB()));
+    connect(ui->buttonUSB, SIGNAL(clicked(bool)), this, SLOT(connectUSB()));
+    connect(ui->actionLCD_Window, SIGNAL(triggered(bool)), this, SLOT(setExtLCD(bool)));
+    connect(&lcd, SIGNAL(closed()), ui->actionLCD_Window, SLOT(toggle()));
+    connect(ui->actionXModem, SIGNAL(triggered()), this, SLOT(xmodemSend()));
     ui->actionConnect->setShortcut(QKeySequence(Qt::Key_F10));
     ui->actionConnect->setAutoRepeat(false);
 
     //Menu "State"
-    connect(ui->actionResume, &QAction::triggered, this, &MainWindow::resume);
-    connect(ui->actionSuspend, &QAction::triggered, this, &MainWindow::suspend);
-    connect(ui->actionResume_from_file, &QAction::triggered, this, &MainWindow::resumeFromFile);
-    connect(ui->actionSuspend_to_file, &QAction::triggered, this, &MainWindow::suspendToFile);
+    connect(ui->actionResume, SIGNAL(triggered()), this, SLOT(resume()));
+    connect(ui->actionSuspend, SIGNAL(triggered()), this, SLOT(suspend()));
+    connect(ui->actionResume_from_file, SIGNAL(triggered()), this, SLOT(resumeFromFile()));
+    connect(ui->actionSuspend_to_file, SIGNAL(triggered()), this, SLOT(suspendToFile()));
 
     //Menu "Flash"
-    connect(ui->actionSave, &QAction::triggered, this, &MainWindow::saveFlash);
-    connect(ui->actionCreate_flash, &QAction::triggered, this, &MainWindow::createFlash);
+    connect(ui->actionSave, SIGNAL(triggered()), this, SLOT(saveFlash()));
+    connect(ui->actionCreate_flash, SIGNAL(triggered()), this, SLOT(createFlash()));
 
     //Menu "About"
-    connect(ui->actionAbout_Firebird, &QAction::triggered, this, &MainWindow::showAbout);
-    connect(ui->actionAbout_Qt, &QAction::triggered, qApp, &QApplication::aboutQt);
+    connect(ui->actionAbout_Firebird, SIGNAL(triggered(bool)), this, SLOT(showAbout()));
+    connect(ui->actionAbout_Qt, SIGNAL(triggered(bool)), qApp, SLOT(aboutQt()));
 
     //Debugging
-    connect(ui->lineEdit, &QLineEdit::returnPressed, this, &MainWindow::debugCommand);
+    connect(ui->lineEdit, SIGNAL(returnPressed()), this, SLOT(debugCommand()));
 
     //File transfer
-    connect(ui->refreshButton, &QPushButton::clicked, ui->usblinkTree, &USBLinkTreeWidget::reloadFilebrowser);
-    connect(ui->usblinkTree, &USBLinkTreeWidget::downloadProgress, this, &MainWindow::usblinkDownload, Qt::QueuedConnection);
-    connect(ui->usblinkTree, &USBLinkTreeWidget::uploadProgress, this, &MainWindow::changeProgress, Qt::QueuedConnection);
-    connect(this, &MainWindow::usblink_progress_changed, this, &MainWindow::changeProgress, Qt::QueuedConnection);
+    connect(ui->refreshButton, SIGNAL(clicked(bool)), ui->usblinkTree, SLOT(reloadFilebrowser()));
+    connect(ui->usblinkTree, SIGNAL(downloadProgress(int)), this, SLOT(usblinkDownload(int)), Qt::QueuedConnection);
+    connect(ui->usblinkTree, SIGNAL(uploadProgress(int)), this, SLOT(changeProgress(int)), Qt::QueuedConnection);
+    connect(this, SIGNAL(usblink_progress_changed(int)), this, SLOT(changeProgress(int)), Qt::QueuedConnection);
 
     //Settings
-    connect(ui->checkDebugger, &QCheckBox::toggled, this, &MainWindow::setDebuggerOnStartup);
-    connect(ui->checkWarning, &QCheckBox::toggled, this, &MainWindow::setDebuggerOnWarning);
-    connect(ui->uiDocks, &QRadioButton::toggled, this, &MainWindow::setUIMode);
-    connect(ui->checkAutostart, &QCheckBox::toggled, this, &MainWindow::setAutostart);
-    connect(ui->fileBoot1, &QPushButton::pressed, this, &MainWindow::selectBoot1);
-    connect(ui->fileFlash, &QPushButton::pressed, this, &MainWindow::selectFlash);
-    connect(ui->pathTransfer, &QLineEdit::textEdited, this, &MainWindow::setUSBPath);
-    connect(ui->spinGDB, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), this, &MainWindow::setGDBPort);
-    connect(ui->spinRDBG, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), this, &MainWindow::setRDBGPort);
-    connect(ui->orderDiags, &QRadioButton::toggled, this, &MainWindow::setBootOrder);
-    connect(ui->checkSuspend, &QCheckBox::toggled, this, &MainWindow::setSuspendOnClose);
-    connect(ui->checkResume, &QCheckBox::toggled, this, &MainWindow::setResumeOnOpen);
-    connect(ui->buttonChangeSnapshotPath, &QPushButton::clicked, this, &MainWindow::changeSnapshotPath);
+    connect(ui->checkDebugger, SIGNAL(toggled(bool)), this, SLOT(setDebuggerOnStartup(bool)));
+    connect(ui->checkWarning, SIGNAL(toggled(bool)), this, SLOT(setDebuggerOnWarning(bool)));
+    connect(ui->uiDocks, SIGNAL(toggled(bool)), this, SLOT(setUIMode(bool)));
+    connect(ui->checkAutostart, SIGNAL(toggled(bool)), this, SLOT(setAutostart(bool)));
+    connect(ui->fileBoot1, SIGNAL(pressed()), this, SLOT(selectBoot1()));
+    connect(ui->fileFlash, SIGNAL(pressed()), this, SLOT(selectFlash()));
+    connect(ui->pathTransfer, SIGNAL(textEdited(QString)), this, SLOT(setUSBPath(QString)));
+    connect(ui->spinGDB, SIGNAL(valueChanged(int)), this, SLOT(setGDBPort(int)));
+    connect(ui->spinRDBG, SIGNAL(valueChanged(int)), this, SLOT(setRDBGPort(int)));
+    connect(ui->orderDiags, SIGNAL(toggled(bool)), this, SLOT(setBootOrder(bool)));
+    connect(ui->checkSuspend, SIGNAL(toggled(bool)), this, SLOT(setSuspendOnClose(bool)));
+    connect(ui->checkResume, SIGNAL(toggled(bool)), this, SLOT(setResumeOnOpen(bool)));
+    connect(ui->buttonChangeSnapshotPath, SIGNAL(clicked()), this, SLOT(changeSnapshotPath()));
 
     //FlashDialog
-    connect(&flash_dialog, &FlashDialog::flashCreated, this, &MainWindow::flashCreated);
+    connect(&flash_dialog, SIGNAL(flashCreated(QString)), this, SLOT(flashCreated(QString)));
 
     //Set up monospace fonts
     QFont monospace = QFontDatabase::systemFont(QFontDatabase::FixedFont);

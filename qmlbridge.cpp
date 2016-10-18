@@ -11,9 +11,9 @@
 QMLBridge::QMLBridge(QObject *parent) : QObject(parent)
 {
     #ifdef MOBILE_UI
-        connect(&emu_thread, &EmuThread::started, this, &QMLBridge::started, Qt::QueuedConnection);
-        connect(&emu_thread, &EmuThread::resumed, this, &QMLBridge::resumed, Qt::QueuedConnection);
-        connect(&emu_thread, &EmuThread::suspended, this, &QMLBridge::suspended, Qt::QueuedConnection);
+        connect(&emu_thread, SIGNAL(started(bool)), this, SLOT(started(bool)), Qt::QueuedConnection);
+        connect(&emu_thread, SIGNAL(resumed(bool)), this, SLOT(resumed(bool)), Qt::QueuedConnection);
+        connect(&emu_thread, SIGNAL(suspended(bool)), this, SLOT(suspended(bool)), Qt::QueuedConnection);
     #endif
 }
 
