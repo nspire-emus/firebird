@@ -233,14 +233,14 @@ SOURCES += qml/Keypad.qml \
     qml/NButton.qml \
     qml/NAlphaButton.qml \
     qml/NDualButton.qml \
-    qml/ConfigDebug.qml \
     qml/FBConfigDialog.qml \
     qml/Touchpad.qml \
     qml/Firebird/Emu/Emu.qml \
     qml/Firebird/Emu/EmuScreen.qml \
     qml/Firebird/UIComponents/PageDelegate.qml \
     qml/Firebird/UIComponents/PageList.qml \
-    qml/Firebird/UIComponents/ConfigPages.qml
+    qml/Firebird/UIComponents/ConfigPages.qml \
+    qml/Firebird/UIComponents/LabeledCheckBox.qml
 }
 
 # Generate the binary arm code into armcode_bin.h
