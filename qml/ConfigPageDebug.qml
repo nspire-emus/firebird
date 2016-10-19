@@ -1,6 +1,7 @@
 import QtQuick 2.0
 import QtQuick.Controls 1.0
 import QtQuick.Layouts 1.0
+import Firebird.Emu 1.0
 import Firebird.UIComponents 1.0
 
 ColumnLayout {
@@ -33,6 +34,9 @@ ColumnLayout {
         LabeledCheckBox {
             id: gdbCheckBox
             text: qsTr("Enable GDB stub on Port")
+
+            checked: Emu.gdbEnabled
+            onCheckedChanged: Emu.gdbEnabled = checked
         }
 
         SpinBox {
@@ -40,6 +44,9 @@ ColumnLayout {
 
             minimumValue: 1
             maximumValue: 65535
+
+            value: Emu.gdbPort
+            onValueChanged: Emu.gdbPort = value
         }
     }
 
@@ -62,6 +69,9 @@ ColumnLayout {
         LabeledCheckBox {
             id: rgbCheckBox
             text: qsTr("Enable internal debugger on Port")
+
+            checked: Emu.rdbEnabled
+            onCheckedChanged: Emu.rdbEnabled = checked
         }
 
         SpinBox {
@@ -69,6 +79,9 @@ ColumnLayout {
 
             minimumValue: 1
             maximumValue: 65535
+
+            value: Emu.rdbPort
+            onValueChanged: Emu.rdbPort = value
         }
     }
 

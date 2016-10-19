@@ -13,6 +13,20 @@ public:
     explicit QMLBridge(QObject *parent = 0);
     ~QMLBridge();
 
+    Q_PROPERTY(unsigned int gdbPort READ getGDBPort WRITE setGDBPort NOTIFY gdbPortChanged)
+    Q_PROPERTY(bool gdbEnabled READ getGDBEnabled WRITE setGDBEnabled NOTIFY gdbEnabledChanged)
+    Q_PROPERTY(unsigned int rdbPort READ getRDBPort WRITE setRDBPort NOTIFY rdbPortChanged)
+    Q_PROPERTY(bool rdbEnabled READ getRDBEnabled WRITE setRDBEnabled NOTIFY rdbEnabledChanged)
+
+    unsigned int getGDBPort();
+    void setGDBPort(unsigned int port);
+    void setGDBEnabled(bool e);
+    bool getGDBEnabled();
+    unsigned int getRDBPort();
+    void setRDBPort(unsigned int port);
+    void setRDBEnabled(bool e);
+    bool getRDBEnabled();
+
     Q_INVOKABLE void keypadStateChanged(int keymap_id, bool state);
     Q_INVOKABLE void registerNButton(int keymap_id, QVariant button);
 
@@ -52,6 +66,12 @@ public:
         void suspended(bool success);
 
     #endif
+
+signals:
+    void gdbPortChanged();
+    void gdbEnabledChanged();
+    void rdbPortChanged();
+    void rdbEnabledChanged();
 
 private:
     QObject *toast = nullptr;

@@ -21,7 +21,63 @@ QMLBridge::~QMLBridge()
 {
     #ifdef MOBILE_UI
         emu_thread.stop();
-    #endif
+#endif
+}
+
+unsigned int QMLBridge::getGDBPort()
+{
+    return settings.value(QStringLiteral("gdbPort"), 3333).toInt();
+}
+
+void QMLBridge::setGDBPort(unsigned int port)
+{
+    if(getGDBPort() == port)
+        return;
+
+    settings.setValue(QStringLiteral("gdbPort"), port);
+    gdbPortChanged();
+}
+
+void QMLBridge::setGDBEnabled(bool e)
+{
+    if(getGDBEnabled() == e)
+        return;
+
+    settings.setValue(QStringLiteral("gdbEnabled"), e);
+    gdbEnabledChanged();
+}
+
+bool QMLBridge::getGDBEnabled()
+{
+    return settings.value(QStringLiteral("gdbEnabled"), true).toBool();
+}
+
+unsigned int QMLBridge::getRDBPort()
+{
+    return settings.value(QStringLiteral("rdbgPort"), 3334).toInt();
+}
+
+void QMLBridge::setRDBPort(unsigned int port)
+{
+    if(getRDBPort() == port)
+        return;
+
+    settings.setValue(QStringLiteral("rdbgPort"), port);
+    rdbPortChanged();
+}
+
+void QMLBridge::setRDBEnabled(bool e)
+{
+    if(getRDBEnabled() == e)
+        return;
+
+    settings.setValue(QStringLiteral("rdbgEnabled"), e);
+    rdbEnabledChanged();
+}
+
+bool QMLBridge::getRDBEnabled()
+{
+    return settings.value(QStringLiteral("rdbgEnabled"), true).toBool();
 }
 
 constexpr const int ROWS = 8, COLS = 11;
