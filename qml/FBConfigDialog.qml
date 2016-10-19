@@ -7,8 +7,8 @@ import Firebird.UIComponents 1.0
 
 Window {
     id: window
-    width: 480
-    height: 320
+    minimumHeight: 350
+    minimumWidth: 540
 
     color: fakeDialog.contentItem.color
 
