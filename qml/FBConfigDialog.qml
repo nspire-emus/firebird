@@ -40,7 +40,7 @@ Window {
             topMargin: 0
         }
 
-        Text {
+        Label {
             Layout.fillWidth: true
             text: qsTr("Changes are saved automatically")
             font.italic: true

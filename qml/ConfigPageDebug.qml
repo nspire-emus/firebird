@@ -8,20 +8,20 @@ ColumnLayout {
     id: column1
     spacing: 5
 
-    Text {
+    Label {
         text: qsTr("Debugging")
         font.bold: true
-        font.pixelSize: 19
+        font.pixelSize: 20
     }
 
-    Text {
+    Label {
         text: qsTr("Remote GDB debuggging")
         font.pixelSize: 14
-        Layout.topMargin: 10
+        Layout.topMargin: 5
         Layout.bottomMargin: 5
     }
 
-    Text {
+    Label {
         id: text4
         text: qsTr("If enabled, a remote GDB debugger can be connected\nto the port and be used for debugging")
         font.pixelSize: 12
@@ -50,14 +50,14 @@ ColumnLayout {
         }
     }
 
-    Text {
+    Label {
         text: qsTr("Remote access to internal debugger")
         font.pixelSize: 14
         Layout.topMargin: 10
         Layout.bottomMargin: 5
     }
 
-    Text {
+    Label {
         text: qsTr("Enable this to access the internal debugger via TCP (telnet/netcat),\nlike for firebird-send.")
         font.pixelSize: 12
     }

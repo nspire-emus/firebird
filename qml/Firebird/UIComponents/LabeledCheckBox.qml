@@ -16,14 +16,15 @@ RowLayout {
         onClicked: checkBox.checked = !checkBox.checked
     }
 
-    Text {
+    Label {
         id: label
         anchors {
             left: checkBox.right
             leftMargin: -5
         }
 
-        color: checkBox.checked ? "" : "grey"
+        //Disabled for now, might be mistaken for a disabled control
+        //color: checkBox.checked ? "" : "grey"
         text: ""
     }
 }
