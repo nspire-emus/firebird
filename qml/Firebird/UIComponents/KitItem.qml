@@ -8,14 +8,14 @@ ColumnLayout {
     property alias stateFile: stateName.text
 
     RowLayout {
-        Label {
+        FBLabel {
             id: label
             font.bold: true
 
             text: "Name"
         }
 
-        /*Label {
+        /*FBLabel {
             id: type
             Layout.fillWidth: true
             horizontalAlignment: Text.AlignRight
@@ -26,12 +26,12 @@ ColumnLayout {
     }
 
     RowLayout {
-        Label {
+        FBLabel {
             id: flashName
             text: "flash.img"
         }
 
-        Label {
+        FBLabel {
             id: stateName
             Layout.fillWidth: true
             horizontalAlignment: Text.AlignRight

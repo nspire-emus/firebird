@@ -7,20 +7,20 @@ import Firebird.UIComponents 1.0
 ColumnLayout {
     spacing: 5
 
-    Label {
+    FBLabel {
         text: qsTr("Debugging")
         font.bold: true
         font.pixelSize: 20
     }
 
-    Label {
+    FBLabel {
         text: qsTr("Remote GDB debuggging")
         font.pixelSize: 14
         Layout.topMargin: 5
         Layout.bottomMargin: 5
     }
 
-    Label {
+    FBLabel {
         id: text4
         text: qsTr("If enabled, a remote GDB debugger can be connected\nto the port and be used for debugging")
         font.pixelSize: 12
@@ -49,14 +49,14 @@ ColumnLayout {
         }
     }
 
-    Label {
+    FBLabel {
         text: qsTr("Remote access to internal debugger")
         font.pixelSize: 14
         Layout.topMargin: 10
         Layout.bottomMargin: 5
     }
 
-    Label {
+    FBLabel {
         text: qsTr("Enable this to access the internal debugger via TCP (telnet/netcat),\nlike for firebird-send.")
         font.pixelSize: 12
     }

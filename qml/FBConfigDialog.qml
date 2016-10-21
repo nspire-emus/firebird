@@ -40,7 +40,7 @@ Window {
             topMargin: 0
         }
 
-        Label {
+        FBLabel {
             Layout.fillWidth: true
             text: qsTr("Changes are saved automatically")
             font.italic: true

@@ -7,7 +7,7 @@ import Firebird.UIComponents 1.0
 ColumnLayout {
     spacing: 5
 
-    Label {
+    FBLabel {
         text: qsTr("Kits")
         font.bold: true
         font.pixelSize: 20

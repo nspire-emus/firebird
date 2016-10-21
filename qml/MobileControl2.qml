@@ -4,6 +4,7 @@ import QtQuick.Controls 1.3
 import QtQuick.Window 2.2
 import QtQuick.Dialogs 1.0
 import Firebird.Emu 1.0
+import Firebird.UIComponents 1.0
 
 Rectangle {    
     id: rectangle1
@@ -12,7 +13,7 @@ Rectangle {
 
     color: "#444"
 
-    Label {
+    FBLabel {
         id: title
         x: 8
         y: 8
@@ -68,13 +69,13 @@ Rectangle {
         anchors.top: title.bottom
         anchors.topMargin: 6
 
-        Label {
+        FBLabel {
             id: label2
             color: title.color
             text: qsTr("Boot1:")
         }
 
-        Label {
+        FBLabel {
             id: boot1Name
             color: title.color
             text: qsTr("None")
@@ -91,13 +92,13 @@ Rectangle {
             onClicked: fileDialogBoot1.visible = true
         }
 
-        Label {
+        FBLabel {
             id: label1
             color: title.color
             text: qsTr("Flash:")
         }
 
-        Label {
+        FBLabel {
             id: flashName
             color: title.color
             text: qsTr("None")
@@ -114,13 +115,13 @@ Rectangle {
             onClicked: fileDialogFlash.visible = true
         }
 
-        Label {
+        FBLabel {
             id: label3
             color: title.color
             text: qsTr("Snapshot\nlocation:")
         }
 
-        Label {
+        FBLabel {
             id: snapshotName
             color: title.color
             text: qsTr("None")

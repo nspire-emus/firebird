@@ -72,7 +72,7 @@ Rectangle {
                 height: label.implicitHeight + 4
                 width: listView.width - listView.anchors.margins
 
-                Label {
+                FBLabel {
                     id: label
                     font.bold: true
                     anchors.fill: parent

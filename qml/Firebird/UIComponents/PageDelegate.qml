@@ -35,7 +35,7 @@ Item {
             smooth: true
         }
 
-        Label {
+        FBLabel {
             id: label
             anchors.horizontalCenter: parent.horizontalCenter
             text: qsTr("Text")

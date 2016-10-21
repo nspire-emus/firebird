@@ -16,7 +16,7 @@ RowLayout {
         onClicked: checkBox.checked = !checkBox.checked
     }
 
-    Label {
+    FBLabel {
         id: label
         anchors {
             left: checkBox.right

@@ -1,6 +1,7 @@
 import QtQuick 2.0
 import QtQuick.Controls 1.3
 import QtQuick.Layouts 1.0
+import Firebird.UIComponents 1.0
 
 ToolButton {
     property alias icon: image.source
@@ -15,7 +16,7 @@ ToolButton {
         color: parent.pressed ? "#CCC" : "#AAA"
     }
 
-    Label {
+    FBLabel {
         id: label
         x: 12
         anchors.top: parent.top
