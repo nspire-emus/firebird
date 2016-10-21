@@ -46,6 +46,7 @@ Window {
             font.italic: true
             color: "grey"
         }
+
         Button {
             text: qsTr("Ok")
             onClicked: window.visible = false

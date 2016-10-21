@@ -34,13 +34,10 @@ Item {
             Repeater {
                 model: pageList.model
 
-                delegate: Item {
+                delegate: Loader {
                     width:  content.width
                     height: content.height
-
-                    Loader {
-                        source: file
-                    }
+                    source: file
                 }
             }
         }

@@ -5,7 +5,6 @@ import Firebird.Emu 1.0
 import Firebird.UIComponents 1.0
 
 ColumnLayout {
-    id: column1
     spacing: 5
 
     Label {
