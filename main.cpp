@@ -33,7 +33,9 @@ int main(int argc, char **argv)
         main_window = &mw;
         mw.show();
     #else
-        QQuickView mobile_ui(QUrl(QStringLiteral("qrc:/qml/qml/MobileUI.qml")));
+        QQuickView mobile_ui;
+        mobile_ui.engine()->addImportPath(QStringLiteral("qrc:/qml/qml/"));
+        mobile_ui.setSource(QUrl(QStringLiteral("qrc:/qml/qml/MobileUI.qml")));
         mobile_ui.setResizeMode(QQuickView::SizeRootObjectToView);
         mobile_ui.show();
     #endif
