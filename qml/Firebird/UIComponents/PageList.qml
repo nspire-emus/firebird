@@ -27,7 +27,7 @@ Rectangle {
             highlightMoveDuration: 150
 
             highlight: Rectangle {
-                color: "grey"
+                color: "#40b3d5"
                 anchors.horizontalCenter: parent.horizontalCenter
             }
 

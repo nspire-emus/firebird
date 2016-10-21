@@ -229,6 +229,7 @@ SOURCES += qml/Keypad.qml \
     qml/MobileControl2.qml \
     qml/SidebarButton.qml \
     qml/ConfigPageDebug.qml \
+    qml/ConfigPageKits.qml \
     qml/NBigButton.qml \
     qml/NButton.qml \
     qml/NAlphaButton.qml \

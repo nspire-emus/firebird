@@ -3,3 +3,4 @@ PageDelegate 1.0 PageDelegate.qml
 PageList 1.0 PageList.qml
 ConfigPages 1.0 ConfigPages.qml
 LabeledCheckBox 1.0 LabeledCheckBox.qml
+KitList 1.0 KitList.qml
