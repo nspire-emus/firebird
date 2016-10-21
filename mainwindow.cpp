@@ -748,6 +748,7 @@ void MainWindow::closeEvent(QCloseEvent *e)
         qDebug("Terminating emulator thread failed.");
 
     QMainWindow::closeEvent(e);
+    qApp->exit(0);
 }
 
 void MainWindow::showStatusMsg(QString str)
