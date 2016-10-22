@@ -14,7 +14,7 @@ ColumnLayout {
     }
 
     FBLabel {
-        text: qsTr("Remote GDB debuggging")
+        text: qsTr("Remote GDB debugging")
         font.pixelSize: 14
         Layout.topMargin: 5
         Layout.bottomMargin: 5

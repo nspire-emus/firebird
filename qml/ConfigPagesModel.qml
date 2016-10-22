@@ -2,7 +2,7 @@ import QtQuick 2.0
 
 ListModel {
     ListElement {
-        title: qsTr("Flash and Boot1")
+        title: qsTr("Flash & Boot1")
         icon: "qrc:/icons/resources/icons/media-floppy.png"
         file: "qrc:/qml/qml/ConfigPageKits.qml"
     }
