@@ -10,11 +10,11 @@ Window {
     minimumHeight: 350
     minimumWidth: 540
 
-    color: fakeDialog.contentItem.color
-
     Dialog {
-        id: fakeDialog
         visible: false
+        Component.onCompleted: {
+            window.color = contentItem.color
+        }
     }
 
     ConfigPages {
