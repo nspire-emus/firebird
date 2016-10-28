@@ -5,6 +5,9 @@ import Firebird.Emu 1.0
 import Firebird.UIComponents 1.0
 
 ColumnLayout {
+    property var kitModel
+    Component.onCompleted: kitModel = Emu.kits
+
     spacing: 5
 
     FBLabel {
@@ -14,44 +17,75 @@ ColumnLayout {
     }
 
     KitList {
+        id: kitList
+
         Layout.fillHeight: true
         Layout.fillWidth: true
 
-        model: ListModel {
-            ListElement {
-                name: "3.1 with nLaunch"
-                type: "CX CAS (HW A)"
-                flash: "flash31.img"
+        onCurrentItemChanged: {
+            nameEdit.text = currentItem.myData.name
+            flashEdit.filePath = currentItem.myData.flash
+            boot1Edit.filePath = currentItem.myData.boot1
+            snapshotEdit.filePath = currentItem.myData.snapshot
+        }
+
+        kitModel: parent.kitModel
+    }
+
+    GroupBox {
+        id: groupBox1
+        Layout.minimumWidth: parent.width
+        Layout.maximumWidth: parent.width
+        title: qsTr("Kit Properties")
+
+        GridLayout {
+            anchors.fill: parent
+            columns: 4
+
+            FBLabel {
+                text: qsTr("Name:")
+                elide: Text.ElideMiddle
             }
-            ListElement {
-                name: "4.3 for tests"
-                type: "CX CAS (HW A)"
-                flash: "flash43.img"
+
+            TextField {
+                id: nameEdit
+                placeholderText: qsTr("Name")
+                Layout.fillWidth: true
+
+                onTextChanged: kitModel.setData(kitList.currentIndex, text, KitModel.NameRole)
             }
-            ListElement {
-                name: "3.6 for crafti"
-                type: "CX CAS (HW J)"
-                flash: "flash36.img"
+
+            FBLabel {
+                text: qsTr("Boot1:")
+                elide: Text.ElideMiddle
             }
-            ListElement {
-                name: "4.2 on HW-W"
-                type: "CX CAS (HW W)"
-                flash: "flash42.img"
+
+            FileSelect {
+                id: boot1Edit
+                Layout.fillWidth: true
+                onFilePathChanged: kitModel.setData(kitList.currentIndex, filePath, KitModel.Boot1Role)
             }
-            ListElement {
-                name: "Crappy screen calc"
-                type: "Clickpad CAS"
-                flash: "flashCPC.img"
+
+            FBLabel {
+                text: qsTr("Flash:")
+                elide: Text.ElideMiddle
             }
-            ListElement {
-                name: "Crappy screen calc with TPAD"
-                type: "Touchpad CAS"
-                flash: "flashTPC.img"
+
+            FileSelect {
+                id: flashEdit
+                Layout.fillWidth: true
+                onFilePathChanged: kitModel.setData(kitList.currentIndex, filePath, KitModel.FlashRole)
             }
-            ListElement {
-                name: "Crappy screen calc for crafti"
-                type: "Clickpad"
-                flash: "flashCP.img"
+
+            FBLabel {
+                text: qsTr("Snapshot file:")
+                elide: Text.ElideMiddle
+            }
+
+            FileSelect {
+                id: snapshotEdit
+                Layout.fillWidth: true
+                onFilePathChanged: kitModel.setData(kitList.currentIndex, filePath, KitModel.SnapshotRole)
             }
         }
     }

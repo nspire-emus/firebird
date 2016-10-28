@@ -6,6 +6,36 @@
 
 #include "emuthread.h"
 
+struct Kit
+{
+    QString name, type, flash, boot1, snapshot;
+};
+
+class KitModel : public QAbstractListModel
+{
+    Q_OBJECT
+public:
+    enum Role {
+        NameRole = Qt::UserRole + 1,
+        TypeRole,
+        FlashRole,
+        Boot1Role,
+        SnapshotRole
+    };
+    Q_ENUMS(Role)
+
+    KitModel() { kits.push_back(Kit{QStringLiteral("Test"), QStringLiteral("Classic CX CM TPAD CAS"), QStringLiteral("flash_all.img"), QStringLiteral("boot1.img"), QStringLiteral("state")}); }
+    Q_INVOKABLE virtual int rowCount(const QModelIndex &parent = QModelIndex()) const override;
+    Q_INVOKABLE virtual QHash<int, QByteArray> roleNames() const override;
+    Q_INVOKABLE virtual QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
+    Q_INVOKABLE bool setData(const int row, const QVariant &value, int role = Qt::EditRole);
+    Q_INVOKABLE bool copy(const int row);
+    Q_INVOKABLE bool remove(const int row);
+
+private:
+    QList<Kit> kits;
+};
+
 class QMLBridge : public QObject
 {
     Q_OBJECT
@@ -17,6 +47,7 @@ public:
     Q_PROPERTY(bool gdbEnabled READ getGDBEnabled WRITE setGDBEnabled NOTIFY gdbEnabledChanged)
     Q_PROPERTY(unsigned int rdbPort READ getRDBPort WRITE setRDBPort NOTIFY rdbPortChanged)
     Q_PROPERTY(bool rdbEnabled READ getRDBEnabled WRITE setRDBEnabled NOTIFY rdbEnabledChanged)
+    Q_PROPERTY(KitModel* kits READ getKits)
 
     unsigned int getGDBPort();
     void setGDBPort(unsigned int port);
@@ -26,7 +57,7 @@ public:
     void setRDBPort(unsigned int port);
     void setRDBEnabled(bool e);
     bool getRDBEnabled();
-
+    KitModel *getKits() { return &kits; }
     Q_INVOKABLE void keypadStateChanged(int keymap_id, bool state);
     Q_INVOKABLE void registerNButton(int keymap_id, QVariant button);
 
@@ -35,6 +66,8 @@ public:
     Q_INVOKABLE void registerTouchpad(QVariant touchpad);
 
     Q_INVOKABLE bool isMobile();
+
+    Q_INVOKABLE QString basename(QString path);
 
     #ifdef MOBILE_UI
         Q_INVOKABLE bool restart();
@@ -52,8 +85,6 @@ public:
         Q_INVOKABLE void setFlashPath(QUrl path);
         Q_INVOKABLE QString getSnapshotPath();
         Q_INVOKABLE void setSnapshotPath(QUrl path);
-
-        Q_INVOKABLE QString basename(QString path);
 
         Q_INVOKABLE void registerToast(QVariant toast);
         Q_INVOKABLE void toastMessage(QString msg);
@@ -75,6 +106,7 @@ signals:
 
 private:
     QObject *toast = nullptr;
+    KitModel kits;
     QSettings settings;
 };
 

@@ -1,10 +1,11 @@
 import QtQuick 2.0
 import QtQuick.Controls 1.0
+import Firebird.Emu 1.0
 
 Rectangle {
     property alias currentItem: listView.currentItem
     property alias currentIndex: listView.currentIndex
-    property alias model: listView.model
+    property alias kitModel: listView.model
 
     color: "white"
     border {
@@ -32,6 +33,8 @@ Rectangle {
             }
 
             delegate: Item {
+                property variant myData: model
+
                 height: item.height + 10
                 width: listView.width - listView.anchors.margins
                 anchors.horizontalCenter: parent.horizontalCenter
@@ -59,8 +62,42 @@ Rectangle {
                     id: item
                     width: parent.width - 15
                     anchors.centerIn: parent
+
                     kitName: name
-                    flashFile: flash
+                    flashFile: Emu.basename(flash)
+                    stateFile: Emu.basename(snapshot)
+                }
+
+                FBLink {
+                    anchors {
+                        top: parent.top
+                        right: copyButton.left
+                        topMargin: 5
+                        rightMargin: 5
+                    }
+
+                    text: qsTr("Remove")
+                    visible: parent.ListView.view.currentIndex === index
+                    onClicked: {
+                        kitModel.remove(index)
+                    }
+                }
+
+                FBLink {
+                    id: copyButton
+
+                    anchors {
+                        top: parent.top
+                        right: parent.right
+                        topMargin: 5
+                        rightMargin: 5
+                    }
+
+                    text: qsTr("Copy")
+                    visible: parent.ListView.view.currentIndex === index
+                    onClicked: {
+                        kitModel.copy(index)
+                    }
                 }
             }
 

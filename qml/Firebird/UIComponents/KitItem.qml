@@ -8,11 +8,16 @@ ColumnLayout {
     property alias stateFile: stateName.text
 
     RowLayout {
+        Layout.maximumWidth: parent.width
+
         FBLabel {
             id: label
             font.bold: true
+            elide: Text.ElideMiddle
 
             text: "Name"
+
+            Layout.maximumWidth: parent.width
         }
 
         /*FBLabel {

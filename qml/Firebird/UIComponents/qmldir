@@ -5,3 +5,5 @@ ConfigPages 1.0 ConfigPages.qml
 LabeledCheckBox 1.0 LabeledCheckBox.qml
 KitList 1.0 KitList.qml
 FBLabel 1.0 FBLabel.qml
+FileSelect 1.0 FileSelect.qml
+FBLink 1.0 FBLink.qml

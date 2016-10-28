@@ -10,6 +10,8 @@
 
 QMLBridge::QMLBridge(QObject *parent) : QObject(parent)
 {
+    qmlRegisterType<KitModel>("Firebird.Emu", 1, 0, "KitModel");
+
     #ifdef MOBILE_UI
         connect(&emu_thread, SIGNAL(started(bool)), this, SLOT(started(bool)), Qt::QueuedConnection);
         connect(&emu_thread, SIGNAL(resumed(bool)), this, SLOT(resumed(bool)), Qt::QueuedConnection);
@@ -139,6 +141,17 @@ bool QMLBridge::isMobile()
     #endif
 }
 
+QString QMLBridge::basename(QString path)
+{
+    if(path.isEmpty())
+        return tr("None");
+
+    std::string pathname = path.toStdString();
+    return QString::fromStdString(std::string(
+                std::find_if(pathname.rbegin(), pathname.rend(), [](char c) { return c == '/'; }).base(),
+            pathname.end()));
+}
+
 #ifdef MOBILE_UI
 
 bool QMLBridge::restart()
@@ -228,17 +241,6 @@ void QMLBridge::setSnapshotPath(QUrl path)
     settings.setValue(QStringLiteral("snapshotPath"), path.toLocalFile());
 }
 
-QString QMLBridge::basename(QString path)
-{
-    if(path.isEmpty())
-        return tr("None");
-
-    std::string pathname = path.toStdString();
-    return QString::fromStdString(std::string(
-                std::find_if(pathname.rbegin(), pathname.rend(), [](char c) { return c == '/'; }).base(),
-            pathname.end()));
-}
-
 void QMLBridge::registerToast(QVariant toast)
 {
     this->toast = toast.value<QObject*>();
@@ -322,4 +324,100 @@ void notifyTouchpadStateChanged(qreal x, qreal y, bool state)
 void notifyTouchpadStateChanged()
 {
     notifyTouchpadStateChanged(float(keypad.touchpad_x)/TOUCHPAD_X_MAX, 1.0f-(float(keypad.touchpad_y)/TOUCHPAD_Y_MAX), keypad.touchpad_contact);
+}
+
+int KitModel::rowCount(const QModelIndex &) const
+{
+    return kits.count();
+}
+
+QHash<int, QByteArray> KitModel::roleNames() const
+{
+    QHash<int, QByteArray> roles;
+    roles[NameRole] = "name";
+    roles[TypeRole] = "type";
+    roles[FlashRole] = "flash";
+    roles[Boot1Role] = "boot1";
+    roles[SnapshotRole] = "snapshot";
+    return roles;
+}
+
+QVariant KitModel::data(const QModelIndex &index, int role) const
+{
+    if(index.row() < 0 || index.row() >= kits.count())
+        return QVariant();
+
+    switch(role)
+    {
+    case NameRole:
+        return kits[index.row()].name;
+    case TypeRole:
+        return kits[index.row()].type;
+    case FlashRole:
+        return kits[index.row()].flash;
+    case Boot1Role:
+        return kits[index.row()].boot1;
+    case SnapshotRole:
+        return kits[index.row()].snapshot;
+    default:
+        return QVariant();
+    }
+}
+
+bool KitModel::setData(const int row, const QVariant &value, int role)
+{
+    if(row < 0 || row >= kits.count())
+        return false;
+
+    switch(role)
+    {
+    case NameRole:
+        kits[row].name = value.toString();
+        break;
+    case TypeRole:
+        kits[row].type = value.toString();
+        break;
+    case FlashRole:
+        kits[row].flash = value.toString();
+        break;
+    case Boot1Role:
+        kits[row].boot1 = value.toString();
+        break;
+    case SnapshotRole:
+        kits[row].snapshot = value.toString();
+        break;
+    default:
+        return false;
+    }
+
+    emit dataChanged(index(row), index(row), QVector<int>({role}));
+    return true;
+}
+
+bool KitModel::copy(const int row)
+{
+    if(row < 0 || row >= kits.count())
+        return false;
+
+    beginInsertRows({}, row, row);
+    kits.insert(row, kits[row]);
+    endInsertRows();
+
+    return true;
+}
+
+bool KitModel::remove(const int row)
+{
+    if(row < 0 || row >= kits.count())
+        return false;
+
+    // Do not remove the last remaining kit
+    if(kits.count() == 1)
+        return false;
+
+    beginRemoveRows({}, row, row);
+    kits.removeAt(row);
+    endRemoveRows();
+
+    return true;
 }
