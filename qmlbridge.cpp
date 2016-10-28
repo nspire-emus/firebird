@@ -344,21 +344,22 @@ QHash<int, QByteArray> KitModel::roleNames() const
 
 QVariant KitModel::data(const QModelIndex &index, int role) const
 {
-    if(index.row() < 0 || index.row() >= kits.count())
+    const int row = index.row();
+    if(row < 0 || row >= kits.count())
         return QVariant();
 
     switch(role)
     {
     case NameRole:
-        return kits[index.row()].name;
+        return kits[row].name;
     case TypeRole:
-        return kits[index.row()].type;
+        return kits[row].type;
     case FlashRole:
-        return kits[index.row()].flash;
+        return kits[row].flash;
     case Boot1Role:
-        return kits[index.row()].boot1;
+        return kits[row].boot1;
     case SnapshotRole:
-        return kits[index.row()].snapshot;
+        return kits[row].snapshot;
     default:
         return QVariant();
     }
