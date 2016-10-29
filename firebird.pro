@@ -50,12 +50,14 @@ macx: QMAKE_LFLAGS_RELEASE -= -Wl,-O3
 macx|ios: QMAKE_CXXFLAGS += -stdlib=libc++
 
 # ios: The linker can't deal with LLVM bitcode directly (missing plugin?)
-# linux-clang: LTO causes "QObject::connect: signal not found"
-ios|linux-clang {
+ios {
     QMAKE_CFLAGS_RELEASE -= -flto
     QMAKE_CXXFLAGS_RELEASE -= -flto
     QMAKE_LFLAGS_RELEASE -= -Wl,-O3 -flto
 }
+
+# The linker needs this somehow
+android: QMAKE_LFLAGS += -fPIC
 
 macx: ICON = resources/logo.icns
 
@@ -233,9 +235,9 @@ SOURCES += qml/MobileControl2.qml \
 
 # Generate the binary arm code into armcode_bin.h
 armsnippets.commands = arm-none-eabi-gcc -fno-leading-underscore -c $$PWD/core/armsnippets.S -o armsnippets.o -mcpu=arm926ej-s \
-						&& arm-none-eabi-objcopy -O binary armsnippets.o snippets.bin \
+                        && arm-none-eabi-objcopy -O binary armsnippets.o snippets.bin \
                         && xxd -i snippets.bin > $$PWD/core/armcode_bin.h \
-						&& rm armsnippets.o
+                        && rm armsnippets.o
 
 # In case you change armsnippets.S, run "make armsnippets" and update armcode_bin.h
 QMAKE_EXTRA_TARGETS = armsnippets
