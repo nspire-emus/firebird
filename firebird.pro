@@ -33,7 +33,7 @@ linux: !android {
     INSTALLS += target desktop icon sendtool
 }
 
-QMAKE_CFLAGS = -g -std=gnu11 -Wall -Wextra
+QMAKE_CFLAGS = -g -std=gnu11 -Wall -Wextra -Wa,--noexecstack
 QMAKE_CXXFLAGS = -g -std=c++11 -Wall -Wextra -D QT_NO_CAST_FROM_ASCII
 LIBS += -lz
 
@@ -41,7 +41,7 @@ LIBS += -lz
 QMAKE_CFLAGS_RELEASE = -O3 -flto
 QMAKE_CXXFLAGS_RELEASE = -O3 -flto
 QMAKE_LFLAGS_RELEASE = -Wl,-O3 -flto
-QMAKE_LFLAGS += -fno-pie
+QMAKE_LFLAGS += -fno-pie -Wl,--warn-execstack
 
 # Apple's clang doesn't know about this one
 macx: QMAKE_LFLAGS_RELEASE -= -Wl,-O3
