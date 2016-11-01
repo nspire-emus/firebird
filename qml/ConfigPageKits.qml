@@ -22,6 +22,9 @@ ColumnLayout {
         Layout.fillHeight: true
         Layout.fillWidth: true
 
+        Layout.rightMargin: 1
+        Layout.leftMargin: 1
+
         onCurrentItemChanged: {
             nameEdit.text = currentItem.myData.name
             flashEdit.filePath = currentItem.myData.flash
@@ -36,6 +39,7 @@ ColumnLayout {
         id: groupBox1
         Layout.minimumWidth: parent.width
         Layout.maximumWidth: parent.width
+        Layout.bottomMargin: -1
         title: qsTr("Kit Properties")
 
         GridLayout {

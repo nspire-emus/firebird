@@ -29,7 +29,7 @@ Rectangle {
 
             highlight: Rectangle {
                 color: "#40b3d5"
-                anchors.horizontalCenter: parent.horizontalCenter
+                anchors.horizontalCenter: parent ? parent.horizontalCenter : undefined
             }
 
             delegate: Item {
