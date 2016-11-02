@@ -12,11 +12,17 @@ QMLBridge::QMLBridge(QObject *parent) : QObject(parent)
 {
     qmlRegisterType<KitModel>("Firebird.Emu", 1, 0, "KitModel");
 
+    connect(&kits, SIGNAL(anythingChanged()), this, SLOT(saveKits()), Qt::QueuedConnection);
+    qRegisterMetaTypeStreamOperators<KitModel>();
+    qRegisterMetaType<KitModel>();
     #ifdef MOBILE_UI
         connect(&emu_thread, SIGNAL(started(bool)), this, SLOT(started(bool)), Qt::QueuedConnection);
         connect(&emu_thread, SIGNAL(resumed(bool)), this, SLOT(resumed(bool)), Qt::QueuedConnection);
         connect(&emu_thread, SIGNAL(suspended(bool)), this, SLOT(suspended(bool)), Qt::QueuedConnection);
     #endif
+
+    // Needs to be loaded manually
+    kits = settings.value(QStringLiteral("kits")).value<KitModel>();
 }
 
 QMLBridge::~QMLBridge()
@@ -147,9 +153,15 @@ QString QMLBridge::basename(QString path)
         return tr("None");
 
     std::string pathname = path.toStdString();
+    char separator = QDir::separator().toLatin1();
     return QString::fromStdString(std::string(
-                std::find_if(pathname.rbegin(), pathname.rend(), [](char c) { return c == '/'; }).base(),
-            pathname.end()));
+                std::find_if(pathname.rbegin(), pathname.rend(), [=](char c) { return c == separator; }).base(),
+                             pathname.end()));
+}
+
+void QMLBridge::saveKits()
+{
+    settings.setValue(QStringLiteral("kits"), QVariant::fromValue(kits));
 }
 
 #ifdef MOBILE_UI
@@ -326,6 +338,40 @@ void notifyTouchpadStateChanged()
     notifyTouchpadStateChanged(float(keypad.touchpad_x)/TOUCHPAD_X_MAX, 1.0f-(float(keypad.touchpad_y)/TOUCHPAD_Y_MAX), keypad.touchpad_contact);
 }
 
+QDataStream &operator<<(QDataStream &out, const Kit &kit)
+{
+    out << kit.name
+        << kit.boot1
+        << kit.flash
+        << kit.snapshot
+        << kit.type;
+
+    return out;
+}
+
+QDataStream &operator>>(QDataStream &in, Kit &kit)
+{
+    in >> kit.name
+       >> kit.boot1
+       >> kit.flash
+       >> kit.snapshot
+       >> kit.type;
+
+    return in;
+}
+
+QDataStream &operator<<(QDataStream &out, const KitModel &kits)
+{
+    out << kits.kits;
+    return out;
+}
+
+QDataStream &operator>>(QDataStream &in, KitModel &kits)
+{
+    in >> kits.kits;
+    return in;
+}
+
 int KitModel::rowCount(const QModelIndex &) const
 {
     return kits.count();
@@ -392,6 +438,7 @@ bool KitModel::setData(const int row, const QVariant &value, int role)
     }
 
     emit dataChanged(index(row), index(row), QVector<int>({role}));
+    emit anythingChanged();
     return true;
 }
 
@@ -403,6 +450,8 @@ bool KitModel::copy(const int row)
     beginInsertRows({}, row, row);
     kits.insert(row, kits[row]);
     endInsertRows();
+
+    emit anythingChanged();
 
     return true;
 }
@@ -419,6 +468,8 @@ bool KitModel::remove(const int row)
     beginRemoveRows({}, row, row);
     kits.removeAt(row);
     endRemoveRows();
+
+    emit anythingChanged();
 
     return true;
 }

@@ -24,7 +24,10 @@ public:
     };
     Q_ENUMS(Role)
 
-    KitModel() { kits.push_back(Kit{QStringLiteral("Test"), QStringLiteral("Classic CX CM TPAD CAS"), QStringLiteral("flash_all.img"), QStringLiteral("boot1.img"), QStringLiteral("state")}); }
+    KitModel() {kits.push_back({QStringLiteral("asdf"), QStringLiteral("asdf"), QStringLiteral("asdf"), QStringLiteral("asdf"), QStringLiteral("asdf"), });}
+    KitModel(const KitModel &other) : QAbstractListModel() { kits = other.kits; }
+    KitModel &operator =(const KitModel &other) { kits = other.kits; return *this; }
+
     Q_INVOKABLE virtual int rowCount(const QModelIndex &parent = QModelIndex()) const override;
     Q_INVOKABLE virtual QHash<int, QByteArray> roleNames() const override;
     Q_INVOKABLE virtual QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
@@ -32,9 +35,18 @@ public:
     Q_INVOKABLE bool copy(const int row);
     Q_INVOKABLE bool remove(const int row);
 
+    /* Doesn't work as class members */
+    friend QDataStream &operator<<(QDataStream &out, const KitModel &kits);
+    friend QDataStream &operator>>(QDataStream &in, KitModel &kits);
+
+signals:
+    void anythingChanged();
+
 private:
     QList<Kit> kits;
 };
+
+Q_DECLARE_METATYPE(KitModel)
 
 class QMLBridge : public QObject
 {
@@ -90,8 +102,11 @@ public:
         Q_INVOKABLE void toastMessage(QString msg);
 
         EmuThread emu_thread;
+    #endif
 
-    public slots:
+public slots:
+    void saveKits();
+    #ifdef MOBILE_UI
         void started(bool success); // Not called on resume
         void resumed(bool success);
         void suspended(bool success);
