@@ -447,7 +447,6 @@ bool KitModel::setData(const int row, const QVariant &value, int role)
         return false;
     }
 
-    emit dataChanged(index(row), index(row), QVector<int>({role}));
     if(role == FlashRole)
     {
         // Refresh type as well
@@ -462,8 +461,11 @@ bool KitModel::setData(const int row, const QVariant &value, int role)
         }
 
         kits[row].type = type;
-        emit dataChanged(index(row), index(row), QVector<int>({TypeRole}));
+        emit dataChanged(index(row), index(row), QVector<int>({FlashRole, TypeRole}));
     }
+    else
+        emit dataChanged(index(row), index(row), QVector<int>({role}));
+
     emit anythingChanged();
     return true;
 }
