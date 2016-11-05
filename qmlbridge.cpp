@@ -458,6 +458,7 @@ bool KitModel::setData(const int row, const QVariant &value, int role)
             std::string s = flash_read_type(file);
             if(!s.empty())
                 type = QString::fromStdString(s);
+            fclose(file);
         }
 
         kits[row].type = type;
