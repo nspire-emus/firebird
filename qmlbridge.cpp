@@ -157,7 +157,16 @@ QString QMLBridge::basename(QString path)
     char separator = QDir::separator().toLatin1();
     return QString::fromStdString(std::string(
                 std::find_if(pathname.rbegin(), pathname.rend(), [=](char c) { return c == separator; }).base(),
-                             pathname.end()));
+                                      pathname.end()));
+}
+
+QString QMLBridge::dir(QString path)
+{
+    std::string pathname = path.toStdString();
+    char separator = QDir::separator().toLatin1();
+    return QString::fromStdString(std::string(
+                pathname.begin(),
+                std::find_if(pathname.rbegin(), pathname.rend(), [=](char c) { return c == separator; }).base()));
 }
 
 void QMLBridge::saveKits()

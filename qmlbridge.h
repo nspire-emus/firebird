@@ -80,6 +80,7 @@ public:
     Q_INVOKABLE bool isMobile();
 
     Q_INVOKABLE QString basename(QString path);
+    Q_INVOKABLE QString dir(QString path);
 
     #ifdef MOBILE_UI
         Q_INVOKABLE bool restart();
