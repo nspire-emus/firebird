@@ -77,7 +77,7 @@ Rectangle {
                     }
 
                     text: qsTr("Remove")
-                    visible: parent.ListView.view.currentIndex === index
+                    visible: parent.ListView.view.currentIndex === index && parent.ListView.view.count > 1
                     onClicked: {
                         kitModel.remove(index)
                     }
