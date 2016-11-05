@@ -7,6 +7,7 @@
 
 #include "core/flash.h"
 #include "core/keypad.h"
+#include "core/os/os.h"
 
 QMLBridge::QMLBridge(QObject *parent) : QObject(parent)
 {
@@ -438,6 +439,22 @@ bool KitModel::setData(const int row, const QVariant &value, int role)
     }
 
     emit dataChanged(index(row), index(row), QVector<int>({role}));
+    if(role == FlashRole)
+    {
+        // Refresh type as well
+        QString type = QStringLiteral("???");
+        QByteArray flash_path = QUrl(value.toString()).toLocalFile().toUtf8();
+        FILE *file = fopen_utf8(flash_path.data(), "rb");
+        if(file)
+        {
+            std::string s = flash_read_type(file);
+            if(!s.empty())
+                type = QString::fromStdString(s);
+        }
+
+        kits[row].type = type;
+        emit dataChanged(index(row), index(row), QVector<int>({TypeRole}));
+    }
     emit anythingChanged();
     return true;
 }

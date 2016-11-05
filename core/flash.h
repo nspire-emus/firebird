@@ -7,6 +7,8 @@
 #include <unistd.h>
 
 #ifdef __cplusplus
+#include <string>
+
 extern "C" {
 #endif
 
@@ -82,6 +84,11 @@ void flash_set_bootorder(BootOrder order);
 
 #ifdef __cplusplus
 }
+
+/* Give it a FILE pointing to a flash image and it'll return a string
+ * that describes the HW type, such as "CX (HW J)". If reading fails,
+ * it returns an empty string. */
+std::string flash_read_type(FILE *flash);
 #endif
 
 #endif

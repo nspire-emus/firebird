@@ -6,6 +6,7 @@ import Firebird.UIComponents 1.0
 
 ColumnLayout {
     property var kitModel
+    property bool triggerSignals: true
     Component.onCompleted: kitModel = Emu.kits
 
     spacing: 5
@@ -26,10 +27,12 @@ ColumnLayout {
         Layout.leftMargin: 1
 
         onCurrentItemChanged: {
+            triggerSignals = false
             nameEdit.text = currentItem.myData.name
             flashEdit.filePath = currentItem.myData.flash
             boot1Edit.filePath = currentItem.myData.boot1
             snapshotEdit.filePath = currentItem.myData.snapshot
+            triggerSignals = true
         }
 
         kitModel: parent.kitModel
@@ -56,7 +59,7 @@ ColumnLayout {
                 placeholderText: qsTr("Name")
                 Layout.fillWidth: true
 
-                onTextChanged: kitModel.setData(kitList.currentIndex, text, KitModel.NameRole)
+                onTextChanged: if(triggerSignals) kitModel.setData(kitList.currentIndex, text, KitModel.NameRole)
             }
 
             FBLabel {
@@ -67,7 +70,7 @@ ColumnLayout {
             FileSelect {
                 id: boot1Edit
                 Layout.fillWidth: true
-                onFilePathChanged: kitModel.setData(kitList.currentIndex, filePath, KitModel.Boot1Role)
+                onFilePathChanged: if(triggerSignals) kitModel.setData(kitList.currentIndex, filePath, KitModel.Boot1Role)
             }
 
             FBLabel {
@@ -78,7 +81,7 @@ ColumnLayout {
             FileSelect {
                 id: flashEdit
                 Layout.fillWidth: true
-                onFilePathChanged: kitModel.setData(kitList.currentIndex, filePath, KitModel.FlashRole)
+                onFilePathChanged: if(triggerSignals) kitModel.setData(kitList.currentIndex, filePath, KitModel.FlashRole)
             }
 
             FBLabel {
@@ -89,7 +92,7 @@ ColumnLayout {
             FileSelect {
                 id: snapshotEdit
                 Layout.fillWidth: true
-                onFilePathChanged: kitModel.setData(kitList.currentIndex, filePath, KitModel.SnapshotRole)
+                onFilePathChanged: if(triggerSignals) kitModel.setData(kitList.currentIndex, filePath, KitModel.SnapshotRole)
             }
         }
     }
