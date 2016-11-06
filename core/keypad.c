@@ -120,7 +120,7 @@ uint8_t touchpad_read(uint8_t addr) {
             case 0x05: return TOUCHPAD_X_MAX & 0xFF;
             case 0x06: return TOUCHPAD_Y_MAX >> 8;
             case 0x07: return TOUCHPAD_Y_MAX & 0xFF;
-            default: gui_debug_printf("FIXME: TPAD read 10%02x\n");
+            default: gui_debug_printf("FIXME: TPAD read 10%02x\n", addr);
         }
     } else if (keypad.touchpad_page == 0x04) {
         switch (addr) {
@@ -160,7 +160,7 @@ uint8_t touchpad_read(uint8_t addr) {
             case 0xE5: return 6; // firmware version
             case 0xE6: return 0; // firmware version
             case 0xE7: return 0; // firmware version
-            default: gui_debug_printf("FIXME: TPAD read 04%02x\n");
+            default: gui_debug_printf("FIXME: TPAD read 04%02x\n", addr);
         }
     }
     return 0;
