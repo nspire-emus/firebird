@@ -60,8 +60,8 @@ void LCDWidget::mouseMoveEvent(QMouseEvent *event)
 
     int vel_x = new_x - keypad.touchpad_x;
     int vel_y = new_y - keypad.touchpad_y;
-    keypad.touchpad_vel_x = vel_x;
-    keypad.touchpad_vel_y = vel_y;
+    keypad.touchpad_rel_x += vel_x;
+    keypad.touchpad_rel_y += vel_y;
 
     keypad.touchpad_x = new_x;
     keypad.touchpad_y = new_y;

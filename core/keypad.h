@@ -36,9 +36,9 @@ struct touchpad_cx_state {
 
 typedef struct keypad_state {
     uint16_t key_map[16];
-    uint16_t touchpad_x, touchpad_y, touchpad_dest_x, touchpad_dest_y;
+    uint16_t touchpad_x, touchpad_y, touchpad_last_down, touchpad_last_contact;
     uint8_t touchpad_page;
-    int8_t touchpad_vel_x, touchpad_vel_y;
+    int8_t touchpad_rel_x, touchpad_rel_y;
     bool touchpad_down, touchpad_contact;
     struct keypad_controller_state kpc;
     struct touchpad_gpio_state touchpad_gpio;
@@ -61,7 +61,6 @@ void touchpad_cx_write(uint32_t addr, uint32_t value);
 
 #define TOUCHPAD_X_MAX 0x0918
 #define TOUCHPAD_Y_MAX 0x069B
-void touchpad_set(uint8_t proximity, uint16_t x, uint16_t y, uint8_t down);
 void touchpad_gpio_reset(void);
 void touchpad_gpio_change();
 

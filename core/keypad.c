@@ -53,7 +53,7 @@ void keypad_write(uint32_t addr, uint32_t value) {
             }
             return;
         case 0x04: keypad.kpc.size = value; return;
-        case 0x08: keypad.kpc.int_active &= ~value; keypad_int_check(); keypad.touchpad_vel_x = keypad.touchpad_vel_y = 0; return;
+        case 0x08: keypad.kpc.int_active &= ~value; keypad_int_check(); return;
         case 0x0C: keypad.kpc.int_enable = value & 7; keypad_int_check(); return;
 
         case 0x30: return;
@@ -105,7 +105,7 @@ void keypad_reset() {
 }
 
 void touchpad_write(uint8_t addr, uint8_t value) {
-    //printf("touchpad write: %02x %02x %02x\n", touchpad_page, addr, value);
+    //printf("touchpad write: %02x %02x %02x\n", keypad.touchpad_page, addr, value);
     if (addr == 0xFF)
         keypad.touchpad_page = value;
 }
@@ -120,6 +120,7 @@ uint8_t touchpad_read(uint8_t addr) {
             case 0x05: return TOUCHPAD_X_MAX & 0xFF;
             case 0x06: return TOUCHPAD_Y_MAX >> 8;
             case 0x07: return TOUCHPAD_Y_MAX & 0xFF;
+            default: gui_debug_printf("FIXME: TPAD read 10%02x\n");
         }
     } else if (keypad.touchpad_page == 0x04) {
         switch (addr) {
@@ -129,17 +130,37 @@ uint8_t touchpad_read(uint8_t addr) {
             case 0x03: return keypad.touchpad_x & 0xFF;
             case 0x04: return keypad.touchpad_y >> 8;
             case 0x05: return keypad.touchpad_y & 0xFF;
-            case 0x06: return keypad.touchpad_vel_x; // x velocity
-            case 0x07: return keypad.touchpad_vel_y; // y velocity
-            case 0x08: return 0; // ?
-            case 0x09: return 0; // ?
+            case 0x06: // relative x
+            {
+                uint8_t a = keypad.touchpad_rel_x;
+                keypad.touchpad_rel_x = 0;
+                return a;
+            }
+            case 0x07: // relative y
+            {
+                uint8_t a = keypad.touchpad_rel_y;
+                keypad.touchpad_rel_y = 0;
+                return a;
+            }
+            case 0x08: return 0x0; // ?
+            case 0x09: return 0x0; // ?
             case 0x0A: return keypad.touchpad_down; // down
-            case 0x0B: return 0x5F; // status
+            case 0x0B: // IRQ status
+            {
+                uint8_t status = 0x53;
+                if(keypad.touchpad_contact != keypad.touchpad_last_contact)
+                    status |= 0x4;
+                if(keypad.touchpad_down != keypad.touchpad_last_down)
+                    status |= 0x8;
+                keypad.touchpad_last_contact = keypad.touchpad_contact;
+                keypad.touchpad_last_down = keypad.touchpad_down;
+                return status;
+            }
             case 0xE4: return 1; // firmware version
             case 0xE5: return 6; // firmware version
             case 0xE6: return 0; // firmware version
             case 0xE7: return 0; // firmware version
-            default: return 0;
+            default: gui_debug_printf("FIXME: TPAD read 04%02x\n");
         }
     }
     return 0;
