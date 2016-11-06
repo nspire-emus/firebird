@@ -9,11 +9,16 @@
 #include "core/keypad.h"
 #include "core/os/os.h"
 
+QMLBridge *the_qml_bridge = nullptr;
+
 QMLBridge::QMLBridge(QObject *parent) : QObject(parent)
 {
+    assert(the_qml_bridge == nullptr);
+    the_qml_bridge = this;
+
     qmlRegisterType<KitModel>("Firebird.Emu", 1, 0, "KitModel");
 
-    connect(&kits, SIGNAL(anythingChanged()), this, SLOT(saveKits()), Qt::QueuedConnection);
+    connect(&kit_model, SIGNAL(anythingChanged()), this, SLOT(saveKits()), Qt::QueuedConnection);
     qRegisterMetaTypeStreamOperators<KitModel>();
     qRegisterMetaType<KitModel>();
     #ifdef MOBILE_UI
@@ -22,8 +27,14 @@ QMLBridge::QMLBridge(QObject *parent) : QObject(parent)
         connect(&emu_thread, SIGNAL(suspended(bool)), this, SLOT(suspended(bool)), Qt::QueuedConnection);
     #endif
 
-    // Needs to be loaded manually
-    kits = settings.value(QStringLiteral("kits")).value<KitModel>();
+    // Kits need to be loaded manually
+    if(!settings.contains(QStringLiteral("kits")))
+    {
+        // Migrate
+        kit_model.addKit(tr("Default"), settings.value(QStringLiteral("boot1")).toString(), settings.value(QStringLiteral("flash")).toString(), settings.value(QStringLiteral("snapshotPath")).toString());
+    }
+    else
+        kit_model = settings.value(QStringLiteral("kits")).value<KitModel>();
 }
 
 QMLBridge::~QMLBridge()
@@ -166,12 +177,17 @@ QString QMLBridge::dir(QString path)
     char separator = QDir::separator().toLatin1();
     return QString::fromStdString(std::string(
                 pathname.begin(),
-                std::find_if(pathname.rbegin(), pathname.rend(), [=](char c) { return c == separator; }).base()));
+                                      std::find_if(pathname.rbegin(), pathname.rend(), [=](char c) { return c == separator; }).base()));
+}
+
+QString QMLBridge::toLocalFile(QUrl url)
+{
+    return url.toLocalFile();
 }
 
 void QMLBridge::saveKits()
 {
-    settings.setValue(QStringLiteral("kits"), QVariant::fromValue(kits));
+    settings.setValue(QStringLiteral("kits"), QVariant::fromValue(kit_model));
 }
 
 #ifdef MOBILE_UI
@@ -450,18 +466,7 @@ bool KitModel::setData(const int row, const QVariant &value, int role)
     if(role == FlashRole)
     {
         // Refresh type as well
-        QString type = QStringLiteral("???");
-        QByteArray flash_path = QUrl(value.toString()).toLocalFile().toUtf8();
-        FILE *file = fopen_utf8(flash_path.data(), "rb");
-        if(file)
-        {
-            std::string s = flash_read_type(file);
-            if(!s.empty())
-                type = QString::fromStdString(s);
-            fclose(file);
-        }
-
-        kits[row].type = type;
+        kits[row].type = typeForFlash(value.toString());
         emit dataChanged(index(row), index(row), QVector<int>({FlashRole, TypeRole}));
     }
     else
@@ -501,4 +506,30 @@ bool KitModel::remove(const int row)
     emit anythingChanged();
 
     return true;
+}
+
+void KitModel::addKit(QString name, QString boot1, QString flash, QString snapshot_path)
+{
+    int row = kits.size();
+    beginInsertRows({}, row, row);
+    kits.append({name, typeForFlash(flash), boot1, flash, snapshot_path});
+    endInsertRows();
+
+    emit anythingChanged();
+}
+
+QString KitModel::typeForFlash(QString flash)
+{
+    QString type = QStringLiteral("???");
+    QByteArray flash_path = flash.toUtf8();
+    FILE *file = fopen_utf8(flash_path.data(), "rb");
+    if(file)
+    {
+        std::string s = flash_read_type(file);
+        if(!s.empty())
+            type = QString::fromStdString(s);
+        fclose(file);
+    }
+
+    return type;
 }

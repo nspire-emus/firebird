@@ -839,9 +839,20 @@
     <property name="title">
      <string>&amp;Emulation</string>
     </property>
+    <widget class="QMenu" name="menuRestart_with_Kit">
+     <property name="title">
+      <string>Restart with Kit</string>
+     </property>
+     <property name="icon">
+      <iconset resource="resources.qrc">
+       <normaloff>:/icons/resources/icons/edit-bomb.png</normaloff>:/icons/resources/icons/edit-bomb.png</iconset>
+     </property>
+     <addaction name="actionKit1"/>
+    </widget>
     <addaction name="actionReset"/>
     <addaction name="actionPause"/>
     <addaction name="actionRestart"/>
+    <addaction name="menuRestart_with_Kit"/>
     <addaction name="separator"/>
     <addaction name="separator"/>
     <addaction name="actionConfiguration"/>
@@ -1065,6 +1076,11 @@
    </property>
    <property name="text">
     <string>Configuration</string>
+   </property>
+  </action>
+  <action name="actionKit1">
+   <property name="text">
+    <string notr="true">Kit1</string>
    </property>
   </action>
  </widget>

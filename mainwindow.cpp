@@ -128,6 +128,10 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->checkResume, SIGNAL(toggled(bool)), this, SLOT(setResumeOnOpen(bool)));
     connect(ui->buttonChangeSnapshotPath, SIGNAL(clicked()), this, SLOT(changeSnapshotPath()));
 
+    KitModel *model = the_qml_bridge->getKitModel();
+    connect(model, SIGNAL(anythingChanged()), this, SLOT(kitAnythingChanged()));
+    connect(model, SIGNAL(dataChanged(QModelIndex,QModelIndex,QVector<int>)), this, SLOT(kitDataChanged(QModelIndex,QModelIndex,QVector<int>)));
+
     //FlashDialog
     connect(&flash_dialog, SIGNAL(flashCreated(QString)), this, SLOT(flashCreated(QString)));
 
@@ -173,6 +177,7 @@ MainWindow::MainWindow(QWidget *parent) :
     setAutostart(autostart);
     if(!settings->value(QStringLiteral("snapshotPath")).toString().isEmpty())
         ui->labelSnapshotPath->setText(settings->value(QStringLiteral("snapshotPath")).toString());
+    refillKitMenus();
 
     setBootOrder(false);
 
@@ -654,7 +659,6 @@ void MainWindow::createFlash()
     flash_dialog.exec();
 }
 
-
 void MainWindow::showAbout()
 {
     #define STRINGIFYMAGIC(x) #x
@@ -754,6 +758,33 @@ void MainWindow::closeEvent(QCloseEvent *e)
 void MainWindow::showStatusMsg(QString str)
 {
     status_label.setText(str);
+}
+
+void MainWindow::kitDataChanged(QModelIndex, QModelIndex, QVector<int> roles)
+{
+    if(roles.contains(KitModel::NameRole))
+        refillKitMenus();
+}
+
+void MainWindow::kitAnythingChanged()
+{
+    if(the_qml_bridge->getKitModel()->rowCount() != ui->menuRestart_with_Kit->actions().size())
+        refillKitMenus();
+}
+
+void MainWindow::refillKitMenus()
+{
+    ui->menuRestart_with_Kit->clear();
+    auto &&kits = the_qml_bridge->getKitModel()->getKits();
+    for(auto &&kit : kits)
+    {
+        ui->menuRestart_with_Kit->addAction(kit.name, [&,kit] {
+            emu.boot1 = kit.boot1;
+            emu.flash = kit.flash;
+            this->snapshot_path = kit.snapshot;
+            restart();
+        });
+    }
 }
 
 void MainWindow::restart()

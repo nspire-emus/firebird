@@ -16,7 +16,7 @@ RowLayout {
         visible: false
         folder: Emu.dir(filePath)
 
-        onAccepted: filePath = dialog.fileUrl
+        onAccepted: filePath = Emu.toLocalFile(dialog.fileUrl)
     }
 
     FBLabel {

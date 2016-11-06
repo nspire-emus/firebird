@@ -8,7 +8,7 @@
 
 struct Kit
 {
-    QString name, type, flash, boot1, snapshot;
+    QString name, type, boot1, flash, snapshot;
 };
 
 class KitModel : public QAbstractListModel
@@ -24,7 +24,7 @@ public:
     };
     Q_ENUMS(Role)
 
-    KitModel() {kits.push_back({QStringLiteral("asdf"), QStringLiteral("asdf"), QStringLiteral("asdf"), QStringLiteral("asdf"), QStringLiteral("asdf"), });}
+    KitModel() {}
     KitModel(const KitModel &other) : QAbstractListModel() { kits = other.kits; }
     KitModel &operator =(const KitModel &other) { kits = other.kits; return *this; }
 
@@ -34,10 +34,15 @@ public:
     Q_INVOKABLE bool setData(const int row, const QVariant &value, int role = Qt::EditRole);
     Q_INVOKABLE bool copy(const int row);
     Q_INVOKABLE bool remove(const int row);
+    Q_INVOKABLE void addKit(QString name, QString boot1, QString flash, QString snapshot_path);
+
+    QString typeForFlash(QString flash);
 
     /* Doesn't work as class members */
     friend QDataStream &operator<<(QDataStream &out, const KitModel &kits);
     friend QDataStream &operator>>(QDataStream &in, KitModel &kits);
+
+    const QList<Kit> &getKits() const { return kits; }
 
 signals:
     void anythingChanged();
@@ -59,7 +64,7 @@ public:
     Q_PROPERTY(bool gdbEnabled READ getGDBEnabled WRITE setGDBEnabled NOTIFY gdbEnabledChanged)
     Q_PROPERTY(unsigned int rdbPort READ getRDBPort WRITE setRDBPort NOTIFY rdbPortChanged)
     Q_PROPERTY(bool rdbEnabled READ getRDBEnabled WRITE setRDBEnabled NOTIFY rdbEnabledChanged)
-    Q_PROPERTY(KitModel* kits READ getKits)
+    Q_PROPERTY(KitModel* kits READ getKitModel)
 
     unsigned int getGDBPort();
     void setGDBPort(unsigned int port);
@@ -69,7 +74,7 @@ public:
     void setRDBPort(unsigned int port);
     void setRDBEnabled(bool e);
     bool getRDBEnabled();
-    KitModel *getKits() { return &kits; }
+    KitModel *getKitModel() { return &kit_model; }
     Q_INVOKABLE void keypadStateChanged(int keymap_id, bool state);
     Q_INVOKABLE void registerNButton(int keymap_id, QVariant button);
 
@@ -79,8 +84,10 @@ public:
 
     Q_INVOKABLE bool isMobile();
 
+    // Various utility functions
     Q_INVOKABLE QString basename(QString path);
     Q_INVOKABLE QString dir(QString path);
+    Q_INVOKABLE QString toLocalFile(QUrl url);
 
     #ifdef MOBILE_UI
         Q_INVOKABLE bool restart();
@@ -122,9 +129,11 @@ signals:
 
 private:
     QObject *toast = nullptr;
-    KitModel kits;
+    KitModel kit_model;
     QSettings settings;
 };
+
+extern QMLBridge *the_qml_bridge;
 
 void notifyKeypadStateChanged(int row, int col, bool state);
 void notifyTouchpadStateChanged();

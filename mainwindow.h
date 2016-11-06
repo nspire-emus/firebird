@@ -28,6 +28,8 @@ public slots:
     //Miscellaneous
     void closeEvent(QCloseEvent *) override;
     void showStatusMsg(QString str);
+    void kitDataChanged(QModelIndex, QModelIndex, QVector<int> roles);
+    void kitAnythingChanged();
 
     //Drag & Drop
     void dropEvent(QDropEvent* event) override;
@@ -115,6 +117,8 @@ private:
     void updateUIActionState(bool emulation_running);
     void raiseDebugger();
 
+    void refillKitMenus();
+
     Ui::MainWindow *ui = nullptr;
 
     // Used to show a status message permanently
@@ -122,6 +126,7 @@ private:
 
     EmuThread emu;
     QSettings *settings = nullptr;
+    QString snapshot_path;
     FlashDialog flash_dialog;
     // To make it possible to activate the debugger
     QDockWidget *dock_debugger = nullptr;
