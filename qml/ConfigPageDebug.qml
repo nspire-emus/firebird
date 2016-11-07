@@ -22,7 +22,7 @@ ColumnLayout {
 
     FBLabel {
         id: text4
-        text: qsTr("If enabled, a remote GDB debugger can be connected\nto the port and be used for debugging")
+        text: qsTr("If enabled, a remote GDB debugger can be connected\nto the port and be used for debugging.")
         font.pixelSize: 12
     }
 
@@ -84,8 +84,33 @@ ColumnLayout {
         }
     }
 
+    FBLabel {
+        text: qsTr("Enter into Debugger")
+        font.pixelSize: 14
+        Layout.topMargin: 5
+        Layout.bottomMargin: 5
+    }
+
+    FBLabel {
+        text: qsTr("Configure which situations cause the emulator to trap into the debugger.")
+        font.pixelSize: 12
+    }
+
+    LabeledCheckBox {
+        text: qsTr("Enter Debugger on Startup")
+
+        checked: Emu.debugOnStart
+        onCheckedChanged: Emu.debugOnStart = checked
+    }
+
+    LabeledCheckBox {
+        text: qsTr("Enter Debugger on Warnings and Errors")
+
+        checked: Emu.gdbEnabled
+        onCheckedChanged: Emu.debugOnWarn = checked
+    }
+
     Item {
         Layout.fillHeight: true
     }
-
 }

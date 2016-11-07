@@ -64,6 +64,8 @@ public:
     Q_PROPERTY(bool gdbEnabled READ getGDBEnabled WRITE setGDBEnabled NOTIFY gdbEnabledChanged)
     Q_PROPERTY(unsigned int rdbPort READ getRDBPort WRITE setRDBPort NOTIFY rdbPortChanged)
     Q_PROPERTY(bool rdbEnabled READ getRDBEnabled WRITE setRDBEnabled NOTIFY rdbEnabledChanged)
+    Q_PROPERTY(bool debugOnStart READ getDebugOnStart WRITE setDebugOnStart NOTIFY debugOnStartChanged)
+    Q_PROPERTY(bool debugOnWarn READ getDebugOnWarn WRITE setDebugOnWarn NOTIFY debugOnWarnChanged)
     Q_PROPERTY(KitModel* kits READ getKitModel)
 
     unsigned int getGDBPort();
@@ -74,6 +76,11 @@ public:
     void setRDBPort(unsigned int port);
     void setRDBEnabled(bool e);
     bool getRDBEnabled();
+    void setDebugOnWarn(bool e);
+    bool getDebugOnWarn();
+    void setDebugOnStart(bool e);
+    bool getDebugOnStart();
+
     KitModel *getKitModel() { return &kit_model; }
     Q_INVOKABLE void keypadStateChanged(int keymap_id, bool state);
     Q_INVOKABLE void registerNButton(int keymap_id, QVariant button);
@@ -126,6 +133,8 @@ signals:
     void gdbEnabledChanged();
     void rdbPortChanged();
     void rdbEnabledChanged();
+    void debugOnWarnChanged();
+    void debugOnStartChanged();
 
 private:
     QObject *toast = nullptr;

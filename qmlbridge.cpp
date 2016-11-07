@@ -5,6 +5,7 @@
 
 #include "qmlbridge.h"
 
+#include "core/emu.h"
 #include "core/flash.h"
 #include "core/keypad.h"
 #include "core/os/os.h"
@@ -55,7 +56,7 @@ void QMLBridge::setGDBPort(unsigned int port)
         return;
 
     settings.setValue(QStringLiteral("gdbPort"), port);
-    gdbPortChanged();
+    emit gdbPortChanged();
 }
 
 void QMLBridge::setGDBEnabled(bool e)
@@ -64,7 +65,7 @@ void QMLBridge::setGDBEnabled(bool e)
         return;
 
     settings.setValue(QStringLiteral("gdbEnabled"), e);
-    gdbEnabledChanged();
+    emit gdbEnabledChanged();
 }
 
 bool QMLBridge::getGDBEnabled()
@@ -83,7 +84,7 @@ void QMLBridge::setRDBPort(unsigned int port)
         return;
 
     settings.setValue(QStringLiteral("rdbgPort"), port);
-    rdbPortChanged();
+    emit rdbPortChanged();
 }
 
 void QMLBridge::setRDBEnabled(bool e)
@@ -92,12 +93,42 @@ void QMLBridge::setRDBEnabled(bool e)
         return;
 
     settings.setValue(QStringLiteral("rdbgEnabled"), e);
-    rdbEnabledChanged();
+    emit rdbEnabledChanged();
 }
 
 bool QMLBridge::getRDBEnabled()
 {
     return settings.value(QStringLiteral("rdbgEnabled"), true).toBool();
+}
+
+void QMLBridge::setDebugOnWarn(bool e)
+{
+    if(getDebugOnWarn() == e)
+        return;
+
+    debug_on_warn = e;
+    settings.setValue(QStringLiteral("debugOnWarn"), e);
+    emit debugOnWarnChanged();
+}
+
+bool QMLBridge::getDebugOnWarn()
+{
+    return settings.value(QStringLiteral("debugOnWarn"), true).toBool();
+}
+
+void QMLBridge::setDebugOnStart(bool e)
+{
+    if(getDebugOnStart() == e)
+        return;
+
+    debug_on_start = e;
+    settings.setValue(QStringLiteral("debugOnStart"), e);
+    emit debugOnStartChanged();
+}
+
+bool QMLBridge::getDebugOnStart()
+{
+    return settings.value(QStringLiteral("debugOnStart"), true).toBool();
 }
 
 constexpr const int ROWS = 8, COLS = 11;
