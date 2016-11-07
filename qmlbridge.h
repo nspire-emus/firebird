@@ -8,6 +8,7 @@
 
 struct Kit
 {
+    unsigned int id;
     QString name, type, boot1, flash, snapshot;
 };
 
@@ -16,7 +17,8 @@ class KitModel : public QAbstractListModel
     Q_OBJECT
 public:
     enum Role {
-        NameRole = Qt::UserRole + 1,
+        IDRole = Qt::UserRole + 1,
+        NameRole,
         TypeRole,
         FlashRole,
         Boot1Role,
@@ -24,8 +26,8 @@ public:
     };
     Q_ENUMS(Role)
 
-    KitModel() {}
-    KitModel(const KitModel &other) : QAbstractListModel() { kits = other.kits; }
+    KitModel() = default;
+    KitModel(const KitModel &other) : QAbstractListModel() { kits = other.kits; nextID = other.nextID; }
     KitModel &operator =(const KitModel &other) { kits = other.kits; return *this; }
 
     Q_INVOKABLE virtual int rowCount(const QModelIndex &parent = QModelIndex()) const override;
@@ -35,6 +37,7 @@ public:
     Q_INVOKABLE bool copy(const int row);
     Q_INVOKABLE bool remove(const int row);
     Q_INVOKABLE void addKit(QString name, QString boot1, QString flash, QString snapshot_path);
+    Q_INVOKABLE int indexForID(const unsigned int id);
 
     QString typeForFlash(QString flash);
 
@@ -48,6 +51,7 @@ signals:
     void anythingChanged();
 
 private:
+    unsigned int nextID = 0;
     QList<Kit> kits;
 };
 

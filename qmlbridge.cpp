@@ -397,7 +397,8 @@ void notifyTouchpadStateChanged()
 
 QDataStream &operator<<(QDataStream &out, const Kit &kit)
 {
-    out << kit.name
+    out << kit.id
+        << kit.name
         << kit.boot1
         << kit.flash
         << kit.snapshot
@@ -408,7 +409,8 @@ QDataStream &operator<<(QDataStream &out, const Kit &kit)
 
 QDataStream &operator>>(QDataStream &in, Kit &kit)
 {
-    in >> kit.name
+    in >> kit.id
+       >> kit.name
        >> kit.boot1
        >> kit.flash
        >> kit.snapshot
@@ -419,13 +421,13 @@ QDataStream &operator>>(QDataStream &in, Kit &kit)
 
 QDataStream &operator<<(QDataStream &out, const KitModel &kits)
 {
-    out << kits.kits;
+    out << kits.kits << kits.nextID;
     return out;
 }
 
 QDataStream &operator>>(QDataStream &in, KitModel &kits)
 {
-    in >> kits.kits;
+    in >> kits.kits >> kits.nextID;
     return in;
 }
 
@@ -437,6 +439,7 @@ int KitModel::rowCount(const QModelIndex &) const
 QHash<int, QByteArray> KitModel::roleNames() const
 {
     QHash<int, QByteArray> roles;
+    roles[IDRole] = "id";
     roles[NameRole] = "name";
     roles[TypeRole] = "type";
     roles[FlashRole] = "flash";
@@ -453,6 +456,8 @@ QVariant KitModel::data(const QModelIndex &index, int role) const
 
     switch(role)
     {
+    case IDRole:
+        return kits[row].id;
     case NameRole:
         return kits[row].name;
     case TypeRole:
@@ -475,6 +480,10 @@ bool KitModel::setData(const int row, const QVariant &value, int role)
 
     switch(role)
     {
+    case IDRole:
+        qWarning("ID not assignable");
+        return false;
+        break;
     case NameRole:
         kits[row].name = value.toString();
         break;
@@ -514,6 +523,7 @@ bool KitModel::copy(const int row)
 
     beginInsertRows({}, row, row);
     kits.insert(row, kits[row]);
+    kits[row].id = nextID++;
     endInsertRows();
 
     emit anythingChanged();
@@ -543,10 +553,17 @@ void KitModel::addKit(QString name, QString boot1, QString flash, QString snapsh
 {
     int row = kits.size();
     beginInsertRows({}, row, row);
-    kits.append({name, typeForFlash(flash), boot1, flash, snapshot_path});
+    kits.append({nextID++, name, typeForFlash(flash), boot1, flash, snapshot_path});
     endInsertRows();
 
     emit anythingChanged();
+}
+
+int KitModel::indexForID(const unsigned int id)
+{
+    auto it = std::find_if(kits.begin(), kits.end(),
+                           [&] (const Kit &kit) { return kit.id == id; });
+    return it == kits.end() ? -1 : (it - kits.begin());
 }
 
 QString KitModel::typeForFlash(QString flash)
