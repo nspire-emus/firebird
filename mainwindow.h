@@ -81,26 +81,8 @@ public slots:
     void usblinkDownload(int progress);
     void usblinkProgress(int progress);
 
-    //Settings
-    void selectBoot1();
-    void selectFlash();
-    void setDebuggerOnStartup(bool b);
-    void setDebuggerOnWarning(bool b);
-    void setUIMode(bool docks_enabled);
-    void setAutostart(bool b);
-    void setBootOrder(bool diags_first);
-    void setUSBPath(QString path);
-    void setGDBPort(int port);
-    void setRDBGPort(int port);
-    void setSuspendOnClose(bool b);
-    void setResumeOnOpen(bool b);
-    void changeSnapshotPath();
-
     //Tool bar (above screen)
     void showSpeed(double value);
-
-    //FlashDialog
-    void flashCreated(QString path);
 
 signals:
     void debuggerCommand(QString input);
@@ -112,8 +94,8 @@ public:
 private:
     void suspendToPath(QString path);
     bool resumeFromPath(QString path);
-    void setPathBoot1(QString path);
-    void setPathFlash(QString path);
+
+    void setUIMode(bool docks_enabled);
 
     void updateUIActionState(bool emulation_running);
     void raiseDebugger();
