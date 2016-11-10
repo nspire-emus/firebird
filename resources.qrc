@@ -18,6 +18,7 @@
         <file>resources/icons/kmplayer.png</file>
         <file>resources/icons/preferences-desktop-keyboard.png</file>
         <file>resources/icons/document.png</file>
+        <file>resources/icons/media-flash.png</file>
     </qresource>
     <qresource prefix="/qml">
         <file>qml/Keypad.qml</file>
