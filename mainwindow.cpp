@@ -177,19 +177,29 @@ MainWindow::MainWindow(QWidget *parent) :
         ui->labelSnapshotPath->setText(snapshot_path);
     refillKitMenus();
 
-    setBootOrder(false);
-
-    bool resumed = false;
-    if(settings->value(QStringLiteral("resumeOnOpen")).toBool())
-        resumed = resume();
-
-    //If resumeOnOpen and emuAutostart are set, start only if resuming failed
-    if(!emu.boot1.isEmpty() && !emu.flash.isEmpty() && autostart && !resumed)
-        emu.start();
-    else
-        showStatusMsg(tr("Start the emulation via Emulation->Restart."));
-
     ui->lcdView->setFocus();
+
+    if(!the_qml_bridge->getAutostart())
+        return;
+
+    // Autostart handling
+    int kitIndex = the_qml_bridge->kitIndexForID(the_qml_bridge->getDefaultKit());
+    if(kitIndex >= 0)
+    {
+        bool resumed = false;
+        setCurrentKit(the_qml_bridge->getKitModel()->getKits()[kitIndex]);
+        if(!snapshot_path.isEmpty())
+            resumed = resume();
+
+        if(!resumed)
+        {
+            // Boot up normally
+            if(!emu.boot1.isEmpty() && !emu.flash.isEmpty())
+                emu.start();
+            else
+                showStatusMsg(tr("Start the emulation via Emulation->Restart."));
+        }
+    }
 }
 
 MainWindow::~MainWindow()
