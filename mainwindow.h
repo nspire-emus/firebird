@@ -11,6 +11,7 @@
 #include "emuthread.h"
 #include "flashdialog.h"
 #include "lcdwidget.h"
+#include "qmlbridge.h"
 
 namespace Ui {
 class MainWindow;
@@ -118,6 +119,15 @@ private:
     void raiseDebugger();
 
     void refillKitMenus();
+
+    // QMLBridge is used as settings storage,
+    // so the settings have to be read from there
+    // and emu_thread configured appropriately.
+    void applyQMLBridgeSettings();
+
+    // Configure everything according to the Kit's
+    // configuration.
+    void setCurrentKit(const Kit& kit);
 
     Ui::MainWindow *ui = nullptr;
 

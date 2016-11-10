@@ -166,6 +166,7 @@ MainWindow::MainWindow(QWidget *parent) :
     restoreState(settings->value(QStringLiteral("windowState")).toByteArray(), WindowStateVersion);
     setPathBoot1(settings->value(QStringLiteral("boot1"), QStringLiteral("")).toString());
     setPathFlash(settings->value(QStringLiteral("flash"), QStringLiteral("")).toString());
+
     setDebuggerOnStartup(settings->value(QStringLiteral("debugOnStart"), false).toBool());
     setDebuggerOnWarning(settings->value(QStringLiteral("debugOnWarn"), false).toBool());
     setUSBPath(settings->value(QStringLiteral("usbdirNew"), QStringLiteral("/ndless")).toString());
@@ -175,8 +176,9 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->checkResume->setChecked(settings->value(QStringLiteral("resumeOnOpen"), false).toBool());
     bool autostart = settings->value(QStringLiteral("emuAutostart"), false).toBool();
     setAutostart(autostart);
-    if(!settings->value(QStringLiteral("snapshotPath")).toString().isEmpty())
-        ui->labelSnapshotPath->setText(settings->value(QStringLiteral("snapshotPath")).toString());
+    snapshot_path = settings->value(QStringLiteral("snapshotPath")).toString();
+    if(!snapshot_path.isEmpty())
+        ui->labelSnapshotPath->setText(snapshot_path);
     refillKitMenus();
 
     setBootOrder(false);
@@ -615,12 +617,13 @@ void MainWindow::setExtLCD(bool state)
 
 bool MainWindow::resume()
 {
-    QString default_snapshot = settings->value(QStringLiteral("snapshotPath")).toString();
-    if(!default_snapshot.isEmpty())
-        return resumeFromPath(default_snapshot);
+    applyQMLBridgeSettings();
+
+    if(!snapshot_path.isEmpty())
+        return resumeFromPath(snapshot_path);
     else
     {
-        QMessageBox::warning(this, tr("Can't resume"), tr("No snapshot path (Settings->Snapshot) given"));
+        QMessageBox::warning(this, tr("Can't resume"), tr("The current kit does not have a snapshot file configured"));
         return false;
     }
 }
@@ -631,7 +634,7 @@ void MainWindow::suspend()
     if(!default_snapshot.isEmpty())
         suspendToPath(default_snapshot);
     else
-        QMessageBox::warning(this, tr("Can't suspend"), tr("No snapshot path (Settings->Snapshot) given"));
+        QMessageBox::warning(this, tr("Can't suspend"), tr("The current kit does not have a snapshot file configured"));
 }
 
 void MainWindow::resumeFromFile()
@@ -779,12 +782,23 @@ void MainWindow::refillKitMenus()
     for(auto &&kit : kits)
     {
         ui->menuRestart_with_Kit->addAction(kit.name, [&,kit] {
-            emu.boot1 = kit.boot1;
-            emu.flash = kit.flash;
-            this->snapshot_path = kit.snapshot;
+            setCurrentKit(kit);
             restart();
         });
     }
+}
+
+void MainWindow::applyQMLBridgeSettings()
+{
+    emu.port_gdb = the_qml_bridge->getGDBEnabled() ? the_qml_bridge->getGDBPort() : 0;
+    emu.port_rdbg = the_qml_bridge->getRDBEnabled() ? the_qml_bridge->getRDBPort() : 0;
+}
+
+void MainWindow::setCurrentKit(const Kit &kit)
+{
+    emu.boot1 = kit.boot1;
+    emu.flash = kit.flash;
+    snapshot_path = kit.snapshot;
 }
 
 void MainWindow::restart()
@@ -802,6 +816,8 @@ void MainWindow::restart()
                                                                             "You can create one via Flash->Create Flash in the menu."));
         return;
     }
+
+    applyQMLBridgeSettings();
 
     if(emu.stop())
         emu.start();
