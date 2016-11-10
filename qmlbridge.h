@@ -74,6 +74,7 @@ public:
     Q_PROPERTY(bool autostart READ getAutostart WRITE setAutostart NOTIFY autostartChanged)
     Q_PROPERTY(unsigned int defaultKit READ getDefaultKit WRITE setDefaultKit NOTIFY defaultKitChanged)
     Q_PROPERTY(bool suspendOnClose READ getSuspendOnClose WRITE setSuspendOnClose NOTIFY suspendOnCloseChanged)
+    Q_PROPERTY(QString usbdir READ getUSBDir WRITE setUSBDir NOTIFY usbDirChanged)
     Q_PROPERTY(KitModel* kits READ getKitModel)
 
     unsigned int getGDBPort();
@@ -94,6 +95,8 @@ public:
     void setDefaultKit(unsigned int id);
     bool getSuspendOnClose();
     void setSuspendOnClose(bool e);
+    QString getUSBDir();
+    void setUSBDir(QString dir);
 
     KitModel *getKitModel() { return &kit_model; }
     Q_INVOKABLE void keypadStateChanged(int keymap_id, bool state);
@@ -153,6 +156,7 @@ signals:
     void autostartChanged();
     void defaultKitChanged();
     void suspendOnCloseChanged();
+    void usbDirChanged();
 
 private:
     QObject *toast = nullptr;

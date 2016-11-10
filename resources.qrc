@@ -19,6 +19,7 @@
         <file>resources/icons/preferences-desktop-keyboard.png</file>
         <file>resources/icons/document.png</file>
         <file>resources/icons/media-flash.png</file>
+        <file>resources/icons/drive-removable-media-usb.png</file>
     </qresource>
     <qresource prefix="/qml">
         <file>qml/Keypad.qml</file>
@@ -46,6 +47,7 @@
         <file>qml/Firebird/UIComponents/FileSelect.qml</file>
         <file>qml/Firebird/UIComponents/FBLink.qml</file>
         <file>qml/ConfigPageEmulation.qml</file>
+        <file>qml/ConfigPageFileTransfer.qml</file>
     </qresource>
     <qresource prefix="/i18n">
         <file>i18n/de_DE.qm</file>

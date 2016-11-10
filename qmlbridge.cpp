@@ -28,6 +28,10 @@ QMLBridge::QMLBridge(QObject *parent) : QObject(parent)
         connect(&emu_thread, SIGNAL(suspended(bool)), this, SLOT(suspended(bool)), Qt::QueuedConnection);
     #endif
 
+    //Migrate old settings
+    if(settings.contains(QStringLiteral("usbdir")) && !settings.contains(QStringLiteral("usbdirNew")))
+        setUSBDir(QStringLiteral("/") + settings.value(QStringLiteral("usbdir")).toString());
+
     // Kits need to be loaded manually
     if(!settings.contains(QStringLiteral("kits")))
     {
@@ -174,6 +178,20 @@ void QMLBridge::setSuspendOnClose(bool e)
 
     settings.setValue(QStringLiteral("suspendOnClose"), e);
     emit suspendOnCloseChanged();
+}
+
+QString QMLBridge::getUSBDir()
+{
+    return settings.value(QStringLiteral("usbdirNew"), QStringLiteral("/ndless")).toString();
+}
+
+void QMLBridge::setUSBDir(QString dir)
+{
+    if(getUSBDir() == dir)
+        return;
+
+    settings.setValue(QStringLiteral("usbdirNew"), dir);
+    emit usbDirChanged();
 }
 
 constexpr const int ROWS = 8, COLS = 11;

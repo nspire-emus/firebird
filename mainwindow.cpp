@@ -154,10 +154,6 @@ MainWindow::MainWindow(QWidget *parent) :
 
     updateUIActionState(false);
 
-    //Migrate old settings
-    if(settings->value(QStringLiteral("usbdirNew"), QString()).toString().isEmpty())
-        settings->setValue(QStringLiteral("usbdirNew"), QStringLiteral("/") + settings->value(QStringLiteral("usbdir"), QStringLiteral("ndless")).toString());
-
     //Load settings
     setUIMode(settings->value(QStringLiteral("docksEnabled"), true).toBool());
     setExtLCD(settings->value(QStringLiteral("extLCDVisible")).toBool());
@@ -219,7 +215,7 @@ void MainWindow::dropEvent(QDropEvent *e)
     for(auto &&url : mime_data->urls())
     {
         QUrl local = url.toLocalFile();
-        usblink_queue_put_file(local.toString().toStdString(), settings->value(QStringLiteral("usbdirNew"), QStringLiteral("/ndless")).toString().toStdString(), usblink_progress_callback, this);
+        usblink_queue_put_file(local.toString().toStdString(), the_qml_bridge->getUSBDir().toStdString(), usblink_progress_callback, this);
     }
 }
 
