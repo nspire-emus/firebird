@@ -7,8 +7,8 @@ import Firebird.UIComponents 1.0
 
 Window {
     id: window
-    minimumHeight: 350
-    minimumWidth: 540
+    minimumHeight: 400
+    minimumWidth: 570
 
     Dialog {
         visible: false

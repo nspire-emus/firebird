@@ -33,6 +33,7 @@ public:
     Q_INVOKABLE virtual int rowCount(const QModelIndex &parent = QModelIndex()) const override;
     Q_INVOKABLE virtual QHash<int, QByteArray> roleNames() const override;
     Q_INVOKABLE virtual QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
+    Q_INVOKABLE virtual QVariant getData(const int row, int role = Qt::DisplayRole) const;
     Q_INVOKABLE bool setData(const int row, const QVariant &value, int role = Qt::EditRole);
     Q_INVOKABLE bool copy(const int row);
     Q_INVOKABLE bool remove(const int row);
@@ -70,6 +71,9 @@ public:
     Q_PROPERTY(bool rdbEnabled READ getRDBEnabled WRITE setRDBEnabled NOTIFY rdbEnabledChanged)
     Q_PROPERTY(bool debugOnStart READ getDebugOnStart WRITE setDebugOnStart NOTIFY debugOnStartChanged)
     Q_PROPERTY(bool debugOnWarn READ getDebugOnWarn WRITE setDebugOnWarn NOTIFY debugOnWarnChanged)
+    Q_PROPERTY(bool autostart READ getAutostart WRITE setAutostart NOTIFY autostartChanged)
+    Q_PROPERTY(unsigned int defaultKit READ getDefaultKit WRITE setDefaultKit NOTIFY defaultKitChanged)
+    Q_PROPERTY(bool suspendOnClose READ getSuspendOnClose WRITE setSuspendOnClose NOTIFY suspendOnCloseChanged)
     Q_PROPERTY(KitModel* kits READ getKitModel)
 
     unsigned int getGDBPort();
@@ -84,6 +88,12 @@ public:
     bool getDebugOnWarn();
     void setDebugOnStart(bool e);
     bool getDebugOnStart();
+    void setAutostart(bool e);
+    bool getAutostart();
+    unsigned int getDefaultKit();
+    void setDefaultKit(unsigned int id);
+    bool getSuspendOnClose();
+    void setSuspendOnClose(bool e);
 
     KitModel *getKitModel() { return &kit_model; }
     Q_INVOKABLE void keypadStateChanged(int keymap_id, bool state);
@@ -99,6 +109,7 @@ public:
     Q_INVOKABLE QString basename(QString path);
     Q_INVOKABLE QString dir(QString path);
     Q_INVOKABLE QString toLocalFile(QUrl url);
+    Q_INVOKABLE int kitIndexForID(unsigned int id);
 
     #ifdef MOBILE_UI
         Q_INVOKABLE bool restart();
@@ -139,6 +150,9 @@ signals:
     void rdbEnabledChanged();
     void debugOnWarnChanged();
     void debugOnStartChanged();
+    void autostartChanged();
+    void defaultKitChanged();
+    void suspendOnCloseChanged();
 
 private:
     QObject *toast = nullptr;

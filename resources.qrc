@@ -44,6 +44,7 @@
         <file>qml/Firebird/UIComponents/FBLabel.qml</file>
         <file>qml/Firebird/UIComponents/FileSelect.qml</file>
         <file>qml/Firebird/UIComponents/FBLink.qml</file>
+        <file>qml/ConfigPageEmulation.qml</file>
     </qresource>
     <qresource prefix="/i18n">
         <file>i18n/de_DE.qm</file>

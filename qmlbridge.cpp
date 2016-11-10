@@ -58,6 +58,10 @@ void QMLBridge::setGDBPort(unsigned int port)
     settings.setValue(QStringLiteral("gdbPort"), port);
     emit gdbPortChanged();
 }
+bool QMLBridge::getGDBEnabled()
+{
+    return settings.value(QStringLiteral("gdbEnabled"), true).toBool();
+}
 
 void QMLBridge::setGDBEnabled(bool e)
 {
@@ -66,11 +70,6 @@ void QMLBridge::setGDBEnabled(bool e)
 
     settings.setValue(QStringLiteral("gdbEnabled"), e);
     emit gdbEnabledChanged();
-}
-
-bool QMLBridge::getGDBEnabled()
-{
-    return settings.value(QStringLiteral("gdbEnabled"), true).toBool();
 }
 
 unsigned int QMLBridge::getRDBPort()
@@ -87,6 +86,11 @@ void QMLBridge::setRDBPort(unsigned int port)
     emit rdbPortChanged();
 }
 
+bool QMLBridge::getRDBEnabled()
+{
+    return settings.value(QStringLiteral("rdbgEnabled"), true).toBool();
+}
+
 void QMLBridge::setRDBEnabled(bool e)
 {
     if(getRDBEnabled() == e)
@@ -96,9 +100,9 @@ void QMLBridge::setRDBEnabled(bool e)
     emit rdbEnabledChanged();
 }
 
-bool QMLBridge::getRDBEnabled()
+bool QMLBridge::getDebugOnWarn()
 {
-    return settings.value(QStringLiteral("rdbgEnabled"), true).toBool();
+    return settings.value(QStringLiteral("debugOnWarn"), true).toBool();
 }
 
 void QMLBridge::setDebugOnWarn(bool e)
@@ -111,9 +115,9 @@ void QMLBridge::setDebugOnWarn(bool e)
     emit debugOnWarnChanged();
 }
 
-bool QMLBridge::getDebugOnWarn()
+bool QMLBridge::getDebugOnStart()
 {
-    return settings.value(QStringLiteral("debugOnWarn"), true).toBool();
+    return settings.value(QStringLiteral("debugOnStart"), true).toBool();
 }
 
 void QMLBridge::setDebugOnStart(bool e)
@@ -126,9 +130,46 @@ void QMLBridge::setDebugOnStart(bool e)
     emit debugOnStartChanged();
 }
 
-bool QMLBridge::getDebugOnStart()
+bool QMLBridge::getAutostart()
 {
-    return settings.value(QStringLiteral("debugOnStart"), true).toBool();
+    return settings.value(QStringLiteral("emuAutostart"), true).toBool();
+}
+
+void QMLBridge::setAutostart(bool e)
+{
+    if(getAutostart() == e)
+        return;
+
+    settings.setValue(QStringLiteral("emuAutostart"), e);
+    emit autostartChanged();
+}
+
+unsigned int QMLBridge::getDefaultKit()
+{
+    return settings.value(QStringLiteral("defaultKit"), 0).toUInt();
+}
+
+void QMLBridge::setDefaultKit(unsigned int id)
+{
+    if(getDefaultKit() == id)
+        return;
+
+    settings.setValue(QStringLiteral("defaultKit"), id);
+    emit defaultKitChanged();
+}
+
+bool QMLBridge::getSuspendOnClose()
+{
+    return settings.value(QStringLiteral("suspendOnClose"), true).toBool();
+}
+
+void QMLBridge::setSuspendOnClose(bool e)
+{
+    if(getSuspendOnClose() == e)
+        return;
+
+    settings.setValue(QStringLiteral("suspendOnClose"), e);
+    emit suspendOnCloseChanged();
 }
 
 constexpr const int ROWS = 8, COLS = 11;
@@ -214,6 +255,11 @@ QString QMLBridge::dir(QString path)
 QString QMLBridge::toLocalFile(QUrl url)
 {
     return url.toLocalFile();
+}
+
+int QMLBridge::kitIndexForID(unsigned int id)
+{
+    return kit_model.indexForID(id);
 }
 
 void QMLBridge::saveKits()
@@ -450,7 +496,11 @@ QHash<int, QByteArray> KitModel::roleNames() const
 
 QVariant KitModel::data(const QModelIndex &index, int role) const
 {
-    const int row = index.row();
+    return getData(index.row(), role);
+}
+
+QVariant KitModel::getData(const int row, int role) const
+{
     if(row < 0 || row >= kits.count())
         return QVariant();
 
