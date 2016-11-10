@@ -849,10 +849,21 @@
      </property>
      <addaction name="actionKit1"/>
     </widget>
+    <widget class="QMenu" name="menuBoot_Diags_with_Kit">
+     <property name="title">
+      <string>Boot Diags with Kit</string>
+     </property>
+     <property name="icon">
+      <iconset resource="resources.qrc">
+       <normaloff>:/icons/resources/icons/edit-bomb.png</normaloff>:/icons/resources/icons/edit-bomb.png</iconset>
+     </property>
+     <addaction name="actionKit1_2"/>
+    </widget>
     <addaction name="actionReset"/>
     <addaction name="actionPause"/>
     <addaction name="actionRestart"/>
     <addaction name="menuRestart_with_Kit"/>
+    <addaction name="menuBoot_Diags_with_Kit"/>
     <addaction name="separator"/>
     <addaction name="separator"/>
     <addaction name="actionConfiguration"/>
@@ -1079,6 +1090,11 @@
    </property>
   </action>
   <action name="actionKit1">
+   <property name="text">
+    <string notr="true">Kit1</string>
+   </property>
+  </action>
+  <action name="actionKit1_2">
    <property name="text">
     <string notr="true">Kit1</string>
    </property>

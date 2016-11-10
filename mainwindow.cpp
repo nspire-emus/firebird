@@ -774,11 +774,23 @@ void MainWindow::kitAnythingChanged()
 void MainWindow::refillKitMenus()
 {
     ui->menuRestart_with_Kit->clear();
-    auto &&kits = the_qml_bridge->getKitModel()->getKits();
-    for(auto &&kit : kits)
+    ui->menuBoot_Diags_with_Kit->clear();
+
+    auto &&kit_model = the_qml_bridge->getKitModel();
+    for(auto &&kit : kit_model->getKits())
     {
-        ui->menuRestart_with_Kit->addAction(kit.name, [&,kit] {
-            setCurrentKit(kit);
+        // We can't use a reference as it would become dangling,
+        // but can't use a value either, as it would need to be refreshed.
+        // So link this using Kit IDs.
+        unsigned int kit_id = kit.id;
+        ui->menuRestart_with_Kit->addAction(kit.name, [=] {
+            setCurrentKit(kit_model->getKits().at(kit_model->indexForID(kit_id)));
+            boot_order = ORDER_BOOT2;
+            restart();
+        });
+        ui->menuBoot_Diags_with_Kit->addAction(kit.name, [=] {
+            setCurrentKit(kit_model->getKits().at(kit_model->indexForID(kit.id)));
+            boot_order = ORDER_DIAGS;
             restart();
         });
     }
