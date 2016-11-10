@@ -36,6 +36,10 @@ QMLBridge::QMLBridge(QObject *parent) : QObject(parent)
     }
     else
         kit_model = settings.value(QStringLiteral("kits")).value<KitModel>();
+
+    // Same for debug_on_*
+    debug_on_start = getDebugOnStart();
+    debug_on_warn = getDebugOnWarn();
 }
 
 QMLBridge::~QMLBridge()
