@@ -93,6 +93,7 @@ ColumnLayout {
                 id: snapshotEdit
                 Layout.fillWidth: true
                 onFilePathChanged: if(triggerSignals) kitModel.setData(kitList.currentIndex, filePath, KitModel.SnapshotRole)
+                dialog.selectExisting: false
             }
         }
     }
