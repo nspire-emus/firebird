@@ -1,6 +1,5 @@
 #include <QApplication>
 #include <QTranslator>
-#include <QtQml>
 
 #ifndef MOBILE_UI
 #include "mainwindow.h"
