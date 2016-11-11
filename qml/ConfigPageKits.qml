@@ -22,12 +22,12 @@ ColumnLayout {
         Layout.topMargin: 5
 
         onCurrentItemChanged: {
-            triggerSignals = false
-            nameEdit.text = Qt.binding(function() { return currentItem.myData.name; })
-            flashEdit.filePath = Qt.binding(function() { return currentItem.myData.flash;})
-            boot1Edit.filePath = Qt.binding(function() { return currentItem.myData.boot1;})
-            snapshotEdit.filePath = Qt.binding(function() { return currentItem.myData.snapshot;})
-            triggerSignals = true
+            triggerSignals = false;
+            nameEdit.text = currentItem.myData.name
+            flashEdit.filePath = currentItem.myData.flash
+            boot1Edit.filePath = currentItem.myData.boot1
+            snapshotEdit.filePath = currentItem.myData.snapshot
+            triggerSignals = true;
         }
 
         kitModel: parent.kitModel
@@ -85,7 +85,10 @@ ColumnLayout {
                 Button {
                     text: qsTr("Create")
                     visible: !Emu.isMobile()
-                    onClicked: Emu.createFlash(kitList.currentIndex)
+                    onClicked: {
+                        Emu.createFlash(kitList.currentIndex)
+                        flashEdit.filePath = kitList.currentItem.myData.flash
+                    }
                 }
             }
 
