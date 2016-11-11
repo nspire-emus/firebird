@@ -34,10 +34,28 @@ Item {
             Repeater {
                 model: pageList.model
 
-                delegate: Loader {
+                delegate: Item {
                     width:  content.width
                     height: content.height
-                    source: file
+
+                    FBLabel {
+                        id: titleLabel
+                        text: title
+                        font.bold: true
+                        font.pixelSize: 20
+                    }
+
+                    Loader {
+                        anchors {
+                            top: titleLabel.bottom
+                            left: parent.left
+                            right: parent.right
+                            bottom: parent.bottom
+                            topMargin: 5
+                        }
+
+                        source: file
+                    }
                 }
             }
         }

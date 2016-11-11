@@ -11,12 +11,6 @@ ColumnLayout {
 
     spacing: 5
 
-    FBLabel {
-        text: qsTr("Kits")
-        font.bold: true
-        font.pixelSize: 20
-    }
-
     KitList {
         id: kitList
 

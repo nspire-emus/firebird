@@ -8,12 +8,6 @@ ColumnLayout {
     spacing: 5
 
     FBLabel {
-        text: qsTr("Emulation")
-        font.bold: true
-        font.pixelSize: 20
-    }
-
-    FBLabel {
         text: qsTr("Startup")
         font.pixelSize: 14
         Layout.topMargin: 5

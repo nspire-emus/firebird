@@ -8,12 +8,6 @@ ColumnLayout {
     spacing: 5
 
     FBLabel {
-        text: qsTr("Debugging")
-        font.bold: true
-        font.pixelSize: 20
-    }
-
-    FBLabel {
         text: qsTr("Remote GDB debugging")
         font.pixelSize: 14
         Layout.topMargin: 5

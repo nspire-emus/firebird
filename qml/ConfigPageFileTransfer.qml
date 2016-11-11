@@ -8,12 +8,6 @@ ColumnLayout {
     spacing: 5
 
     FBLabel {
-        text: qsTr("File Transfer")
-        font.bold: true
-        font.pixelSize: 20
-    }
-
-    FBLabel {
         text: qsTr("Target Directory")
         font.pixelSize: 14
         Layout.topMargin: 5
