@@ -188,10 +188,9 @@ Rectangle {
         id: toast
         x: 60
         z: 1
-        width: message.width+2*5
+        implicitWidth: message.width+2*5
+        implicitHeight: message.height+2*5
 
-        anchors.top: parent.bottom
-        anchors.topMargin: -90
         anchors.bottom: parent.bottom
         anchors.bottomMargin: 61
         anchors.horizontalCenter: parent.horizontalCenter
@@ -204,25 +203,26 @@ Rectangle {
         opacity: 0
         visible: opacity > 0
 
+        Component.onCompleted: Emu.registerToast(this)
+
         Behavior on opacity { NumberAnimation { duration: 200 } }
+
+        function showMessage(str) {
+            message.text = str;
+            opacity = 1;
+            timer.restart();
+        }
 
         Text {
             id: message
             text: "Text"
             anchors.centerIn: parent
-            font.pixelSize: parent.height / 2
-
-            Component.onCompleted: Emu.registerToast(this)
+            font.pointSize: 12
 
             Timer {
                 id: timer
                 interval: 2000
                 onTriggered: parent.parent.opacity = 0;
-            }
-
-            onTextChanged: {
-                parent.opacity = 1;
-                timer.restart();
             }
         }
 

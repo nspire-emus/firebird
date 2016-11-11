@@ -1,7 +1,6 @@
 #include <iostream>
 #include <cassert>
 #include <unistd.h>
-#include <QMessageBox>
 
 #include "qmlbridge.h"
 
@@ -324,7 +323,7 @@ bool QMLBridge::restart()
         emu_thread.start();
         return true;
     } else {
-        QMessageBox::warning(nullptr, tr("Error"), tr("You need to select a proper boot1 and flash image before.\nSwipe the keypad to the left to show the settings menu."));
+        toastMessage(tr("No boot1 or flash selected.\nSwipe keypad left for configuration."));
         return false;
     }
 }
@@ -404,7 +403,8 @@ void QMLBridge::toastMessage(QString msg)
         return;
     }
 
-    QQmlProperty::write(toast, QStringLiteral("text"), msg);
+    QVariant ret;
+    QMetaObject::invokeMethod(toast, "showMessage", Q_RETURN_ARG(QVariant, ret), Q_ARG(QVariant, QVariant(msg)));
 }
 
 void QMLBridge::started(bool success)
