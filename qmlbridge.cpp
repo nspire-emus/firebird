@@ -284,6 +284,18 @@ int QMLBridge::kitIndexForID(unsigned int id)
     return kit_model.indexForID(id);
 }
 
+void QMLBridge::useDefaultKit()
+{
+    int kitIndex = kitIndexForID(getDefaultKit());
+    if(kitIndex < 0)
+        return;
+
+    auto &&kit = kit_model.getKits()[kitIndex];
+    emu_thread.boot1 = kit.boot1;
+    emu_thread.flash = kit.flash;
+    snapshot_path = kit.snapshot;
+}
+
 void QMLBridge::saveKits()
 {
     settings.setValue(QStringLiteral("kits"), QVariant::fromValue(kit_model));
@@ -298,9 +310,6 @@ bool QMLBridge::restart()
         toastMessage(tr("Could not stop emulation"));
         return false;
     }
-
-    emu_thread.boot1 = getBoot1Path();
-    emu_thread.flash = getFlashPath();
 
     if(!emu_thread.boot1.isEmpty() && !emu_thread.flash.isEmpty()) {
         toastMessage(tr("Starting emulation"));
@@ -325,7 +334,6 @@ void QMLBridge::reset()
 void QMLBridge::suspend()
 {
     toastMessage(tr("Suspending emulation"));
-    QString snapshot_path = settings.value(QStringLiteral("snapshotPath")).toString();
     if(!snapshot_path.isEmpty())
         emu_thread.suspend(snapshot_path);
 }
@@ -333,7 +341,6 @@ void QMLBridge::suspend()
 void QMLBridge::resume()
 {
     toastMessage(tr("Resuming emulation"));
-    QString snapshot_path = settings.value(QStringLiteral("snapshotPath")).toString();
     if(!snapshot_path.isEmpty())
         emu_thread.resume(snapshot_path);
 }
@@ -350,32 +357,17 @@ bool QMLBridge::saveFlash()
 
 QString QMLBridge::getBoot1Path()
 {
-    return settings.value(QStringLiteral("boot1"), QString()).toString();
-}
-
-void QMLBridge::setBoot1Path(QUrl path)
-{
-    settings.setValue(QStringLiteral("boot1"), path.toLocalFile());
+    return emu_thread.boot1;
 }
 
 QString QMLBridge::getFlashPath()
 {
-    return settings.value(QStringLiteral("flash"), QString()).toString();
-}
-
-void QMLBridge::setFlashPath(QUrl path)
-{
-    settings.setValue(QStringLiteral("flash"), path.toLocalFile());
+    return emu_thread.flash;
 }
 
 QString QMLBridge::getSnapshotPath()
 {
-    return settings.value(QStringLiteral("snapshotPath"), QString()).toString();
-}
-
-void QMLBridge::setSnapshotPath(QUrl path)
-{
-    settings.setValue(QStringLiteral("snapshotPath"), path.toLocalFile());
+    return snapshot_path;
 }
 
 void QMLBridge::registerToast(QVariant toast)

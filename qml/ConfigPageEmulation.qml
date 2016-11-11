@@ -18,7 +18,12 @@ ColumnLayout {
         // The hell, QML!
         Layout.maximumWidth: parent.width
         wrapMode: Text.WordWrap
-        text: qsTr("When opening Firebird, the selected Kit will be started.\nIf available, it will resume the emulation from the provided snapshot.")
+        text: {
+            if(!Emu.isMobile())
+                return qsTr("When opening Firebird, the selected Kit will be started.\nIf available, it will resume the emulation from the provided snapshot.")
+            else
+                return qsTr("Select the Kit selected on startup and after restarting. If the checkbox is active, it will be launched when the App starts.")
+        }
 
         font.pixelSize: 12
     }
@@ -47,6 +52,7 @@ ColumnLayout {
         font.pixelSize: 14
         Layout.topMargin: 10
         Layout.bottomMargin: 5
+        visible: !Emu.isMobile()
     }
 
     FBLabel {
@@ -54,6 +60,7 @@ ColumnLayout {
         wrapMode: Text.WordWrap
         text: qsTr("On Application end, write the current state in the current snapshot.")
         font.pixelSize: 12
+        visible: !Emu.isMobile()
     }
 
     LabeledCheckBox {
@@ -61,6 +68,7 @@ ColumnLayout {
 
         checked: Emu.suspendOnClose
         onCheckedChanged: Emu.suspendOnClose = checked
+        visible: !Emu.isMobile()
     }
 
     Item {

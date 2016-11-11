@@ -22,7 +22,6 @@ Rectangle {
 
             anchors.centerIn: parent
             anchors.fill: parent
-            anchors.margins: 2
             focus: true
             highlightMoveDuration: 50
             highlightResizeDuration: 0

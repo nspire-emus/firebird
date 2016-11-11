@@ -115,6 +115,8 @@ public:
     Q_INVOKABLE int kitIndexForID(unsigned int id);
 
     #ifdef MOBILE_UI
+        Q_INVOKABLE void useDefaultKit();
+
         Q_INVOKABLE bool restart();
         Q_INVOKABLE void setPaused(bool b);
         Q_INVOKABLE void reset();
@@ -125,11 +127,8 @@ public:
         Q_INVOKABLE bool saveFlash();
 
         Q_INVOKABLE QString getBoot1Path();
-        Q_INVOKABLE void setBoot1Path(QUrl path);
         Q_INVOKABLE QString getFlashPath();
-        Q_INVOKABLE void setFlashPath(QUrl path);
         Q_INVOKABLE QString getSnapshotPath();
-        Q_INVOKABLE void setSnapshotPath(QUrl path);
 
         Q_INVOKABLE void registerToast(QVariant toast);
         Q_INVOKABLE void toastMessage(QString msg);
@@ -143,7 +142,6 @@ public slots:
         void started(bool success); // Not called on resume
         void resumed(bool success);
         void suspended(bool success);
-
     #endif
 
 signals:
@@ -160,6 +158,9 @@ signals:
 
 private:
     QObject *toast = nullptr;
+    #ifdef MOBILE_UI
+        QString snapshot_path;
+    #endif
     KitModel kit_model;
     QSettings settings;
 };

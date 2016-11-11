@@ -13,7 +13,8 @@ ToolButton {
 
     Rectangle {
         anchors.fill: parent
-        color: parent.pressed ? "#CCC" : "#AAA"
+        color: "#CCC"
+        visible: parent.pressed
     }
 
     FBLabel {

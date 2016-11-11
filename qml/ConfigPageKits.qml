@@ -19,6 +19,7 @@ ColumnLayout {
 
         Layout.rightMargin: 1
         Layout.leftMargin: 1
+        Layout.topMargin: 5
 
         onCurrentItemChanged: {
             triggerSignals = false
