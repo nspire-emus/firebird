@@ -5,6 +5,10 @@
 
 #include "qmlbridge.h"
 
+#ifndef MOBILE_UI
+#include "flashdialog.h"
+#endif
+
 #include "core/emu.h"
 #include "core/flash.h"
 #include "core/keypad.h"
@@ -284,17 +288,21 @@ int QMLBridge::kitIndexForID(unsigned int id)
     return kit_model.indexForID(id);
 }
 
-void QMLBridge::useDefaultKit()
-{
-    int kitIndex = kitIndexForID(getDefaultKit());
-    if(kitIndex < 0)
-        return;
+#ifndef MOBILE_UI
 
-    auto &&kit = kit_model.getKits()[kitIndex];
-    emu_thread.boot1 = kit.boot1;
-    emu_thread.flash = kit.flash;
-    snapshot_path = kit.snapshot;
+void QMLBridge::createFlash(unsigned int kitIndex)
+{
+    FlashDialog dialog;
+
+    connect(&dialog, &FlashDialog::flashCreated, [&] (QString f){
+        kit_model.setData(kitIndex, f, KitModel::FlashRole);
+    });
+
+    dialog.show();
+    dialog.exec();
 }
+
+#endif
 
 void QMLBridge::saveKits()
 {
@@ -343,6 +351,19 @@ void QMLBridge::resume()
     toastMessage(tr("Resuming emulation"));
     if(!snapshot_path.isEmpty())
         emu_thread.resume(snapshot_path);
+}
+
+
+void QMLBridge::useDefaultKit()
+{
+    int kitIndex = kitIndexForID(getDefaultKit());
+    if(kitIndex < 0)
+        return;
+
+    auto &&kit = kit_model.getKits()[kitIndex];
+    emu_thread.boot1 = kit.boot1;
+    emu_thread.flash = kit.flash;
+    snapshot_path = kit.snapshot;
 }
 
 bool QMLBridge::stop()

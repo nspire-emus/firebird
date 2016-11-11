@@ -134,6 +134,8 @@ public:
         Q_INVOKABLE void toastMessage(QString msg);
 
         EmuThread emu_thread;
+    #else
+        Q_INVOKABLE void createFlash(unsigned int kitIndex);
     #endif
 
 public slots:

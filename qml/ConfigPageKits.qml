@@ -23,10 +23,10 @@ ColumnLayout {
 
         onCurrentItemChanged: {
             triggerSignals = false
-            nameEdit.text = currentItem.myData.name
-            flashEdit.filePath = currentItem.myData.flash
-            boot1Edit.filePath = currentItem.myData.boot1
-            snapshotEdit.filePath = currentItem.myData.snapshot
+            nameEdit.text = Qt.binding(function() { return currentItem.myData.name; })
+            flashEdit.filePath = Qt.binding(function() { return currentItem.myData.flash;})
+            boot1Edit.filePath = Qt.binding(function() { return currentItem.myData.boot1;})
+            snapshotEdit.filePath = Qt.binding(function() { return currentItem.myData.snapshot;})
             triggerSignals = true
         }
 
@@ -42,7 +42,7 @@ ColumnLayout {
 
         GridLayout {
             anchors.fill: parent
-            columns: width < 500 ? 2 : 4
+            columns: width < 450 ? 2 : 4
 
             FBLabel {
                 text: qsTr("Name:")
@@ -73,10 +73,20 @@ ColumnLayout {
                 elide: Text.ElideMiddle
             }
 
-            FileSelect {
-                id: flashEdit
+            RowLayout {
                 Layout.fillWidth: true
-                onFilePathChanged: if(triggerSignals) kitModel.setData(kitList.currentIndex, filePath, KitModel.FlashRole)
+
+                FileSelect {
+                    id: flashEdit
+                    Layout.fillWidth: true
+                    onFilePathChanged: if(triggerSignals)  kitModel.setData(kitList.currentIndex, filePath, KitModel.FlashRole)
+                }
+
+                Button {
+                    text: qsTr("Create")
+                    visible: !Emu.isMobile()
+                    onClicked: Emu.createFlash(kitList.currentIndex)
+                }
             }
 
             FBLabel {
