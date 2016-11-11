@@ -1,4 +1,5 @@
-lessThan(QT_MAJOR_VERSION, 5): error("You need at least Qt 5 to build firebird!")
+lessThan(QT_MAJOR_VERSION, 5): error("You need at least Qt 5.6 to build firebird!")
+lessThan(QT_MINOR_VERSION, 6): error("You need at least Qt 5.6 to build firebird!")
 
 # Version
 DEFINES += FB_VERSION=0.31-dev
