@@ -40,7 +40,9 @@ Rectangle {
             Emu.registerNButton(keymap_id, this);
         }
 
-        anchors.fill: parent
+        anchors.centerIn: parent
+        width: parent.width + 10
+        height: parent.height + 10
         acceptedButtons: Qt.LeftButton | Qt.RightButton
 
         hoverEnabled: !Emu.isMobile()
