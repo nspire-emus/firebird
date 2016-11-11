@@ -28,7 +28,7 @@ public:
 
     KitModel() = default;
     KitModel(const KitModel &other) : QAbstractListModel() { kits = other.kits; nextID = other.nextID; }
-    KitModel &operator =(const KitModel &other) { kits = other.kits; return *this; }
+    KitModel &operator =(const KitModel &other) { kits = other.kits; nextID = other.nextID; return *this; }
 
     Q_INVOKABLE virtual int rowCount(const QModelIndex &parent = QModelIndex()) const override;
     Q_INVOKABLE virtual QHash<int, QByteArray> roleNames() const override;

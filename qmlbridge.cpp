@@ -18,15 +18,8 @@ QMLBridge::QMLBridge(QObject *parent) : QObject(parent)
     the_qml_bridge = this;
 
     qmlRegisterType<KitModel>("Firebird.Emu", 1, 0, "KitModel");
-
-    connect(&kit_model, SIGNAL(anythingChanged()), this, SLOT(saveKits()), Qt::QueuedConnection);
     qRegisterMetaTypeStreamOperators<KitModel>();
     qRegisterMetaType<KitModel>();
-    #ifdef MOBILE_UI
-        connect(&emu_thread, SIGNAL(started(bool)), this, SLOT(started(bool)), Qt::QueuedConnection);
-        connect(&emu_thread, SIGNAL(resumed(bool)), this, SLOT(resumed(bool)), Qt::QueuedConnection);
-        connect(&emu_thread, SIGNAL(suspended(bool)), this, SLOT(suspended(bool)), Qt::QueuedConnection);
-    #endif
 
     //Migrate old settings
     if(settings.contains(QStringLiteral("usbdir")) && !settings.contains(QStringLiteral("usbdirNew")))
@@ -44,6 +37,13 @@ QMLBridge::QMLBridge(QObject *parent) : QObject(parent)
     // Same for debug_on_*
     debug_on_start = getDebugOnStart();
     debug_on_warn = getDebugOnWarn();
+
+    connect(&kit_model, SIGNAL(anythingChanged()), this, SLOT(saveKits()), Qt::QueuedConnection);
+    #ifdef MOBILE_UI
+        connect(&emu_thread, SIGNAL(started(bool)), this, SLOT(started(bool)), Qt::QueuedConnection);
+        connect(&emu_thread, SIGNAL(resumed(bool)), this, SLOT(resumed(bool)), Qt::QueuedConnection);
+        connect(&emu_thread, SIGNAL(suspended(bool)), this, SLOT(suspended(bool)), Qt::QueuedConnection);
+    #endif
 }
 
 QMLBridge::~QMLBridge()
