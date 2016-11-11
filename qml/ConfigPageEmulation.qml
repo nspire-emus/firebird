@@ -15,7 +15,11 @@ ColumnLayout {
     }
 
     FBLabel {
+        // The hell, QML!
+        Layout.maximumWidth: parent.width
+        wrapMode: Text.WordWrap
         text: qsTr("When opening Firebird, the selected Kit will be started.\nIf available, it will resume the emulation from the provided snapshot.")
+
         font.pixelSize: 12
     }
 
@@ -24,7 +28,7 @@ ColumnLayout {
         spacing: 0
 
         LabeledCheckBox {
-            text: qsTr("On Application start, run Kit")
+            text: qsTr("On Startup, run Kit")
 
             checked: Emu.autostart
             onCheckedChanged: Emu.autostart = checked
@@ -46,6 +50,8 @@ ColumnLayout {
     }
 
     FBLabel {
+        Layout.maximumWidth: parent.width
+        wrapMode: Text.WordWrap
         text: qsTr("On Application end, write the current state in the current snapshot.")
         font.pixelSize: 12
     }

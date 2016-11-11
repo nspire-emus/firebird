@@ -15,7 +15,8 @@ ColumnLayout {
     }
 
     FBLabel {
-        id: text4
+        Layout.maximumWidth: parent.width
+        wrapMode: Text.WordWrap
         text: qsTr("If enabled, a remote GDB debugger can be connected\nto the port and be used for debugging.")
         font.pixelSize: 12
     }
@@ -51,6 +52,8 @@ ColumnLayout {
     }
 
     FBLabel {
+        Layout.maximumWidth: parent.width
+        wrapMode: Text.WordWrap
         text: qsTr("Enable this to access the internal debugger via TCP (telnet/netcat),\nlike for firebird-send.")
         font.pixelSize: 12
     }
@@ -86,6 +89,8 @@ ColumnLayout {
     }
 
     FBLabel {
+        Layout.maximumWidth: parent.width
+        wrapMode: Text.WordWrap
         text: qsTr("Configure which situations cause the emulator to trap into the debugger.")
         font.pixelSize: 12
     }

@@ -41,7 +41,7 @@ ColumnLayout {
 
         GridLayout {
             anchors.fill: parent
-            columns: 4
+            columns: width < 500 ? 2 : 4
 
             FBLabel {
                 text: qsTr("Name:")
