@@ -248,6 +248,11 @@ void QMLBridge::touchpadStateChanged(qreal x, qreal y, bool contact, bool down)
 
         int vel_x = new_x - keypad.touchpad_x;
         int vel_y = new_y - keypad.touchpad_y;
+
+        /* The OS's cursor uses this, but it's a bit too quick */
+        vel_x /= 4;
+        vel_y /= 4;
+
         keypad.touchpad_rel_x += vel_x;
         keypad.touchpad_rel_y += vel_y;
 

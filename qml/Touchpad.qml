@@ -76,7 +76,7 @@ Rectangle {
         }
 
         function submitState() {
-            Emu.touchpadStateChanged(mouseX/width, mouseY/height, isDown | pressed, isDown);
+            Emu.touchpadStateChanged(mouseX/width, mouseY/height, isDown || pressed, isDown);
         }
 
         function showHighlight(x, y, down) {
