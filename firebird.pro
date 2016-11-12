@@ -242,6 +242,7 @@ SOURCES += qml/Keypad.qml \
     qml/Firebird/Emu/Emu.qml \
     qml/Firebird/Emu/EmuScreen.qml \
     qml/Firebird/UIComponents/FBLabel.qml \
+    qml/Firebird/UIComponents/FileSelect.qml \
     qml/Firebird/UIComponents/PageDelegate.qml \
     qml/Firebird/UIComponents/PageList.qml \
     qml/Firebird/UIComponents/ConfigPages.qml \
