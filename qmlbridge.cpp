@@ -11,6 +11,7 @@
 #include "core/emu.h"
 #include "core/flash.h"
 #include "core/keypad.h"
+#include "core/usblink_queue.h"
 #include "core/os/os.h"
 
 QMLBridge *the_qml_bridge = nullptr;
@@ -253,7 +254,12 @@ bool QMLBridge::isMobile()
         return true;
     #else
         return false;
-    #endif
+#endif
+}
+
+void QMLBridge::sendFile(QUrl url, QString dir)
+{
+    usblink_queue_put_file(url.toLocalFile().toStdString(), dir.toStdString(), QMLBridge::usblink_progress_changed, this);
 }
 
 QString QMLBridge::basename(QString path)
@@ -306,6 +312,12 @@ void QMLBridge::createFlash(unsigned int kitIndex)
 void QMLBridge::saveKits()
 {
     settings.setValue(QStringLiteral("kits"), QVariant::fromValue(kit_model));
+}
+
+void QMLBridge::usblink_progress_changed(int percent, void *qml_bridge_p)
+{
+    auto &&qml_bridge = reinterpret_cast<QMLBridge*>(qml_bridge_p);
+    emit qml_bridge->usblinkProgressChanged(percent);
 }
 
 #ifdef MOBILE_UI

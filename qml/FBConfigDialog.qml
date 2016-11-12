@@ -7,6 +7,7 @@ import Firebird.UIComponents 1.0
 
 Window {
     id: window
+    title: qsTr("Firebird Emu Configuration")
     minimumHeight: 400
     minimumWidth: 500
     height: 410

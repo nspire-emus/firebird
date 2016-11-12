@@ -108,6 +108,8 @@ public:
 
     Q_INVOKABLE bool isMobile();
 
+    Q_INVOKABLE void sendFile(QUrl url, QString dir);
+
     // Various utility functions
     Q_INVOKABLE QString basename(QString path);
     Q_INVOKABLE QString dir(QString path);
@@ -158,7 +160,11 @@ signals:
     void suspendOnCloseChanged();
     void usbDirChanged();
 
+    void usblinkProgressChanged(int percent);
+
 private:
+    static void usblink_progress_changed(int percent, void *qml_bridge_p);
+
     QObject *toast = nullptr;
     #ifdef MOBILE_UI
         QString snapshot_path;
