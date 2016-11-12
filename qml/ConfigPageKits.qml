@@ -40,9 +40,17 @@ ColumnLayout {
         Layout.bottomMargin: -1
         title: qsTr("Kit Properties")
 
+
         GridLayout {
             anchors.fill: parent
             columns: width < 450 ? 2 : 4
+
+            FBLabel {
+                Layout.columnSpan: parent.columns
+                color: "red"
+                visible: boot1Edit.filePath == "" || flashEdit.filePath == ""
+                text: qsTr("You need to specify files for Boot1 and Flash")
+            }
 
             FBLabel {
                 text: qsTr("Name:")
