@@ -103,7 +103,7 @@ public:
     Q_INVOKABLE void registerNButton(int keymap_id, QVariant button);
 
     // Coordinates: (0/0) = top left (1/1) = bottom right
-    Q_INVOKABLE void touchpadStateChanged(qreal x, qreal y, bool state);
+    Q_INVOKABLE void touchpadStateChanged(qreal x, qreal y, bool contact, bool down);
     Q_INVOKABLE void registerTouchpad(QVariant touchpad);
 
     Q_INVOKABLE bool isMobile();
@@ -177,7 +177,7 @@ extern QMLBridge *the_qml_bridge;
 
 void notifyKeypadStateChanged(int row, int col, bool state);
 void notifyTouchpadStateChanged();
-void notifyTouchpadStateChanged(qreal x, qreal y, bool state);
+void notifyTouchpadStateChanged(qreal x, qreal y, bool contact, bool down);
 QObject *qmlBridgeFactory(QQmlEngine *engine, QJSEngine *scriptEngine);
 
 

@@ -226,18 +226,39 @@ void QMLBridge::registerNButton(int keymap_id, QVariant button)
         buttons[row][col] = button.value<QObject*>();
 }
 
-void QMLBridge::touchpadStateChanged(qreal x, qreal y, bool state)
+void QMLBridge::touchpadStateChanged(qreal x, qreal y, bool contact, bool down)
 {
-    keypad.touchpad_down = keypad.touchpad_contact = state;
+    keypad.touchpad_down = down;
+    keypad.touchpad_contact = contact;
 
-    if(state)
+    if(contact || down)
     {
-        keypad.touchpad_x = x * TOUCHPAD_X_MAX;
-        keypad.touchpad_y = (1.0f-y) * TOUCHPAD_Y_MAX;
+        int new_x = x * TOUCHPAD_X_MAX,
+            new_y = TOUCHPAD_Y_MAX - (y * TOUCHPAD_Y_MAX);
+
+        if(new_x < 0)
+            new_x = 0;
+        if(new_x > TOUCHPAD_X_MAX)
+            new_x = TOUCHPAD_X_MAX;
+
+        if(new_y < 0)
+            new_y = 0;
+        if(new_y > TOUCHPAD_Y_MAX)
+            new_y = TOUCHPAD_Y_MAX;
+
+        int vel_x = new_x - keypad.touchpad_x;
+        int vel_y = new_y - keypad.touchpad_y;
+        keypad.touchpad_rel_x += vel_x;
+        keypad.touchpad_rel_y += vel_y;
+
+        keypad.touchpad_x = new_x;
+        keypad.touchpad_y = new_y;
     }
 
     keypad.kpc.gpio_int_active |= 0x800;
     keypad_int_check();
+
+    notifyTouchpadStateChanged();
 }
 
 static QObject *qml_touchpad;
@@ -467,7 +488,7 @@ QObject *qmlBridgeFactory(QQmlEngine *engine, QJSEngine *scriptEngine)
     return new QMLBridge();
 }
 
-void notifyTouchpadStateChanged(qreal x, qreal y, bool state)
+void notifyTouchpadStateChanged(qreal x, qreal y, bool contact, bool down)
 {
     if(!qml_touchpad)
     {
@@ -477,15 +498,15 @@ void notifyTouchpadStateChanged(qreal x, qreal y, bool state)
 
     QVariant ret;
 
-    if(state)
-        QMetaObject::invokeMethod(qml_touchpad, "showHighlight", Q_RETURN_ARG(QVariant, ret), Q_ARG(QVariant, QVariant(x)), Q_ARG(QVariant, QVariant(y)));
+    if(contact || down)
+        QMetaObject::invokeMethod(qml_touchpad, "showHighlight", Q_RETURN_ARG(QVariant, ret), Q_ARG(QVariant, QVariant(x)), Q_ARG(QVariant, QVariant(y)), Q_ARG(QVariant, down));
     else
         QMetaObject::invokeMethod(qml_touchpad, "hideHighlight");
 }
 
 void notifyTouchpadStateChanged()
 {
-    notifyTouchpadStateChanged(float(keypad.touchpad_x)/TOUCHPAD_X_MAX, 1.0f-(float(keypad.touchpad_y)/TOUCHPAD_Y_MAX), keypad.touchpad_contact);
+    notifyTouchpadStateChanged(float(keypad.touchpad_x)/TOUCHPAD_X_MAX, 1.0f-(float(keypad.touchpad_y)/TOUCHPAD_Y_MAX), keypad.touchpad_contact, keypad.touchpad_down);
 }
 
 QDataStream &operator<<(QDataStream &out, const Kit &kit)
