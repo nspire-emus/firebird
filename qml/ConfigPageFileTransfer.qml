@@ -38,7 +38,7 @@ ColumnLayout {
     }
 
     FBLabel {
-        text: qsTr("Simple File Transfer")
+        text: qsTr("Single File Transfer")
         font.pixelSize: 14
         Layout.topMargin: 5
         Layout.bottomMargin: 5

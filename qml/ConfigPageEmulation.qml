@@ -22,7 +22,7 @@ ColumnLayout {
             if(!Emu.isMobile())
                 return qsTr("When opening Firebird, the selected Kit will be started.\nIf available, it will resume the emulation from the provided snapshot.")
             else
-                return qsTr("Select the Kit selected on startup and after restarting. If the checkbox is active, it will be launched when the App starts.")
+                return qsTr("Choose the Kit selected on startup and after restarting. If the checkbox is active, it will be launched when Firebird starts.")
         }
 
         font.pixelSize: 12
