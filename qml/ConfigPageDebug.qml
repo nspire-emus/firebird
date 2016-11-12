@@ -105,7 +105,7 @@ ColumnLayout {
     LabeledCheckBox {
         text: qsTr("Enter Debugger on Warnings and Errors")
 
-        checked: Emu.gdbEnabled
+        checked: Emu.debugOnWarn
         onCheckedChanged: Emu.debugOnWarn = checked
     }
 
