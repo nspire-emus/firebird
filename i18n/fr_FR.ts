@@ -71,7 +71,7 @@ If available, it will resume the emulation from the provided snapshot.</source>
     </message>
     <message>
         <location filename="../qml/ConfigPageEmulation.qml" line="25"/>
-        <source>Select the Kit selected on startup and after restarting. If the checkbox is active, it will be launched when the App starts.</source>
+        <source>Choose the Kit selected on startup and after restarting. If the checkbox is active, it will be launched when Firebird starts.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -115,7 +115,7 @@ it will try to send the file to the emulated system.</source>
     </message>
     <message>
         <location filename="../qml/ConfigPageFileTransfer.qml" line="41"/>
-        <source>Simple File Transfer</source>
+        <source>Single File Transfer</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -157,32 +157,37 @@ it will try to send the file to the emulated system.</source>
         <translation>Propriétés du Kit</translation>
     </message>
     <message>
-        <location filename="../qml/ConfigPageKits.qml" line="48"/>
+        <location filename="../qml/ConfigPageKits.qml" line="52"/>
+        <source>You need to specify files for Boot1 and Flash</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../qml/ConfigPageKits.qml" line="56"/>
         <source>Name:</source>
         <translation>Nom :</translation>
     </message>
     <message>
-        <location filename="../qml/ConfigPageKits.qml" line="54"/>
+        <location filename="../qml/ConfigPageKits.qml" line="62"/>
         <source>Name</source>
         <translation>Nom</translation>
     </message>
     <message>
-        <location filename="../qml/ConfigPageKits.qml" line="61"/>
+        <location filename="../qml/ConfigPageKits.qml" line="69"/>
         <source>Boot1:</source>
         <translation>Boot1 :</translation>
     </message>
     <message>
-        <location filename="../qml/ConfigPageKits.qml" line="72"/>
+        <location filename="../qml/ConfigPageKits.qml" line="80"/>
         <source>Flash:</source>
         <translation>Flash :</translation>
     </message>
     <message>
-        <location filename="../qml/ConfigPageKits.qml" line="86"/>
+        <location filename="../qml/ConfigPageKits.qml" line="94"/>
         <source>Create</source>
         <translation>Créer</translation>
     </message>
     <message>
-        <location filename="../qml/ConfigPageKits.qml" line="96"/>
+        <location filename="../qml/ConfigPageKits.qml" line="104"/>
         <source>Snapshot file:</source>
         <translation>Snapshot :</translation>
     </message>
@@ -276,19 +281,16 @@ it will try to send the file to the emulated system.</source>
         <translation>OS :</translation>
     </message>
     <message>
-        <location filename="../flashdialog.ui" line="305"/>
         <source>HW-A</source>
-        <translation>HW-A</translation>
+        <translation type="vanished">HW-A</translation>
     </message>
     <message>
-        <location filename="../flashdialog.ui" line="310"/>
         <source>HW-J (CXCR)</source>
-        <translation>HW-J (CXCR)</translation>
+        <translation type="vanished">HW-J (CXCR)</translation>
     </message>
     <message>
-        <location filename="../flashdialog.ui" line="315"/>
         <source>HW-W (CXCR4)</source>
-        <translation>HW-W (CXCR4)</translation>
+        <translation type="vanished">HW-W (CXCR4)</translation>
     </message>
     <message>
         <location filename="../flashdialog.ui" line="26"/>
@@ -995,9 +997,8 @@ You won&apos;t be able to resume.</source>
 <context>
     <name>PageDelegate</name>
     <message>
-        <location filename="../qml/Firebird/UIComponents/PageDelegate.qml" line="41"/>
         <source>Text</source>
-        <translation>Texte</translation>
+        <translation type="vanished">Texte</translation>
     </message>
 </context>
 <context>
