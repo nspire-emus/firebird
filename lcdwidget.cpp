@@ -19,8 +19,8 @@ void LCDWidget::mousePressEvent(QMouseEvent *event)
     else
         keypad.touchpad_contact = true;
 
-    if(event->x() >= 0 && event->x() < 320
-            && event->y() >= 0 && event->y() < 240)
+    if(event->x() >= 0 && event->x() < width()
+            && event->y() >= 0 && event->y() < height())
     {
         keypad.touchpad_x = event->x() * TOUCHPAD_X_MAX/width();
         keypad.touchpad_y = TOUCHPAD_Y_MAX - (event->y() * TOUCHPAD_Y_MAX/height());
