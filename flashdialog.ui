@@ -302,17 +302,17 @@
       <widget class="QComboBox" name="selectModelRev">
        <item>
         <property name="text">
-         <string>HW-A</string>
+         <string notr="true">HW-A</string>
         </property>
        </item>
        <item>
         <property name="text">
-         <string>HW-J (CXCR)</string>
+         <string notr="true">HW-J (CXCR)</string>
         </property>
        </item>
        <item>
         <property name="text">
-         <string>HW-W (CXCR4)</string>
+         <string notr="true">HW-W (CXCR4)</string>
         </property>
        </item>
       </widget>

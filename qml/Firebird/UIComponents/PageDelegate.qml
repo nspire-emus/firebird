@@ -38,7 +38,7 @@ Item {
         FBLabel {
             id: label
             anchors.horizontalCenter: parent.horizontalCenter
-            text: qsTr("Text")
+            text: "Text"
             font.pixelSize: 12
         }
     }
