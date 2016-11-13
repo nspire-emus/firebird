@@ -41,8 +41,8 @@ Rectangle {
         }
 
         anchors.centerIn: parent
-        width: parent.width + 10
-        height: parent.height + 10
+        width: parent.width * 1.3
+        height: parent.height * 1.3
         acceptedButtons: Qt.LeftButton | Qt.RightButton
 
         hoverEnabled: !Emu.isMobile()
