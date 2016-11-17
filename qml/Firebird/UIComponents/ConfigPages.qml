@@ -42,7 +42,7 @@ Item {
                         id: titleLabel
                         text: title
                         font.bold: true
-                        font.pointSize: 16
+                        font.pixelSize: 20
                     }
 
                     Loader {

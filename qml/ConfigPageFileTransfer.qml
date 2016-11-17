@@ -10,14 +10,14 @@ ColumnLayout {
 
     FBLabel {
         text: qsTr("Target Directory")
-        font.pointSize: 12
+        font.pixelSize: 14
         Layout.topMargin: 5
         Layout.bottomMargin: 5
     }
 
     FBLabel {
         text: qsTr("When dragging files onto Firebird,\nit will try to send the file to the emulated system.")
-        font.pointSize: 10
+        font.pixelSize: 12
     }
 
     RowLayout {
@@ -39,7 +39,7 @@ ColumnLayout {
 
     FBLabel {
         text: qsTr("Single File Transfer")
-        font.pointSize: 12
+        font.pixelSize: 14
         Layout.topMargin: 5
         Layout.bottomMargin: 5
     }
@@ -48,7 +48,7 @@ ColumnLayout {
         Layout.maximumWidth: parent.width
         wrapMode: Text.WordWrap
         text: qsTr("If you are unable to use the main window's file transfer using either drag'n'drop or the file explorer, you can send single files here.")
-        font.pointSize: 10
+        font.pixelSize: 12
         visible: !Emu.isMobile()
     }
 

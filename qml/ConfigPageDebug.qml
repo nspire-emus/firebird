@@ -9,7 +9,7 @@ ColumnLayout {
 
     FBLabel {
         text: qsTr("Remote GDB debugging")
-        font.pointSize: 12
+        font.pixelSize: 14
         Layout.topMargin: 5
         Layout.bottomMargin: 5
     }
@@ -18,7 +18,7 @@ ColumnLayout {
         Layout.maximumWidth: parent.width
         wrapMode: Text.WordWrap
         text: qsTr("If enabled, a remote GDB debugger can be connected\nto the port and be used for debugging.")
-        font.pointSize: 10
+        font.pixelSize: 12
     }
 
     RowLayout {
@@ -46,7 +46,7 @@ ColumnLayout {
 
     FBLabel {
         text: qsTr("Remote access to internal debugger")
-        font.pointSize: 12
+        font.pixelSize: 14
         Layout.topMargin: 10
         Layout.bottomMargin: 5
     }
@@ -55,7 +55,7 @@ ColumnLayout {
         Layout.maximumWidth: parent.width
         wrapMode: Text.WordWrap
         text: qsTr("Enable this to access the internal debugger via TCP (telnet/netcat),\nlike for firebird-send.")
-        font.pointSize: 10
+        font.pixelSize: 12
     }
 
     RowLayout {
@@ -83,7 +83,7 @@ ColumnLayout {
 
     FBLabel {
         text: qsTr("Enter into Debugger")
-        font.pointSize: 12
+        font.pixelSize: 14
         Layout.topMargin: 5
         Layout.bottomMargin: 5
     }
@@ -92,7 +92,7 @@ ColumnLayout {
         Layout.maximumWidth: parent.width
         wrapMode: Text.WordWrap
         text: qsTr("Configure which situations cause the emulator to trap into the debugger.")
-        font.pointSize: 10
+        font.pixelSize: 12
     }
 
     LabeledCheckBox {

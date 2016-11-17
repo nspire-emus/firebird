@@ -39,7 +39,7 @@ Item {
             id: label
             anchors.horizontalCenter: parent.horizontalCenter
             text: "Text"
-            font.pointSize: 9
+            font.pixelSize: 12
         }
     }
 }

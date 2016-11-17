@@ -9,7 +9,7 @@ ColumnLayout {
 
     FBLabel {
         text: qsTr("Startup")
-        font.pointSize: 12
+        font.pixelSize: 14
         Layout.topMargin: 5
         Layout.bottomMargin: 5
     }
@@ -25,7 +25,7 @@ ColumnLayout {
                 return qsTr("Choose the Kit selected on startup and after restarting. If the checkbox is active, it will be launched when Firebird starts.")
         }
 
-        font.pointSize: 10
+        font.pixelSize: 12
     }
 
     RowLayout {
@@ -49,7 +49,7 @@ ColumnLayout {
 
     FBLabel {
         text: qsTr("Shutdown")
-        font.pointSize: 12
+        font.pixelSize: 14
         Layout.topMargin: 10
         Layout.bottomMargin: 5
         visible: !Emu.isMobile()
@@ -59,7 +59,7 @@ ColumnLayout {
         Layout.maximumWidth: parent.width
         wrapMode: Text.WordWrap
         text: qsTr("On Application end, write the current state in the current snapshot.")
-        font.pointSize: 10
+        font.pixelSize: 12
         visible: !Emu.isMobile()
     }
 

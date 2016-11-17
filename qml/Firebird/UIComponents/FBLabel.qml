@@ -3,5 +3,4 @@ import QtQuick.Controls 1.0
 
 Label {
     font.family: "system"
-    font.pointSize: 9
 }
