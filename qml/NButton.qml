@@ -32,7 +32,6 @@ Rectangle {
         // Pressing the right mouse button "locks" the button in enabled state
         property bool fixable: false
         property bool state: false
-        property bool hovering: false
 
         preventStealing: true
 
@@ -46,21 +45,15 @@ Rectangle {
         acceptedButtons: Qt.LeftButton | Qt.RightButton
 
         hoverEnabled: !Emu.isMobile()
-        onEntered: {
-            hovering = true
-        }
-        onExited: {
-            hovering = false
-        }
 
         onStateChanged: {
-            parent.active = state || hovering;
+            parent.active = state || containsMouse;
 
             Emu.keypadStateChanged(parent.keymap_id, state);
         }
 
-        onHoveringChanged: {
-            parent.active = state || hovering;
+        onContainsMouseChanged: {
+            parent.active = state || containsMouse;
         }
 
         onPressed: {
