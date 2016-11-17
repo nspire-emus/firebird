@@ -20,10 +20,16 @@ ToolButton {
     FBLabel {
         id: label
         x: 12
-        anchors.top: parent.top
-        anchors.topMargin: 0
-        anchors.horizontalCenter: parent.horizontalCenter
-        font.pointSize: 8
+        anchors {
+            top: parent.top
+            left: parent.left
+            right: parent.right
+        }
+
+        horizontalAlignment: Text.AlignHCenter
+        fontSizeMode: Text.HorizontalFit
+        font.pixelSize: 8
+        width: parent.width
     }
 
     Image {

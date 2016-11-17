@@ -12,6 +12,9 @@
 
 int main(int argc, char **argv)
 {
+    QGuiApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
+    QGuiApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
+
     QApplication app(argc, argv);
 
     QTranslator appTranslator;
@@ -20,7 +23,6 @@ int main(int argc, char **argv)
 
     QCoreApplication::setOrganizationName(QStringLiteral("ndless"));
     QCoreApplication::setApplicationName(QStringLiteral("firebird"));
-    app.setAttribute(Qt::AA_UseHighDpiPixmaps);
 
     // Register QMLBridge for Keypad<->Emu communication
     qmlRegisterSingletonType<QMLBridge>("Firebird.Emu", 1, 0, "Emu", qmlBridgeFactory);
