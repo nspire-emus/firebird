@@ -5,7 +5,10 @@
 
 QDataStream &operator<<(QDataStream &out, const Kit &kit)
 {
-    out << kit.id
+    unsigned int version = 1;
+
+    out << version
+        << kit.id
         << kit.name
         << kit.boot1
         << kit.flash
@@ -17,25 +20,42 @@ QDataStream &operator<<(QDataStream &out, const Kit &kit)
 
 QDataStream &operator>>(QDataStream &in, Kit &kit)
 {
-    in >> kit.id
-       >> kit.name
-       >> kit.boot1
-       >> kit.flash
-       >> kit.snapshot
-       >> kit.type;
+    unsigned int version;
+    in >> version;
+
+    if(version == 1)
+    {
+        in >> kit.id
+           >> kit.name
+           >> kit.boot1
+           >> kit.flash
+           >> kit.snapshot
+           >> kit.type;
+    }
+    else
+        qWarning() << "Unknown Kit serialization version " << version;
 
     return in;
 }
 
 QDataStream &operator<<(QDataStream &out, const KitModel &kits)
 {
-    out << kits.kits << kits.nextID;
+    unsigned int version = 1;
+
+    out << version << kits.kits << kits.nextID;
     return out;
 }
 
 QDataStream &operator>>(QDataStream &in, KitModel &kits)
 {
-    in >> kits.kits >> kits.nextID;
+    unsigned int version;
+    in >> version;
+
+    if(version == 1)
+        in >> kits.kits >> kits.nextID;
+    else
+        qWarning() << "Unknown KitModel serialization version " << version;
+
     return in;
 }
 
