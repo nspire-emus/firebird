@@ -713,3 +713,14 @@ void MainWindow::xmodemSend()
     std::string path = filename.toStdString();
     xmodem_send(path.c_str());
 }
+
+bool QQuickWidgetLessBroken::event(QEvent *event)
+{
+    if(event->type() == QEvent::Leave)
+    {
+        QMouseEvent ev(QMouseEvent::MouseMove, QPointF(0, 0), Qt::NoButton, Qt::NoButton, Qt::NoModifier);
+        QQuickWidget::event(&ev);
+    }
+
+    return QQuickWidget::event(event);
+}

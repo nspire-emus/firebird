@@ -329,7 +329,7 @@
        </attribute>
        <layout class="QHBoxLayout" name="horizontalLayout_5">
         <item>
-         <widget class="QQuickWidget" name="keypadWidget">
+         <widget class="QQuickWidgetLessBroken" name="keypadWidget">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
             <horstretch>0</horstretch>
@@ -668,9 +668,9 @@
  </widget>
  <customwidgets>
   <customwidget>
-   <class>QQuickWidget</class>
+   <class>QQuickWidgetLessBroken</class>
    <extends>QWidget</extends>
-   <header>QtQuickWidgets/QQuickWidget</header>
+   <header>mainwindow.h</header>
   </customwidget>
   <customwidget>
    <class>LCDWidget</class>

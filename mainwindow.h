@@ -7,6 +7,7 @@
 #include <QSettings>
 #include <QLabel>
 #include <QTreeWidgetItem>
+#include <QQuickWidget>
 
 #include "emuthread.h"
 #include "flashdialog.h"
@@ -16,6 +17,24 @@
 namespace Ui {
 class MainWindow;
 }
+
+/* QQuickWidget does not care about QEvent::Leave,
+ * which results in MouseArea::containsMouse to get stuck when
+ * the mouse leaves the widget without triggering a move outside
+ * the MouseArea. Work around it by translating QEvent::Leave
+ * to a MouseMove to (0/0). */
+
+class QQuickWidgetLessBroken : public QQuickWidget
+{
+    Q_OBJECT
+
+public:
+    explicit QQuickWidgetLessBroken(QWidget *parent) : QQuickWidget(parent) {}
+    virtual ~QQuickWidgetLessBroken() {}
+
+protected:
+    bool event(QEvent *event) override;
+};
 
 class MainWindow : public QMainWindow
 {
