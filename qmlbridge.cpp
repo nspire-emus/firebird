@@ -27,14 +27,30 @@ QMLBridge::QMLBridge(QObject *parent) : QObject(parent)
     if(settings.contains(QStringLiteral("usbdir")) && !settings.contains(QStringLiteral("usbdirNew")))
         setUSBDir(QStringLiteral("/") + settings.value(QStringLiteral("usbdir")).toString());
 
+    bool add_default_kit = false;
+
     // Kits need to be loaded manually
     if(!settings.contains(QStringLiteral("kits")))
     {
         // Migrate
-        kit_model.addKit(tr("Default"), settings.value(QStringLiteral("boot1")).toString(), settings.value(QStringLiteral("flash")).toString(), settings.value(QStringLiteral("snapshotPath")).toString());
+        add_default_kit = true;
     }
     else
+    {
         kit_model = settings.value(QStringLiteral("kits")).value<KitModel>();
+
+        // No kits is a bad situation to be in, as kits can only be duplicated...
+        if(kit_model.rowCount() == 0)
+            add_default_kit = true;
+    }
+
+    if(add_default_kit)
+    {
+        kit_model.addKit(tr("Default"),
+                     settings.value(QStringLiteral("boot1")).toString(),
+                     settings.value(QStringLiteral("flash")).toString(),
+                     settings.value(QStringLiteral("snapshotPath")).toString());
+    }
 
     // Same for debug_on_*
     debug_on_start = getDebugOnStart();
