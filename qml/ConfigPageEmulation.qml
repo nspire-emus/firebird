@@ -43,7 +43,7 @@ ColumnLayout {
             textRole: "name"
             model: Emu.kits
             currentIndex: Emu.kitIndexForID(Emu.defaultKit)
-            onCurrentIndexChanged: Emu.defaultKit = model.getData(currentIndex, KitModel.IDRole)
+            onCurrentIndexChanged: Emu.defaultKit = model.getDataRow(currentIndex, KitModel.IDRole)
         }
     }
 

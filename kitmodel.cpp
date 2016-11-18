@@ -78,10 +78,10 @@ QHash<int, QByteArray> KitModel::roleNames() const
 
 QVariant KitModel::data(const QModelIndex &index, int role) const
 {
-    return getData(index.row(), role);
+    return getDataRow(index.row(), role);
 }
 
-QVariant KitModel::getData(const int row, int role) const
+QVariant KitModel::getDataRow(const int row, int role) const
 {
     if(row < 0 || row >= kits.count())
         return QVariant();
@@ -105,7 +105,7 @@ QVariant KitModel::getData(const int row, int role) const
     }
 }
 
-bool KitModel::setData(const int row, const QVariant &value, int role)
+bool KitModel::setDataRow(const int row, const QVariant &value, int role)
 {
     if(row < 0 || row >= kits.count())
         return false;

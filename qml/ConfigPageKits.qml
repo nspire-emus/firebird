@@ -62,7 +62,7 @@ ColumnLayout {
                 placeholderText: qsTr("Name")
                 Layout.fillWidth: true
 
-                onTextChanged: if(triggerSignals) kitModel.setData(kitList.currentIndex, text, KitModel.NameRole)
+                onTextChanged: if(triggerSignals) kitModel.setDataRow(kitList.currentIndex, text, KitModel.NameRole)
             }
 
             FBLabel {
@@ -73,7 +73,7 @@ ColumnLayout {
             FileSelect {
                 id: boot1Edit
                 Layout.fillWidth: true
-                onFilePathChanged: if(triggerSignals) kitModel.setData(kitList.currentIndex, filePath, KitModel.Boot1Role)
+                onFilePathChanged: if(triggerSignals) kitModel.setDataRow(kitList.currentIndex, filePath, KitModel.Boot1Role)
             }
 
             FBLabel {
@@ -87,7 +87,7 @@ ColumnLayout {
                 FileSelect {
                     id: flashEdit
                     Layout.fillWidth: true
-                    onFilePathChanged: if(triggerSignals)  kitModel.setData(kitList.currentIndex, filePath, KitModel.FlashRole)
+                    onFilePathChanged: if(triggerSignals)  kitModel.setDataRow(kitList.currentIndex, filePath, KitModel.FlashRole)
                 }
 
                 Button {
@@ -108,7 +108,7 @@ ColumnLayout {
             FileSelect {
                 id: snapshotEdit
                 Layout.fillWidth: true
-                onFilePathChanged: if(triggerSignals) kitModel.setData(kitList.currentIndex, filePath, KitModel.SnapshotRole)
+                onFilePathChanged: if(triggerSignals) kitModel.setDataRow(kitList.currentIndex, filePath, KitModel.SnapshotRole)
                 dialog.selectExisting: false
             }
         }
