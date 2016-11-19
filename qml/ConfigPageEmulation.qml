@@ -9,7 +9,7 @@ ColumnLayout {
 
     FBLabel {
         text: qsTr("Startup")
-        font.pixelSize: 14
+        font.pixelSize: TextMetrics.title2Size
         Layout.topMargin: 5
         Layout.bottomMargin: 5
     }
@@ -25,14 +25,17 @@ ColumnLayout {
                 return qsTr("Choose the Kit selected on startup and after restarting. If the checkbox is active, it will be launched when Firebird starts.")
         }
 
-        font.pixelSize: 12
+        font.pixelSize: TextMetrics.normalSize
     }
 
     RowLayout {
         // No spacing so that the spin box looks like part of the label
         spacing: 0
+        width: parent.width
+        Layout.fillWidth: true
 
         LabeledCheckBox {
+            Layout.maximumWidth: parent.parent.width - startupKit.width
             text: qsTr("On Startup, run Kit")
 
             checked: Emu.autostart
@@ -40,6 +43,8 @@ ColumnLayout {
         }
 
         ComboBox {
+            id: startupKit
+            Layout.maximumWidth: parent.parent.width * 0.4
             textRole: "name"
             model: Emu.kits
             currentIndex: Emu.kitIndexForID(Emu.defaultKit)
@@ -49,7 +54,7 @@ ColumnLayout {
 
     FBLabel {
         text: qsTr("Shutdown")
-        font.pixelSize: 14
+        font.pixelSize: TextMetrics.title1Size
         Layout.topMargin: 10
         Layout.bottomMargin: 5
         visible: !Emu.isMobile()
@@ -59,7 +64,7 @@ ColumnLayout {
         Layout.maximumWidth: parent.width
         wrapMode: Text.WordWrap
         text: qsTr("On Application end, write the current state in the current snapshot.")
-        font.pixelSize: 12
+        font.pixelSize: TextMetrics.normalSize
         visible: !Emu.isMobile()
     }
 

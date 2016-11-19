@@ -7,3 +7,4 @@ KitList 1.0 KitList.qml
 FBLabel 1.0 FBLabel.qml
 FileSelect 1.0 FileSelect.qml
 FBLink 1.0 FBLink.qml
+singleton TextMetrics 1.0 TextMetrics.qml

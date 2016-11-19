@@ -5,6 +5,7 @@ import QtQuick.Layouts 1.0
 Item {
     property alias checked: checkBox.checked
     property alias text: label.text
+    property int maxWidth: width
 
     implicitWidth: row.width
     implicitHeight: row.height
@@ -26,8 +27,12 @@ Item {
             id: label
             anchors {
                 left: checkBox.right
-                leftMargin: -5
+                leftMargin: Qt.platform.os === "android" ? 0 : -5;
             }
+
+            Layout.fillWidth: true
+            Layout.maximumWidth: parent.parent.maxWidth - checkBox.width
+            wrapMode: Text.WordWrap
 
             //Disabled for now, might be mistaken for a disabled control
             //color: checkBox.checked ? "" : "grey"

@@ -28,7 +28,7 @@ ToolButton {
 
         horizontalAlignment: Text.AlignHCenter
         fontSizeMode: Text.HorizontalFit
-        font.pixelSize: 8
+        font.pixelSize: TextMetrics.normalSize
         width: parent.width
     }
 

@@ -14,12 +14,13 @@ ColumnLayout {
                 color: styleData.selected ? "darkgrey" :"lightgrey"
                 border.color:  "grey"
                 implicitWidth: Math.max(text.width + 4, 80)
-                implicitHeight: 24
+                implicitHeight: text.height + 4
                 radius: 2
                 FBLabel {
                     id: text
                     anchors.centerIn: parent
                     text: styleData.title
+                    font.pixelSize: TextMetrics.normalSize
                     color: styleData.selected ? "white" : "black"
                 }
             }
