@@ -340,7 +340,7 @@ void QMLBridge::createFlash(unsigned int kitIndex)
     FlashDialog dialog;
 
     connect(&dialog, &FlashDialog::flashCreated, [&] (QString f){
-        kit_model.setData(kitIndex, f, KitModel::FlashRole);
+        kit_model.setDataRow(kitIndex, f, KitModel::FlashRole);
     });
 
     dialog.show();
