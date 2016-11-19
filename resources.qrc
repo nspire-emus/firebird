@@ -49,6 +49,7 @@
         <file>qml/ConfigPageEmulation.qml</file>
         <file>qml/ConfigPageFileTransfer.qml</file>
         <file>qml/Firebird/UIComponents/TextMetrics.qml</file>
+        <file>qml/ScrollingKeypad.qml</file>
     </qresource>
     <qresource prefix="/i18n">
         <file>i18n/de_DE.qm</file>

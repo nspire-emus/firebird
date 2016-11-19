@@ -338,13 +338,13 @@
           </property>
           <property name="minimumSize">
            <size>
-            <width>270</width>
-            <height>0</height>
+            <width>285</width>
+            <height>90</height>
            </size>
           </property>
           <property name="maximumSize">
            <size>
-            <width>270</width>
+            <width>285</width>
             <height>340</height>
            </size>
           </property>
@@ -356,7 +356,7 @@
           </property>
           <property name="source">
            <url>
-            <string>qrc:/qml/qml/Keypad.qml</string>
+            <string>qrc:/qml/qml/ScrollingKeypad.qml</string>
            </url>
           </property>
          </widget>
