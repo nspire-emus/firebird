@@ -17,7 +17,7 @@ ColumnLayout {
     FBLabel {
         Layout.maximumWidth: parent.width
         wrapMode: Text.WordWrap
-        text: qsTr("If enabled, a remote GDB debugger can be connected\nto the port and be used for debugging.")
+        text: qsTr("If enabled, a remote GDB debugger can be connected to the port and be used for debugging.")
         font.pixelSize: TextMetrics.normalSize
     }
 
@@ -58,7 +58,7 @@ ColumnLayout {
     FBLabel {
         Layout.maximumWidth: parent.width
         wrapMode: Text.WordWrap
-        text: qsTr("Enable this to access the internal debugger via TCP (telnet/netcat),\nlike for firebird-send.")
+        text: qsTr("Enable this to access the internal debugger via TCP (telnet/netcat), like for firebird-send.")
         font.pixelSize: TextMetrics.normalSize
     }
 

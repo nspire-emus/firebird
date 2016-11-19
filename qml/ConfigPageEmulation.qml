@@ -20,7 +20,7 @@ ColumnLayout {
         wrapMode: Text.WordWrap
         text: {
             if(!Emu.isMobile())
-                return qsTr("When opening Firebird, the selected Kit will be started.\nIf available, it will resume the emulation from the provided snapshot.")
+                return qsTr("When opening Firebird, the selected Kit will be started. If available, it will resume the emulation from the provided snapshot.")
             else
                 return qsTr("Choose the Kit selected on startup and after restarting. If the checkbox is active, it will be launched when Firebird starts.")
         }

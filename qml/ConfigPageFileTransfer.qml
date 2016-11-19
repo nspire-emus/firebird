@@ -18,7 +18,7 @@ ColumnLayout {
     FBLabel {
         Layout.maximumWidth: parent.width
         wrapMode: Text.WordWrap
-        text: qsTr("When dragging files onto Firebird,\nit will try to send the file to the emulated system.")
+        text: qsTr("When dragging files onto Firebird, it will try to send the file to the emulated system.")
         font.pixelSize: TextMetrics.normalSize
     }
 

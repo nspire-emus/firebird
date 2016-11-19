@@ -356,7 +356,7 @@
           </property>
           <property name="source">
            <url>
-            <string>qrc:/qml/qml/ScrollingKeypad.qml</string>
+            <string notr="true">qrc:/qml/qml/ScrollingKeypad.qml</string>
            </url>
           </property>
          </widget>
