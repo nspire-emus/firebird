@@ -26,6 +26,19 @@ translation_pc_ptr: .global translation_pc_ptr
 #define AC_NOT_PTR 0b01
 #define AC_FLAGS (AC_INVALID|AC_NOT_PTR)
 
+#ifdef __clang__
+/* On iOS, .text relocations are permitted and due to
+   a bug it's unable to handle to handle our way of
+   avoiding them anyway... */
+
+.macro sym name, no=1
+.endm
+
+.macro loadsym reg, name, no=1
+    ldr \reg, =\name
+.endm
+#else
+
 /* What you can see here is a really bad way of avoiding
    relocations in the .text section.
    For each use of an external symbol, you need to insert
@@ -67,6 +80,8 @@ sym  addr_cache, 5
 sym  data_abort, 5
 sym  addr_cache, 6
 sym  data_abort, 6
+
+#endif
 
 translation_enter: .global translation_enter
     push    {r4-r11, lr}
