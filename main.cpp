@@ -19,6 +19,13 @@ int main(int argc, char **argv)
 
     QApplication app(argc, argv);
 
+    /* On iOS, sometimes garbage text gets rendered:
+     * https://bugreports.qt.io/browse/QTBUG-47399
+     * https://bugreports.qt.io/browse/QTBUG-56765 */
+    #ifdef IS_IOS_BUILD
+        app.setFont(QFont(QStringLiteral("Helvetica Neue")));
+    #endif
+
     QTranslator appTranslator;
     appTranslator.load(QLocale::system().name(), QStringLiteral(":/i18n/i18n/"));
     app.installTranslator(&appTranslator);
