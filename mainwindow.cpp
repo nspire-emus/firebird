@@ -42,7 +42,11 @@ MainWindow::MainWindow(QWidget *parent) :
 
     // Create config dialog
     ui->keypadWidget->engine()->addImportPath(QStringLiteral("qrc:/qml/qml"));
-    config_dialog = (new QQmlComponent(ui->keypadWidget->engine(), QUrl(QStringLiteral("qrc:/qml/qml/FBConfigDialog.qml")), this))->create();
+    QQmlComponent *dialog_component = new QQmlComponent(ui->keypadWidget->engine(), QUrl(QStringLiteral("qrc:/qml/qml/FBConfigDialog.qml")), this);
+    if(!dialog_component->isReady())
+        qCritical() << "Could not create QML config dialog:" << dialog_component->errorString();
+
+    config_dialog = dialog_component->create();
 
     //Emu -> GUI (QueuedConnection as they're different threads)
     connect(&emu, SIGNAL(serialChar(char)), this, SLOT(serialChar(char)), Qt::QueuedConnection);
