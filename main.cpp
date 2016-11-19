@@ -12,7 +12,9 @@
 
 int main(int argc, char **argv)
 {
-    QGuiApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
+    #ifdef Q_OS_ANDROID
+        QGuiApplication::setAttribute(Qt::AA_DisableHighDpiScaling);
+    #endif
     QGuiApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
 
     QApplication app(argc, argv);
