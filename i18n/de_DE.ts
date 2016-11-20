@@ -180,7 +180,7 @@ werden sie an das angegebene Verzeichnis gesendet.</translation>
     <message>
         <location filename="../qml/ConfigPageKits.qml" line="52"/>
         <source>You need to specify files for Boot1 and Flash</source>
-        <translation>Es müssen Dateien für Boot1 und Flasch festgelegt werden</translation>
+        <translation>Es müssen Dateien für Boot1 und Flash festgelegt werden</translation>
     </message>
     <message>
         <location filename="../qml/ConfigPageKits.qml" line="56"/>
