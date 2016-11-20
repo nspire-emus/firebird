@@ -8,12 +8,15 @@ Rectangle {
     id: mobileui
     width: 320
     height: 480
-    color: "#AAA"
+    color: "#eee"
 
     Component.onCompleted: {
         // FIXME: The toast might not yet be registered here
 
-        if(Emu.getFlashPath() !== ""
+        Emu.useDefaultKit();
+
+        if(Emu.autostart
+            && Emu.getFlashPath() !== ""
             && Emu.getSnapshotPath() !== ""
             && Emu.getBoot1Path() !== "")
             Emu.resume();
@@ -53,7 +56,10 @@ Rectangle {
             title: qsTr("Start")
             icon: "qrc:/icons/resources/icons/edit-bomb.png"
 
-            onClicked: Emu.restart();
+            onClicked: {
+                Emu.useDefaultKit();
+                Emu.restart();
+            }
         }
 
         SidebarButton {
@@ -71,7 +77,10 @@ Rectangle {
             title: qsTr("Resume")
             icon: "qrc:/icons/resources/icons/system-suspend-hibernate.png"
 
-            onClicked: Emu.resume()
+            onClicked: {
+                Emu.useDefaultKit();
+                Emu.resume()
+            }
         }
 
         SidebarButton {
@@ -135,45 +144,40 @@ Rectangle {
         contentWidth: controlsRow.width
         contentHeight: controlsRow.height
         clip: true
-        anchors.top: screen.bottom
-        anchors.topMargin: 0
-        anchors.bottom: parent.bottom
-        anchors.bottomMargin: 0
-        anchors.right: parent.right
-        anchors.rightMargin: 0
-        anchors.left: parent.left
-        anchors.leftMargin: 0
+        anchors {
+            top: screen.bottom
+            bottom: parent.bottom
+            right: parent.right
+            left: parent.left
+        }
 
         Row {
             id: controlsRow
 
-            Rectangle {
+            Item {
                 id: mobilecontrol1
                 height: keypad.height*controls.width/keypad.width + iosmargin.height
                 width: controls.width
-                color: keypad.color
 
                 Keypad {
                     id: keypad
                     transform: Scale { origin.x: 0; origin.y: 0; xScale: controls.width/keypad.width; yScale: controls.width/keypad.width }
                 }
 
-                Rectangle {
+                Item {
                     id: iosmargin
                     // This is needed to avoid opening the control center
                     height: Qt.platform.os === "ios" ? 20 : 0
                 }
             }
 
-            Rectangle {
+            Item {
                 height: mobilecontrol1.height
                 width: controls.width
-                color: keypad.color
 
                 MobileControl2 {
                     id: control2
-                    anchors.left: parent.left
-                    anchors.right: parent.right
+                    anchors.fill: parent
                     //transform: Scale { origin.x: 0; origin.y: 0; xScale: controls.width/keypad.width; yScale: controls.width/keypad.width }
                 }
             }
@@ -184,10 +188,9 @@ Rectangle {
         id: toast
         x: 60
         z: 1
-        width: message.width+2*5
+        implicitWidth: message.width+2*5
+        implicitHeight: message.height+2*5
 
-        anchors.top: parent.bottom
-        anchors.topMargin: -90
         anchors.bottom: parent.bottom
         anchors.bottomMargin: 61
         anchors.horizontalCenter: parent.horizontalCenter
@@ -200,25 +203,26 @@ Rectangle {
         opacity: 0
         visible: opacity > 0
 
+        Component.onCompleted: Emu.registerToast(this)
+
         Behavior on opacity { NumberAnimation { duration: 200 } }
+
+        function showMessage(str) {
+            message.text = str;
+            opacity = 1;
+            timer.restart();
+        }
 
         Text {
             id: message
             text: "Text"
             anchors.centerIn: parent
-            font.pixelSize: parent.height / 2
-
-            Component.onCompleted: Emu.registerToast(this)
+            font.pointSize: 12
 
             Timer {
                 id: timer
                 interval: 2000
                 onTriggered: parent.parent.opacity = 0;
-            }
-
-            onTextChanged: {
-                parent.opacity = 1;
-                timer.restart();
             }
         }
 

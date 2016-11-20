@@ -34,33 +34,55 @@ Rectangle {
         visible: false
     }
 
+    /* Click and hold at same place -> Down
+       Click and quick release -> Down
+       Click and move -> Contact */
     MouseArea {
-        id: mouseArea1
         anchors.rightMargin: 0
         anchors.bottomMargin: 0
         anchors.fill: parent
         acceptedButtons: Qt.LeftButton
         preventStealing: true
 
+        property int origX
+        property int origY
+        property int moveThreshold: 5
+        property bool isDown
+
         Component.onCompleted: {
             Emu.registerTouchpad(this);
         }
 
-        function submitState() {
-            var p = pressed;
-            if(mouseX < 0 || mouseX > width
-                    || mouseY < 0 || mouseY > height)
-                p = false;
-
-            Emu.touchpadStateChanged(mouseX/width, mouseY/height, p);
-            highlight.x = mouseX - highlight.width/2;
-            highlight.y = mouseY - highlight.height/2;
-            highlight.visible = p;
+        Timer {
+            id: clickOnHoldTimer
+            interval: 200
+            running: false
+            repeat: false
+            onTriggered: {
+                parent.isDown = true;
+                parent.submitState();
+            }
         }
 
-        function showHighlight(x, y) {
+        Timer {
+            id: clickOnReleaseTimer
+            interval: 100
+            running: false
+            repeat: false
+            onTriggered: {
+                parent.isDown = false;
+                parent.submitState();
+            }
+        }
+
+        function submitState() {
+            Emu.touchpadStateChanged(mouseX/width, mouseY/height, isDown || pressed, isDown);
+        }
+
+        function showHighlight(x, y, down) {
             highlight.x = x*width - highlight.width/2;
             highlight.y = y*height - highlight.height/2;
+            highlight.color = down ? "#b3edf200" : "#b38080ff";
             highlight.visible = true;
         }
 
@@ -69,19 +91,37 @@ Rectangle {
         }
 
         onMouseXChanged: {
+            if(Math.abs(mouseX - origX) > moveThreshold)
+                clickOnHoldTimer.stop();
+
             submitState();
         }
 
         onMouseYChanged: {
+            if(Math.abs(mouseY - origY) > moveThreshold)
+                clickOnHoldTimer.stop();
+
             submitState();
         }
 
         onReleased: {
+            if(clickOnHoldTimer.running)
+            {
+                clickOnHoldTimer.stop();
+                isDown = true;
+                clickOnReleaseTimer.restart();
+            }
+            else
+                isDown = false;
+
             submitState();
         }
 
         onPressed: {
-            submitState();
+            origX = mouse.x;
+            origY = mouse.y;
+            isDown = false;
+            clickOnHoldTimer.restart();
         }
     }
 }

@@ -1,4 +1,5 @@
-lessThan(QT_MAJOR_VERSION, 5): error("You need at least Qt 5 to build firebird!")
+lessThan(QT_MAJOR_VERSION, 5): error("You need at least Qt 5.6 to build firebird!")
+lessThan(QT_MINOR_VERSION, 6): error("You need at least Qt 5.6 to build firebird!")
 
 # Version
 DEFINES += FB_VERSION=0.31-dev
@@ -175,7 +176,8 @@ SOURCES += $$ASMCODE_IMPL \
     core/debug.cpp \
     core/flash.cpp \
     core/emu.cpp \
-    usblinktreewidget.cpp
+    usblinktreewidget.cpp \
+    kitmodel.cpp
 
 FORMS += \
     mainwindow.ui \
@@ -218,19 +220,35 @@ HEADERS += \
     core/usblink.h \
     core/usblink_queue.h \
     qtframebuffer.h \
-    usblinktreewidget.h
+    usblinktreewidget.h \
+    kitmodel.h
 
 # For localization
 lupdate_only {
-SOURCES += qml/MobileControl2.qml \
+SOURCES += qml/Keypad.qml \
+    qml/MobileUI.qml \
+    qml/ConfigPagesModel.qml \
+    qml/NNumButton.qml \
+    qml/MobileControl2.qml \
+    qml/SidebarButton.qml \
+    qml/ConfigPageDebug.qml \
+    qml/ConfigPageEmulation.qml \
+    qml/ConfigPageFileTransfer.qml \
+    qml/ConfigPageKits.qml \
+    qml/NBigButton.qml \
     qml/NButton.qml \
     qml/NAlphaButton.qml \
-    qml/MobileUI.qml \
-    qml/NBigButton.qml \
-    qml/Touchpad.qml \
     qml/NDualButton.qml \
-    qml/Keypad.qml \
-    qml/NNumButton.qml
+    qml/FBConfigDialog.qml \
+    qml/Touchpad.qml \
+    qml/Firebird/Emu/Emu.qml \
+    qml/Firebird/Emu/EmuScreen.qml \
+    qml/Firebird/UIComponents/FBLabel.qml \
+    qml/Firebird/UIComponents/FileSelect.qml \
+    qml/Firebird/UIComponents/PageDelegate.qml \
+    qml/Firebird/UIComponents/PageList.qml \
+    qml/Firebird/UIComponents/ConfigPages.qml \
+    qml/Firebird/UIComponents/LabeledCheckBox.qml
 }
 
 # Generate the binary arm code into armcode_bin.h

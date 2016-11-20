@@ -7,14 +7,34 @@
 #include <QSettings>
 #include <QLabel>
 #include <QTreeWidgetItem>
+#include <QQuickWidget>
 
 #include "emuthread.h"
 #include "flashdialog.h"
 #include "lcdwidget.h"
+#include "qmlbridge.h"
 
 namespace Ui {
 class MainWindow;
 }
+
+/* QQuickWidget does not care about QEvent::Leave,
+ * which results in MouseArea::containsMouse to get stuck when
+ * the mouse leaves the widget without triggering a move outside
+ * the MouseArea. Work around it by translating QEvent::Leave
+ * to a MouseMove to (0/0). */
+
+class QQuickWidgetLessBroken : public QQuickWidget
+{
+    Q_OBJECT
+
+public:
+    explicit QQuickWidgetLessBroken(QWidget *parent) : QQuickWidget(parent) {}
+    virtual ~QQuickWidgetLessBroken() {}
+
+protected:
+    bool event(QEvent *event) override;
+};
 
 class MainWindow : public QMainWindow
 {
@@ -28,6 +48,8 @@ public slots:
     //Miscellaneous
     void closeEvent(QCloseEvent *) override;
     void showStatusMsg(QString str);
+    void kitDataChanged(QModelIndex, QModelIndex, QVector<int> roles);
+    void kitAnythingChanged();
 
     //Drag & Drop
     void dropEvent(QDropEvent* event) override;
@@ -35,6 +57,7 @@ public slots:
 
     //Menu "Emulator"
     void restart();
+    void openConfiguration();
 
     //Menu "Tools"
     void screenshot();
@@ -77,26 +100,8 @@ public slots:
     void usblinkDownload(int progress);
     void usblinkProgress(int progress);
 
-    //Settings
-    void selectBoot1();
-    void selectFlash();
-    void setDebuggerOnStartup(bool b);
-    void setDebuggerOnWarning(bool b);
-    void setUIMode(bool docks_enabled);
-    void setAutostart(bool b);
-    void setBootOrder(bool diags_first);
-    void setUSBPath(QString path);
-    void setGDBPort(int port);
-    void setRDBGPort(int port);
-    void setSuspendOnClose(bool b);
-    void setResumeOnOpen(bool b);
-    void changeSnapshotPath();
-
     //Tool bar (above screen)
     void showSpeed(double value);
-
-    //FlashDialog
-    void flashCreated(QString path);
 
 signals:
     void debuggerCommand(QString input);
@@ -108,11 +113,22 @@ public:
 private:
     void suspendToPath(QString path);
     bool resumeFromPath(QString path);
-    void setPathBoot1(QString path);
-    void setPathFlash(QString path);
+
+    void setUIMode(bool docks_enabled);
 
     void updateUIActionState(bool emulation_running);
     void raiseDebugger();
+
+    void refillKitMenus();
+
+    // QMLBridge is used as settings storage,
+    // so the settings have to be read from there
+    // and emu_thread configured appropriately.
+    void applyQMLBridgeSettings();
+
+    // Configure everything according to the Kit's
+    // configuration.
+    void setCurrentKit(const Kit& kit);
 
     Ui::MainWindow *ui = nullptr;
 
@@ -121,12 +137,16 @@ private:
 
     EmuThread emu;
     QSettings *settings = nullptr;
+    QString snapshot_path;
     FlashDialog flash_dialog;
     // To make it possible to activate the debugger
     QDockWidget *dock_debugger = nullptr;
 
     // Second LCDWidget for use as external window
     LCDWidget lcd{this, Qt::Window};
+
+    // The QML Config Dialog
+    QObject *config_dialog = nullptr;
 
     // Used for autosuspend on close.
     // The close event has to be deferred until the suspend operation completed successfully.

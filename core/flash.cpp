@@ -764,6 +764,72 @@ bool flash_read_settings(uint32_t *sdram_size, uint32_t *product, uint32_t *feat
     return true;
 }
 
+std::string flash_read_type(FILE *flash)
+{
+    uint32_t i;
+    struct manuf_data_804 manuf;
+    if(fread(&i, sizeof(i), 1, flash) != 1)
+        return "";
+
+    if(i == 0xFFFFFFFF)
+        return "CAS+";
+
+    if((fseek(flash, 0x844 - sizeof(i), SEEK_CUR) != 0)
+    || (fread(&manuf, sizeof(manuf), 1, flash) != 1))
+        return "";
+
+    std::string ret;
+    switch(manuf.product)
+    {
+    case 0x0C:
+        ret = "Touchpad CAS";
+        break;
+    case 0x0D:
+        ret = "Lab Cradle";
+        break;
+    case 0x0E:
+        ret = "Touchpad";
+        break;
+    case 0x0F:
+        ret = "CX CAS";
+        break;
+    case 0x10:
+        ret = "CX";
+        break;
+    case 0x11:
+        ret = "CM CAS";
+        break;
+    case 0x12:
+        ret = "CM";
+        break;
+    default:
+        ret = "???";
+        break;
+    }
+
+    if(manuf.product >= 0x0F)
+    {
+        ret += " (HW ";
+        switch(manuf.ext.features)
+        {
+        case 0x05:
+            ret += "A)";
+            break;
+        case 0x85:
+            ret += "J)";
+            break;
+        case 0x185:
+            ret += "W)";
+            break;
+        default:
+            ret += "?)";
+            break;
+        }
+    }
+
+    return ret;
+}
+
 size_t flash_suspend_flexsize()
 {
     const size_t num_blocks = nand.metrics.num_pages >> nand.metrics.log2_pages_per_block,

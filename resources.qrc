@@ -18,6 +18,8 @@
         <file>resources/icons/kmplayer.png</file>
         <file>resources/icons/preferences-desktop-keyboard.png</file>
         <file>resources/icons/document.png</file>
+        <file>resources/icons/media-flash.png</file>
+        <file>resources/icons/drive-removable-media-usb.png</file>
     </qresource>
     <qresource prefix="/qml">
         <file>qml/Keypad.qml</file>
@@ -30,6 +32,24 @@
         <file>qml/MobileUI.qml</file>
         <file>qml/MobileControl2.qml</file>
         <file>qml/SidebarButton.qml</file>
+        <file>qml/ConfigPagesModel.qml</file>
+        <file>qml/Firebird/UIComponents/PageDelegate.qml</file>
+        <file>qml/Firebird/UIComponents/PageList.qml</file>
+        <file>qml/Firebird/UIComponents/qmldir</file>
+        <file>qml/FBConfigDialog.qml</file>
+        <file>qml/ConfigPageDebug.qml</file>
+        <file>qml/Firebird/UIComponents/ConfigPages.qml</file>
+        <file>qml/Firebird/UIComponents/LabeledCheckBox.qml</file>
+        <file>qml/ConfigPageKits.qml</file>
+        <file>qml/Firebird/UIComponents/KitItem.qml</file>
+        <file>qml/Firebird/UIComponents/KitList.qml</file>
+        <file>qml/Firebird/UIComponents/FBLabel.qml</file>
+        <file>qml/Firebird/UIComponents/FileSelect.qml</file>
+        <file>qml/Firebird/UIComponents/FBLink.qml</file>
+        <file>qml/ConfigPageEmulation.qml</file>
+        <file>qml/ConfigPageFileTransfer.qml</file>
+        <file>qml/Firebird/UIComponents/TextMetrics.qml</file>
+        <file>qml/ScrollingKeypad.qml</file>
     </qresource>
     <qresource prefix="/i18n">
         <file>i18n/de_DE.qm</file>

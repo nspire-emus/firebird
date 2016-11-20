@@ -5,6 +5,7 @@
 #include <QtQml>
 
 #include "emuthread.h"
+#include "kitmodel.h"
 
 class QMLBridge : public QObject
 {
@@ -13,16 +14,60 @@ public:
     explicit QMLBridge(QObject *parent = 0);
     ~QMLBridge();
 
+    Q_PROPERTY(unsigned int gdbPort READ getGDBPort WRITE setGDBPort NOTIFY gdbPortChanged)
+    Q_PROPERTY(bool gdbEnabled READ getGDBEnabled WRITE setGDBEnabled NOTIFY gdbEnabledChanged)
+    Q_PROPERTY(unsigned int rdbPort READ getRDBPort WRITE setRDBPort NOTIFY rdbPortChanged)
+    Q_PROPERTY(bool rdbEnabled READ getRDBEnabled WRITE setRDBEnabled NOTIFY rdbEnabledChanged)
+    Q_PROPERTY(bool debugOnStart READ getDebugOnStart WRITE setDebugOnStart NOTIFY debugOnStartChanged)
+    Q_PROPERTY(bool debugOnWarn READ getDebugOnWarn WRITE setDebugOnWarn NOTIFY debugOnWarnChanged)
+    Q_PROPERTY(bool autostart READ getAutostart WRITE setAutostart NOTIFY autostartChanged)
+    Q_PROPERTY(unsigned int defaultKit READ getDefaultKit WRITE setDefaultKit NOTIFY defaultKitChanged)
+    Q_PROPERTY(bool suspendOnClose READ getSuspendOnClose WRITE setSuspendOnClose NOTIFY suspendOnCloseChanged)
+    Q_PROPERTY(QString usbdir READ getUSBDir WRITE setUSBDir NOTIFY usbDirChanged)
+    Q_PROPERTY(KitModel* kits READ getKitModel)
+
+    unsigned int getGDBPort();
+    void setGDBPort(unsigned int port);
+    void setGDBEnabled(bool e);
+    bool getGDBEnabled();
+    unsigned int getRDBPort();
+    void setRDBPort(unsigned int port);
+    void setRDBEnabled(bool e);
+    bool getRDBEnabled();
+    void setDebugOnWarn(bool e);
+    bool getDebugOnWarn();
+    void setDebugOnStart(bool e);
+    bool getDebugOnStart();
+    void setAutostart(bool e);
+    bool getAutostart();
+    unsigned int getDefaultKit();
+    void setDefaultKit(unsigned int id);
+    bool getSuspendOnClose();
+    void setSuspendOnClose(bool e);
+    QString getUSBDir();
+    void setUSBDir(QString dir);
+
+    KitModel *getKitModel() { return &kit_model; }
     Q_INVOKABLE void keypadStateChanged(int keymap_id, bool state);
     Q_INVOKABLE void registerNButton(int keymap_id, QVariant button);
 
     // Coordinates: (0/0) = top left (1/1) = bottom right
-    Q_INVOKABLE void touchpadStateChanged(qreal x, qreal y, bool state);
+    Q_INVOKABLE void touchpadStateChanged(qreal x, qreal y, bool contact, bool down);
     Q_INVOKABLE void registerTouchpad(QVariant touchpad);
 
     Q_INVOKABLE bool isMobile();
 
+    Q_INVOKABLE void sendFile(QUrl url, QString dir);
+
+    // Various utility functions
+    Q_INVOKABLE QString basename(QString path);
+    Q_INVOKABLE QString dir(QString path);
+    Q_INVOKABLE QString toLocalFile(QUrl url);
+    Q_INVOKABLE int kitIndexForID(unsigned int id);
+
     #ifdef MOBILE_UI
+        Q_INVOKABLE void useDefaultKit();
+
         Q_INVOKABLE bool restart();
         Q_INVOKABLE void setPaused(bool b);
         Q_INVOKABLE void reset();
@@ -33,34 +78,55 @@ public:
         Q_INVOKABLE bool saveFlash();
 
         Q_INVOKABLE QString getBoot1Path();
-        Q_INVOKABLE void setBoot1Path(QUrl path);
         Q_INVOKABLE QString getFlashPath();
-        Q_INVOKABLE void setFlashPath(QUrl path);
         Q_INVOKABLE QString getSnapshotPath();
-        Q_INVOKABLE void setSnapshotPath(QUrl path);
-
-        Q_INVOKABLE QString basename(QString path);
 
         Q_INVOKABLE void registerToast(QVariant toast);
         Q_INVOKABLE void toastMessage(QString msg);
 
         EmuThread emu_thread;
+    #else
+        Q_INVOKABLE void createFlash(unsigned int kitIndex);
+    #endif
 
-    public slots:
+public slots:
+    void saveKits();
+    #ifdef MOBILE_UI
         void started(bool success); // Not called on resume
         void resumed(bool success);
         void suspended(bool success);
-
     #endif
 
+signals:
+    void gdbPortChanged();
+    void gdbEnabledChanged();
+    void rdbPortChanged();
+    void rdbEnabledChanged();
+    void debugOnWarnChanged();
+    void debugOnStartChanged();
+    void autostartChanged();
+    void defaultKitChanged();
+    void suspendOnCloseChanged();
+    void usbDirChanged();
+
+    void usblinkProgressChanged(int percent);
+
 private:
+    static void usblink_progress_changed(int percent, void *qml_bridge_p);
+
     QObject *toast = nullptr;
+    #ifdef MOBILE_UI
+        QString snapshot_path;
+    #endif
+    KitModel kit_model;
     QSettings settings;
 };
 
+extern QMLBridge *the_qml_bridge;
+
 void notifyKeypadStateChanged(int row, int col, bool state);
 void notifyTouchpadStateChanged();
-void notifyTouchpadStateChanged(qreal x, qreal y, bool state);
+void notifyTouchpadStateChanged(qreal x, qreal y, bool contact, bool down);
 QObject *qmlBridgeFactory(QQmlEngine *engine, QJSEngine *scriptEngine);
 
 
