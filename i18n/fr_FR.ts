@@ -132,7 +132,7 @@ it will try to send the file to the emulated system.</source>
     <message>
         <location filename="../qml/ConfigPageFileTransfer.qml" line="45"/>
         <source>Single File Transfer</source>
-        <translation type="unfinished"></translation>
+        <translation>Transfert de fichier unique</translation>
     </message>
     <message>
         <location filename="../qml/ConfigPageFileTransfer.qml" line="54"/>
@@ -175,7 +175,7 @@ it will try to send the file to the emulated system.</source>
     <message>
         <location filename="../qml/ConfigPageKits.qml" line="52"/>
         <source>You need to specify files for Boot1 and Flash</source>
-        <translation type="unfinished"></translation>
+        <translation>Vous devez spécifier les fichiers de Boot1 et de Flash</translation>
     </message>
     <message>
         <location filename="../qml/ConfigPageKits.qml" line="56"/>
@@ -864,7 +864,7 @@ Are the paths to boot1 and flash correct?</source>
     <message>
         <location filename="../mainwindow.cpp" line="174"/>
         <source>Start the emulation via Emulation-&gt;Start.</source>
-        <translation type="unfinished"></translation>
+        <translation>Démarrer l&apos;émulation via Emulation-&gt;Démarrer.</translation>
     </message>
     <message>
         <location filename="../mainwindow.cpp" line="334"/>
