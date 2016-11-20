@@ -143,7 +143,7 @@ void QMLBridge::setDebugOnWarn(bool e)
 
 bool QMLBridge::getDebugOnStart()
 {
-    return settings.value(QStringLiteral("debugOnStart"), true).toBool();
+    return settings.value(QStringLiteral("debugOnStart"), false).toBool();
 }
 
 void QMLBridge::setDebugOnStart(bool e)
