@@ -171,7 +171,7 @@ MainWindow::MainWindow(QWidget *parent) :
             if(!emu.boot1.isEmpty() && !emu.flash.isEmpty())
                 emu.start();
             else
-                showStatusMsg(tr("Start the emulation via Emulation->Restart."));
+                showStatusMsg(tr("Start the emulation via Emulation->Start."));
         }
     }
 }
@@ -682,6 +682,14 @@ void MainWindow::setCurrentKit(const Kit &kit)
 
 void MainWindow::restart()
 {
+    /* If the emulation isn't running, use the default kit */
+    if(!ui->actionPause->isEnabled())
+    {
+        int kitIndex = the_qml_bridge->kitIndexForID(the_qml_bridge->getDefaultKit());
+        if(kitIndex >= 0)
+            setCurrentKit(the_qml_bridge->getKitModel()->getKits()[kitIndex]);
+    }
+
     if(emu.boot1.isEmpty())
     {
         QMessageBox::critical(this, trUtf8("No boot1 set"), trUtf8("Before you can start the emulation, you have to select a proper boot1 file."));

@@ -569,12 +569,12 @@ werden sie an das angegebene Verzeichnis gesendet.</translation>
         <translation type="vanished">GDB Port:</translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="328"/>
+        <location filename="../mainwindow.ui" line="352"/>
         <source>Keypad</source>
         <translation>Tastatur</translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="372"/>
+        <location filename="../mainwindow.ui" line="328"/>
         <source>Serial Monitor</source>
         <translation>Serielle Konsole</translation>
     </message>
@@ -705,13 +705,12 @@ werden sie an das angegebene Verzeichnis gesendet.</translation>
         <translation>USB verbinden</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="174"/>
         <source>Start the emulation via Emulation-&gt;Restart.</source>
-        <translation>Die Emulation mit Emulation-&gt;Neustart starten.</translation>
+        <translation type="vanished">Die Emulation mit Emulation-&gt;Neustart starten.</translation>
     </message>
     <message>
         <location filename="../mainwindow.cpp" line="370"/>
-        <location filename="../mainwindow.cpp" line="703"/>
+        <location filename="../mainwindow.cpp" line="711"/>
         <source>Restart needed</source>
         <translation>Neustart benötigt</translation>
     </message>
@@ -868,6 +867,11 @@ Sind die Pfade zu Boot1 und Flash korrekt?</translation>
         <translation>Konnte Snapshot nicht laden</translation>
     </message>
     <message>
+        <location filename="../mainwindow.cpp" line="174"/>
+        <source>Start the emulation via Emulation-&gt;Start.</source>
+        <translation>Die Emulation mit Emulation-&gt;Starten starten.</translation>
+    </message>
+    <message>
         <location filename="../mainwindow.cpp" line="334"/>
         <source>&amp;Start</source>
         <translation>&amp;Starten</translation>
@@ -913,34 +917,34 @@ Behebe den Fehler und versuche es erneut.</translation>
         <translation>Emulation gestoppt</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="687"/>
+        <location filename="../mainwindow.cpp" line="695"/>
         <source>No boot1 set</source>
         <translation>Kein boot1 gegeben</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="687"/>
+        <location filename="../mainwindow.cpp" line="695"/>
         <source>Before you can start the emulation, you have to select a proper boot1 file.</source>
         <translation>Bevor die Emulation gestartet werden kann, muss ein boot1 ausgewählt werden.</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="693"/>
+        <location filename="../mainwindow.cpp" line="701"/>
         <source>No flash image loaded</source>
         <translation>Kein Flash-Image geladen</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="693"/>
+        <location filename="../mainwindow.cpp" line="701"/>
         <source>Before you can start the emulation, you have to load a proper flash file.
 You can create one via Flash-&gt;Create Flash in the menu.</source>
         <translation>Bevor die Emulation gestartet werden kann, muss ein passendes Flash-Image ausgewählt werden.</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="703"/>
+        <location filename="../mainwindow.cpp" line="711"/>
         <source>Failed to restart emulator. Close and reopen this app.
 </source>
         <translation>Konnte Emulation nicht neu starten. Schließe diese Anwendung und starte sie neu.</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="713"/>
+        <location filename="../mainwindow.cpp" line="721"/>
         <source>Select file to send</source>
         <translation>Zu sendende Datei wählen</translation>
     </message>

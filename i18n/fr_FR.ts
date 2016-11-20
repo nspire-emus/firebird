@@ -569,12 +569,12 @@ it will try to send the file to the emulated system.</source>
         <translation type="vanished">Port GDB :</translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="328"/>
+        <location filename="../mainwindow.ui" line="352"/>
         <source>Keypad</source>
         <translation>Clavier</translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="372"/>
+        <location filename="../mainwindow.ui" line="328"/>
         <source>Serial Monitor</source>
         <translation>Moniteur série</translation>
     </message>
@@ -701,13 +701,12 @@ it will try to send the file to the emulated system.</source>
         <translation>Connecter l&apos;USB</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="174"/>
         <source>Start the emulation via Emulation-&gt;Restart.</source>
-        <translation>Démarrer l&apos;émulation via Emulation-&gt;Redémarrer.</translation>
+        <translation type="vanished">Démarrer l&apos;émulation via Emulation-&gt;Redémarrer.</translation>
     </message>
     <message>
         <location filename="../mainwindow.cpp" line="370"/>
-        <location filename="../mainwindow.cpp" line="703"/>
+        <location filename="../mainwindow.cpp" line="711"/>
         <source>Restart needed</source>
         <translation>Redémarrage requis</translation>
     </message>
@@ -863,6 +862,11 @@ Are the paths to boot1 and flash correct?</source>
         <translation>Impossible de reprendre</translation>
     </message>
     <message>
+        <location filename="../mainwindow.cpp" line="174"/>
+        <source>Start the emulation via Emulation-&gt;Start.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
         <location filename="../mainwindow.cpp" line="334"/>
         <source>&amp;Start</source>
         <translation>Démarrer</translation>
@@ -906,34 +910,34 @@ Try to fix the issue and try again.</source>
         <translation>Emulation arrêtée</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="687"/>
+        <location filename="../mainwindow.cpp" line="695"/>
         <source>No boot1 set</source>
         <translation>Pas de Boot1 choisi</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="687"/>
+        <location filename="../mainwindow.cpp" line="695"/>
         <source>Before you can start the emulation, you have to select a proper boot1 file.</source>
         <translation>Avant de pouvoir démarrer l&apos;émulation, vous devez choisir un fichier Boot1 valide.</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="693"/>
+        <location filename="../mainwindow.cpp" line="701"/>
         <source>No flash image loaded</source>
         <translation>Pas d&apos;image Flash chargée</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="693"/>
+        <location filename="../mainwindow.cpp" line="701"/>
         <source>Before you can start the emulation, you have to load a proper flash file.
 You can create one via Flash-&gt;Create Flash in the menu.</source>
         <translation>Avant de pouvoir démarrer l&apos;émulation, vous devez choisir un fichier d&apos;image Flash valide. Vous pouvez en créer un via le menu Flash-&gt;Créer la Flash.</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="703"/>
+        <location filename="../mainwindow.cpp" line="711"/>
         <source>Failed to restart emulator. Close and reopen this app.
 </source>
         <translation>Impossible de redémarrer l&apos;émulateur. Veuillez fermer puis réouvrir l&apos;application.</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="713"/>
+        <location filename="../mainwindow.cpp" line="721"/>
         <source>Select file to send</source>
         <translation>Choisir le fichier à envoyer</translation>
     </message>
