@@ -156,6 +156,14 @@ MainWindow::MainWindow(QWidget *parent) :
     if(!the_qml_bridge->getAutostart())
         return;
 
+    if(the_qml_bridge->getKitModel()->allKitsEmpty())
+    {
+        // Do not show the window before MainWindow gets shown,
+        // otherwise it won't be in focus.
+        QTimer::singleShot(0, this, SIGNAL(openConfiguration()));
+        return;
+    }
+
     // Autostart handling
     int kitIndex = the_qml_bridge->kitIndexForID(the_qml_bridge->getDefaultKit());
     if(kitIndex >= 0)
