@@ -202,7 +202,8 @@ bool emu_start(unsigned int port_gdb, unsigned int port_rdbg, const char *snapsh
 
         // Resume components
         uint32_t sdram_size;
-        if(snapshot->sig != 0xCAFEBEEF
+        if(snapshot->sig != SNAPSHOT_SIG
+                || snapshot->version != SNAPSHOT_VER
                 || !flash_resume(snapshot)
                 || !flash_read_settings(&sdram_size, &product, &features, &asic_user_flags)
                 || !cpu_resume(snapshot)
@@ -366,7 +367,8 @@ bool emu_suspend(const char *file)
         return false;
     }
 
-    snapshot->sig = 0xCAFEBEEF;
+    snapshot->sig = SNAPSHOT_SIG;
+    snapshot->version = SNAPSHOT_VER;
 
     bool success = (size_t) gzwrite(gzf, snapshot, size) == size;
 

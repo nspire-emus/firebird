@@ -95,8 +95,12 @@ void gui_debugger_entered_or_left(bool entered); // Notification for debug event
 typedef void (*debug_input_cb)(const char *input);
 void gui_debugger_request_input(debug_input_cb callback);
 
+#define SNAPSHOT_SIG 0xCAFEBEE0
+#define SNAPSHOT_VER 1
+
 typedef struct emu_snapshot {
-    uint32_t sig; // 0xCAFEBEEF
+    uint32_t sig; // SNAPSHOT_SIG
+    uint32_t version; // SNAPSHOT_VER
     int product, asic_user_flags;
     char path_boot1[512];
     char path_flash[512];
