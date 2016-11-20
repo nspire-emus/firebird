@@ -43,7 +43,7 @@ ColumnLayout {
 
         GridLayout {
             anchors.fill: parent
-            columns: (width < 450 || Qt.platform.os === "android") ? 2 : 4
+            columns: (width < 550 || Qt.platform.os === "android") ? 2 : 4
 
             FBLabel {
                 Layout.columnSpan: parent.columns

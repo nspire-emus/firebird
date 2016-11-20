@@ -10,8 +10,8 @@ Window {
     title: qsTr("Firebird Emu Configuration")
     minimumHeight: 400
     minimumWidth: 500
-    height: 410
-    width: 585
+    height: 420
+    width: 540
 
     Dialog {
         visible: false
