@@ -7,10 +7,6 @@ ToolButton {
     property alias icon: image.source
     property alias title: label.text
 
-    anchors.horizontalCenter: parent.horizontalCenter
-    Layout.fillWidth: true
-    Layout.fillHeight: true
-
     Rectangle {
         anchors.fill: parent
         color: "#CCC"
@@ -34,15 +30,13 @@ ToolButton {
 
     Image {
         id: image
-        anchors.top: label.bottom
-        anchors.topMargin: -2
-        anchors.left: parent.left
-        anchors.leftMargin: 0
-        anchors.bottom: parent.bottom
-        anchors.bottomMargin: 0
-        anchors.right: parent.right
-        anchors.rightMargin: 0
+        anchors {
+            top: label.bottom
+            left: parent.left
+            bottom: parent.bottom
+            right: parent.right
+        }
+
         fillMode: Image.PreserveAspectFit
-        anchors.margins: 3
     }
 }

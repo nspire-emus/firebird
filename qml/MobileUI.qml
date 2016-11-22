@@ -38,118 +38,144 @@ Rectangle {
         }
     }
 
-    ColumnLayout {
-        id: sidebar
-        // In landscape mode fit whole framebuffer on screen
-        width: parent.width/350 > parent.height/240 ? parent.width-320*parent.height/240 : parent.width*0.15
-        onWidthChanged: update()
-        anchors.bottom: controls.top
-        anchors.bottomMargin: 0
-        anchors.top: parent.top
-        anchors.topMargin: 0
-        anchors.left: screen.right
-        anchors.leftMargin: 0
+    GridLayout {
+        id: screenAndBar
+        anchors {
+            top: mobileui.top
+            left: mobileui.left
+            right: mobileui.right
+            bottom: undefined
+        }
+        height: (mobileui.width * 0.85) / 320 * 240
+        columns: 2
 
-        SidebarButton {
-            id: restartButton
+        EmuScreen {
+            id: screen
+            focus: true
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+            Layout.preferredWidth: mobileui.width * 0.85
+            Layout.preferredHeight: width/320 * 240
 
-            title: qsTr("Start")
-            icon: "qrc:/icons/resources/icons/edit-bomb.png"
-
-            onClicked: {
-                Emu.useDefaultKit();
-                Emu.restart();
+            Timer {
+                interval: 20
+                running: true; repeat: true
+                onTriggered: screen.update()
             }
         }
 
-        SidebarButton {
-            id: resetButton
+        GridLayout {
+            id: sidebar
+            columns: 1
+            Layout.fillHeight: true
+            Layout.fillWidth: false
 
-            title: qsTr("Reset")
-            icon: "qrc:/icons/resources/icons/system-reboot.png"
+            property int preferredSize: Math.min(screenAndBar.height / 4, mobileui.height * 0.1)
 
-            onClicked: Emu.reset();
-        }
+            columnSpacing: (screenAndBar.width - preferredSize * 4) / 5
+            rowSpacing: (screenAndBar.height - preferredSize * 4) / 5
+            Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
 
-        SidebarButton {
-            id: resumeButton
+            SidebarButton {
+                id: restartButton
 
-            title: qsTr("Resume")
-            icon: "qrc:/icons/resources/icons/system-suspend-hibernate.png"
+                Layout.preferredHeight: sidebar.preferredSize
+                Layout.preferredWidth: sidebar.preferredSize
 
-            onClicked: {
-                Emu.useDefaultKit();
-                Emu.resume()
-            }
-        }
+                title: qsTr("Start")
+                icon: "qrc:/icons/resources/icons/edit-bomb.png"
 
-        SidebarButton {
-            id: saveButton
-
-            title: qsTr("Save")
-            icon: "qrc:/icons/resources/icons/media-floppy.png"
-
-            MessageDialog {
-                id: saveFailedDialog
-                title: qsTr("Error")
-                text: qsTr("Failed to save changes!")
-                icon: StandardIcon.Warning
-            }
-
-            MessageDialog {
-                id: snapWarnDialog
-                title: qsTr("Warning")
-                text: qsTr("Flash saved, but no snapshot location configured.\nYou won't be able to resume.")
-                icon: StandardIcon.Warning
-            }
-
-            onClicked: {
-                var flash_path = Emu.getFlashPath();
-                var snap_path = Emu.getSnapshotPath();
-
-                if(flash_path === "" || !Emu.saveFlash())
-                    saveFailedDialog.visible = true;
-                else
-                {
-                    if(snap_path)
-                        Emu.suspend();
-                    else
-                        snapWarnDialog.visible = true;
+                onClicked: {
+                    Emu.useDefaultKit();
+                    Emu.restart();
                 }
             }
-        }
 
-    }
+            SidebarButton {
+                id: resetButton
 
-    EmuScreen {
-        id: screen
-        focus: true
-        y: 0
-        width: parent.width - sidebar.width
-        height: width/320*240
-        anchors.left: parent.left
-        anchors.leftMargin: 0
+                Layout.preferredHeight: sidebar.preferredSize
+                Layout.preferredWidth: sidebar.preferredSize
 
-        Timer {
-            interval: 20
-            running: true; repeat: true
-            onTriggered: screen.update()
+                title: qsTr("Reset")
+                icon: "qrc:/icons/resources/icons/system-reboot.png"
+
+                onClicked: Emu.reset();
+            }
+
+            SidebarButton {
+                id: resumeButton
+
+                Layout.preferredHeight: sidebar.preferredSize
+                Layout.preferredWidth: sidebar.preferredSize
+
+                title: qsTr("Resume")
+                icon: "qrc:/icons/resources/icons/system-suspend-hibernate.png"
+
+                onClicked: {
+                    Emu.useDefaultKit();
+                    Emu.resume()
+                }
+            }
+
+            SidebarButton {
+                id: saveButton
+
+                Layout.preferredHeight: sidebar.preferredSize
+                Layout.preferredWidth: sidebar.preferredSize
+
+                title: qsTr("Save")
+                icon: "qrc:/icons/resources/icons/media-floppy.png"
+
+                MessageDialog {
+                    id: saveFailedDialog
+                    title: qsTr("Error")
+                    text: qsTr("Failed to save changes!")
+                    icon: StandardIcon.Warning
+                }
+
+                MessageDialog {
+                    id: snapWarnDialog
+                    title: qsTr("Warning")
+                    text: qsTr("Flash saved, but no snapshot location configured.\nYou won't be able to resume.")
+                    icon: StandardIcon.Warning
+                }
+
+                onClicked: {
+                    var flash_path = Emu.getFlashPath();
+                    var snap_path = Emu.getSnapshotPath();
+
+                    if(flash_path === "" || !Emu.saveFlash())
+                        saveFailedDialog.visible = true;
+                    else
+                    {
+                        if(snap_path)
+                            Emu.suspend();
+                        else
+                            snapWarnDialog.visible = true;
+                    }
+                }
+            }
+
         }
     }
 
     Flickable {
         id: controls
-        boundsBehavior: Flickable.StopAtBounds
-        flickableDirection: Flickable.HorizontalAndVerticalFlick
-        contentWidth: controlsRow.width
-        contentHeight: controlsRow.height
-        clip: true
         anchors {
-            top: screen.bottom
+            top: screenAndBar.bottom
             bottom: parent.bottom
             right: parent.right
             left: parent.left
         }
+        width: mobileui.width
+
+        boundsBehavior: Flickable.StopAtBounds
+        flickableDirection: Flickable.HorizontalAndVerticalFlick
+
+        contentWidth: controlsRow.width
+        contentHeight: controlsRow.height
+        clip: true
 
         Row {
             id: controlsRow
@@ -171,15 +197,10 @@ Rectangle {
                 }
             }
 
-            Item {
+            MobileControl2 {
+                id: control2
                 height: mobilecontrol1.height
                 width: controls.width
-
-                MobileControl2 {
-                    id: control2
-                    anchors.fill: parent
-                    //transform: Scale { origin.x: 0; origin.y: 0; xScale: controls.width/keypad.width; yScale: controls.width/keypad.width }
-                }
             }
         }
     }
@@ -232,6 +253,44 @@ Rectangle {
                 timer.stop();
                 parent.opacity = 0;
             }
+        }
+    }
+
+    states: State {
+        name: "tabletMode"
+        when: mobileui.width > mobileui.height
+
+        /* Keypad fills right side, as wide as needed */
+        PropertyChanges {
+            target: controls
+            anchors {
+                right: mobileui.right
+                top: mobileui.top
+                bottom: mobileui.bottom
+                left: undefined
+            }
+            width: keypad.width/keypad.height * controls.height
+        }
+
+        /* Screen + sidebar centered on the remaining space on the left */
+        PropertyChanges {
+            target: screenAndBar
+            anchors {
+                right: controls.left
+                left: mobileui.left
+                bottom: mobileui.bottom
+                top: mobileui.top
+            }
+            height: (mobileui.width - controls.width) / 320 * 240
+            columns: 1
+        }
+
+        /* Horizontal instead of veritcal orientation */
+        PropertyChanges {
+            target: sidebar
+            columns: 4
+            Layout.fillWidth: true
+            preferredSize: Math.min(screenAndBar.width / 4, mobileui.height * 0.15)
         }
     }
 }
