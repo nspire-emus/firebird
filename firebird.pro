@@ -34,7 +34,7 @@ linux: !android {
     INSTALLS += target desktop icon sendtool
 }
 
-QMAKE_CFLAGS = -g -std=gnu11 -Wall -Wextra -Wa,--noexecstack
+QMAKE_CFLAGS = -g -std=gnu11 -Wall -Wextra
 QMAKE_CXXFLAGS = -g -std=c++11 -Wall -Wextra -D QT_NO_CAST_FROM_ASCII
 LIBS += -lz
 
@@ -55,6 +55,11 @@ ios {
     QMAKE_CFLAGS_RELEASE -= -flto
     QMAKE_CXXFLAGS_RELEASE -= -flto
     QMAKE_LFLAGS_RELEASE -= -Wl,-O3 -flto
+}
+
+# noexecstack is not supported by MinGW's as
+!win32 {
+    QMAKE_CFLAGS += -Wa,--noexecstack
 }
 
 # The linker needs this somehow

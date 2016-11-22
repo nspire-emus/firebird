@@ -308,19 +308,16 @@ QString QMLBridge::basename(QString path)
         return tr("None");
 
     std::string pathname = path.toStdString();
-    char separator = QDir::separator().toLatin1();
     return QString::fromStdString(std::string(
-                std::find_if(pathname.rbegin(), pathname.rend(), [=](char c) { return c == separator; }).base(),
+                std::find_if(pathname.rbegin(), pathname.rend(), [=](char c) { return c == '/'; }).base(),
                                       pathname.end()));
 }
 
 QString QMLBridge::dir(QString path)
 {
     std::string pathname = path.toStdString();
-    char separator = QDir::separator().toLatin1();
-    return QString::fromStdString(std::string(
-                pathname.begin(),
-                                      std::find_if(pathname.rbegin(), pathname.rend(), [=](char c) { return c == separator; }).base()));
+    return QString::fromStdString(std::string(pathname.begin(),
+                                              std::find_if(pathname.rbegin(), pathname.rend(), [=](char c) { return c == '/'; }).base()));
 }
 
 QString QMLBridge::toLocalFile(QUrl url)
