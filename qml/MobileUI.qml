@@ -46,8 +46,11 @@ Rectangle {
             right: mobileui.right
             bottom: undefined
         }
-        height: (mobileui.width * 0.85) / 320 * 240
+        height: (mobileui.width - sidebar.preferredSize) / 320 * 240
         columns: 2
+
+        rowSpacing: 0
+        columnSpacing: 0
 
         EmuScreen {
             id: screen
@@ -70,7 +73,7 @@ Rectangle {
             Layout.fillHeight: true
             Layout.fillWidth: false
 
-            property int preferredSize: Math.min(screenAndBar.height / 4, mobileui.height * 0.1)
+            property int preferredSize: mobileui.height * 0.1
 
             columnSpacing: (screenAndBar.width - preferredSize * 4) / 5
             rowSpacing: (screenAndBar.height - preferredSize * 4) / 5
