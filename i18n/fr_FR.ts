@@ -109,17 +109,17 @@ If available, it will resume the emulation from the provided snapshot.</source>
     <message>
         <location filename="../qml/ConfigPageEmulation.qml" line="80"/>
         <source>UI Preferences</source>
-        <translation type="unfinished"></translation>
+        <translation>Options d&apos;interface</translation>
     </message>
     <message>
         <location filename="../qml/ConfigPageEmulation.qml" line="90"/>
         <source>Change the side of the keypad in landscape orientation.</source>
-        <translation type="unfinished"></translation>
+        <translation>Changer de côté le clavier en orientation paysage.</translation>
     </message>
     <message>
         <location filename="../qml/ConfigPageEmulation.qml" line="96"/>
         <source>Left-handed mode</source>
-        <translation type="unfinished"></translation>
+        <translation>Mode gaucher</translation>
     </message>
 </context>
 <context>
