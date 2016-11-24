@@ -76,6 +76,30 @@ ColumnLayout {
         visible: !Emu.isMobile()
     }
 
+    FBLabel {
+        text: qsTr("UI Preferences")
+        font.pixelSize: TextMetrics.title1Size
+        Layout.topMargin: 10
+        Layout.bottomMargin: 5
+        visible: Emu.isMobile()
+    }
+
+    FBLabel {
+        Layout.maximumWidth: parent.width
+        wrapMode: Text.WordWrap
+        text: qsTr("Change the side of the keypad in landscape orientation.")
+        font.pixelSize: TextMetrics.normalSize
+        visible: Emu.isMobile()
+    }
+
+    LabeledCheckBox {
+        text: qsTr("Left-handed mode")
+
+        checked: Emu.leftHanded
+        onCheckedChanged: Emu.leftHanded = checked
+        visible: Emu.isMobile()
+    }
+
     Item {
         Layout.fillHeight: true
     }

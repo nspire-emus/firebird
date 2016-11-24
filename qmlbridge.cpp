@@ -184,6 +184,20 @@ void QMLBridge::setDefaultKit(unsigned int id)
     emit defaultKitChanged();
 }
 
+bool QMLBridge::getLeftHanded()
+{
+    return settings.value(QStringLiteral("leftHanded"), false).toBool();
+}
+
+void QMLBridge::setLeftHanded(bool e)
+{
+    if(getLeftHanded() == e)
+        return;
+
+    settings.setValue(QStringLiteral("leftHanded"), e);
+    emit leftHandedChanged();
+}
+
 bool QMLBridge::getSuspendOnClose()
 {
     return settings.value(QStringLiteral("suspendOnClose"), true).toBool();

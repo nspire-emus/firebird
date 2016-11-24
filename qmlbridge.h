@@ -22,6 +22,7 @@ public:
     Q_PROPERTY(bool debugOnWarn READ getDebugOnWarn WRITE setDebugOnWarn NOTIFY debugOnWarnChanged)
     Q_PROPERTY(bool autostart READ getAutostart WRITE setAutostart NOTIFY autostartChanged)
     Q_PROPERTY(unsigned int defaultKit READ getDefaultKit WRITE setDefaultKit NOTIFY defaultKitChanged)
+    Q_PROPERTY(bool leftHanded READ getLeftHanded WRITE setLeftHanded NOTIFY leftHandedChanged)
     Q_PROPERTY(bool suspendOnClose READ getSuspendOnClose WRITE setSuspendOnClose NOTIFY suspendOnCloseChanged)
     Q_PROPERTY(QString usbdir READ getUSBDir WRITE setUSBDir NOTIFY usbDirChanged)
     Q_PROPERTY(KitModel* kits READ getKitModel)
@@ -42,6 +43,8 @@ public:
     bool getAutostart();
     unsigned int getDefaultKit();
     void setDefaultKit(unsigned int id);
+    bool getLeftHanded();
+    void setLeftHanded(bool e);
     bool getSuspendOnClose();
     void setSuspendOnClose(bool e);
     QString getUSBDir();
@@ -106,6 +109,7 @@ signals:
     void debugOnStartChanged();
     void autostartChanged();
     void defaultKitChanged();
+    void leftHandedChanged();
     void suspendOnCloseChanged();
     void usbDirChanged();
 

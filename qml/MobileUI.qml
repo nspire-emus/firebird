@@ -259,9 +259,9 @@ Rectangle {
         }
     }
 
-    states: State {
+    states: [ State {
         name: "tabletMode"
-        when: mobileui.width > mobileui.height
+        when: (mobileui.width > mobileui.height) && !Emu.leftHanded
 
         /* Keypad fills right side, as wide as needed */
         PropertyChanges {
@@ -288,13 +288,35 @@ Rectangle {
             columns: 1
         }
 
-        /* Horizontal instead of veritcal orientation */
+        /* Horizontal instead of vertical orientation */
         PropertyChanges {
             target: sidebar
             columns: 4
             Layout.fillWidth: true
             preferredSize: Math.min(screenAndBar.width / 4, mobileui.height * 0.15)
         }
-    }
+    }, State {
+        name: "tabletModeLeft"
+        extend: "tabletMode"
+        when: (mobileui.width > mobileui.height) && Emu.leftHanded
+
+        /* Keypad fills left side, as wide as needed */
+        PropertyChanges {
+            target: controls
+            anchors {
+                left: mobileui.left
+                right: undefined
+            }
+        }
+
+        /* Screen + sidebar centered on the remaining space on the right */
+        PropertyChanges {
+            target: screenAndBar
+            anchors {
+                left: controls.right
+                right: mobileui.right
+            }
+        }
+    } ]
 }
 
