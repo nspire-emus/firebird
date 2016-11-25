@@ -23,8 +23,12 @@ FBAboutDialog::FBAboutDialog(QWidget *parent)
     setWindowTitle(tr("About Firebird"));
     header.setText(tr("<h3>Firebird %1</h3>"
                       "<a href='https://github.com/nspire-emus/firebird'>On GitHub</a>").arg(QStringLiteral(STRINGIFY(FB_VERSION))));
+    header.setTextInteractionFlags(Qt::TextBrowserInteraction);
+    header.setOpenExternalLinks(true);
 
     update.setText(tr("Checking for update"));
+    update.setTextInteractionFlags(Qt::TextBrowserInteraction);
+    update.setOpenExternalLinks(true);
 
     authors.setText(tr(  "Authors:<br>"
                          "Fabian Vogt (<a href='https://github.com/Vogtinator'>Vogtinator</a>)<br>"
@@ -35,6 +39,8 @@ FBAboutDialog::FBAboutDialog(QWidget *parent)
                          "Based on nspire_emu v0.70 by Goplat<br><br>"
                          "This work is licensed under the GPLv3.<br>"
                          "To view a copy of this license, visit <a href='https://www.gnu.org/licenses/gpl-3.0.html'>https://www.gnu.org/licenses/gpl-3.0.html</a>"));
+    authors.setTextInteractionFlags(Qt::TextBrowserInteraction);
+    authors.setOpenExternalLinks(true);
 
     auto *okButton = new QPushButton(tr("Ok"));
     connect(okButton, SIGNAL(clicked(bool)), this, SLOT(close()));
