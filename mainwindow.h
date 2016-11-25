@@ -10,6 +10,7 @@
 #include <QQuickWidget>
 
 #include "emuthread.h"
+#include "fbaboutdialog.h"
 #include "flashdialog.h"
 #include "lcdwidget.h"
 #include "qmlbridge.h"
@@ -144,6 +145,9 @@ private:
 
     // Second LCDWidget for use as external window
     LCDWidget lcd{this, Qt::Window};
+
+    // The about dialog
+    FBAboutDialog aboutDialog{this};
 
     // The QML Config Dialog
     QObject *config_dialog = nullptr;
