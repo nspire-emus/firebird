@@ -247,6 +247,69 @@ it will try to send the file to the emulated system.</source>
     </message>
 </context>
 <context>
+    <name>FBAboutDialog</name>
+    <message>
+        <location filename="../fbaboutdialog.cpp" line="23"/>
+        <source>About Firebird</source>
+        <translation>A propos de Firebird</translation>
+    </message>
+    <message>
+        <location filename="../fbaboutdialog.cpp" line="24"/>
+        <source>&lt;h3&gt;Firebird %1&lt;/h3&gt;&lt;a href=&apos;https://github.com/nspire-emus/firebird&apos;&gt;On GitHub&lt;/a&gt;</source>
+        <translation>&lt;h3&gt;Firebird %1&lt;/h3&gt;&lt;a href=&apos;https://github.com/nspire-emus/firebird&apos;&gt;Sur GitHub&lt;/a&gt;</translation>
+    </message>
+    <message>
+        <location filename="../fbaboutdialog.cpp" line="29"/>
+        <source>Checking for update</source>
+        <translation>Vérification des mises-à-jour</translation>
+    </message>
+    <message>
+        <location filename="../fbaboutdialog.cpp" line="33"/>
+        <source>Authors:&lt;br&gt;Fabian Vogt (&lt;a href=&apos;https://github.com/Vogtinator&apos;&gt;Vogtinator&lt;/a&gt;)&lt;br&gt;Adrien Bertrand (&lt;a href=&apos;https://github.com/adriweb&apos;&gt;Adriweb&lt;/a&gt;)&lt;br&gt;Antonio Vasquez (&lt;a href=&apos;https://github.com/antoniovazquezblanco&apos;&gt;antoniovazquezblanco&lt;/a&gt;)&lt;br&gt;Lionel Debroux (&lt;a href=&apos;https://github.com/debrouxl&apos;&gt;debrouxl&lt;/a&gt;)&lt;br&gt;Denis Avashurov (&lt;a href=&apos;https://github.com/denisps&apos;&gt;denisps&lt;/a&gt;)&lt;br&gt;Based on nspire_emu v0.70 by Goplat&lt;br&gt;&lt;br&gt;This work is licensed under the GPLv3.&lt;br&gt;To view a copy of this license, visit &lt;a href=&apos;https://www.gnu.org/licenses/gpl-3.0.html&apos;&gt;https://www.gnu.org/licenses/gpl-3.0.html&lt;/a&gt;</source>
+        <translation>Auteurs:&lt;br&gt;Fabian Vogt (&lt;a href=&apos;https://github.com/Vogtinator&apos;&gt;Vogtinator&lt;/a&gt;)&lt;br&gt;Adrien Bertrand (&lt;a href=&apos;https://github.com/adriweb&apos;&gt;Adriweb&lt;/a&gt;)&lt;br&gt;Antonio Vasquez (&lt;a href=&apos;https://github.com/antoniovazquezblanco&apos;&gt;antoniovazquezblanco&lt;/a&gt;)&lt;br&gt;Lionel Debroux (&lt;a href=&apos;https://github.com/debrouxl&apos;&gt;debrouxl&lt;/a&gt;)&lt;br&gt;Denis Avashurov (&lt;a href=&apos;https://github.com/denisps&apos;&gt;denisps&lt;/a&gt;)&lt;br&gt;Basé sur nspire_emu v0.70 par Goplat&lt;br&gt;&lt;br&gt;Projet sous licence GPLv3.&lt;br&gt;Pour voir une copie de cette licence, visitez &lt;a href=&apos;https://www.gnu.org/licenses/gpl-3.0.html&apos;&gt;https://www.gnu.org/licenses/gpl-3.0.html&lt;/a&gt;</translation>
+    </message>
+    <message>
+        <location filename="../fbaboutdialog.cpp" line="45"/>
+        <source>Ok</source>
+        <translation>Ok</translation>
+    </message>
+    <message>
+        <location filename="../fbaboutdialog.cpp" line="49"/>
+        <source>Check for Update</source>
+        <translation>Vérifier les mises-à-jour</translation>
+    </message>
+    <message>
+        <location filename="../fbaboutdialog.cpp" line="73"/>
+        <source>No updates for -dev builds available.</source>
+        <translation>Pas de mises-à-jour disponibles pour les versions de dev.</translation>
+    </message>
+    <message>
+        <location filename="../fbaboutdialog.cpp" line="78"/>
+        <source>Checking for updates...</source>
+        <translation>Vérification des mises-à-jour...</translation>
+    </message>
+    <message>
+        <location filename="../fbaboutdialog.cpp" line="98"/>
+        <source>Checking failed (%1)</source>
+        <translation>La vérification a échouée (%1)</translation>
+    </message>
+    <message>
+        <location filename="../fbaboutdialog.cpp" line="108"/>
+        <source>No newer version available.</source>
+        <translation>Pas de version plus récente.</translation>
+    </message>
+    <message>
+        <location filename="../fbaboutdialog.cpp" line="113"/>
+        <source>&lt;b&gt;Newer version (%1) available &lt;a href=&apos;%2&apos;&gt;on GitHub&lt;/a&gt;!&lt;/b&gt;</source>
+        <translation>&lt;b&gt;Nouvelle version (%1) disponible &lt;a href=&apos;%2&apos;&gt;sur GitHub&lt;/a&gt; !&lt;/b&gt;</translation>
+    </message>
+    <message>
+        <location filename="../fbaboutdialog.cpp" line="117"/>
+        <source>Checking failed (invalid tag name)</source>
+        <translation>La vérification a échouée (tag invalide)</translation>
+    </message>
+</context>
+<context>
     <name>FBConfigDialog</name>
     <message>
         <location filename="../qml/FBConfigDialog.qml" line="10"/>
@@ -721,7 +784,7 @@ it will try to send the file to the emulated system.</source>
     </message>
     <message>
         <location filename="../mainwindow.cpp" line="378"/>
-        <location filename="../mainwindow.cpp" line="719"/>
+        <location filename="../mainwindow.cpp" line="697"/>
         <source>Restart needed</source>
         <translation>Redémarrage requis</translation>
     </message>
@@ -841,38 +904,37 @@ it will try to send the file to the emulated system.</source>
         <translation>Choisir l&apos;emplacement du snapshot pour la mise en pause</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="547"/>
         <source>About Firebird</source>
-        <translation>A propos de Firebird</translation>
+        <translation type="vanished">A propos de Firebird</translation>
     </message>
     <message>
         <source>&lt;h3&gt;Firebird %1&lt;/h3&gt;&lt;a href=&apos;https://github.com/nspire-emus/firebird&apos;&gt;On GitHub&lt;/a&gt;&lt;br&gt;&lt;br&gt;Authors:&lt;br&gt;Fabian Vogt (&lt;a href=&apos;https://github.com/Vogtinator&apos;&gt;Vogtinator&lt;/a&gt;)&lt;br&gt;Adrien Bertrand (&lt;a href=&apos;https://github.com/adriweb&apos;&gt;Adriweb&lt;/a&gt;)&lt;br&gt;Antonio Vasquez (&lt;a href=&apos;https://github.com/antoniovazquezblanco&apos;&gt;antoniovazquezblanco&lt;/a&gt;)&lt;br&gt;Lionel Debroux (&lt;a href=&apos;https://github.com/debrouxl&apos;&gt;debrouxl&lt;/a&gt;)&lt;br&gt;Based on nspire_emu v0.70 by Goplat&lt;br&gt;&lt;br&gt;This work is licensed under the GPLv3.&lt;br&gt;To view a copy of this license, visit &lt;a href=&apos;https://www.gnu.org/licenses/gpl-3.0.html&apos;&gt;https://www.gnu.org/licenses/gpl-3.0.html&lt;/a&gt;</source>
         <translation type="vanished">&lt;h3&gt;Firebird %1&lt;/h3&gt;&lt;a href=&apos;https://github.com/nspire-emus/firebird&apos;&gt;Sur GitHub&lt;/a&gt;&lt;br&gt;&lt;br&gt;Auteurs:&lt;br&gt;Fabian Vogt (&lt;a href=&apos;https://github.com/Vogtinator&apos;&gt;Vogtinator&lt;/a&gt;)&lt;br&gt;Adrien Bertrand (&lt;a href=&apos;https://github.com/adriweb&apos;&gt;Adriweb&lt;/a&gt;)&lt;br&gt;Antonio Vasquez (&lt;a href=&apos;https://github.com/antoniovazquezblanco&apos;&gt;antoniovazquezblanco&lt;/a&gt;)&lt;br&gt;Lionel Debroux (&lt;a href=&apos;https://github.com/debrouxl&apos;&gt;debrouxl&lt;/a&gt;)&lt;br&gt;Basé sur nspire_emu v0.70 par Goplat&lt;br&gt;&lt;br&gt;Projet sous licence GPLv3.&lt;br&gt;Pour voir une opie de cette licence, visitez &lt;a href=&apos;https://www.gnu.org/licenses/gpl-3.0.html&apos;&gt;https://www.gnu.org/licenses/gpl-3.0.html&lt;/a&gt;</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="580"/>
+        <location filename="../mainwindow.cpp" line="558"/>
         <source>Emulation started</source>
         <translation>Emulation démarrée</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="582"/>
+        <location filename="../mainwindow.cpp" line="560"/>
         <source>Could not start the emulation</source>
         <translation>Impossible de démarrer l&apos;émulation</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="582"/>
+        <location filename="../mainwindow.cpp" line="560"/>
         <source>Starting the emulation failed.
 Are the paths to boot1 and flash correct?</source>
         <translation>Le démarrage de l&apos;émulation a échoué. Les emplacements des boot1 et flash sont-ils corrects ?</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="590"/>
+        <location filename="../mainwindow.cpp" line="568"/>
         <source>Emulation resumed from snapshot</source>
         <translation>Emulation reprise depuis le snapshot</translation>
     </message>
     <message>
         <location filename="../mainwindow.cpp" line="326"/>
-        <location filename="../mainwindow.cpp" line="592"/>
+        <location filename="../mainwindow.cpp" line="570"/>
         <source>Could not resume</source>
         <translation>Impossible de reprendre</translation>
     </message>
@@ -893,66 +955,65 @@ Are the paths to boot1 and flash correct?</source>
         <translation>Le Kit courant n&apos;a pas de fichier snapshot configuré</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="548"/>
         <source>&lt;h3&gt;Firebird %1&lt;/h3&gt;&lt;a href=&apos;https://github.com/nspire-emus/firebird&apos;&gt;On GitHub&lt;/a&gt;&lt;br&gt;&lt;br&gt;Authors:&lt;br&gt;Fabian Vogt (&lt;a href=&apos;https://github.com/Vogtinator&apos;&gt;Vogtinator&lt;/a&gt;)&lt;br&gt;Adrien Bertrand (&lt;a href=&apos;https://github.com/adriweb&apos;&gt;Adriweb&lt;/a&gt;)&lt;br&gt;Antonio Vasquez (&lt;a href=&apos;https://github.com/antoniovazquezblanco&apos;&gt;antoniovazquezblanco&lt;/a&gt;)&lt;br&gt;Lionel Debroux (&lt;a href=&apos;https://github.com/debrouxl&apos;&gt;debrouxl&lt;/a&gt;)&lt;br&gt;Denis Avashurov (&lt;a href=&apos;https://github.com/denisps&apos;&gt;denisps&lt;/a&gt;)&lt;br&gt;Based on nspire_emu v0.70 by Goplat&lt;br&gt;&lt;br&gt;This work is licensed under the GPLv3.&lt;br&gt;To view a copy of this license, visit &lt;a href=&apos;https://www.gnu.org/licenses/gpl-3.0.html&apos;&gt;https://www.gnu.org/licenses/gpl-3.0.html&lt;/a&gt;</source>
-        <translation>&lt;h3&gt;Firebird %1&lt;/h3&gt;&lt;a href=&apos;https://github.com/nspire-emus/firebird&apos;&gt;Sur GitHub&lt;/a&gt;&lt;br&gt;&lt;br&gt;Auteurs:&lt;br&gt;Fabian Vogt (&lt;a href=&apos;https://github.com/Vogtinator&apos;&gt;Vogtinator&lt;/a&gt;)&lt;br&gt;Adrien Bertrand (&lt;a href=&apos;https://github.com/adriweb&apos;&gt;Adriweb&lt;/a&gt;)&lt;br&gt;Antonio Vasquez (&lt;a href=&apos;https://github.com/antoniovazquezblanco&apos;&gt;antoniovazquezblanco&lt;/a&gt;)&lt;br&gt;Lionel Debroux (&lt;a href=&apos;https://github.com/debrouxl&apos;&gt;debrouxl&lt;/a&gt;)&lt;br&gt;Denis Avashurov (&lt;a href=&apos;https://github.com/denisps&apos;&gt;denisps&lt;/a&gt;)&lt;br&gt;Basé sur nspire_emu v0.70 par Goplat&lt;br&gt;&lt;br&gt;Projet sous licence GPLv3.&lt;br&gt;Pour voir une opie de cette licence, visitez &lt;a href=&apos;https://www.gnu.org/licenses/gpl-3.0.html&apos;&gt;https://www.gnu.org/licenses/gpl-3.0.html&lt;/a&gt;</translation>
+        <translation type="vanished">&lt;h3&gt;Firebird %1&lt;/h3&gt;&lt;a href=&apos;https://github.com/nspire-emus/firebird&apos;&gt;Sur GitHub&lt;/a&gt;&lt;br&gt;&lt;br&gt;Auteurs:&lt;br&gt;Fabian Vogt (&lt;a href=&apos;https://github.com/Vogtinator&apos;&gt;Vogtinator&lt;/a&gt;)&lt;br&gt;Adrien Bertrand (&lt;a href=&apos;https://github.com/adriweb&apos;&gt;Adriweb&lt;/a&gt;)&lt;br&gt;Antonio Vasquez (&lt;a href=&apos;https://github.com/antoniovazquezblanco&apos;&gt;antoniovazquezblanco&lt;/a&gt;)&lt;br&gt;Lionel Debroux (&lt;a href=&apos;https://github.com/debrouxl&apos;&gt;debrouxl&lt;/a&gt;)&lt;br&gt;Denis Avashurov (&lt;a href=&apos;https://github.com/denisps&apos;&gt;denisps&lt;/a&gt;)&lt;br&gt;Basé sur nspire_emu v0.70 par Goplat&lt;br&gt;&lt;br&gt;Projet sous licence GPLv3.&lt;br&gt;Pour voir une opie de cette licence, visitez &lt;a href=&apos;https://www.gnu.org/licenses/gpl-3.0.html&apos;&gt;https://www.gnu.org/licenses/gpl-3.0.html&lt;/a&gt;</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="592"/>
+        <location filename="../mainwindow.cpp" line="570"/>
         <source>Resuming failed.
 Try to fix the issue and try again.</source>
         <translation>La reprise a échouée. Essayez de corriger le problème, puis retentez.</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="598"/>
+        <location filename="../mainwindow.cpp" line="576"/>
         <source>Snapshot saved</source>
         <translation>Snapshot sauvegardé</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="600"/>
+        <location filename="../mainwindow.cpp" line="578"/>
         <source>Could not suspend</source>
         <translation>Impossible de mettre en pause</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="600"/>
+        <location filename="../mainwindow.cpp" line="578"/>
         <source>Suspending failed.
 Try to fix the issue and try again.</source>
         <translation>Mise en pause échouée. Essayez de corriger le problème, puis retentez.</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="614"/>
+        <location filename="../mainwindow.cpp" line="592"/>
         <source>Emulation stopped</source>
         <translation>Emulation arrêtée</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="703"/>
+        <location filename="../mainwindow.cpp" line="681"/>
         <source>No boot1 set</source>
         <translation>Pas de Boot1 choisi</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="703"/>
+        <location filename="../mainwindow.cpp" line="681"/>
         <source>Before you can start the emulation, you have to select a proper boot1 file.</source>
         <translation>Avant de pouvoir démarrer l&apos;émulation, vous devez choisir un fichier Boot1 valide.</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="709"/>
+        <location filename="../mainwindow.cpp" line="687"/>
         <source>No flash image loaded</source>
         <translation>Pas d&apos;image Flash chargée</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="709"/>
+        <location filename="../mainwindow.cpp" line="687"/>
         <source>Before you can start the emulation, you have to load a proper flash file.
 You can create one via Flash-&gt;Create Flash in the menu.</source>
         <translation>Avant de pouvoir démarrer l&apos;émulation, vous devez choisir un fichier d&apos;image Flash valide. Vous pouvez en créer un via le menu Flash-&gt;Créer la Flash.</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="719"/>
+        <location filename="../mainwindow.cpp" line="697"/>
         <source>Failed to restart emulator. Close and reopen this app.
 </source>
         <translation>Impossible de redémarrer l&apos;émulateur. Veuillez fermer puis réouvrir l&apos;application.</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="729"/>
+        <location filename="../mainwindow.cpp" line="707"/>
         <source>Select file to send</source>
         <translation>Choisir le fichier à envoyer</translation>
     </message>
