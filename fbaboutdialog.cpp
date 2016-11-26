@@ -47,6 +47,7 @@ FBAboutDialog::FBAboutDialog(QWidget *parent)
     okButton->setDefault(true);
 
     updateButton.setText(tr("Check for Update"));
+    updateButton.setAutoDefault(false);
     connect(&updateButton, SIGNAL(clicked(bool)), this, SLOT(checkForUpdate()));
 
     auto *buttonBox = new QDialogButtonBox(Qt::Horizontal);
