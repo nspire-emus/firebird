@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<manifest package="org.firebird.emu" xmlns:android="http://schemas.android.com/apk/res/android" android:versionName="1.1" android:versionCode="4" android:installLocation="auto">
+<manifest package="org.firebird.emu" xmlns:android="http://schemas.android.com/apk/res/android" android:versionName="1.1.1" android:versionCode="5" android:installLocation="auto">
     <application android:hardwareAccelerated="true" android:name="org.qtproject.qt5.android.bindings.QtApplication" android:label="Firebird" android:icon="@drawable/icon">
         <activity android:configChanges="orientation|uiMode|screenLayout|screenSize|smallestScreenSize|layoutDirection|locale|fontScale|keyboard|keyboardHidden|navigation" android:name="org.qtproject.qt5.android.bindings.QtActivity" android:label="-- %%INSERT_APP_NAME%% --" android:screenOrientation="unspecified" android:launchMode="singleTop">
             <intent-filter>
