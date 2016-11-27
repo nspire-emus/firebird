@@ -3,7 +3,7 @@
 <plist version="1.0">
 <dict>
 	<key>CFBundleDisplayName</key>
-	<string>Firebird</string>
+	<string>Firebird Emu</string>
 	<key>CFBundleExecutable</key>
 	<string>firebird</string>
 	<key>CFBundleGetInfoString</key>
@@ -37,7 +37,7 @@
 		</dict>
 	</dict>
 	<key>CFBundleIdentifier</key>
-	<string>com.firebird.${PRODUCT_NAME:rfc1034identifier}</string>
+	<string>com.firebird.firebirdemu</string>
 	<key>CFBundleName</key>
 	<string>Firebird</string>
 	<key>CFBundlePackageType</key>
