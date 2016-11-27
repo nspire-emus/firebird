@@ -256,9 +256,6 @@ void QMLBridge::registerNButton(int keymap_id, QVariant button)
 
 void QMLBridge::touchpadStateChanged(qreal x, qreal y, bool contact, bool down)
 {
-    keypad.touchpad_down = down;
-    keypad.touchpad_contact = contact;
-
     if(contact || down)
     {
         int new_x = x * TOUCHPAD_X_MAX,
@@ -274,19 +271,31 @@ void QMLBridge::touchpadStateChanged(qreal x, qreal y, bool contact, bool down)
         if(new_y > TOUCHPAD_Y_MAX)
             new_y = TOUCHPAD_Y_MAX;
 
-        int vel_x = new_x - keypad.touchpad_x;
-        int vel_y = new_y - keypad.touchpad_y;
+        /* On a move, update the rel registers */
+        if(keypad.touchpad_contact)
+        {
+            int vel_x = new_x - keypad.touchpad_x;
+            int vel_y = new_y - keypad.touchpad_y;
 
-        /* The OS's cursor uses this, but it's a bit too quick */
-        vel_x /= 4;
-        vel_y /= 4;
+            /* The OS's cursor uses this, but it's a bit too quick */
+            vel_x /= 4;
+            vel_y /= 4;
 
-        keypad.touchpad_rel_x += vel_x;
-        keypad.touchpad_rel_y += vel_y;
+            keypad.touchpad_rel_x += vel_x;
+            keypad.touchpad_rel_y += vel_y;
+        }
+        else
+        {
+            keypad.touchpad_rel_x = 0;
+            keypad.touchpad_rel_y = 0;
+        }
 
         keypad.touchpad_x = new_x;
         keypad.touchpad_y = new_y;
     }
+
+    keypad.touchpad_down = down;
+    keypad.touchpad_contact = contact;
 
     keypad.kpc.gpio_int_active |= 0x800;
     keypad_int_check();
