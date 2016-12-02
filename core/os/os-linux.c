@@ -64,11 +64,21 @@ void os_sparse_decommit(void *page, size_t size)
     (void) size;
 }
 
+#ifdef IS_IOS_BUILD
+bool runtime_is64Bit()
+{
+    #include <sys/utsname.h>
+    struct utsname ret;
+    uname(&ret);
+    return (strstr(ret.version, "ARM64") != NULL);
+}
+#endif
+
 void *os_alloc_executable(size_t size)
 {
 #ifdef IS_IOS_BUILD
-    // will succeed on jailbroken only
-    if (access("/bin/bash", F_OK) != 0)
+    // the access() will succeed on jailbroken only
+    if (access("/bin/bash", F_OK) != 0 || runtime_is64Bit())
     {
         // Can't use JIT
         return NULL;
