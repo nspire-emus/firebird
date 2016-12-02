@@ -61,8 +61,9 @@ void paintFramebuffer(QPainter *p)
     }
     else
     {
-        QImage image = renderFramebuffer().scaled(painterWindowScaled.size(), Qt::KeepAspectRatio, Qt::SmoothTransformation);
-        p->drawImage((painterWindowScaled.width() - image.width()) / 2, (painterWindowScaled.height() - image.height()) / 2, image);
+        QImage image = renderFramebuffer().scaled(p->window().size(), Qt::KeepAspectRatio, Qt::SmoothTransformation);
+        image.setDevicePixelRatio(devicePixelRatio);
+        p->drawImage((p->window().width() - image.width()) / 2, (p->window().height() - image.height()) / 2, image);
     }
 
     if(in_debugger)
