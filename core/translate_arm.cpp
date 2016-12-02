@@ -14,6 +14,10 @@
 #include <cstdint>
 #include <cstdio>
 
+#ifdef IS_IOS_BUILD
+#include <sys/mman.h>
+#endif
+
 // Uncomment the following line to support relative jumps if possible,
 // it doesn't work that often as the mmaped section is too far away.
 // #define REL_BRANCH
@@ -187,6 +191,11 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
         warn("Out of translation slots!");
         return;
     }
+
+    #ifdef IS_IOS_BUILD
+        // Mark translate_buffer as RW_
+        mprotect(translate_buffer, INSN_BUFFER_SIZE, PROT_READ | PROT_WRITE);
+    #endif
 
     uint32_t **jump_table_start = jump_table_current;
     uint32_t pc = pc_start, *insn_ptr = insn_ptr_start;
@@ -775,6 +784,12 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
     emit_mov(0, pc);
     emit_jmp(reinterpret_cast<void*>(translation_next));
 
+    #ifdef IS_IOS_BUILD
+        // Mark translate_buffer as R_X
+        // Even if no translation was done, pages got marked RW_
+        mprotect(translate_buffer, INSN_BUFFER_SIZE, PROT_READ | PROT_EXEC);
+    #endif
+    
     // Did we do any translation at all?
     if(insn_ptr == insn_ptr_start)
         return;
