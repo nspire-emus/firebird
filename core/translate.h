@@ -4,6 +4,7 @@
 #define _H_TRANSLATE
 
 #include <stdbool.h>
+#include <stdint.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -16,9 +17,7 @@ struct translation {
     uint32_t *end_ptr;
 } __attribute__((packed));
 extern struct translation translation_table[] __asm__("translation_table");
-#define INSN_BUFFER_SIZE 10000000
-extern uint8_t *insn_buffer;
-extern uint8_t *insn_bufptr;
+#define INSN_BUFFER_SIZE 0x1000000
 
 bool translate_init();
 void translate_deinit();
