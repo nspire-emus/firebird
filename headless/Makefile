@@ -11,10 +11,11 @@ ASMSOURCES := ../core/asmcode_arm.S
 CSOURCES   := ../core/armsnippets_loader.c ../core/asmcode.c ../core/casplus.c ../core/des.c ../core/disasm.c \
 	      ../core/gdbstub.c ../core/interrupt.c ../core/keypad.c ../core/lcd.c ../core/link.c ../core/mem.c \
 	      ../core/misc.c ../core/mmu.c ../core/schedule.c ../core/serial.c ../core/sha256.c ../core/usb.c \
-              ../core/usblink.c ../core/os/os-linux.c ../core/translate_arm.cpp
+              ../core/usblink.c ../core/os/os-linux.c
 
 CPPSOURCES := ../core/arm_interpreter.cpp ../core/coproc.cpp ../core/cpu.cpp ../core/debug.cpp ../core/emu.cpp \
-	      ../core/flash.cpp ../core/gif.cpp ../core/thumb_interpreter.cpp ../core/usblink_queue.cpp main.cpp
+	      ../core/flash.cpp ../core/gif.cpp ../core/thumb_interpreter.cpp ../core/usblink_queue.cpp main.cpp \
+	      ../core/translate_arm.cpp
 
 OBJS = $(patsubst %.S, %.o, $(ASMSOURCES))
 OBJS += $(patsubst %.c, %.o, $(CSOURCES))
