@@ -9,6 +9,10 @@
 extern "C" {
 #endif
 
+#ifdef IS_IOS_BUILD
+int iOS_is_debugger_attached();
+#endif
+    
 /* Some really crappy APIs don't use UTF-8 in fopen. */
 FILE *fopen_utf8(const char *filename, const char *mode);
 

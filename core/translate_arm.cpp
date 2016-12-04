@@ -165,12 +165,11 @@ static __attribute__((unused)) void emit_bkpt()
 bool translate_init()
 {
 #ifdef IS_IOS_BUILD
-#ifndef DEBUG
-#include <unistd.h>
 #include <sys/syscall.h>
-    /* Needed to make the W^X JIT work on iOS */
-    syscall(SYS_ptrace, 0 /*PTRACE_TRACEME*/, 0, 0, 0);
-#endif
+    if (!iOS_is_debugger_attached())
+    {
+        syscall(SYS_ptrace, 0 /*PTRACE_TRACEME*/, 0, 0, 0);
+    }
 #endif
     
     if(translate_buffer)
