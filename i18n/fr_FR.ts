@@ -279,32 +279,32 @@ it will try to send the file to the emulated system.</source>
         <translation>Vérifier les mises-à-jour</translation>
     </message>
     <message>
-        <location filename="../fbaboutdialog.cpp" line="73"/>
+        <location filename="../fbaboutdialog.cpp" line="74"/>
         <source>No updates for -dev builds available.</source>
         <translation>Pas de mises-à-jour disponibles pour les versions de dev.</translation>
     </message>
     <message>
-        <location filename="../fbaboutdialog.cpp" line="78"/>
+        <location filename="../fbaboutdialog.cpp" line="79"/>
         <source>Checking for updates...</source>
         <translation>Vérification des mises-à-jour...</translation>
     </message>
     <message>
-        <location filename="../fbaboutdialog.cpp" line="98"/>
+        <location filename="../fbaboutdialog.cpp" line="99"/>
         <source>Checking failed (%1)</source>
         <translation>La vérification a échouée (%1)</translation>
     </message>
     <message>
-        <location filename="../fbaboutdialog.cpp" line="108"/>
+        <location filename="../fbaboutdialog.cpp" line="109"/>
         <source>No newer version available.</source>
         <translation>Pas de version plus récente.</translation>
     </message>
     <message>
-        <location filename="../fbaboutdialog.cpp" line="113"/>
+        <location filename="../fbaboutdialog.cpp" line="114"/>
         <source>&lt;b&gt;Newer version (%1) available &lt;a href=&apos;%2&apos;&gt;on GitHub&lt;/a&gt;!&lt;/b&gt;</source>
         <translation>&lt;b&gt;Nouvelle version (%1) disponible &lt;a href=&apos;%2&apos;&gt;sur GitHub&lt;/a&gt; !&lt;/b&gt;</translation>
     </message>
     <message>
-        <location filename="../fbaboutdialog.cpp" line="117"/>
+        <location filename="../fbaboutdialog.cpp" line="118"/>
         <source>Checking failed (invalid tag name)</source>
         <translation>La vérification a échouée (tag invalide)</translation>
     </message>
@@ -529,7 +529,7 @@ it will try to send the file to the emulated system.</source>
         <translation type="vanished">au démarrage</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="383"/>
+        <location filename="../mainwindow.cpp" line="381"/>
         <source>Docks</source>
         <translation>&quot;Docks&quot;</translation>
     </message>
@@ -703,7 +703,7 @@ it will try to send the file to the emulated system.</source>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="531"/>
-        <location filename="../mainwindow.cpp" line="342"/>
+        <location filename="../mainwindow.cpp" line="340"/>
         <source>Re&amp;start</source>
         <translation>&amp;Redémarrer</translation>
     </message>
@@ -773,8 +773,8 @@ it will try to send the file to the emulated system.</source>
         <translation>Capture d&apos;écran</translation>
     </message>
     <message>
+        <location filename="../mainwindow.cpp" line="475"/>
         <location filename="../mainwindow.cpp" line="477"/>
-        <location filename="../mainwindow.cpp" line="479"/>
         <source>Connect USB</source>
         <translation>Connecter l&apos;USB</translation>
     </message>
@@ -783,23 +783,23 @@ it will try to send the file to the emulated system.</source>
         <translation type="vanished">Démarrer l&apos;émulation via Emulation-&gt;Redémarrer.</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="378"/>
-        <location filename="../mainwindow.cpp" line="697"/>
+        <location filename="../mainwindow.cpp" line="376"/>
+        <location filename="../mainwindow.cpp" line="708"/>
         <source>Restart needed</source>
         <translation>Redémarrage requis</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="326"/>
+        <location filename="../mainwindow.cpp" line="324"/>
         <source>Try to restart this app.</source>
         <translation>Essayer de redémarrer l&apos;application.</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="293"/>
+        <location filename="../mainwindow.cpp" line="291"/>
         <source>Download failed</source>
         <translation>Transfert échoué</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="293"/>
+        <location filename="../mainwindow.cpp" line="291"/>
         <source>Could not download file.</source>
         <translation>Le fichier n&apos;a pas pu être récupéré.</translation>
     </message>
@@ -812,7 +812,7 @@ it will try to send the file to the emulated system.</source>
         <translation type="vanished">Choisir la flash</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="378"/>
+        <location filename="../mainwindow.cpp" line="376"/>
         <source>You need to restart firebird to enable the tab interface.</source>
         <translation>Vous devez redémarrer firebird pour activer l&apos;interface par onglets.</translation>
     </message>
@@ -821,7 +821,7 @@ it will try to send the file to the emulated system.</source>
         <translation type="vanished">Choisir l&apos;emplacement du snapshot :</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="417"/>
+        <location filename="../mainwindow.cpp" line="415"/>
         <source>Speed: %1 %</source>
         <translation>Vitesse : %1 %</translation>
     </message>
@@ -834,53 +834,53 @@ it will try to send the file to the emulated system.</source>
         <translation type="vanished">Voulez-vous utiliser ces nouveaux paramètres de Flash ?</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="424"/>
+        <location filename="../mainwindow.cpp" line="422"/>
         <source>Save Screenshot</source>
         <translation>Sauvegarder la capture d&apos;écran</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="424"/>
+        <location filename="../mainwindow.cpp" line="422"/>
         <source>PNG images (*.png)</source>
         <translation>Images PNG (*.png)</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="429"/>
+        <location filename="../mainwindow.cpp" line="427"/>
         <source>Screenshot failed</source>
         <translation>Capture d&apos;écran échée</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="429"/>
+        <location filename="../mainwindow.cpp" line="427"/>
         <source>Failed to save screenshot!</source>
         <translation>Impossible de sauvegarder la capture !</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="447"/>
+        <location filename="../mainwindow.cpp" line="445"/>
         <source>GIF images (*.gif)</source>
         <translation>Images GIF (*.gif)</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="447"/>
+        <location filename="../mainwindow.cpp" line="445"/>
         <source>Save Recording</source>
         <translation>Enregistrer la capture</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="457"/>
+        <location filename="../mainwindow.cpp" line="455"/>
         <source>Failed recording GIF</source>
         <translation>Erreur de capture GIF</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="457"/>
+        <location filename="../mainwindow.cpp" line="455"/>
         <source>A failure occured during recording</source>
         <translation>Une erreur est survenue lors de la capture</translation>
     </message>
     <message>
+        <location filename="../mainwindow.cpp" line="475"/>
         <location filename="../mainwindow.cpp" line="477"/>
-        <location filename="../mainwindow.cpp" line="479"/>
         <source>Disconnect USB</source>
         <translation>Déconnecter l&apos;USB</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="501"/>
+        <location filename="../mainwindow.cpp" line="500"/>
         <source>Can&apos;t resume</source>
         <translation>Impossible de reprendre</translation>
     </message>
@@ -889,17 +889,17 @@ it will try to send the file to the emulated system.</source>
         <translation type="vanished">Pas d&apos;emplacement de snapshot donné (Paramètres-&gt;Snapshot)</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="512"/>
+        <location filename="../mainwindow.cpp" line="511"/>
         <source>Can&apos;t suspend</source>
         <translation>Impossible de mettre en pause</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="517"/>
+        <location filename="../mainwindow.cpp" line="516"/>
         <source>Select snapshot to resume from</source>
         <translation>Choisir l&apos;emplacement du snapshot pour la reprise</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="524"/>
+        <location filename="../mainwindow.cpp" line="523"/>
         <source>Select snapshot to suspend to</source>
         <translation>Choisir l&apos;emplacement du snapshot pour la mise en pause</translation>
     </message>
@@ -912,45 +912,45 @@ it will try to send the file to the emulated system.</source>
         <translation type="vanished">&lt;h3&gt;Firebird %1&lt;/h3&gt;&lt;a href=&apos;https://github.com/nspire-emus/firebird&apos;&gt;Sur GitHub&lt;/a&gt;&lt;br&gt;&lt;br&gt;Auteurs:&lt;br&gt;Fabian Vogt (&lt;a href=&apos;https://github.com/Vogtinator&apos;&gt;Vogtinator&lt;/a&gt;)&lt;br&gt;Adrien Bertrand (&lt;a href=&apos;https://github.com/adriweb&apos;&gt;Adriweb&lt;/a&gt;)&lt;br&gt;Antonio Vasquez (&lt;a href=&apos;https://github.com/antoniovazquezblanco&apos;&gt;antoniovazquezblanco&lt;/a&gt;)&lt;br&gt;Lionel Debroux (&lt;a href=&apos;https://github.com/debrouxl&apos;&gt;debrouxl&lt;/a&gt;)&lt;br&gt;Basé sur nspire_emu v0.70 par Goplat&lt;br&gt;&lt;br&gt;Projet sous licence GPLv3.&lt;br&gt;Pour voir une opie de cette licence, visitez &lt;a href=&apos;https://www.gnu.org/licenses/gpl-3.0.html&apos;&gt;https://www.gnu.org/licenses/gpl-3.0.html&lt;/a&gt;</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="558"/>
+        <location filename="../mainwindow.cpp" line="557"/>
         <source>Emulation started</source>
         <translation>Emulation démarrée</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="560"/>
+        <location filename="../mainwindow.cpp" line="559"/>
         <source>Could not start the emulation</source>
         <translation>Impossible de démarrer l&apos;émulation</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="560"/>
+        <location filename="../mainwindow.cpp" line="559"/>
         <source>Starting the emulation failed.
 Are the paths to boot1 and flash correct?</source>
         <translation>Le démarrage de l&apos;émulation a échoué. Les emplacements des boot1 et flash sont-ils corrects ?</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="568"/>
+        <location filename="../mainwindow.cpp" line="567"/>
         <source>Emulation resumed from snapshot</source>
         <translation>Emulation reprise depuis le snapshot</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="326"/>
-        <location filename="../mainwindow.cpp" line="570"/>
+        <location filename="../mainwindow.cpp" line="324"/>
+        <location filename="../mainwindow.cpp" line="569"/>
         <source>Could not resume</source>
         <translation>Impossible de reprendre</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="182"/>
+        <location filename="../mainwindow.cpp" line="180"/>
         <source>Start the emulation via Emulation-&gt;Start.</source>
         <translation>Démarrer l&apos;émulation via Emulation-&gt;Démarrer.</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="342"/>
+        <location filename="../mainwindow.cpp" line="340"/>
         <source>&amp;Start</source>
         <translation>Démarrer</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="501"/>
-        <location filename="../mainwindow.cpp" line="512"/>
+        <location filename="../mainwindow.cpp" line="500"/>
+        <location filename="../mainwindow.cpp" line="511"/>
         <source>The current kit does not have a snapshot file configured</source>
         <translation>Le Kit courant n&apos;a pas de fichier snapshot configuré</translation>
     </message>
@@ -959,61 +959,61 @@ Are the paths to boot1 and flash correct?</source>
         <translation type="vanished">&lt;h3&gt;Firebird %1&lt;/h3&gt;&lt;a href=&apos;https://github.com/nspire-emus/firebird&apos;&gt;Sur GitHub&lt;/a&gt;&lt;br&gt;&lt;br&gt;Auteurs:&lt;br&gt;Fabian Vogt (&lt;a href=&apos;https://github.com/Vogtinator&apos;&gt;Vogtinator&lt;/a&gt;)&lt;br&gt;Adrien Bertrand (&lt;a href=&apos;https://github.com/adriweb&apos;&gt;Adriweb&lt;/a&gt;)&lt;br&gt;Antonio Vasquez (&lt;a href=&apos;https://github.com/antoniovazquezblanco&apos;&gt;antoniovazquezblanco&lt;/a&gt;)&lt;br&gt;Lionel Debroux (&lt;a href=&apos;https://github.com/debrouxl&apos;&gt;debrouxl&lt;/a&gt;)&lt;br&gt;Denis Avashurov (&lt;a href=&apos;https://github.com/denisps&apos;&gt;denisps&lt;/a&gt;)&lt;br&gt;Basé sur nspire_emu v0.70 par Goplat&lt;br&gt;&lt;br&gt;Projet sous licence GPLv3.&lt;br&gt;Pour voir une opie de cette licence, visitez &lt;a href=&apos;https://www.gnu.org/licenses/gpl-3.0.html&apos;&gt;https://www.gnu.org/licenses/gpl-3.0.html&lt;/a&gt;</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="570"/>
+        <location filename="../mainwindow.cpp" line="569"/>
         <source>Resuming failed.
 Try to fix the issue and try again.</source>
         <translation>La reprise a échouée. Essayez de corriger le problème, puis retentez.</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="576"/>
+        <location filename="../mainwindow.cpp" line="575"/>
         <source>Snapshot saved</source>
         <translation>Snapshot sauvegardé</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="578"/>
+        <location filename="../mainwindow.cpp" line="577"/>
         <source>Could not suspend</source>
         <translation>Impossible de mettre en pause</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="578"/>
+        <location filename="../mainwindow.cpp" line="577"/>
         <source>Suspending failed.
 Try to fix the issue and try again.</source>
         <translation>Mise en pause échouée. Essayez de corriger le problème, puis retentez.</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="592"/>
+        <location filename="../mainwindow.cpp" line="591"/>
         <source>Emulation stopped</source>
         <translation>Emulation arrêtée</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="681"/>
+        <location filename="../mainwindow.cpp" line="692"/>
         <source>No boot1 set</source>
         <translation>Pas de Boot1 choisi</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="681"/>
+        <location filename="../mainwindow.cpp" line="692"/>
         <source>Before you can start the emulation, you have to select a proper boot1 file.</source>
         <translation>Avant de pouvoir démarrer l&apos;émulation, vous devez choisir un fichier Boot1 valide.</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="687"/>
+        <location filename="../mainwindow.cpp" line="698"/>
         <source>No flash image loaded</source>
         <translation>Pas d&apos;image Flash chargée</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="687"/>
+        <location filename="../mainwindow.cpp" line="698"/>
         <source>Before you can start the emulation, you have to load a proper flash file.
 You can create one via Flash-&gt;Create Flash in the menu.</source>
         <translation>Avant de pouvoir démarrer l&apos;émulation, vous devez choisir un fichier d&apos;image Flash valide. Vous pouvez en créer un via le menu Flash-&gt;Créer la Flash.</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="697"/>
+        <location filename="../mainwindow.cpp" line="708"/>
         <source>Failed to restart emulator. Close and reopen this app.
 </source>
         <translation>Impossible de redémarrer l&apos;émulateur. Veuillez fermer puis réouvrir l&apos;application.</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="707"/>
+        <location filename="../mainwindow.cpp" line="718"/>
         <source>Select file to send</source>
         <translation>Choisir le fichier à envoyer</translation>
     </message>
@@ -1108,12 +1108,12 @@ You won&apos;t be able to resume.</source>
 <context>
     <name>QMLBridge</name>
     <message>
-        <location filename="../qmlbridge.cpp" line="380"/>
+        <location filename="../qmlbridge.cpp" line="389"/>
         <source>Could not stop emulation</source>
         <translation>Impossible d&apos;arrêter l&apos;émulation</translation>
     </message>
     <message>
-        <location filename="../qmlbridge.cpp" line="385"/>
+        <location filename="../qmlbridge.cpp" line="394"/>
         <source>Starting emulation</source>
         <translation>Démarrage de l&apos;émulation</translation>
     </message>
@@ -1128,17 +1128,17 @@ Swipe the keypad to the left to show the settings menu.</source>
 Faites glisser le clavier versl a gauche pour afficher les paramètres.</translation>
     </message>
     <message>
-        <location filename="../qmlbridge.cpp" line="406"/>
+        <location filename="../qmlbridge.cpp" line="415"/>
         <source>Suspending emulation</source>
         <translation>Mise en pause de l&apos;émulation</translation>
     </message>
     <message>
-        <location filename="../qmlbridge.cpp" line="413"/>
+        <location filename="../qmlbridge.cpp" line="425"/>
         <source>Resuming emulation</source>
         <translation>Reprise de l&apos;émulation</translation>
     </message>
     <message>
-        <location filename="../qmlbridge.cpp" line="322"/>
+        <location filename="../qmlbridge.cpp" line="331"/>
         <source>None</source>
         <translation>Aucun</translation>
     </message>
@@ -1148,38 +1148,44 @@ Faites glisser le clavier versl a gauche pour afficher les paramètres.</transla
         <translation>Par défaut</translation>
     </message>
     <message>
-        <location filename="../qmlbridge.cpp" line="389"/>
+        <location filename="../qmlbridge.cpp" line="398"/>
         <source>No boot1 or flash selected.
 Swipe keypad left for configuration.</source>
         <translation>Pas de boot1 ou flash choisie.\nSwipez le clavier à gauche pour ajuster la configuration.</translation>
     </message>
     <message>
-        <location filename="../qmlbridge.cpp" line="476"/>
+        <location filename="../qmlbridge.cpp" line="420"/>
+        <location filename="../qmlbridge.cpp" line="430"/>
+        <source>The current kit does not have a snapshot file configured</source>
+        <translation>Le Kit courant n&apos;a pas de fichier snapshot configuré</translation>
+    </message>
+    <message>
+        <location filename="../qmlbridge.cpp" line="495"/>
         <source>Emulation started</source>
         <translation>Emulation démarrée</translation>
     </message>
     <message>
-        <location filename="../qmlbridge.cpp" line="478"/>
+        <location filename="../qmlbridge.cpp" line="497"/>
         <source>Couldn&apos;t start emulation</source>
         <translation>Impossible de démarrer l&apos;émulation</translation>
     </message>
     <message>
-        <location filename="../qmlbridge.cpp" line="484"/>
+        <location filename="../qmlbridge.cpp" line="503"/>
         <source>Emulation resumed</source>
         <translation>Emulation reprise</translation>
     </message>
     <message>
-        <location filename="../qmlbridge.cpp" line="486"/>
+        <location filename="../qmlbridge.cpp" line="505"/>
         <source>Could not resume</source>
         <translation>Impossible de reprendre</translation>
     </message>
     <message>
-        <location filename="../qmlbridge.cpp" line="492"/>
+        <location filename="../qmlbridge.cpp" line="511"/>
         <source>Flash and snapshot saved</source>
         <translation>Flash et snapshot sauvegardés</translation>
     </message>
     <message>
-        <location filename="../qmlbridge.cpp" line="494"/>
+        <location filename="../qmlbridge.cpp" line="513"/>
         <source>Couldn&apos;t save snapshot</source>
         <translation>Impossible de sauvegarder le snapshot</translation>
     </message>
@@ -1192,7 +1198,7 @@ Swipe keypad left for configuration.</source>
         <translation>Ecran éteint</translation>
     </message>
     <message>
-        <location filename="../qtframebuffer.cpp" line="73"/>
+        <location filename="../qtframebuffer.cpp" line="74"/>
         <source>In debugger</source>
         <translation>En débuggage</translation>
     </message>
