@@ -664,6 +664,8 @@ void MainWindow::setCurrentKit(const Kit &kit)
     emu.boot1 = kit.boot1;
     emu.flash = kit.flash;
     fallback_snapshot_path = kit.snapshot;
+
+    setWindowTitle(QStringLiteral("Firebird Emu - %1").arg(kit.name));
 }
 
 QString MainWindow::snapshotPath()
