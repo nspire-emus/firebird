@@ -46,7 +46,7 @@ Rectangle {
             right: mobileui.right
             bottom: undefined
         }
-        height: (mobileui.width - sidebar.preferredSize) / 320 * 240
+        height: sidebar.preferredSize * 4
         columns: 2
 
         rowSpacing: 0
@@ -57,8 +57,7 @@ Rectangle {
             focus: true
             Layout.fillWidth: true
             Layout.fillHeight: true
-            Layout.preferredWidth: mobileui.width * 0.85
-            Layout.preferredHeight: width/320 * 240
+            Layout.preferredHeight: mobileui.height * 0.4
 
             Timer {
                 interval: 20
@@ -76,7 +75,7 @@ Rectangle {
             property int preferredSize: mobileui.height * 0.1
 
             columnSpacing: (screenAndBar.width - preferredSize * 4) / 5
-            rowSpacing: (screenAndBar.height - preferredSize * 4) / 5
+            rowSpacing: 0
             Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
 
             SidebarButton {
