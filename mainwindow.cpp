@@ -147,8 +147,6 @@ MainWindow::MainWindow(QWidget *parent) :
     restoreGeometry(settings->value(QStringLiteral("windowGeometry")).toByteArray());
     restoreState(settings->value(QStringLiteral("windowState")).toByteArray(), WindowStateVersion);
 
-    snapshot_path = settings->value(QStringLiteral("snapshotPath")).toString();
-
     refillKitMenus();
 
     ui->lcdView->setFocus();
@@ -170,7 +168,7 @@ MainWindow::MainWindow(QWidget *parent) :
     {
         bool resumed = false;
         setCurrentKit(the_qml_bridge->getKitModel()->getKits()[kitIndex]);
-        if(!snapshot_path.isEmpty())
+        if(!snapshotPath().isEmpty())
             resumed = resume();
 
         if(!resumed)
@@ -494,6 +492,7 @@ bool MainWindow::resume()
 {
     applyQMLBridgeSettings();
 
+    auto snapshot_path = snapshotPath();
     if(!snapshot_path.isEmpty())
         return resumeFromPath(snapshot_path);
     else
@@ -505,9 +504,9 @@ bool MainWindow::resume()
 
 void MainWindow::suspend()
 {
-    QString default_snapshot = settings->value(QStringLiteral("snapshotPath")).toString();
-    if(!default_snapshot.isEmpty())
-        suspendToPath(default_snapshot);
+    auto snapshot_path = snapshotPath();
+    if(!snapshot_path.isEmpty())
+        suspendToPath(snapshot_path);
     else
         QMessageBox::warning(this, tr("Can't suspend"), tr("The current kit does not have a snapshot file configured"));
 }
@@ -661,9 +660,19 @@ void MainWindow::applyQMLBridgeSettings()
 
 void MainWindow::setCurrentKit(const Kit &kit)
 {
+    current_kit_id = kit.id;
     emu.boot1 = kit.boot1;
     emu.flash = kit.flash;
-    snapshot_path = kit.snapshot;
+    fallback_snapshot_path = kit.snapshot;
+}
+
+QString MainWindow::snapshotPath()
+{
+    int kitIndex = the_qml_bridge->kitIndexForID(current_kit_id);
+    if(kitIndex >= 0)
+        return the_qml_bridge->getKitModel()->getKits()[kitIndex].snapshot;
+    else
+        return fallback_snapshot_path;
 }
 
 void MainWindow::restart()

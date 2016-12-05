@@ -120,7 +120,8 @@ private:
 
     QObject *toast = nullptr;
     #ifdef MOBILE_UI
-        QString snapshot_path;
+        unsigned int current_kit_id;
+        QString fallback_snapshot_path;
     #endif
     KitModel kit_model;
     QSettings settings;

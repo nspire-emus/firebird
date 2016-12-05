@@ -417,17 +417,22 @@ void QMLBridge::reset()
 void QMLBridge::suspend()
 {
     toastMessage(tr("Suspending emulation"));
+    auto snapshot_path = getSnapshotPath();
     if(!snapshot_path.isEmpty())
         emu_thread.suspend(snapshot_path);
+    else
+        toastMessage(tr("The current kit does not have a snapshot file configured"));
 }
 
 void QMLBridge::resume()
 {
     toastMessage(tr("Resuming emulation"));
+    auto snapshot_path = getSnapshotPath();
     if(!snapshot_path.isEmpty())
         emu_thread.resume(snapshot_path);
+    else
+        toastMessage(tr("The current kit does not have a snapshot file configured"));
 }
-
 
 void QMLBridge::useDefaultKit()
 {
@@ -436,9 +441,10 @@ void QMLBridge::useDefaultKit()
         return;
 
     auto &&kit = kit_model.getKits()[kitIndex];
+    current_kit_id = kit.id;
     emu_thread.boot1 = kit.boot1;
     emu_thread.flash = kit.flash;
-    snapshot_path = kit.snapshot;
+    fallback_snapshot_path = kit.snapshot;
 }
 
 bool QMLBridge::stop()
@@ -463,7 +469,11 @@ QString QMLBridge::getFlashPath()
 
 QString QMLBridge::getSnapshotPath()
 {
-    return snapshot_path;
+    int kitIndex = kitIndexForID(current_kit_id);
+    if(kitIndex >= 0)
+        return kit_model.getKits()[kitIndex].snapshot;
+    else
+        return fallback_snapshot_path;
 }
 
 void QMLBridge::registerToast(QVariant toast)
