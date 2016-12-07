@@ -630,7 +630,17 @@ void MainWindow::showStatusMsg(QString str)
 void MainWindow::kitDataChanged(QModelIndex, QModelIndex, QVector<int> roles)
 {
     if(roles.contains(KitModel::NameRole))
+    {
         refillKitMenus();
+
+        // Need to update window title if kit is active
+        int kitIndex = the_qml_bridge->kitIndexForID(current_kit_id);
+        if(kitIndex >= 0)
+        {
+            auto name = the_qml_bridge->getKitModel()->getKits()[kitIndex].name;
+            setWindowTitle(QStringLiteral("Firebird Emu - %1").arg(name));
+        }
+    }
 }
 
 void MainWindow::kitAnythingChanged()
