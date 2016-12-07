@@ -151,8 +151,14 @@ MainWindow::MainWindow(QWidget *parent) :
 
     ui->lcdView->setFocus();
 
-    if(!the_qml_bridge->getAutostart())
-        return;
+    // Select default Kit
+    int kitIndex = the_qml_bridge->kitIndexForID(the_qml_bridge->getDefaultKit());
+    bool defaultKitFound = kitIndex >= 0;
+
+    if(!defaultKitFound)
+        kitIndex = 0;
+
+    setCurrentKit(the_qml_bridge->getKitModel()->getKits()[kitIndex]);
 
     if(the_qml_bridge->getKitModel()->allKitsEmpty())
     {
@@ -162,12 +168,18 @@ MainWindow::MainWindow(QWidget *parent) :
         return;
     }
 
+    if(!the_qml_bridge->getAutostart())
+    {
+        showStatusMsg(tr("Start the emulation via Emulation->Start."));
+        return;
+    }
+
     // Autostart handling
-    int kitIndex = the_qml_bridge->kitIndexForID(the_qml_bridge->getDefaultKit());
-    if(kitIndex >= 0)
+    if(!defaultKitFound)
+        showStatusMsg(tr("Default Kit not found"));
+    else
     {
         bool resumed = false;
-        setCurrentKit(the_qml_bridge->getKitModel()->getKits()[kitIndex]);
         if(!snapshotPath().isEmpty())
             resumed = resume();
 

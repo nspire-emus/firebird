@@ -14,7 +14,7 @@
    <bool>true</bool>
   </property>
   <property name="windowTitle">
-   <string>TI-Nspire Emulator</string>
+   <string>Firebird Emu</string>
   </property>
   <property name="windowIcon">
    <iconset resource="resources.qrc">
