@@ -66,6 +66,7 @@ public:
     Q_INVOKABLE QString basename(QString path);
     Q_INVOKABLE QString dir(QString path);
     Q_INVOKABLE QString toLocalFile(QUrl url);
+    Q_INVOKABLE bool fileExists(QString path);
     Q_INVOKABLE int kitIndexForID(unsigned int id);
 
     #ifdef MOBILE_UI

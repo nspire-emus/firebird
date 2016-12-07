@@ -27,6 +27,7 @@ RowLayout {
 
         font.italic: filePath === ""
         text: filePath === "" ? qsTr("(none)") : Emu.basename(filePath)
+        color: (!dialog.selectExisting || filePath === "" || Emu.fileExists(filePath)) ? "" : "red"
     }
 
     Button {

@@ -352,6 +352,11 @@ QString QMLBridge::toLocalFile(QUrl url)
     return url.toLocalFile();
 }
 
+bool QMLBridge::fileExists(QString path)
+{
+    return QFile::exists(path);
+}
+
 int QMLBridge::kitIndexForID(unsigned int id)
 {
     return kit_model.indexForID(id);
