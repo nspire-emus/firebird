@@ -184,7 +184,7 @@ bool gdb_connected = false;
 FILE *debugger_input = NULL;
 
 // return 1: break (should stop being feed with debugger commands), 0: continue (can be feed with other debugger commands)
-static int process_debug_cmd(char *cmdline) {
+int process_debug_cmd(char *cmdline) {
     char *cmd = strtok(cmdline, " \n\r");
     if (!cmd)
         return 0;
@@ -204,7 +204,6 @@ static int process_debug_cmd(char *cmdline) {
                     "n - continue until next instruction\n"
                     "pr <address> - port or memory read\n"
                     "pw <address> <value> - port or memory write\n"
-                    "q - quit\n"
                     "r - show registers\n"
                     "rs <regnum> <value> - change register value\n"
                     "ss <address> <length> <string> - search a string\n"
