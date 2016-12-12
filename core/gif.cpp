@@ -53,27 +53,32 @@ void gif_new_frame()
 
     lcd_cx_draw_frame(framebuffer.data());
 
-    if(!emulate_cx)
-    {
-        uint16_t *px = framebuffer.data();
-        for(unsigned int i = 0; i < 320*240; ++i)
-        {
-            uint8_t pix = *px & 0xF;
-            uint16_t n = pix << 8 | pix << 4 | pix;
-            *px = ~n;
-            ++px;
-        }
-    }
-
     uint16_t *ptr16 = framebuffer.data();
     RGB24 *ptr24 = buffer.data();
-    for(unsigned int i = 0; i < 320*240; ++i)
+
+    /* Convert RGB565 or RGB444 to RGBA8888 */
+    if(emulate_cx)
     {
-        ptr24->r = (*ptr16 & 0b1111100000000000) >> 8;
-        ptr24->g = (*ptr16 & 0b0000011111100000) >> 3;
-        ptr24->b = (*ptr16 & 0b0000000000011111) << 3;
-        ++ptr24;
-        ++ptr16;
+        for(unsigned int i = 0; i < 320*240; ++i)
+        {
+            ptr24->r = (*ptr16 & 0b1111100000000000) >> 8;
+            ptr24->g = (*ptr16 & 0b0000011111100000) >> 3;
+            ptr24->b = (*ptr16 & 0b0000000000011111) << 3;
+            ++ptr24;
+            ++ptr16;
+        }
+    }
+    else
+    {
+        for(unsigned int i = 0; i < 320*240; ++i)
+        {
+            uint8_t pix = ~(*ptr16 & 0xF);
+            ptr24->r = pix << 4;
+            ptr24->g = pix << 4;
+            ptr24->b = pix << 4;
+            ++ptr24;
+            ++ptr16;
+        }
     }
 
     if(!GifWriteFrame(&writer, reinterpret_cast<const uint8_t*>(buffer.data()), 320, 240, framedelay))
