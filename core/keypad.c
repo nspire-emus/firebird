@@ -10,6 +10,14 @@
 keypad_state keypad;
 
 void keypad_int_check() {
+    if(keypad.touchpad_contact != keypad.touchpad_last_contact)
+        keypad.touchpad_irq_state |= 0x4;
+    if(keypad.touchpad_down != keypad.touchpad_last_down)
+        keypad.touchpad_irq_state |= 0x8;
+
+    keypad.touchpad_last_contact = keypad.touchpad_contact;
+    keypad.touchpad_last_down = keypad.touchpad_down;
+
     int_set(INT_KEYPAD, (keypad.kpc.int_enable & keypad.kpc.int_active)
                       | (keypad.kpc.gpio_int_enable & keypad.kpc.gpio_int_active));
 }
@@ -147,14 +155,9 @@ uint8_t touchpad_read(uint8_t addr) {
             case 0x0A: return keypad.touchpad_down; // down
             case 0x0B: // IRQ status
             {
-                uint8_t status = 0x53;
-                if(keypad.touchpad_contact != keypad.touchpad_last_contact)
-                    status |= 0x4;
-                if(keypad.touchpad_down != keypad.touchpad_last_down)
-                    status |= 0x8;
-                keypad.touchpad_last_contact = keypad.touchpad_contact;
-                keypad.touchpad_last_down = keypad.touchpad_down;
-                return status;
+                uint8_t ret = keypad.touchpad_irq_state;
+                keypad.touchpad_irq_state = 0x53; // Reading resets IRQs, those few bits are always active
+                return ret;
             }
             case 0xE4: return 1; // firmware version
             case 0xE5: return 6; // firmware version
