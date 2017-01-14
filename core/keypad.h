@@ -36,7 +36,8 @@ struct touchpad_cx_state {
 
 typedef struct keypad_state {
     uint16_t key_map[16];
-    uint16_t touchpad_x, touchpad_y, touchpad_last_down, touchpad_last_contact;
+    uint16_t touchpad_x, touchpad_y;
+    uint8_t unused, touchpad_irq_state, touchpad_last_down, touchpad_last_contact;
     uint8_t touchpad_page;
     int8_t touchpad_rel_x, touchpad_rel_y;
     bool touchpad_down, touchpad_contact;
