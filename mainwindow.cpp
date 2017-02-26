@@ -657,20 +657,13 @@ void MainWindow::refillKitMenus()
     auto &&kit_model = the_qml_bridge->getKitModel();
     for(auto &&kit : kit_model->getKits())
     {
-        // We can't use a reference as it would become dangling,
-        // but can't use a value either, as it would need to be refreshed.
-        // So link this using Kit IDs.
-        unsigned int kit_id = kit.id;
-        ui->menuRestart_with_Kit->addAction(kit.name, [=] {
-            setCurrentKit(kit_model->getKits().at(kit_model->indexForID(kit_id)));
-            boot_order = ORDER_BOOT2;
-            restart();
-        });
-        ui->menuBoot_Diags_with_Kit->addAction(kit.name, [=] {
-            setCurrentKit(kit_model->getKits().at(kit_model->indexForID(kit.id)));
-            boot_order = ORDER_DIAGS;
-            restart();
-        });
+        QAction *action = ui->menuRestart_with_Kit->addAction(kit.name);
+        action->setData(kit.id);
+        connect(action, SIGNAL(triggered()), this, SLOT(startKit()));
+
+        action = ui->menuBoot_Diags_with_Kit->addAction(kit.name);
+        action->setData(kit.id);
+        connect(action, SIGNAL(triggered()), this, SLOT(startKitDiags()));
     }
 }
 
@@ -733,6 +726,38 @@ void MainWindow::restart()
 void MainWindow::openConfiguration()
 {
     config_dialog->setProperty("visible", QVariant(true));
+}
+
+void MainWindow::startKit()
+{
+    auto action = qobject_cast<QAction*>(sender());
+    if(!action)
+    {
+        qWarning() << "Received signal from invalid sender";
+        return;
+    }
+
+    auto &&kit_model = the_qml_bridge->getKitModel();
+    auto kit_id = static_cast<unsigned int>(action->data().toInt());
+    setCurrentKit(kit_model->getKits().at(kit_model->indexForID(kit_id)));
+    boot_order = ORDER_BOOT2;
+    restart();
+}
+
+void MainWindow::startKitDiags()
+{
+    auto action = qobject_cast<QAction*>(sender());
+    if(!action)
+    {
+        qWarning() << "Received signal from invalid sender";
+        return;
+    }
+
+    auto &&kit_model = the_qml_bridge->getKitModel();
+    auto kit_id = static_cast<unsigned int>(action->data().toInt());
+    setCurrentKit(kit_model->getKits().at(kit_model->indexForID(kit_id)));
+    boot_order = ORDER_DIAGS;
+    restart();
 }
 
 void MainWindow::xmodemSend()

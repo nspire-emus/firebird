@@ -59,6 +59,8 @@ public slots:
     //Menu "Emulator"
     void restart();
     void openConfiguration();
+    void startKit();
+    void startKitDiags();
 
     //Menu "Tools"
     void screenshot();
