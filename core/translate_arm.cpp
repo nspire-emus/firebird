@@ -243,7 +243,7 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
         // b<cc> after_inst
         // <instruction>
         // after_inst: @ next instruction
-        if(i.cond != CC_AL)
+        if(i.cond != CC_AL && i.cond != CC_NV)
         {
             emit_ldr_flags();
             cond_branch = translate_current;
