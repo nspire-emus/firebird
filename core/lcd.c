@@ -91,9 +91,9 @@ void lcd_cx_w_draw_frame(uint16_t *buffer)
             for(int row = 0; row < 240; ++row, out += 320)
             {
                 uint16_t color = *in++;
-                uint8_t r = color & 0x1F,
+                uint8_t b = color & 0x1F,
                         g = (color >> 5) & 0x1F,
-                        b = (color >> 10) & 0x1F;
+                        r = (color >> 10) & 0x1F;
 
                 *out = (r << 11) | (g << 6) | b | (color >> 10 & 0x20);
             }
@@ -165,9 +165,9 @@ void lcd_cx_draw_frame(uint16_t *buffer) {
                 uint32_t i, bi = lcd.control >> 9 & 1;
                 for (i = 0; i < 320; i++) {
                     uint16_t color = ((uint16_t *)in)[i ^ bi];
-                    uint8_t r = color & 0x1F,
+                    uint8_t b = color & 0x1F,
                             g = (color >> 5) & 0x1F,
-                            b = (color >> 10) & 0x1F;
+                            r = (color >> 10) & 0x1F;
 
                     out[i] = (r << 11) | (g << 6) | b | (color >> 10 & 0x20);
                 }
