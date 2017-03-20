@@ -612,6 +612,7 @@ static void native_debugger(void) {
         }
         fflush(stdout);
         fflush(stderr);
+        // TODO: This while looks weird.
         while (!fgets(line, sizeof line, debugger_input)) {
             // switch to GUI
             fclose(debugger_input);

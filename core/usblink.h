@@ -14,7 +14,7 @@ extern int usblink_state;
 
 struct usblink_file {
     const char *filename;
-    uint64_t size;
+    uint32_t size;
     bool is_dir;
 };
 
