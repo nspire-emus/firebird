@@ -1,8 +1,9 @@
+import Firebird.Emu 1.0
+import Firebird.UIComponents 1.0
+
 import QtQuick 2.0
 import QtQuick.Layouts 1.0
 import QtQuick.Dialogs 1.1
-import Firebird.Emu 1.0
-import QtQuick.Controls 1.3
 
 Rectangle {
     id: mobileui
@@ -207,55 +208,16 @@ Rectangle {
         }
     }
 
-    Rectangle {
+    Toast {
         id: toast
         x: 60
         z: 1
-        implicitWidth: message.width+2*5
-        implicitHeight: message.height+2*5
 
         anchors.bottom: parent.bottom
         anchors.bottomMargin: 61
         anchors.horizontalCenter: parent.horizontalCenter
 
-        radius: 5
-        color: "#d3c7c7"
-        border.color: "#e66e6e6e"
-        border.width: 3
-
-        opacity: 0
-        visible: opacity > 0
-
         Component.onCompleted: Emu.registerToast(this)
-
-        Behavior on opacity { NumberAnimation { duration: 200 } }
-
-        function showMessage(str) {
-            message.text = str;
-            opacity = 1;
-            timer.restart();
-        }
-
-        Text {
-            id: message
-            text: "Text"
-            anchors.centerIn: parent
-            font.pointSize: 12
-
-            Timer {
-                id: timer
-                interval: 2000
-                onTriggered: parent.parent.opacity = 0;
-            }
-        }
-
-        MouseArea {
-            anchors.fill: parent
-            onClicked: {
-                timer.stop();
-                parent.opacity = 0;
-            }
-        }
     }
 
     states: [ State {
