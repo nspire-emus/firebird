@@ -1,8 +1,11 @@
 import QtQuick 2.0
 
+import Firebird.UIComponents 1.0
+
 Rectangle {
-    implicitWidth: message.width+2*5
-    implicitHeight: message.height+2*5
+    property int maxWidth: parent.width * 0.9
+    height: message.contentHeight + 2*radius
+    width: message.contentWidth + 2*radius
 
     radius: 5
     color: "#d3c7c7"
@@ -20,11 +23,16 @@ Rectangle {
         timer.restart();
     }
 
-    Text {
+    FBLabel {
         id: message
         text: "Text"
+        width: parent.maxWidth
+
         anchors.centerIn: parent
+
+        horizontalAlignment: Text.Center
         font.pointSize: 12
+        wrapMode: Text.WordWrap
 
         Timer {
             id: timer
