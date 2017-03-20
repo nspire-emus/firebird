@@ -62,6 +62,10 @@ QMLBridge::QMLBridge(QObject *parent) : QObject(parent)
 
     connect(&kit_model, SIGNAL(anythingChanged()), this, SLOT(saveKits()), Qt::QueuedConnection);
     #ifdef MOBILE_UI
+        connect(&emu_thread, SIGNAL(stopped()), this, SIGNAL(isRunningChanged()), Qt::QueuedConnection);
+        connect(&emu_thread, SIGNAL(started(bool)), this, SIGNAL(isRunningChanged()), Qt::QueuedConnection);
+        connect(&emu_thread, SIGNAL(suspended(bool)), this, SIGNAL(isRunningChanged()), Qt::QueuedConnection);
+        connect(&emu_thread, SIGNAL(resumed(bool)), this, SIGNAL(isRunningChanged()), Qt::QueuedConnection);
         connect(&emu_thread, SIGNAL(started(bool)), this, SLOT(started(bool)), Qt::QueuedConnection);
         connect(&emu_thread, SIGNAL(resumed(bool)), this, SLOT(resumed(bool)), Qt::QueuedConnection);
         connect(&emu_thread, SIGNAL(suspended(bool)), this, SLOT(suspended(bool)), Qt::QueuedConnection);
@@ -72,7 +76,7 @@ QMLBridge::~QMLBridge()
 {
     #ifdef MOBILE_UI
         emu_thread.stop();
-#endif
+    #endif
 }
 
 unsigned int QMLBridge::getGDBPort()
@@ -228,6 +232,16 @@ void QMLBridge::setUSBDir(QString dir)
 
     settings.setValue(QStringLiteral("usbdirNew"), dir);
     emit usbDirChanged();
+}
+
+bool QMLBridge::getIsRunning()
+{
+    #ifdef MOBILE_UI
+        return emu_thread.isRunning();
+    #else
+        //TODO: Non mobile-ui
+        return true;
+    #endif
 }
 
 constexpr const int ROWS = 8, COLS = 11;

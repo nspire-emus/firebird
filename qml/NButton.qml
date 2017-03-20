@@ -9,10 +9,17 @@ Rectangle {
     property bool active: false
     property int keymap_id: 1
 
+    signal clicked()
+
     border.width: active ? 2 : 1
     border.color: "#888"
     radius: 4
     color: active ? active_color : back_color
+
+    onActiveChanged: {
+        if(active === true)
+            clicked();
+    }
 
     Text {
         id: label
