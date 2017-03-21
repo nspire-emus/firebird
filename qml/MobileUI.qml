@@ -2,291 +2,128 @@ import Firebird.Emu 1.0
 import Firebird.UIComponents 1.0
 
 import QtQuick 2.0
-import QtQuick.Layouts 1.0
+import QtQuick.Controls 1.2
 import QtQuick.Dialogs 1.1
-import QtQuick.Controls 2.0
+import QtQuick.Layouts 1.0
 
 ApplicationWindow {
+    id: app
+    title: "Firebird Emu"
     width: 320
     height: 480
     visible: true
 
-    Rectangle {
-        id: mobileui
-        anchors.fill: parent
-        color: "#eee"
+    Component.onCompleted: {
+        // FIXME: The toast might not yet be registered here
 
-        Component.onCompleted: {
-            // FIXME: The toast might not yet be registered here
+        Emu.useDefaultKit();
 
-            Emu.useDefaultKit();
+        if(Emu.autostart
+            && Emu.getFlashPath() !== ""
+            && Emu.getBoot1Path() !== "")
+        {
+            if(Emu.getSnapshotPath() !== "")
+                Emu.resume();
+            else
+                Emu.restart();
+        }
+    }
 
-            if(Emu.autostart
-                && Emu.getFlashPath() !== ""
-                && Emu.getBoot1Path() !== "")
+    Connections {
+        target: Qt.application
+        onStateChanged: {
+            switch (Qt.application.state)
             {
-                if(Emu.getSnapshotPath() !== "")
-                    Emu.resume();
-                else
-                    Emu.restart();
+                case Qt.ApplicationSuspended:
+                case Qt.ApplicationHidden:
+                    Emu.setPaused(true);
+                break;
+                case Qt.ApplicationActive:
+                    Emu.setPaused(false);
+                break;
             }
         }
+    }
 
-        Connections {
-            target: Qt.application
-            onStateChanged: {
-                switch (Qt.application.state)
-                {
-                    case Qt.ApplicationSuspended:
-                    case Qt.ApplicationHidden:
-                        Emu.setPaused(true);
-                    break;
-                    case Qt.ApplicationActive:
-                        Emu.setPaused(false);
-                    break;
-                }
-            }
+    Toast {
+        id: toast
+        x: 60
+        z: 1
+
+        anchors.bottom: parent.bottom
+        anchors.bottomMargin: 61
+        anchors.horizontalCenter: parent.horizontalCenter
+
+        Component.onCompleted: Emu.registerToast(this)
+    }
+
+    ListView {
+        id: listView
+
+        anchors.fill: parent
+        orientation: Qt.Horizontal
+        snapMode: ListView.SnapOneItem
+        boundsBehavior: ListView.StopAtBounds
+        pixelAligned: true
+
+        // TODO: Hack #1! The keypad uses Emu.registerNButton and all that, so it must not be destroyed
+        cacheBuffer: width * count
+
+        model: [ "MobileUIConfig.qml", "MobileUIDrawer.qml", "MobileUIFront.qml" ]
+        currentIndex: 2
+
+        NumberAnimation {
+            id: anim
+            target: listView
+            property: "contentX"
+            duration: 200
+            easing.type: Easing.InOutQuad
         }
 
-        GridLayout {
-            id: screenAndBar
-            anchors {
-                top: mobileui.top
-                left: mobileui.left
-                right: mobileui.right
-                bottom: undefined
-            }
-            height: sidebar.preferredSize * 4
-            columns: 2
-
-            rowSpacing: 0
-            columnSpacing: 0
-
-            EmuScreen {
-                id: screen
-                focus: true
-                Layout.fillWidth: true
-                Layout.fillHeight: true
-                Layout.preferredHeight: mobileui.height * 0.4
-
-                Timer {
-                    interval: 20
-                    running: true; repeat: true
-                    onTriggered: screen.update()
-                }
-            }
-
-            GridLayout {
-                id: sidebar
-                columns: 1
-                Layout.fillHeight: true
-                Layout.fillWidth: false
-
-                property int preferredSize: mobileui.height * 0.1
-
-                columnSpacing: (screenAndBar.width - preferredSize * 4) / 5
-                rowSpacing: 0
-                Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
-
-                SidebarButton {
-                    id: restartButton
-
-                    Layout.preferredHeight: sidebar.preferredSize
-                    Layout.preferredWidth: sidebar.preferredSize
-
-                    title: qsTr("Start")
-                    icon: "qrc:/icons/resources/icons/edit-bomb.png"
-
-                    onClicked: {
-                        Emu.useDefaultKit();
-                        Emu.restart();
-                    }
-                }
-
-                SidebarButton {
-                    id: resetButton
-
-                    Layout.preferredHeight: sidebar.preferredSize
-                    Layout.preferredWidth: sidebar.preferredSize
-
-                    title: qsTr("Reset")
-                    icon: "qrc:/icons/resources/icons/system-reboot.png"
-
-                    onClicked: Emu.reset();
-                }
-
-                SidebarButton {
-                    id: resumeButton
-
-                    Layout.preferredHeight: sidebar.preferredSize
-                    Layout.preferredWidth: sidebar.preferredSize
-
-                    title: qsTr("Resume")
-                    icon: "qrc:/icons/resources/icons/system-suspend-hibernate.png"
-
-                    onClicked: {
-                        Emu.useDefaultKit();
-                        Emu.resume()
-                    }
-                }
-
-                SidebarButton {
-                    id: saveButton
-
-                    Layout.preferredHeight: sidebar.preferredSize
-                    Layout.preferredWidth: sidebar.preferredSize
-
-                    title: qsTr("Save")
-                    icon: "qrc:/icons/resources/icons/media-floppy.png"
-
-                    MessageDialog {
-                        id: saveFailedDialog
-                        title: qsTr("Error")
-                        text: qsTr("Failed to save changes!")
-                        icon: StandardIcon.Warning
-                    }
-
-                    MessageDialog {
-                        id: snapWarnDialog
-                        title: qsTr("Warning")
-                        text: qsTr("Flash saved, but no snapshot location configured.\nYou won't be able to resume.")
-                        icon: StandardIcon.Warning
-                    }
-
-                    onClicked: {
-                        var flash_path = Emu.getFlashPath();
-                        var snap_path = Emu.getSnapshotPath();
-
-                        if(flash_path === "" || !Emu.saveFlash())
-                            saveFailedDialog.visible = true;
-                        else
-                        {
-                            if(snap_path)
-                                Emu.suspend();
-                            else
-                                snapWarnDialog.visible = true;
-                        }
-                    }
-                }
-
-            }
+        function animateToIndex(i) {
+            /* TODO: This is ugly. */
+            var xpos = [0, app.width, app.width*1.6]
+            anim.to = xpos[i];
+            anim.from = listView.contentX;
+            anim.start();
         }
 
-        Flickable {
-            id: controls
-            anchors {
-                top: screenAndBar.bottom
-                bottom: parent.bottom
-                right: parent.right
-                left: parent.left
-            }
-            width: mobileui.width
-
-            boundsBehavior: Flickable.StopAtBounds
-            flickableDirection: Flickable.HorizontalAndVerticalFlick
-
-            contentWidth: controlsRow.width
-            contentHeight: controlsRow.height
-            clip: true
-
-            Row {
-                id: controlsRow
-
-                Item {
-                    id: mobilecontrol1
-                    height: keypad.height*controls.width/keypad.width + iosmargin.height
-                    width: controls.width
-
-                    Keypad {
-                        id: keypad
-                        transform: Scale { origin.x: 0; origin.y: 0; xScale: controls.width/keypad.width; yScale: controls.width/keypad.width }
-                    }
-
-                    Item {
-                        id: iosmargin
-                        // This is needed to avoid opening the control center
-                        height: Qt.platform.os === "ios" ? 20 : 0
-                    }
-                }
-
-                MobileControl2 {
-                    id: control2
-                    height: mobilecontrol1.height
-                    width: controls.width
-                }
-            }
+        function closeDrawer() {
+            animateToIndex(2);
         }
 
-        Toast {
-            id: toast
-            x: 60
-            z: 1
-
-            anchors.bottom: parent.bottom
-            anchors.bottomMargin: 61
-            anchors.horizontalCenter: parent.horizontalCenter
-
-            Component.onCompleted: Emu.registerToast(this)
+        function openDrawer() {
+            animateToIndex(1);
         }
 
-        states: [ State {
-            name: "tabletMode"
-            when: (mobileui.width > mobileui.height) && !Emu.leftHanded
+        function openConfiguration() {
+            animateToIndex(0);
+        }
 
-            /* Keypad fills right side, as wide as needed */
-            PropertyChanges {
-                target: controls
-                anchors {
-                    right: mobileui.right
-                    top: mobileui.top
-                    bottom: mobileui.bottom
-                    left: undefined
-                }
-                width: keypad.width/keypad.height * controls.height
-            }
+        delegate: Item {
+            // TODO: Hack #2! The keypad uses Emu.registerNButton and all that, so it must not be destroyed
+            ListView.delayRemove: true
 
-            /* Screen + sidebar centered on the remaining space on the left */
-            PropertyChanges {
-                target: screenAndBar
-                anchors {
-                    right: controls.left
-                    left: mobileui.left
-                    bottom: mobileui.bottom
-                    top: mobileui.top
-                }
-                height: (mobileui.width - controls.width) / 320 * 240
-                columns: 1
-            }
+            width: modelData === "MobileUIDrawer.qml" ? app.width * 0.6 : app.width
+            height: app.height
 
-            /* Horizontal instead of vertical orientation */
-            PropertyChanges {
-                target: sidebar
-                columns: 4
-                Layout.fillWidth: true
-                preferredSize: Math.min(screenAndBar.width / 4, mobileui.height * 0.15)
-            }
-        }, State {
-            name: "tabletModeLeft"
-            extend: "tabletMode"
-            when: (mobileui.width > mobileui.height) && Emu.leftHanded
-
-            /* Keypad fills left side, as wide as needed */
-            PropertyChanges {
-                target: controls
-                anchors {
-                    left: mobileui.left
-                    right: undefined
+            Rectangle {
+                id: overlay
+                z: 1
+                anchors.fill: parent
+                color: "black"
+                opacity: {
+                    var xOffset = listView.visibleArea.xPosition*listView.contentWidth - parent.x;
+                    return Math.min(Math.max(0.0, Math.abs(xOffset) / listView.width), 0.6);
                 }
             }
 
-            /* Screen + sidebar centered on the remaining space on the right */
-            PropertyChanges {
-                target: screenAndBar
-                anchors {
-                    left: controls.right
-                    right: mobileui.right
-                }
+            Loader {
+                z: 0
+                anchors.fill: parent
+                source: modelData
             }
-        } ]
+        }
     }
 }
+
