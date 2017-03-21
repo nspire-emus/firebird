@@ -379,17 +379,17 @@ static char *mem2hex(void *mem, char *buf, int count) {
 /* convert the hex array pointed to by buf into binary to be placed in mem
  * return a pointer to the character AFTER the last byte written.
  * If count is null stops at the first non hex digit */
-static void *hex2mem(char *buf, void *mem, int count) {
+static void *hex2mem(char *buf, uint8_t *mem, int count) {
     int i;
-    char ch;
+    int ch;
 
     for (i = 0; i < count || !count; i++) {
         ch = hex(*buf++);
-        if (ch == (char) -1)
+        if (ch == -1)
             return mem;
         ch <<= 4;
         ch |= hex(*buf++);
-        *(char*)(mem)++ = ch;
+        *mem++ = (uint8_t) ch;
         if (mem_err)
             return 0;
     }
