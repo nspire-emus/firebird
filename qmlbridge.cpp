@@ -94,7 +94,7 @@ void QMLBridge::setGDBPort(unsigned int port)
 }
 bool QMLBridge::getGDBEnabled()
 {
-    return settings.value(QStringLiteral("gdbEnabled"), true).toBool();
+    return settings.value(QStringLiteral("gdbEnabled"), !isMobile()).toBool();
 }
 
 void QMLBridge::setGDBEnabled(bool e)
@@ -122,7 +122,7 @@ void QMLBridge::setRDBPort(unsigned int port)
 
 bool QMLBridge::getRDBEnabled()
 {
-    return settings.value(QStringLiteral("rdbgEnabled"), true).toBool();
+    return settings.value(QStringLiteral("rdbgEnabled"), !isMobile()).toBool();
 }
 
 void QMLBridge::setRDBEnabled(bool e)
@@ -413,6 +413,9 @@ bool QMLBridge::restart()
         return false;
     }
 
+    emu_thread.port_gdb = getGDBEnabled() ? getGDBPort() : 0;
+    emu_thread.port_rdbg = getRDBEnabled() ? getRDBPort() : 0;
+
     if(!emu_thread.boot1.isEmpty() && !emu_thread.flash.isEmpty()) {
         toastMessage(tr("Starting emulation"));
         emu_thread.start();
@@ -446,6 +449,10 @@ void QMLBridge::suspend()
 void QMLBridge::resume()
 {
     toastMessage(tr("Resuming emulation"));
+
+    emu_thread.port_gdb = getGDBEnabled() ? getGDBPort() : 0;
+    emu_thread.port_rdbg = getRDBEnabled() ? getRDBPort() : 0;
+
     auto snapshot_path = getSnapshotPath();
     if(!snapshot_path.isEmpty())
         emu_thread.resume(snapshot_path);
