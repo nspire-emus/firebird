@@ -241,7 +241,14 @@ bool QMLBridge::getIsRunning()
     #else
         //TODO: Non mobile-ui
         return true;
-    #endif
+#endif
+}
+
+QString QMLBridge::getVersion()
+{
+    #define STRINGIFYMAGIC(x) #x
+    #define STRINGIFY(x) STRINGIFYMAGIC(x)
+    return QStringLiteral(STRINGIFY(FB_VERSION));
 }
 
 constexpr const int ROWS = 8, COLS = 11;

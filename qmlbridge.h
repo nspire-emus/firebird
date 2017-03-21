@@ -25,6 +25,7 @@ public:
     Q_PROPERTY(bool leftHanded READ getLeftHanded WRITE setLeftHanded NOTIFY leftHandedChanged)
     Q_PROPERTY(bool suspendOnClose READ getSuspendOnClose WRITE setSuspendOnClose NOTIFY suspendOnCloseChanged)
     Q_PROPERTY(QString usbdir READ getUSBDir WRITE setUSBDir NOTIFY usbDirChanged)
+    Q_PROPERTY(QString version READ getVersion)
     Q_PROPERTY(bool isRunning READ getIsRunning NOTIFY isRunningChanged)
     Q_PROPERTY(KitModel* kits READ getKitModel)
 
@@ -51,6 +52,7 @@ public:
     QString getUSBDir();
     void setUSBDir(QString dir);
     bool getIsRunning();
+    QString getVersion();
 
     KitModel *getKitModel() { return &kit_model; }
     Q_INVOKABLE void keypadStateChanged(int keymap_id, bool state);

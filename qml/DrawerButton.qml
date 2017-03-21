@@ -1,7 +1,6 @@
 import QtQuick 2.0
 import QtQuick.Controls 1.3
 import QtQuick.Layouts 1.0
-import QtGraphicalEffects 1.0
 import Firebird.UIComponents 1.0
 
 Rectangle {
@@ -10,6 +9,7 @@ Rectangle {
     property alias borderTopVisible: borderTop.visible
     property alias borderBottomVisible: borderBottom.visible
     property bool disabled: false
+    property alias font: label.font
 
     Layout.fillWidth: true
     Layout.minimumHeight: label.contentHeight * 2
