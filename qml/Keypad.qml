@@ -561,8 +561,8 @@ Rectangle {
     NDualButton {
         id: nDualButton7
         x: 210
-        topText2: "◂◑"
-        topText1: "◐‣"
+        topText2: "◀◑"
+        topText1: "◐▶"
         anchors.top: nDualButton6.bottom
         anchors.topMargin: 0
         id1: 68
