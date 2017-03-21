@@ -4,13 +4,12 @@ import Firebird.UIComponents 1.0
 
 Rectangle {
     property int maxWidth: parent.width * 0.9
-    height: message.contentHeight + 2*radius
-    width: message.contentWidth + 2*radius
+    height: message.contentHeight + 8
+    width: message.contentWidth + 10
 
-    radius: 5
-    color: "#d3c7c7"
-    border.color: "#e66e6e6e"
-    border.width: 3
+    color: "#dd222222"
+    border.color: "#ccc"
+    border.width: 0
 
     opacity: 0
     visible: opacity > 0
@@ -26,12 +25,13 @@ Rectangle {
     FBLabel {
         id: message
         text: "Text"
+        color: "#eee"
         width: parent.maxWidth
 
         anchors.centerIn: parent
 
         horizontalAlignment: Text.Center
-        font.pointSize: 12
+        font.pointSize: 10
         wrapMode: Text.WordWrap
 
         Timer {
