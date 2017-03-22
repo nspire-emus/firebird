@@ -83,7 +83,11 @@ Rectangle {
                 if(!Emu.isRunning)
                 {
                     Emu.useDefaultKit();
-                    Emu.restart();
+
+                    if(Emu.getSnapshotPath() !== "")
+                        Emu.resume();
+                    else
+                        Emu.restart();
                 }
             }
         }
