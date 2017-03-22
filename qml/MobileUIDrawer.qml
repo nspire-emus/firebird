@@ -143,7 +143,7 @@ Rectangle {
 
             title: qsTr("Firebird Emu v" + Emu.version)
 
-            font.pixelSize: TextMetrics.smallSize
+            font.pixelSize: TextMetrics.normalSize
 
             MessageDialog {
                 id: aboutDialog
