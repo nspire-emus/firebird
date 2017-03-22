@@ -31,7 +31,7 @@ Rectangle {
         anchors.centerIn: parent
 
         horizontalAlignment: Text.Center
-        font.pointSize: 10
+        font.pixelSize: TextMetrics.title1Size
         wrapMode: Text.WordWrap
 
         Timer {
