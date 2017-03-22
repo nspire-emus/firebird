@@ -70,14 +70,23 @@ ApplicationWindow {
         cacheBuffer: width * count
 
         model: [ "MobileUIConfig.qml", "MobileUIDrawer.qml", "MobileUIFront.qml" ]
-        currentIndex: 2
+
+        Component.onCompleted: {
+            // Open drawer if emulation does not start automatically
+            if(!Emu.autostart
+               || Emu.getBoot1Path() === ""
+               || Emu.getFlashPath() === "")
+                positionViewAtIndex(1, ListView.SnapPosition);
+            else
+                positionViewAtIndex(2, ListView.SnapPosition);
+        }
 
         NumberAnimation {
             id: anim
             target: listView
             property: "contentX"
             duration: 200
-            easing.type: Easing.InOutQuad
+            easing.type: Easing.InQuad
         }
 
         function animateToIndex(i) {
@@ -113,7 +122,7 @@ ApplicationWindow {
                 anchors.fill: parent
                 color: "black"
                 opacity: {
-                    var xOffset = listView.visibleArea.xPosition*listView.contentWidth - parent.x;
+                    var xOffset = listView.contentX - parent.x;
                     return Math.min(Math.max(0.0, Math.abs(xOffset) / listView.width), 0.6);
                 }
             }
