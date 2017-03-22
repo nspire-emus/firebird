@@ -5,49 +5,70 @@ import QtQuick 2.0
 import QtQuick.Layouts 1.0
 import QtQuick.Dialogs 1.1
 
-Rectangle {
+Item {
     id: mobileui
-    anchors.fill: parent
-    color: "#eee"
 
-    GridLayout {
+    Item {
         id: screenAndBar
+
+        height: screen.height
+
         anchors {
             top: mobileui.top
             left: mobileui.left
             right: mobileui.right
             bottom: undefined
         }
-        height: sidebar.preferredSize * 4
-        columns: 2
 
-        rowSpacing: 0
-        columnSpacing: 0
+        VerticalSwipeBar {
+            id: swipeBar
+
+            anchors {
+                left: parent.left
+                top: parent.top
+                bottom: parent.bottom
+            }
+
+            visible: true
+
+            text: "Swipe here"
+        }
 
         EmuScreen {
             id: screen
+
+            anchors {
+                left: swipeBar.visible ? swipeBar.right : parent.left
+                right: parent.right
+                top: parent.top
+                bottom: undefined
+            }
+
             focus: true
-            Layout.fillWidth: true
-            Layout.fillHeight: true
-            Layout.preferredHeight: mobileui.height * 0.4
+            height: (mobileui.width - swipeBar.width) / 320 * 240
 
             Timer {
-                interval: 20
-                running: true; repeat: true
+                interval: 35
+                running: true
+                repeat: true
                 onTriggered: screen.update()
             }
         }
 
-        GridLayout {
+        RowLayout {
             id: sidebar
-            columns: 1
-            Layout.fillHeight: true
-            Layout.fillWidth: false
+            visible: false
 
-            property int preferredSize: mobileui.height * 0.1
+            anchors {
+                left: parent.left
+                leftMargin: spacing
+                right: parent.right
+                bottom: parent.bottom
+            }
 
-            columnSpacing: (screenAndBar.width - preferredSize * 4) / 5
-            rowSpacing: 0
+            property int preferredSize: Math.min(screenAndBar.width / 4, mobileui.height * 0.15)
+
+            spacing: (parent.width - preferredSize * 4) / 5
             Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
 
             SidebarButton {
@@ -197,16 +218,27 @@ Rectangle {
                 bottom: mobileui.bottom
                 top: mobileui.top
             }
-            height: (mobileui.width - controls.width) / 320 * 240
-            columns: 1
         }
 
-        /* Horizontal instead of vertical orientation */
+        PropertyChanges {
+            target: screen
+            height: undefined
+            anchors {
+                left: screenAndBar.left
+                right: screenAndBar.right
+                top: screenAndBar.top
+                bottom: sidebar.top
+            }
+        }
+
+        PropertyChanges {
+            target: swipeBar
+            visible: false
+        }
+
         PropertyChanges {
             target: sidebar
-            columns: 4
-            Layout.fillWidth: true
-            preferredSize: Math.min(screenAndBar.width / 4, mobileui.height * 0.15)
+            visible: true
         }
     }, State {
         name: "tabletModeLeft"
