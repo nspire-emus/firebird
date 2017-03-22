@@ -11,7 +11,7 @@ Item {
     Item {
         id: screenAndBar
 
-        height: screen.height
+        height: (mobileui.width - swipeBar.width) / 320 * 240
 
         anchors {
             top: mobileui.top
@@ -32,6 +32,10 @@ Item {
             visible: true
 
             text: "Swipe here"
+
+            onClicked: {
+                listView.openDrawer();
+            }
         }
 
         EmuScreen {
@@ -41,11 +45,10 @@ Item {
                 left: swipeBar.visible ? swipeBar.right : parent.left
                 right: parent.right
                 top: parent.top
-                bottom: undefined
+                bottom: parent.bottom
             }
 
             focus: true
-            height: (mobileui.width - swipeBar.width) / 320 * 240
 
             Timer {
                 interval: 35
