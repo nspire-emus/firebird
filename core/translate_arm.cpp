@@ -117,6 +117,185 @@ static void emit_mov(int rd, uint32_t imm)
     #endif
 }
 
+static __attribute__((unused)) void emit_bkpt()
+{
+    emit_al(0x1200070); // bkpt #0
+}
+
+/* Register mapping.
+   To translate a set of instructions (a basic block), virtual registers are loaded/mapped
+   to physical registers with certain flags. */
+
+/* Maps virtual registers r0-lr to physical registers. 0 means not mapped. X means register rX-1 and -X means register r-X (dirty). */
+static int8_t regmap_v2p[16];
+
+static constexpr const uint8_t regmap_first_phys = R0, regmap_last_phys = R10;
+
+enum PhysRegFlags {
+    UNMAPPED=0, /* Can be used for regmap_v2p as well */
+    MAPPED=1,
+    IN_USE=2
+};
+static PhysRegFlags regmap_pflags[16];
+
+static void regmap_flush()
+{
+    for(unsigned int i = 0; i < 16; ++i)
+    {
+        if(regmap_v2p[i] < 0)
+            emit_str_armreg(-regmap_v2p[i], i);
+
+        regmap_v2p[i] = UNMAPPED;
+    }
+
+    for(unsigned int i = regmap_first_phys; i <= regmap_last_phys; ++i)
+        regmap_pflags[i] = UNMAPPED;
+}
+
+/* Returns the next free phyical register. It's marked as IN_USE. */
+static uint8_t regmap_next_preg()
+{
+    // Try to find unused phys reg first
+    for(unsigned int i = regmap_first_phys; i <= regmap_last_phys; ++i)
+    {
+        if(regmap_pflags[i] == UNMAPPED)
+        {
+            regmap_pflags[i] = IN_USE;
+            return i;
+        }
+    }
+
+    // Haven't found one yet, so search for an unused mapped one and unmap it
+    for(unsigned int i = regmap_first_phys; i <= regmap_last_phys; ++i)
+    {
+        if(regmap_pflags[i] == MAPPED)
+        {
+            // Flush old contents
+            for(unsigned int j = 0; j < 16; ++j)
+            {
+                if(regmap_v2p[j] == int8_t(i + 1) || (i > 0 && regmap_v2p[j] == -int8_t(i)))
+                {
+                    regmap_pflags[i] = IN_USE;
+                    return i;
+                }
+            }
+
+            assert(!"Inconsistent regmap!");
+        }
+    }
+
+    assert(!"No physical registers left!");
+}
+
+static uint8_t regmap_load(uint8_t rvirt)
+{
+    uint8_t preg;
+
+    if(regmap_v2p[rvirt] < 0)
+    {
+        preg = -regmap_v2p[rvirt];
+        regmap_pflags[preg] = IN_USE;
+        return preg;
+    }
+    else if(regmap_v2p[rvirt] > 0)
+    {
+        preg = regmap_v2p[rvirt] - 1;
+        regmap_pflags[preg] = IN_USE;
+        return preg;
+    }
+
+    // Not yet mapped
+    preg = regmap_next_preg();
+    emit_ldr_armreg(preg, rvirt);
+    regmap_v2p[rvirt] = preg;
+    return preg;
+}
+
+static uint8_t regmap_store(uint8_t rvirt)
+{
+    uint8_t preg;
+
+    if(regmap_v2p[rvirt] < 0)
+    {
+        preg = -regmap_v2p[rvirt];
+        regmap_pflags[preg] = IN_USE;
+        return preg;
+    }
+    else if(regmap_v2p[rvirt] > 0)
+    {
+        preg = regmap_v2p[rvirt] - 1;
+        regmap_pflags[preg] = IN_USE;
+        regmap_v2p[rvirt] = -preg;
+        return preg;
+    }
+
+    // Not yet mapped
+    preg = regmap_next_preg();
+    regmap_v2p[rvirt] = -preg;
+    return preg;
+}
+
+static uint8_t regmap_loadstore(uint8_t rvirt)
+{
+    uint8_t preg;
+
+    if(regmap_v2p[rvirt] < 0)
+    {
+        preg = -regmap_v2p[rvirt];
+        regmap_pflags[preg] = IN_USE;
+        return preg;
+    }
+    else if(regmap_v2p[rvirt] > 0)
+    {
+        preg = regmap_v2p[rvirt] - 1;
+        regmap_pflags[preg] = IN_USE;
+        regmap_v2p[rvirt] = -preg;
+        return preg;
+    }
+
+    // Not yet mapped
+    preg = regmap_next_preg();
+    emit_ldr_armreg(preg, rvirt);
+    regmap_v2p[rvirt] = -preg;
+    return preg;
+}
+
+static void regmap_mark_all_unused()
+{
+    for(unsigned int i = 0; i < 16; ++i)
+    {
+        if(regmap_pflags[i] == IN_USE)
+             regmap_pflags[i] = MAPPED;
+    }
+}
+
+/* Whether flags are currently loaded and may have been changed. */
+static bool flags_loaded = false, flags_changed = false;
+
+static void need_flags()
+{
+    if(flags_loaded)
+        return;
+
+    emit_ldr_flags();
+    flags_loaded = true;
+}
+
+static void changed_flags()
+{
+    flags_changed = true;
+}
+
+static void flush_flags()
+{
+    flags_loaded = false;
+    if(!flags_changed)
+        return;
+
+    emit_str_flags();
+    flags_loaded = flags_changed = false;
+}
+
 // Returns 0 if target not reachable
 static uint32_t maybe_branch(void *target)
 {
@@ -133,8 +312,14 @@ static uint32_t maybe_branch(void *target)
     #endif
 }
 
-static void emit_jmp(void *target)
+static void emit_jmp(void *target, bool save = true)
 {
+    if(save)
+    {
+        flush_flags();
+        regmap_flush();
+    }
+
     uint32_t branch = maybe_branch(target);
     if(branch)
         return emit_al(branch);
@@ -145,8 +330,14 @@ static void emit_jmp(void *target)
 }
 
 // Registers r0-r3 and r12 are not preserved!
-static void emit_call(void *target)
+static void emit_call(void *target, bool save = true)
 {
+    if(save)
+    {
+        flush_flags();
+        regmap_flush();
+    }
+
     uint32_t branch = maybe_branch(target);
     if(branch)
         return emit_al(branch | (1 << 24)); // Set the L-bit
@@ -155,11 +346,6 @@ static void emit_call(void *target)
     emit_al(0x28fe004); // add lr, pc, #4
     emit_al(0x51ff004); // ldr pc, [pc, #-4]
     emit(reinterpret_cast<uintptr_t>(target));
-}
-
-static __attribute__((unused)) void emit_bkpt()
-{
-    emit_al(0x1200070); // bkpt #0
 }
 
 bool translate_init()
@@ -220,6 +406,9 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
     this_translation->jump_table = reinterpret_cast<void**>(jump_table_start);
     this_translation->start_ptr = insn_ptr_start;
 
+    assert(!flags_loaded);
+    assert(!flags_changed);
+
     // This loop is executed once per instruction.
     // Due to the CPU being able to jump to each instruction seperately,
     // there is no state preserved between (virtual) instructions.
@@ -235,6 +424,8 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
         Instruction i;
         uint32_t insn = i.raw = *insn_ptr;
 
+        regmap_mark_all_unused();
+
         // Rollback translate_current to this val if instruction not supported
         *jump_table_current = translate_buffer_inst_start = translate_current;
 
@@ -245,7 +436,8 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
         // after_inst: @ next instruction
         if(i.cond != CC_AL && i.cond != CC_NV)
         {
-            emit_ldr_flags();
+            need_flags();
+
             cond_branch = translate_current;
             emit(0x0a000000 | ((i.cond ^ 1) << 28));
         }
@@ -321,9 +513,9 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
 
                 if(i.mult.s)
                 {
-                    emit_ldr_flags();
+                    need_flags();
                     emit(translated.raw);
-                    emit_str_flags();
+                    changed_flags();
                 }
                 else
                     emit(translated.raw);
@@ -488,13 +680,13 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
                         || i.data_proc.shift == SH_ROR)) // ROR with #0 as imm is RRX
             {
                 // This instruction impacts the flags, load them...
-                emit_ldr_flags();
+                need_flags();
 
                 // Emit the instruction itself
                 emit(translated.raw);
 
                 // ... and store them again
-                emit_str_flags();
+                changed_flags();
             }
             else
                 emit(translated.raw);
@@ -770,6 +962,9 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
 
         instruction_translated:
 
+        flush_flags();
+        regmap_flush();
+
         if(cond_branch)
         {
             // Fixup the branch above (-2 to account for the pipeline)
@@ -789,6 +984,10 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
     RAM_FLAGS(insn_ptr) |= RF_CODE_NO_TRANSLATE;
 
     exit_translation:
+
+    flush_flags();
+    regmap_flush();
+
     emit_mov(0, pc);
     emit_jmp(reinterpret_cast<void*>(translation_next));
 
