@@ -50,7 +50,7 @@ ColumnLayout {
 
     FBLabel {
         text: qsTr("Remote access to internal debugger")
-        font.pixelSize: TextMetrics.title1Size
+        font.pixelSize: TextMetrics.title2Size
         Layout.topMargin: 10
         Layout.bottomMargin: 5
     }
@@ -91,7 +91,7 @@ ColumnLayout {
 
     FBLabel {
         text: qsTr("Enter into Debugger")
-        font.pixelSize: TextMetrics.title1Size
+        font.pixelSize: TextMetrics.title2Size
         Layout.topMargin: 5
         Layout.bottomMargin: 5
     }
