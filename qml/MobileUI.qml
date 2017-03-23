@@ -73,6 +73,7 @@ ApplicationWindow {
 
         Component.onCompleted: {
             // Open drawer if emulation does not start automatically
+            Emu.useDefaultKit(); // We need this here to get the default values
             if(!Emu.autostart
                || Emu.getBoot1Path() === ""
                || Emu.getFlashPath() === "")
