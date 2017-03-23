@@ -286,6 +286,8 @@ static void changed_flags()
     flags_changed = true;
 }
 
+// Flushing of any kind is irreversible! It means that you *must* not call goto unimpl; after flushing.
+// Otherwise it thinks that the flags aren't dirty, but the flush code got rolled back.
 static void flush_flags()
 {
     flags_loaded = false;
@@ -431,7 +433,8 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
         // Rollback translate_current to this val if instruction not supported
         *jump_table_current = translate_buffer_inst_start = translate_current;
 
-        flush_flags_if_unimpl = flags_changed;
+        flush_flags_if_unimpl = false;
+
         bool can_jump_here = true;
         if(flags_loaded)
             can_jump_here = false;
@@ -454,8 +457,11 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
         // after_inst: @ next instruction
         if(i.cond != CC_AL && i.cond != CC_NV)
         {
-            if(flags_loaded)
+            if(flags_changed)
+            {
                 flush_flags();
+                flush_flags_if_unimpl = true;
+            }
             else
                 need_flags();
 
@@ -1017,10 +1023,7 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
     RAM_FLAGS(insn_ptr) |= RF_CODE_NO_TRANSLATE;
 
     if(flush_flags_if_unimpl)
-    {
-        flags_changed = true;
-        flush_flags();
-    }
+        flags_changed = true; // Force flush
 
     exit_translation:
 
