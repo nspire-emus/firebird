@@ -11,7 +11,7 @@ Item {
     Item {
         id: screenAndBar
 
-        height: (mobileui.width - swipeBar.width) / 320 * 240
+        height: (width - swipeBar.implicitWidth) / 320 * 240
 
         anchors {
             top: mobileui.top
@@ -209,7 +209,7 @@ Item {
                 bottom: mobileui.bottom
                 left: undefined
             }
-            width: keypad.width/keypad.height * controls.height
+            width: keypad.width/keypad.height * (controls.height - iosmargin.height)
         }
 
         /* Screen + sidebar centered on the remaining space on the left */
