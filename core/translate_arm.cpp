@@ -85,9 +85,10 @@ static void emit_ldr_flags()
     emit_al(0x128f00b); // msr cpsr_f, r11
 }
 
-enum Reg : uint8_t {
-    R0 = 0, R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, SP, LR, PC
-};
+static __attribute__((unused)) void emit_bkpt()
+{
+    emit_al(0x1200070); // bkpt #0
+}
 
 static void emit_str_flags()
 {
@@ -117,10 +118,9 @@ static void emit_mov(int rd, uint32_t imm)
     #endif
 }
 
-static __attribute__((unused)) void emit_bkpt()
-{
-    emit_al(0x1200070); // bkpt #0
-}
+enum Reg : uint8_t {
+    R0 = 0, R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, SP, LR, PC
+};
 
 /* Register mapping.
    To translate a set of instructions (a basic block), virtual registers are loaded/mapped
@@ -401,6 +401,8 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
     translation *this_translation = &translation_table[next_translation_index];
     // Whether to stop translating code
     bool stop_here = false;
+    // Whether the flags need to be flushed *iff* instruction was not translated
+    bool flush_flags_if_unimpl = false;
 
     // We know this already. end_ptr will be set after the loop
     this_translation->jump_table = reinterpret_cast<void**>(jump_table_start);
@@ -429,6 +431,22 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
         // Rollback translate_current to this val if instruction not supported
         *jump_table_current = translate_buffer_inst_start = translate_current;
 
+        flush_flags_if_unimpl = flags_changed;
+        bool can_jump_here = true;
+        if(flags_loaded)
+            can_jump_here = false;
+        else
+        {
+            for(unsigned int i = regmap_first_phys; i <= regmap_last_phys; ++i)
+            {
+                if(regmap_pflags[i] != UNMAPPED)
+                {
+                    can_jump_here = false;
+                    break;
+                }
+            }
+        }
+
         // Conditional instructions are translated like this:
         // msr cpsr_f, r11
         // b<cc> after_inst
@@ -436,7 +454,10 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
         // after_inst: @ next instruction
         if(i.cond != CC_AL && i.cond != CC_NV)
         {
-            need_flags();
+            if(flags_loaded)
+                flush_flags();
+            else
+                need_flags();
 
             cond_branch = translate_current;
             emit(0x0a000000 | ((i.cond ^ 1) << 28));
@@ -767,7 +788,15 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
                 else
                     emit_mov(R1, pc + 8);
 
-                emit(off.raw);
+                if(unlikely(off.mem_proc.shift == SH_ROR))
+                {
+                    // Possibly RRX
+                    need_flags();
+                    emit(off.raw);
+                    changed_flags();
+                }
+                else
+                    emit(off.raw);
             }
 
             // Get final address..
@@ -962,17 +991,21 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
 
         instruction_translated:
 
-        flush_flags();
-        regmap_flush();
-
         if(cond_branch)
         {
+            // The code up until this point might never get executed, so regmaps and flag actions won't have any effect
+            regmap_flush();
+            flush_flags();
+
             // Fixup the branch above (-2 to account for the pipeline)
             *cond_branch |= (translate_current - cond_branch - 2) & 0xFFFFFF;
             cond_branch = nullptr;
         }
 
-        RAM_FLAGS(insn_ptr) |= (RF_CODE_TRANSLATED | next_translation_index << RFS_TRANSLATION_INDEX);
+        if(can_jump_here)
+            RAM_FLAGS(insn_ptr) |= (RF_CODE_TRANSLATED | next_translation_index << RFS_TRANSLATION_INDEX);
+        // else just don't set it. When the CPU jumps to it, it'll be treated as new basic block
+
         ++jump_table_current;
         ++insn_ptr;
         pc += 4;
@@ -982,6 +1015,12 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
     // There may be a partial translation in memory, scrap it.
     translate_current = translate_buffer_inst_start;
     RAM_FLAGS(insn_ptr) |= RF_CODE_NO_TRANSLATE;
+
+    if(flush_flags_if_unimpl)
+    {
+        flags_changed = true;
+        flush_flags();
+    }
 
     exit_translation:
 
