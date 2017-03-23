@@ -8,12 +8,6 @@ import Firebird.UIComponents 1.0
 ColumnLayout {
     spacing: 5
 
-    FileDialog {
-        id: fileDialog
-        nameFilters: [ "TNS Documents (*.tns)", "Operating Systems (*.tno, *.tnc, *.tco, *.tcc)" ]
-        onAccepted: Emu.sendFile(fileUrl, Emu.usbdir)
-    }
-
     FBLabel {
         text: qsTr("Single File Transfer")
         font.pixelSize: TextMetrics.title2Size
@@ -36,30 +30,67 @@ ColumnLayout {
         font.pixelSize: TextMetrics.normalSize
     }
 
+    FileDialog {
+        id: fileDialog
+        nameFilters: [ "TNS Documents (*.tns)", "Operating Systems (*.tno, *.tnc, *.tco, *.tcc)" ]
+        onAccepted: {
+            transferProgress.indeterminate = true;
+            transferProgress.visible = true;
+            Emu.sendFile(fileUrl, Emu.usbdir);
+        }
+    }
+
     RowLayout {
         Button {
             text: qsTr("Send a file")
+            // If this button is disabled, the transfer directory textinput has the focus again,
+            // which is annoying on mobile.
+            // enabled: Emu.isRunning
             Layout.topMargin: 5
             Layout.bottomMargin: 5
             onClicked: fileDialog.visible = true
         }
 
         FBLabel {
+            id: transferStatusLabel
+            visible: !transferProgress.visible
             text: qsTr("Status:")
         }
 
         FBLabel {
             id: transferStatus
+            visible: !transferProgress.visible
+            Layout.fillWidth: true
             text: qsTr("idle")
+        }
+
+        ProgressBar {
+            id: transferProgress
+            visible: false
+            Layout.fillWidth: true
+            minimumValue: 0
+            maximumValue: 100
         }
 
         Connections {
             target: Emu
             onUsblinkProgressChanged: {
                 if(percent < 0)
+                {
                     transferStatus.text = qsTr("Failed!");
+                    transferProgress.visible = false;
+                }
+                else if(percent == 100)
+                {
+                    transferStatus.text = qsTr("Done!");
+                    transferProgress.visible = false;
+                }
                 else
-                    transferStatus.text = percent + qsTr(" % sent");
+                {
+                    transferProgress.value = percent;
+                    transferProgress.visible = true;
+                    transferProgress.indeterminate = false;
+                }
             }
         }
     }
