@@ -11,6 +11,8 @@ Rectangle {
     property bool disabled: false
     property alias font: label.font
 
+    opacity: disabled ? 0.5 : 1.0
+
     Layout.fillWidth: true
     Layout.minimumHeight: label.contentHeight * 2
 
@@ -51,15 +53,8 @@ Rectangle {
         visible: true
     }
 
-    color: {
-        if(disabled)
-            return "#EEEEEEEE";
-
-        if(mouseArea.pressed)
-            return "#CCC";
-
-        return "#00000000";
-    }
+    color: mouseArea.pressed && !disabled ? "#CCC" : "#00000000"
+    Behavior on color { ColorAnimation { duration: 200; } }
 
     Image {
         id: image
@@ -76,7 +71,7 @@ Rectangle {
     FBLabel {
         id: label
 
-        color: disabled ? "grey" : "disabled"
+        color: "black"
 
         x: image.x + image.width + 10
 
