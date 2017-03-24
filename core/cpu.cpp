@@ -36,7 +36,7 @@ void cpu_arm_loop()
                 start = clock();
                 turbo_mode = true;
             }
-            else if(arm.reg[15] == 0x10000000)
+            else if(arm.reg[15] == 0x10000000 || arm.reg[15] == 0x11800000)
             {
                 clock_t diff = clock() - start;
                 printf("%ld ms\n", diff / 1000);
