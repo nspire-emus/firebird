@@ -563,63 +563,34 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
                         || i.mult.rn == PC || i.mult.rd == PC)
                     goto unimpl; // PC as register not implemented
 
-                regmap_flush();
-
                 // Register renaming, see data processing below
                 Instruction translated;
 
                 translated.raw = (i.raw & 0xFFFFFFF) | 0xE0000000;
 
-                unsigned int armreg[2] = {16, 16};
-
-                emit_ldr_armreg(R0, i.mult.rm);
-                armreg[R0] = i.mult.rm;
-                translated.mult.rm = R0;
-
-                if(armreg[R0] == i.mult.rs)
-                    translated.mult.rs = R0;
-                else
-                {
-                    emit_ldr_armreg(R1, i.mult.rs);
-                    armreg[R1] = i.mult.rs;
-                    translated.mult.rs = R1;
-                }
+                translated.mult.rm = regmap_load(i.mult.rm);
+                translated.mult.rs = regmap_load(i.mult.rs);
 
                 if(i.mult.a)
                 {
-                    if(armreg[R0] == i.mult.rdlo)
-                        translated.mult.rdlo = R0;
-                    else if(armreg[R1] == i.mult.rdlo)
-                        translated.mult.rdlo = R1;
-                    else
-                    {
-                        emit_ldr_armreg(R2, i.mult.rdlo);
-                        translated.mult.rdlo = R2;
-                    }
-
                     if(i.mult.l)
                     {
-                        if(armreg[R0] == i.mult.rdhi)
-                            translated.mult.rdhi = R0;
-                        else if(armreg[R1] == i.mult.rdhi)
-                            translated.mult.rdhi = R1;
-                        else
-                        {
-                            emit_ldr_armreg(R3, i.mult.rdhi);
-                            translated.mult.rdhi = R3;
-                        }
+                        translated.mult.rdlo = regmap_loadstore(i.mult.rdlo);
+                        translated.mult.rdhi = regmap_loadstore(i.mult.rdhi);
                     }
                     else
-                        translated.mult.rdhi = R3;
+                    {
+                        translated.mult.rdlo = regmap_load(i.mult.rdlo);
+                        translated.mult.rd = regmap_store(i.mult.rd);
+                    }
                 }
                 else if(i.mult.l)
                 {
-                    // Not read, just written to
-                    translated.mult.rdlo = R2;
-                    translated.mult.rdhi = R3;
+                    translated.mult.rdlo = regmap_store(i.mult.rdlo);
+                    translated.mult.rdhi = regmap_store(i.mult.rdhi);
                 }
                 else
-                    translated.mult.rd = R2;
+                    translated.mult.rd = regmap_store(i.mult.rd);
 
                 if(i.mult.s)
                 {
@@ -629,10 +600,6 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
                 }
                 else
                     emit(translated.raw);
-
-                if(i.mult.l)
-                    emit_str_armreg(translated.mult.rdlo, i.mult.rdlo);
-                emit_str_armreg(translated.mult.rd, i.mult.rd);
 
                 goto instruction_translated;
             }
