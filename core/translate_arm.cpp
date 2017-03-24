@@ -119,6 +119,11 @@ static void emit_mov(int rd, uint32_t imm)
     #endif
 }
 
+static void emit_mov_reg(uint8_t rd, uint8_t rm)
+{
+    emit_al(0x1a00000 | (rd << 12) | rm);
+}
+
 enum Reg : uint8_t {
     R0 = 0, R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, SP, LR, PC
 };
@@ -130,12 +135,15 @@ enum Reg : uint8_t {
 /* Maps virtual registers r0-lr to physical registers. 0 means not mapped. X means register rX-1 and -X means register r1-X (dirty). */
 static int8_t regmap_v2p[16];
 
-/* R10 is a pointer to struct arm_state, R11 contains flags. */
-static constexpr const uint8_t regmap_first_phys = R0, regmap_last_phys = R9;
+/* R0 is used as scratch register. R10 is a pointer to struct arm_state, R11 contains flags. */
+static constexpr const uint8_t regmap_first_phys = R1, regmap_last_phys = R9;
 
 /* Shortcut. If anything has been mapped, this is true.
    Set by regmap_next_preg, unset by regmap_flush. */
 static bool regmap_any_mapped = false;
+
+/* Shortcut. The next available phys reg for mapping. */
+static uint8_t regmap_next_phys = regmap_first_phys;
 
 enum PhysRegFlags {
     UNMAPPED=0, /* Can be used for regmap_v2p as well */
@@ -161,6 +169,7 @@ static void regmap_flush()
         regmap_pflags[i] = UNMAPPED;
 
     regmap_any_mapped = false;
+    regmap_next_phys = regmap_first_phys;
 }
 
 /* Returns the next free phyical register. It's marked as IN_USE. */
@@ -169,11 +178,12 @@ static uint8_t regmap_next_preg()
     regmap_any_mapped = true;
 
     // Try to find unused phys reg first
-    for(unsigned int i = regmap_first_phys; i <= regmap_last_phys; ++i)
+    for(unsigned int i = regmap_next_phys; i <= regmap_last_phys; ++i)
     {
         if(regmap_pflags[i] == UNMAPPED)
         {
             regmap_pflags[i] = IN_USE;
+            regmap_next_phys = i + 1;
             return i;
         }
     }
@@ -610,10 +620,10 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
                     || i.mem_proc2.rm == PC)
                 goto unimpl; // PC as operand or dest. not implemented
 
-            regmap_flush();
-
             // Load base into r0
-            emit_ldr_armreg(R0, i.mem_proc2.rn);
+            emit_mov_reg(R0, regmap_load(i.mem_proc2.rn));
+
+            regmap_flush();
 
             // Offset into r5
             if(i.mem_proc2.i) // Immediate offset
@@ -665,16 +675,11 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
                 if(i.bx.rm == PC)
                     goto unimpl;
 
-                regmap_flush();
-
                 if(i.bx.l)
-                {
-                    emit_mov(R0, pc + 4);
-                    emit_str_armreg(R0, LR);
-                }
+                    emit_mov(regmap_store(LR), pc + 4);
 
                 // Load destination into R0
-                emit_ldr_armreg(R0, i.bx.rm);
+                emit_mov_reg(R0, regmap_load(i.bx.rm));
                 emit_jmp(reinterpret_cast<void*>(translation_next_bx));
 
                 if(i.cond == CC_AL)
@@ -702,7 +707,7 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
             {
                 uint8_t rm = regmap_load(i.data_proc.rm);
                 uint8_t rd = regmap_store(i.data_proc.rd);
-                emit_al(0x1a00000 | (rd << 12) | rm);
+                emit_mov_reg(rd, rm);
                 goto instruction_translated;
             }
 
@@ -754,13 +759,11 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
             if(!i.mem_proc.p && i.mem_proc.w)
                 goto unimpl;
 
-            regmap_flush();
-
             bool offset_is_zero = !i.mem_proc.not_imm && i.mem_proc.immed == 0;
 
             // Base register gets in r0
             if(i.mem_proc.rn != PC)
-                emit_ldr_armreg(R0, i.mem_proc.rn);
+                emit_mov_reg(R0, regmap_load(i.mem_proc.rn));
             else if(i.mem_proc.not_imm)
                 emit_mov(R0, pc + 8);
             else // Address known
@@ -772,6 +775,7 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
                 if(!i.mem_proc.l)
                 {
                     emit_mov(R0, address);
+                    regmap_flush();
                     goto no_offset;
                 }
 
@@ -781,15 +785,16 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
                 {
                     // Location not readable yet
                     emit_mov(R0, address);
+                    regmap_flush();
                     goto no_offset;
                 }
 
-                emit_mov(R0, i.mem_proc.b ? *ptr & 0xFF : *ptr);
                 if(i.mem_proc.rd != PC)
-                    emit_str_armreg(R0, i.mem_proc.rd);
+                    emit_mov(regmap_store(i.mem_proc.rd), i.mem_proc.b ? *ptr & 0xFF : *ptr);
                 else
                 {
                     // pc is destination register
+                    emit_mov(R0, i.mem_proc.b ? *ptr & 0xFF : *ptr);
                     emit_jmp(reinterpret_cast<void*>(translation_next));
                     // It's an unconditional jump
                     if(i.cond == CC_AL)
@@ -798,6 +803,8 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
 
                 goto instruction_translated;
             }
+
+            regmap_flush();
 
             // Skip offset calculation
             if(offset_is_zero)
@@ -977,13 +984,10 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
              * Either jump to translation_next if code not translated (yet) or
              * jump directly to the translated code, over a small function checking for pending events */
 
-            regmap_flush();
-
             if(i.branch.l)
             {
                 // Save return address in LR
-                emit_mov(R0, pc + 4);
-                emit_str_armreg(R0, LR);
+                emit_mov(regmap_store(LR), pc + 4);
             }
             else if(i.cond == CC_AL)
             {
