@@ -25,6 +25,7 @@
 #include "asmcode.h"
 #include "cpu.h"
 #include "cpudefs.h"
+#include "disasm.h"
 #include "mem.h"
 #include "mmu.h"
 #include "translate.h"
@@ -126,10 +127,10 @@ enum Reg : uint8_t {
    To translate a set of instructions (a basic block), virtual registers are loaded/mapped
    to physical registers with certain flags. */
 
-/* Maps virtual registers r0-lr to physical registers. 0 means not mapped. X means register rX-1 and -X means register r-X (dirty). */
+/* Maps virtual registers r0-lr to physical registers. 0 means not mapped. X means register rX-1 and -X means register r1-X (dirty). */
 static int8_t regmap_v2p[16];
 
-static constexpr const uint8_t regmap_first_phys = R0, regmap_last_phys = R10;
+static constexpr const uint8_t regmap_first_phys = R4, regmap_last_phys = R9;
 
 enum PhysRegFlags {
     UNMAPPED=0, /* Can be used for regmap_v2p as well */
@@ -143,7 +144,7 @@ static void regmap_flush()
     for(unsigned int i = 0; i < 16; ++i)
     {
         if(regmap_v2p[i] < 0)
-            emit_str_armreg(-regmap_v2p[i], i);
+            emit_str_armreg(-regmap_v2p[i] - 1, i);
 
         regmap_v2p[i] = UNMAPPED;
     }
@@ -173,8 +174,19 @@ static uint8_t regmap_next_preg()
             // Flush old contents
             for(unsigned int j = 0; j < 16; ++j)
             {
-                if(regmap_v2p[j] == int8_t(i + 1) || (i > 0 && regmap_v2p[j] == -int8_t(i)))
+                if(regmap_v2p[j] == int8_t(i + 1))
                 {
+                    // Not dirty
+                    regmap_v2p[j] = UNMAPPED;
+                    regmap_pflags[i] = IN_USE;
+                    return i;
+                }
+                else if(regmap_v2p[j] == -int8_t(i + 1))
+                {
+                    // Write back
+                    emit_str_armreg(i, j);
+
+                    regmap_v2p[j] = UNMAPPED;
                     regmap_pflags[i] = IN_USE;
                     return i;
                 }
@@ -187,13 +199,42 @@ static uint8_t regmap_next_preg()
     assert(!"No physical registers left!");
 }
 
-static uint8_t regmap_load(uint8_t rvirt)
+static uint8_t regmap_loadstore(uint8_t rvirt)
 {
+    assert(rvirt < PC);
+
     uint8_t preg;
 
     if(regmap_v2p[rvirt] < 0)
     {
-        preg = -regmap_v2p[rvirt];
+        preg = -regmap_v2p[rvirt] - 1;
+        regmap_pflags[preg] = IN_USE;
+        return preg;
+    }
+    else if(regmap_v2p[rvirt] > 0)
+    {
+        preg = regmap_v2p[rvirt] - 1;
+        regmap_pflags[preg] = IN_USE;
+        regmap_v2p[rvirt] = -(preg + 1);
+        return preg;
+    }
+
+    // Not yet mapped
+    preg = regmap_next_preg();
+    emit_ldr_armreg(preg, rvirt);
+    regmap_v2p[rvirt] = -(preg + 1);
+    return preg;
+}
+
+static uint8_t regmap_load(uint8_t rvirt)
+{
+    assert(rvirt < PC);
+
+    uint8_t preg;
+
+    if(regmap_v2p[rvirt] < 0)
+    {
+        preg = -regmap_v2p[rvirt] - 1;
         regmap_pflags[preg] = IN_USE;
         return preg;
     }
@@ -207,17 +248,19 @@ static uint8_t regmap_load(uint8_t rvirt)
     // Not yet mapped
     preg = regmap_next_preg();
     emit_ldr_armreg(preg, rvirt);
-    regmap_v2p[rvirt] = preg;
+    regmap_v2p[rvirt] = preg + 1;
     return preg;
 }
 
 static uint8_t regmap_store(uint8_t rvirt)
 {
+    assert(rvirt < PC);
+
     uint8_t preg;
 
     if(regmap_v2p[rvirt] < 0)
     {
-        preg = -regmap_v2p[rvirt];
+        preg = -regmap_v2p[rvirt] - 1;
         regmap_pflags[preg] = IN_USE;
         return preg;
     }
@@ -225,38 +268,13 @@ static uint8_t regmap_store(uint8_t rvirt)
     {
         preg = regmap_v2p[rvirt] - 1;
         regmap_pflags[preg] = IN_USE;
-        regmap_v2p[rvirt] = -preg;
+        regmap_v2p[rvirt] = -(preg + 1);
         return preg;
     }
 
     // Not yet mapped
     preg = regmap_next_preg();
-    regmap_v2p[rvirt] = -preg;
-    return preg;
-}
-
-static uint8_t regmap_loadstore(uint8_t rvirt)
-{
-    uint8_t preg;
-
-    if(regmap_v2p[rvirt] < 0)
-    {
-        preg = -regmap_v2p[rvirt];
-        regmap_pflags[preg] = IN_USE;
-        return preg;
-    }
-    else if(regmap_v2p[rvirt] > 0)
-    {
-        preg = regmap_v2p[rvirt] - 1;
-        regmap_pflags[preg] = IN_USE;
-        regmap_v2p[rvirt] = -preg;
-        return preg;
-    }
-
-    // Not yet mapped
-    preg = regmap_next_preg();
-    emit_ldr_armreg(preg, rvirt);
-    regmap_v2p[rvirt] = -preg;
+    regmap_v2p[rvirt] = -(preg + 1);
     return preg;
 }
 
@@ -368,7 +386,37 @@ bool translate_init()
     jump_table_current = jump_table;
     next_translation_index = 0;
 
-    return !!translate_buffer;
+    if(!translate_buffer)
+        return false;
+
+    #ifndef NDEBUG
+        regmap_flush();
+
+        // Basic sanity check: Load and map a few regs.
+        assert(regmap_load(regmap_first_phys) == regmap_first_phys);
+        assert(regmap_store(regmap_first_phys) == regmap_first_phys);
+        assert(regmap_loadstore(regmap_first_phys) == regmap_first_phys);
+        assert(regmap_loadstore(regmap_first_phys+1) == regmap_first_phys+1);
+        assert(regmap_store(regmap_first_phys+1) == regmap_first_phys+1);
+        assert(regmap_store(regmap_first_phys) == regmap_first_phys);
+
+        // Force all regs to be mapped
+        for(unsigned int i = regmap_first_phys; i <= regmap_last_phys; ++i)
+            assert(regmap_load(i) == i);
+
+        //assert(regmap_load(regmap_last_phys+1); // This will (and needs to) fail
+        regmap_mark_all_unused();
+
+        // Reused mapping
+        assert(regmap_load(regmap_last_phys+1) == regmap_first_phys);
+        // Old one still stays
+        assert(regmap_loadstore(regmap_first_phys+1) == regmap_first_phys+1);
+
+        regmap_flush();
+        translate_current = translate_buffer;
+    #endif
+
+    return true;
 }
 
 void translate_deinit()
@@ -378,6 +426,31 @@ void translate_deinit()
 
     os_free(translate_buffer, INSN_BUFFER_SIZE);
     translate_end = translate_current = translate_buffer = nullptr;
+}
+
+static __attribute__((unused)) void dump_translation(int index)
+{
+    auto &translation = translation_table[index];
+
+    uint32_t pc = phys_mem_addr(translation.start_ptr);
+    uint32_t *ptr = translation.start_ptr;
+    uint32_t **cur_jump_table = reinterpret_cast<uint32_t**>(translation.jump_table);
+    uint32_t *translated_insn = reinterpret_cast<uint32_t*>(*cur_jump_table);
+
+    puts("--------------------");
+
+    for(; reinterpret_cast<uintptr_t>(translated_insn) < translation.unused; ++translated_insn)
+    {
+        printf("%.08x: ", pc);
+        disasm_arm_insn2(reinterpret_cast<uint32_t>(translated_insn), translated_insn);
+
+        if(translated_insn == cur_jump_table[1])
+        {
+            ++cur_jump_table;
+            pc += 4;
+            ++ptr;
+        }
+    }
 }
 
 void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
@@ -410,6 +483,12 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
     this_translation->jump_table = reinterpret_cast<void**>(jump_table_start);
     this_translation->start_ptr = insn_ptr_start;
 
+    for(unsigned int i = 0; i < 16; ++i)
+    {
+        assert(regmap_pflags[i] == UNMAPPED);
+        assert(regmap_v2p[i] == UNMAPPED);
+    }
+
     assert(!flags_loaded);
     assert(!flags_changed);
 
@@ -429,6 +508,11 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
         uint32_t insn = i.raw = *insn_ptr;
 
         regmap_mark_all_unused();
+
+        if(i.cond != CC_AL && i.cond != CC_NV)
+        {
+            regmap_flush();
+        }
 
         // Rollback translate_current to this val if instruction not supported
         *jump_table_current = translate_buffer_inst_start = translate_current;
@@ -481,6 +565,8 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
                 if(i.mult.rm == PC || i.mult.rs == PC
                         || i.mult.rn == PC || i.mult.rd == PC)
                     goto unimpl; // PC as register not implemented
+
+                regmap_flush();
 
                 // Register renaming, see data processing below
                 Instruction translated;
@@ -562,6 +648,8 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
                     || i.mem_proc2.rm == PC)
                 goto unimpl; // PC as operand or dest. not implemented
 
+            regmap_flush();
+
             // Load base into r0
             emit_ldr_armreg(R0, i.mem_proc2.rn);
 
@@ -612,20 +700,22 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
             if((insn & 0xFFFFFD0) == 0x12FFF10)
             {
                 //B(L)X
+                if(i.bx.rm == PC)
+                    goto unimpl;
+
+                regmap_flush();
+
                 if(i.bx.l)
                 {
                     emit_mov(R0, pc + 4);
                     emit_str_armreg(R0, LR);
                 }
 
-                if(i.bx.rm == PC)
-                    goto unimpl;
-
                 // Load destination into R0
                 emit_ldr_armreg(R0, i.bx.rm);
                 emit_jmp(reinterpret_cast<void*>(translation_next_bx));
 
-                if(i.cond == CC_EQ)
+                if(i.cond == CC_AL)
                     stop_here = true;
             }
             else
@@ -646,12 +736,13 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
                 goto unimpl;
 
             // Shortcut for simple register mov (mov rd, rm)
-            if((i.raw & 0xFFF0FF0) == 0x1a00000)
+/*            if((i.raw & 0xFFF0FF0) == 0x1a00000)
             {
-                emit_ldr_armreg(R0, i.data_proc.rm);
-                emit_str_armreg(R0, i.data_proc.rd);
+                uint8_t rm = regmap_load(i.data_proc.rm);
+                uint8_t rd = regmap_store(i.data_proc.rd);
+                emit_al(0x1a00000 | (rd << 12) | rm);
                 goto instruction_translated;
-            }
+            }*/
 
             Instruction translated;
             translated.raw = (i.raw & 0xFFFFFFF) | 0xE0000000;
@@ -659,46 +750,21 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
             // Map needed register values:
             // add rd, rn, rm, lsl rs becomes add r4, r0, r1, lsl r2 for example
 
-            int armreg[2] = {-1, -1};
-
             // MOV and MVN don't have Rn
             if(i.data_proc.op != OP_MOV && i.data_proc.op != OP_MVN)
-            {
-                emit_ldr_armreg(R0, i.data_proc.rn);
-                armreg[R0] = i.data_proc.rn;
-                translated.data_proc.rn = R0;
-            }
+                translated.data_proc.rn = regmap_load(i.data_proc.rn);
 
             // rm is stored in the immediate, don't overwrite it
             if(!i.data_proc.imm)
-            {
-                if(armreg[R0] == i.data_proc.rm)
-                    translated.data_proc.rm = R0;
-                else
-                {
-                    emit_ldr_armreg(R1, i.data_proc.rm);
-                    armreg[R1] = i.data_proc.rm;
-                    translated.data_proc.rm = R1;
-                }
-            }
+                translated.data_proc.rm = regmap_load(i.data_proc.rm);
 
             // Only load rs if actually needed
             if(reg_shift)
-            {
-                if(armreg[R0] == i.data_proc.rs)
-                    translated.data_proc.rs = R0;
-                else if(armreg[R1] == i.data_proc.rs)
-                    translated.data_proc.rs = R1;
-                else
-                {
-                    emit_ldr_armreg(R2, i.data_proc.rs);
-                    translated.data_proc.rs = R2;
-                }
-            }
+                translated.data_proc.rs = regmap_load(i.data_proc.rs);
 
             // Only change the destination register if it has one
             if(i.data_proc.op < OP_TST || i.data_proc.op > OP_CMN)
-                translated.data_proc.rd = R3;
+                translated.data_proc.rd = regmap_store(i.data_proc.rd);
 
             if(unlikely(setcc
                         || i.data_proc.op == OP_ADC
@@ -717,9 +783,6 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
             }
             else
                 emit(translated.raw);
-
-            if(i.data_proc.op < OP_TST || i.data_proc.op > OP_CMN)
-                emit_str_armreg(R3, i.data_proc.rd);
         }
         else if((insn & 0xC000000) == 0x4000000)
         {
@@ -728,6 +791,8 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
             // User mode access not implemented
             if(!i.mem_proc.p && i.mem_proc.w)
                 goto unimpl;
+
+            regmap_flush();
 
             bool offset_is_zero = !i.mem_proc.not_imm && i.mem_proc.immed == 0;
 
@@ -765,7 +830,7 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
                     // pc is destination register
                     emit_jmp(reinterpret_cast<void*>(translation_next));
                     // It's an unconditional jump
-                    if(i.cond == CC_EQ)
+                    if(i.cond == CC_AL)
                         stop_here = true;
                 }
 
@@ -856,7 +921,7 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
                 // pc is destination register
                 emit_jmp(reinterpret_cast<void*>(translation_next));
                 // It's an unconditional jump
-                if(i.cond == CC_EQ)
+                if(i.cond == CC_AL)
                     stop_here = true;
             }
         }
@@ -875,6 +940,8 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
             //TODO: Loading PC is broken
             if(reglist & (1 << PC))
                 goto unimpl;
+
+            regmap_flush();
 
             int count = 0, offset, wb_offset;
             uint16_t reglist_ = reglist;
@@ -958,13 +1025,15 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
              * Either jump to translation_next if code not translated (yet) or
              * jump directly to the translated code, over a small function checking for pending events */
 
+            regmap_flush();
+
             if(i.branch.l)
             {
                 // Save return address in LR
                 emit_mov(R0, pc + 4);
                 emit_str_armreg(R0, LR);
             }
-            else if(i.cond == CC_EQ)
+            else if(i.cond == CC_AL)
             {
                 // It's not likely that the branch will return
                 stop_here = true;
@@ -1041,9 +1110,18 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
     
     // Did we do any translation at all?
     if(insn_ptr == insn_ptr_start)
+    {
+        // Apparently not.
+        // TODO: Revert jump_table as well?
+        translate_current = translate_buffer_inst_start;
         return;
+    }
 
     this_translation->end_ptr = insn_ptr;
+    this_translation->unused = reinterpret_cast<uintptr_t>(translate_current);
+
+    //dump_translation(next_translation_index);
+
     // This effectively flushes this_translation, as it won't get used next time
     next_translation_index += 1;
 
