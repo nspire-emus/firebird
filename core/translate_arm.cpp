@@ -130,7 +130,12 @@ enum Reg : uint8_t {
 /* Maps virtual registers r0-lr to physical registers. 0 means not mapped. X means register rX-1 and -X means register r1-X (dirty). */
 static int8_t regmap_v2p[16];
 
-static constexpr const uint8_t regmap_first_phys = R4, regmap_last_phys = R9;
+/* R10 is a pointer to struct arm_state, R11 contains flags. */
+static constexpr const uint8_t regmap_first_phys = R0, regmap_last_phys = R9;
+
+/* Shortcut. If anything has been mapped, this is true.
+   Set by regmap_next_preg, unset by regmap_flush. */
+static bool regmap_any_mapped = false;
 
 enum PhysRegFlags {
     UNMAPPED=0, /* Can be used for regmap_v2p as well */
@@ -151,11 +156,15 @@ static void regmap_flush()
 
     for(unsigned int i = regmap_first_phys; i <= regmap_last_phys; ++i)
         regmap_pflags[i] = UNMAPPED;
+
+    regmap_any_mapped = false;
 }
 
 /* Returns the next free phyical register. It's marked as IN_USE. */
 static uint8_t regmap_next_preg()
 {
+    regmap_any_mapped = true;
+
     // Try to find unused phys reg first
     for(unsigned int i = regmap_first_phys; i <= regmap_last_phys; ++i)
     {
@@ -392,6 +401,8 @@ bool translate_init()
     #ifndef NDEBUG
         regmap_flush();
 
+        assert(!regmap_any_mapped);
+
         // Basic sanity check: Load and map a few regs.
         assert(regmap_load(regmap_first_phys) == regmap_first_phys);
         assert(regmap_store(regmap_first_phys) == regmap_first_phys);
@@ -399,6 +410,8 @@ bool translate_init()
         assert(regmap_loadstore(regmap_first_phys+1) == regmap_first_phys+1);
         assert(regmap_store(regmap_first_phys+1) == regmap_first_phys+1);
         assert(regmap_store(regmap_first_phys) == regmap_first_phys);
+
+        assert(regmap_any_mapped);
 
         // Force all regs to be mapped
         for(unsigned int i = regmap_first_phys; i <= regmap_last_phys; ++i)
@@ -413,6 +426,8 @@ bool translate_init()
         assert(regmap_loadstore(regmap_first_phys+1) == regmap_first_phys+1);
 
         regmap_flush();
+        assert(!regmap_any_mapped);
+
         translate_current = translate_buffer;
     #endif
 
@@ -476,19 +491,13 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
     translation *this_translation = &translation_table[next_translation_index];
     // Whether to stop translating code
     bool stop_here = false;
-    // Whether the flags need to be flushed *iff* instruction was not translated
-    bool flush_flags_if_unimpl = false;
 
     // We know this already. end_ptr will be set after the loop
     this_translation->jump_table = reinterpret_cast<void**>(jump_table_start);
     this_translation->start_ptr = insn_ptr_start;
 
-    for(unsigned int i = 0; i < 16; ++i)
-    {
-        assert(regmap_pflags[i] == UNMAPPED);
-        assert(regmap_v2p[i] == UNMAPPED);
-    }
-
+    // Assert that the translated code does not assume any state
+    assert(!regmap_any_mapped);
     assert(!flags_loaded);
     assert(!flags_changed);
 
@@ -511,44 +520,27 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
 
         if(i.cond != CC_AL && i.cond != CC_NV)
         {
+            /* Conditional instructions are translated like this:
+               <load flags>
+               b<cc> after_inst
+               <instruction>
+               after_inst: @ next instruction
+
+               This means that register mappings done (and undone!) in <instruction>
+               may not be effective, so we need to flush those *before and after*. */
+
             regmap_flush();
+            flush_flags();
         }
 
         // Rollback translate_current to this val if instruction not supported
         *jump_table_current = translate_buffer_inst_start = translate_current;
 
-        flush_flags_if_unimpl = false;
+        bool can_jump_here = !flags_loaded && !regmap_any_mapped;
 
-        bool can_jump_here = true;
-        if(flags_loaded)
-            can_jump_here = false;
-        else
-        {
-            for(unsigned int i = regmap_first_phys; i <= regmap_last_phys; ++i)
-            {
-                if(regmap_pflags[i] != UNMAPPED)
-                {
-                    can_jump_here = false;
-                    break;
-                }
-            }
-        }
-
-        // Conditional instructions are translated like this:
-        // msr cpsr_f, r11
-        // b<cc> after_inst
-        // <instruction>
-        // after_inst: @ next instruction
         if(i.cond != CC_AL && i.cond != CC_NV)
         {
-            if(flags_changed)
-            {
-                flush_flags();
-                flush_flags_if_unimpl = true;
-            }
-            else
-                need_flags();
-
+            need_flags();
             cond_branch = translate_current;
             emit(0x0a000000 | ((i.cond ^ 1) << 28));
         }
@@ -736,13 +728,13 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
                 goto unimpl;
 
             // Shortcut for simple register mov (mov rd, rm)
-/*            if((i.raw & 0xFFF0FF0) == 0x1a00000)
+            if((i.raw & 0xFFF0FF0) == 0x1a00000)
             {
                 uint8_t rm = regmap_load(i.data_proc.rm);
                 uint8_t rd = regmap_store(i.data_proc.rd);
                 emit_al(0x1a00000 | (rd << 12) | rm);
                 goto instruction_translated;
-            }*/
+            }
 
             Instruction translated;
             translated.raw = (i.raw & 0xFFFFFFF) | 0xE0000000;
@@ -1091,16 +1083,13 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
     translate_current = translate_buffer_inst_start;
     RAM_FLAGS(insn_ptr) |= RF_CODE_NO_TRANSLATE;
 
-    if(flush_flags_if_unimpl)
-        flags_changed = true; // Force flush
-
     exit_translation:
 
     flush_flags();
     regmap_flush();
 
     emit_mov(0, pc);
-    emit_jmp(reinterpret_cast<void*>(translation_next));
+    emit_jmp(reinterpret_cast<void*>(translation_next), false);
 
     #ifdef IS_IOS_BUILD
         // Mark translate_buffer as R_X
