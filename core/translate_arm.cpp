@@ -901,20 +901,9 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
             if(reglist & (1 << i.mem_multi.rn))
                 goto unimpl; // Loading/Saving address register
 
-            //TODO: Loading PC is broken
-            if(reglist & (1 << PC))
-                goto unimpl;
-
             regmap_flush();
 
-            int count = 0, offset, wb_offset;
-            uint16_t reglist_ = reglist;
-            while(reglist_)
-            {
-                if(reglist_ & 1)
-                    count += 1;
-                reglist_ >>= 1;
-            }
+            int count = __builtin_popcount(reglist), offset, wb_offset;
 
             if(i.mem_multi.u) // Increment
             {
@@ -976,11 +965,12 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
                 emit_str_armreg(R1, i.mem_multi.rn);
             }
 
-            if(i.mem_multi.l && (reglist & (1 << PC))) // Loading PC
+            if(i.mem_multi.l && (i.mem_multi.reglist & (1 << PC))) // Loading PC
             {
                 // PC already in R0 (last one loaded)
                 emit_jmp(reinterpret_cast<void*>(translation_next_bx));
-                jumps_away = stop_here = true;
+                if(i.cond == CC_AL)
+                    jumps_away = stop_here = true;
             }
         }
         else if((insn & 0xE000000) == 0xA000000)
