@@ -491,6 +491,8 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
     translation *this_translation = &translation_table[next_translation_index];
     // Whether to stop translating code
     bool stop_here = false;
+    // Whether the instruction is an unconditional jump away
+    bool jumps_away = false;
 
     // We know this already. end_ptr will be set after the loop
     this_translation->jump_table = reinterpret_cast<void**>(jump_table_start);
@@ -823,7 +825,7 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
                     emit_jmp(reinterpret_cast<void*>(translation_next));
                     // It's an unconditional jump
                     if(i.cond == CC_AL)
-                        stop_here = true;
+                        jumps_away = stop_here = true;
                 }
 
                 goto instruction_translated;
@@ -914,7 +916,7 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
                 emit_jmp(reinterpret_cast<void*>(translation_next));
                 // It's an unconditional jump
                 if(i.cond == CC_AL)
-                    stop_here = true;
+                    jumps_away = stop_here = true;
             }
         }
         else if((insn & 0xE000000) == 0x8000000)
@@ -1008,7 +1010,7 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
             {
                 // PC already in R0 (last one loaded)
                 emit_jmp(reinterpret_cast<void*>(translation_next_bx));
-                stop_here = true;
+                jumps_away = stop_here = true;
             }
         }
         else if((insn & 0xE000000) == 0xA000000)
@@ -1028,7 +1030,7 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
             else if(i.cond == CC_AL)
             {
                 // It's not likely that the branch will return
-                stop_here = true;
+                jumps_away = stop_here = true;
             }
 
             uint32_t addr = pc + ((int32_t)(i.raw << 8) >> 6) + 8;
@@ -1085,11 +1087,14 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
 
     exit_translation:
 
-    flush_flags();
-    regmap_flush();
+    if(!jumps_away)
+    {
+        flush_flags();
+        regmap_flush();
 
-    emit_mov(0, pc);
-    emit_jmp(reinterpret_cast<void*>(translation_next), false);
+        emit_mov(R0, pc);
+        emit_jmp(reinterpret_cast<void*>(translation_next), false);
+    }
 
     #ifdef IS_IOS_BUILD
         // Mark translate_buffer as R_X
@@ -1101,7 +1106,6 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
     if(insn_ptr == insn_ptr_start)
     {
         // Apparently not.
-        // TODO: Revert jump_table as well?
         translate_current = translate_buffer_inst_start;
         return;
     }
