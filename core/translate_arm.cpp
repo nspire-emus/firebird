@@ -451,7 +451,6 @@ static __attribute__((unused)) void dump_translation(int index)
     auto &translation = translation_table[index];
 
     uint32_t pc = phys_mem_addr(translation.start_ptr);
-    uint32_t *ptr = translation.start_ptr;
     uint32_t **cur_jump_table = reinterpret_cast<uint32_t**>(translation.jump_table);
     uint32_t *translated_insn = reinterpret_cast<uint32_t*>(*cur_jump_table);
 
@@ -466,7 +465,6 @@ static __attribute__((unused)) void dump_translation(int index)
         {
             ++cur_jump_table;
             pc += 4;
-            ++ptr;
         }
     }
 }
