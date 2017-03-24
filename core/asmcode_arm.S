@@ -66,7 +66,7 @@ sym  translation_pc_ptr
 sym  translation_table
 sym  cycle_count_delta, 2
 sym  translation_sp, 2
-#sym  cpu_events, 2
+sym  cpu_events, 2
 sym  cycle_count_delta, 3
 sym  addr_cache
 sym  data_abort
@@ -98,30 +98,26 @@ translation_next_bx: .global translation_next_bx
     bne     to_thumb
 
 translation_next: .global translation_next
-    mov     r4, r0
     str     r0, [r10, #15*4] // save to arm.reg[15]
-    str     r11, [r10, #18*4] // save to arm.cpsr_flags
-    mov     r0, r11 // apply arm.cpsr_flags to arm.cpsr_*
-    bl      set_cpsr_flags
-    mov     r0, r4
+
 translation_next_enter:
     loadsym r1, cycle_count_delta
     ldr     r1, [r1]
     cmp     r1, #0
-    bpl     return
+    bpl     save_return
     loadsym r1, cpu_events
     ldr     r1, [r1]
     cmp     r1, #0
-    bne     return
+    bne     save_return
 
     bl      read_instruction // r0 = pointer to ARM code
     cmp     r0, #0
-    beq     return
+    beq     save_return
 
     add     r1, r0, #65*1024*1024 // r1 = &(RAM_FLAGS(r0))
     ldr     r1, [r1]
     tst     r1, #RF_CODE_TRANSLATED
-    beq     return // not translated
+    beq     save_return // not translated
 
     loadsym r2, translation_pc_ptr
     str     r0, [r2]
@@ -148,27 +144,17 @@ translation_next_enter:
 to_thumb:
     sub     r0, r0, #1
     orr     r11, r11, #0x20 // Set thumb bit
-    b       return
-
-return:
-    mov     r0, #0
-    loadsym r1, translation_sp, 2
-    str     r0, [r1]
-
-    pop     {r4-r11, pc}
+    b       save_return
 
 // Invoked from within translated code to jump to other, already translated code
 // Target address of translated code is in r0 - only r10 and r11 have to be preserved
 // This is used to check for events and leave the translation to process them.
 // arm.reg[15] must be set already!
 translation_jmp: .global translation_jmp
-    /* For now the cpu_events check is commented out. This is a very critical section of code here,
-       having a high impact on performance. To increase accuracy, uncomment the block below.
-
     loadsym r1, cpu_events, 2
     ldr     r2, [r1]
     cmp     r2, #0
-    bne     save_return */
+    bne     save_return
 
     loadsym r1, cycle_count_delta, 3
     ldr     r2, [r1]
@@ -184,7 +170,12 @@ save_return:
     str     r11, [r10, #18*4] // save to arm.cpsr_flags
     mov     r0, r11 // apply arm.cpsr_flags to arm.cpsr_*
     bl      set_cpsr_flags
-    b return
+
+    mov     r0, #0
+    loadsym r1, translation_sp, 2
+    str     r0, [r1]
+
+    pop     {r4-r11, pc}
 
 // Below is basically a handcoded assembly version of asmcode.c
 //TODO: Invoke write_action for translation invalidation!
