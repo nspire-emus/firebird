@@ -11,7 +11,7 @@ Item {
     Item {
         id: screenAndBar
 
-        height: (width - swipeBar.implicitWidth) / 320 * 240
+        height: (width - swipeBar.width) / 320 * 240
 
         anchors {
             top: mobileui.top
