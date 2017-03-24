@@ -146,6 +146,9 @@ static PhysRegFlags regmap_pflags[16];
 
 static void regmap_flush()
 {
+    if(!regmap_any_mapped)
+        return;
+
     for(unsigned int i = 0; i < 16; ++i)
     {
         if(regmap_v2p[i] < 0)
