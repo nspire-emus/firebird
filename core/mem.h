@@ -28,6 +28,7 @@ struct mem_area_desc {
 };
 extern struct mem_area_desc mem_areas[4];
 void *phys_mem_ptr(uint32_t addr, uint32_t size);
+uint32_t phys_mem_addr(void *ptr);
 
 /* Each word of memory has a flag word associated with it. For fast access,
  * flags are located at a constant offset from the memory data itself.
