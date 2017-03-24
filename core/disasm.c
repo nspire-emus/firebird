@@ -202,10 +202,15 @@ static char *do_reglist(char *out, int regs) {
 }
 
 uint32_t disasm_arm_insn(uint32_t pc) {
-    char buf[80];
     uint32_t *pc_ptr = virt_mem_ptr(pc, 4);
-    if (!pc_ptr)
+    if(!pc_ptr)
         return 0;
+
+    return disasm_arm_insn2(pc, pc_ptr);
+}
+
+uint32_t disasm_arm_insn2(uint32_t pc, uint32_t *pc_ptr) {
+    char buf[80];
 
     uint32_t insn = *pc_ptr;
     char *out = buf + sprintf(buf, "%08x: %08x\t", pc, insn);
