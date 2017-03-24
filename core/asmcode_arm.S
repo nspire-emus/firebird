@@ -66,7 +66,7 @@ sym  translation_pc_ptr
 sym  translation_table
 sym  cycle_count_delta, 2
 sym  translation_sp, 2
-sym  cpu_events, 2
+#sym  cpu_events, 2
 sym  cycle_count_delta, 3
 sym  addr_cache
 sym  data_abort
@@ -151,10 +151,10 @@ to_thumb:
 // This is used to check for events and leave the translation to process them.
 // arm.reg[15] must be set already!
 translation_jmp: .global translation_jmp
-    loadsym r1, cpu_events, 2
+/*    loadsym r1, cpu_events, 2
     ldr     r2, [r1]
     cmp     r2, #0
-    bne     save_return
+    bne     save_return*/
 
     loadsym r1, cycle_count_delta, 3
     ldr     r2, [r1]
@@ -171,8 +171,8 @@ save_return:
     mov     r0, r11 // apply arm.cpsr_flags to arm.cpsr_*
     bl      set_cpsr_flags
 
-    mov     r0, #0
     loadsym r1, translation_sp, 2
+    mov     r0, #0
     str     r0, [r1]
 
     pop     {r4-r11, pc}
