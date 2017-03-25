@@ -36,6 +36,7 @@
 #endif
 
 extern "C" {
+extern void translation_jmp_ptr() __asm__("translation_jmp_ptr");
 extern void translation_next() __asm__("translation_next");
 extern void translation_next_bx() __asm__("translation_next_bx");
 extern void **translation_sp __asm__("translation_sp");
@@ -998,11 +999,18 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
             uintptr_t entry = reinterpret_cast<uintptr_t>(addr_cache[(addr >> 10) << 1]);
             uint32_t *ptr = reinterpret_cast<uint32_t*>(entry + addr);
 
-            if((entry & AC_FLAGS) || !(RAM_FLAGS(ptr) & RF_CODE_TRANSLATED))
+            if(entry & AC_FLAGS)
             {
                 // Not translated, use translation_next
                 emit_mov(R0, addr);
                 emit_jmp(reinterpret_cast<void*>(translation_next));
+            }
+            else if (!(RAM_FLAGS(ptr) & RF_CODE_TRANSLATED))
+            {
+                emit_mov(R0, addr);
+                emit_str_armreg(R0, PC);
+                emit_mov(R0, uintptr_t(ptr));
+                emit_jmp(reinterpret_cast<void*>(translation_jmp_ptr));
             }
             else
             {
