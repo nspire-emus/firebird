@@ -1,8 +1,6 @@
 .data
 translation_sp: .global translation_sp
     .word 0
-translation_pc_ptr: .global translation_pc_ptr
-    .word 0
 .global arm
 .global get_cpsr_flags
 .global set_cpsr_flags
@@ -62,7 +60,6 @@ sym  translation_sp
 sym  arm
 sym  cycle_count_delta
 sym  cpu_events
-sym  translation_pc_ptr
 sym  translation_table
 sym  cycle_count_delta, 2
 sym  translation_sp, 2
@@ -118,9 +115,6 @@ translation_next_enter:
     ldr     r1, [r1]
     tst     r1, #RF_CODE_TRANSLATED
     beq     save_return // not translated
-
-    loadsym r2, translation_pc_ptr
-    str     r0, [r2]
 
     mov     r1, r1, lsr #RFS_TRANSLATION_INDEX // r1 is translation index
     mov     r1, r1, lsl #4

@@ -39,7 +39,6 @@ extern "C" {
 extern void translation_next() __asm__("translation_next");
 extern void translation_next_bx() __asm__("translation_next_bx");
 extern void **translation_sp __asm__("translation_sp");
-extern void *translation_pc_ptr __asm__("translation_pc_ptr");
 #ifdef IS_IOS_BUILD
     int sys_cache_control(int function, void *start, size_t len);
 #endif
@@ -998,6 +997,7 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
             uint32_t addr = pc + ((int32_t)(i.raw << 8) >> 6) + 8;
             uintptr_t entry = reinterpret_cast<uintptr_t>(addr_cache[(addr >> 10) << 1]);
             uint32_t *ptr = reinterpret_cast<uint32_t*>(entry + addr);
+
             if((entry & AC_FLAGS) || !(RAM_FLAGS(ptr) & RF_CODE_TRANSLATED))
             {
                 // Not translated, use translation_next
@@ -1088,15 +1088,26 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
 #endif
 }
 
+static void _invalidate_translation(int index)
+{
+    /* Disabled for now. write_action not called in asmcode_arm.S so this can't happen
+       and translation_pc_ptr is inaccurate due to translation_jmp anyway.
+
+    uint32_t flags = RAM_FLAGS(translation_pc_ptr);
+    if ((flags & RF_CODE_TRANSLATED) && (int)(flags >> RFS_TRANSLATION_INDEX) == index)
+        error("Cannot modify currently executing code block.");
+    */
+
+    uint32_t *start = translation_table[index].start_ptr;
+    uint32_t *end   = translation_table[index].end_ptr;
+    for (; start < end; start++)
+        RAM_FLAGS(start) &= ~(RF_CODE_TRANSLATED | (~0u << RFS_TRANSLATION_INDEX));
+}
+
 void flush_translations()
 {
     for(unsigned int index = 0; index < next_translation_index; index++)
-    {
-        uint32_t *start = translation_table[index].start_ptr;
-        uint32_t *end   = translation_table[index].end_ptr;
-        for (; start < end; start++)
-            RAM_FLAGS(start) &= ~(RF_CODE_TRANSLATED | (~0u << RFS_TRANSLATION_INDEX));
-    }
+        _invalidate_translation(index);
 
     next_translation_index = 0;
     translate_current = translate_buffer;
@@ -1105,14 +1116,13 @@ void flush_translations()
 
 void invalidate_translation(int index)
 {
-    if(!translation_sp)
-        return flush_translations();
-
-    uint32_t flags = RAM_FLAGS(translation_pc_ptr);
-    if ((flags & RF_CODE_TRANSLATED) && (int)(flags >> RFS_TRANSLATION_INDEX) == index)
-        error("Cannot modify currently executing code block.");
-
-    flush_translations();
+    /* Due to translation_jmp using absolute pointers in the JIT, we can't just
+       invalidate a single translation. */
+    #ifdef SUPPORT_LINUX
+        flush_translations();
+    #else
+        _invalidate_translation(index);
+    #endif
 }
 
 void translate_fix_pc()
