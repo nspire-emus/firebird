@@ -161,15 +161,16 @@ translation_jmp: .global translation_jmp
 
 // Save flags and leave, arm.reg[15] must be set already!
 save_return:
-    str     r11, [r10, #18*4] // save to arm.cpsr_flags
-    mov     r0, r11 // apply arm.cpsr_flags to arm.cpsr_*
-    bl      set_cpsr_flags
-
     loadsym r1, translation_sp, 2
     mov     r0, #0
     str     r0, [r1]
 
-    pop     {r4-r11, pc}
+    str     r11, [r10, #18*4] // save to arm.cpsr_flags
+    mov     r0, r11 // apply arm.cpsr_flags to arm.cpsr_*
+
+    pop     {r4-r11, lr}
+
+    b       set_cpsr_flags
 
 // Below is basically a handcoded assembly version of asmcode.c
 //TODO: Invoke write_action for translation invalidation!
