@@ -24,7 +24,8 @@ translation_sp: .global translation_sp
 #define AC_NOT_PTR 0b01
 #define AC_FLAGS (AC_INVALID|AC_NOT_PTR)
 
-#ifdef __clang__
+/* For now enable .text relocations everywhere. */
+#if 1 || defined(__clang__)
 /* On iOS, .text relocations are permitted and due to
    a bug it's unable to handle to handle our way of
    avoiding them anyway... */
@@ -67,7 +68,6 @@ sym  translation_sp, 2
 sym  cycle_count_delta, 3
 sym  translation_table, 2
 sym  cycle_count_delta, 4
-sym  cycle_count_delta, 5
 sym  addr_cache
 sym  data_abort
 sym  addr_cache, 2
@@ -163,13 +163,6 @@ translation_jmp: .global translation_jmp
     bx      r0 // Jump to the target
 
 translation_jmp_ptr: .global translation_jmp_ptr
-    loadsym r1, cycle_count_delta, 4
-    ldr     r2, [r1]
-    add     r2, #4 // We don't know how much will be executed, so use a possible number
-    str     r2, [r1]
-    cmp     r2, #0
-    bpl     save_return
-
     add     r1, r0, #65*1024*1024 // r1 = &(RAM_FLAGS(r0))
     ldr     r1, [r1]
     tst     r1, #RF_CODE_TRANSLATED
@@ -186,7 +179,7 @@ translation_jmp_ptr: .global translation_jmp_ptr
 
     sub     r4, r4, r0 // r4 = end_ptr - pc_ptr
     mov     r4, r4, lsr #2 // r4 = number of instructions to the end
-    loadsym r6, cycle_count_delta, 5
+    loadsym r6, cycle_count_delta, 4
     ldr     r5, [r6]
     add     r5, r5, r4 // add r4 to cycle_count_delta
     str     r5, [r6]
