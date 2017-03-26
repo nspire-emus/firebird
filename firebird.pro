@@ -82,8 +82,7 @@ equals(QT_MAJOR_VERSION, 5): lessThan(QT_MINOR_VERSION, 6) {
     android: DEFINES += Q_OS_ANDROID
 }
 
-# ios|android:
-DEFINES += MOBILE_UI
+ios|android: DEFINES += MOBILE_UI
 
 ios {
     DEFINES += IS_IOS_BUILD __arm__
