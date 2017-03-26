@@ -116,6 +116,10 @@ ApplicationWindow {
             // TODO: Hack #2! The keypad uses Emu.registerNButton and all that, so it must not be destroyed
             ListView.delayRemove: true
 
+            Component.onCompleted: {
+                listView.pageX[index] = x;
+            }
+
             onXChanged: {
                 listView.pageX[index] = x;
             }
