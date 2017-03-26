@@ -62,6 +62,8 @@ QMLBridge::QMLBridge(QObject *parent) : QObject(parent)
 
     connect(&kit_model, SIGNAL(anythingChanged()), this, SLOT(saveKits()), Qt::QueuedConnection);
     #ifdef MOBILE_UI
+        connect(&emu_thread, SIGNAL(speedChanged(double)), this, SLOT(speedChanged(double)), Qt::QueuedConnection);
+        connect(&emu_thread, SIGNAL(turboModeChanged(bool)), this, SIGNAL(turboModeChanged()), Qt::QueuedConnection);
         connect(&emu_thread, SIGNAL(stopped()), this, SIGNAL(isRunningChanged()), Qt::QueuedConnection);
         connect(&emu_thread, SIGNAL(started(bool)), this, SIGNAL(isRunningChanged()), Qt::QueuedConnection);
         connect(&emu_thread, SIGNAL(suspended(bool)), this, SIGNAL(isRunningChanged()), Qt::QueuedConnection);
@@ -251,6 +253,16 @@ QString QMLBridge::getVersion()
     return QStringLiteral(STRINGIFY(FB_VERSION));
 }
 
+double QMLBridge::getSpeed()
+{
+    return speed;
+}
+
+bool QMLBridge::getTurboMode()
+{
+    return turbo_mode;
+}
+
 constexpr const int ROWS = 8, COLS = 11;
 
 void QMLBridge::keypadStateChanged(int keymap_id, bool state)
@@ -404,6 +416,12 @@ void QMLBridge::saveKits()
     settings.setValue(QStringLiteral("kits"), QVariant::fromValue(kit_model));
 }
 
+void QMLBridge::speedChanged(double speed)
+{
+    this->speed = speed;
+    emit speedChanged();
+}
+
 void QMLBridge::usblink_progress_changed(int percent, void *qml_bridge_p)
 {
     auto &&qml_bridge = reinterpret_cast<QMLBridge*>(qml_bridge_p);
@@ -411,6 +429,11 @@ void QMLBridge::usblink_progress_changed(int percent, void *qml_bridge_p)
 }
 
 #ifdef MOBILE_UI
+
+void QMLBridge::setTurboMode(bool b)
+{
+    emu_thread.setTurboMode(b);
+}
 
 bool QMLBridge::restart()
 {
