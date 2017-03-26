@@ -71,6 +71,10 @@ ApplicationWindow {
 
         model: [ "MobileUIConfig.qml", "MobileUIDrawer.qml", "MobileUIFront.qml" ]
 
+        /* The delegates write their X offsets into this array, so that we can use
+           them as values for contentX. */
+        property var pageX: []
+
         Component.onCompleted: {
             // Open drawer if emulation does not start automatically
             Emu.useDefaultKit(); // We need this here to get the default values
@@ -91,9 +95,7 @@ ApplicationWindow {
         }
 
         function animateToIndex(i) {
-            /* TODO: This is ugly. */
-            var xpos = [0, app.width, app.width*1.6]
-            anim.to = xpos[i];
+            anim.to = pageX[i];
             anim.from = listView.contentX;
             anim.start();
         }
@@ -113,6 +115,10 @@ ApplicationWindow {
         delegate: Item {
             // TODO: Hack #2! The keypad uses Emu.registerNButton and all that, so it must not be destroyed
             ListView.delayRemove: true
+
+            onXChanged: {
+                listView.pageX[index] = x;
+            }
 
             width: modelData === "MobileUIDrawer.qml" ? app.width * 0.6 : app.width
             height: app.height
