@@ -58,8 +58,8 @@ public:
     void setUSBDir(QString dir);
     bool getIsRunning();
     QString getVersion();
-    double getSpeed();
 #ifdef MOBILE_UI
+    double getSpeed();
     bool getTurboMode();
     void setTurboMode(bool e);
 #endif
@@ -109,8 +109,8 @@ public:
 
 public slots:
     void saveKits();
-    void speedChanged(double speed);
     #ifdef MOBILE_UI
+        void speedChanged(double speed);
         void started(bool success); // Not called on resume
         void resumed(bool success);
         void suspended(bool success);

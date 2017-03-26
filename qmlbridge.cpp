@@ -253,16 +253,6 @@ QString QMLBridge::getVersion()
     return QStringLiteral(STRINGIFY(FB_VERSION));
 }
 
-double QMLBridge::getSpeed()
-{
-    return speed;
-}
-
-bool QMLBridge::getTurboMode()
-{
-    return turbo_mode;
-}
-
 constexpr const int ROWS = 8, COLS = 11;
 
 void QMLBridge::keypadStateChanged(int keymap_id, bool state)
@@ -416,12 +406,6 @@ void QMLBridge::saveKits()
     settings.setValue(QStringLiteral("kits"), QVariant::fromValue(kit_model));
 }
 
-void QMLBridge::speedChanged(double speed)
-{
-    this->speed = speed;
-    emit speedChanged();
-}
-
 void QMLBridge::usblink_progress_changed(int percent, void *qml_bridge_p)
 {
     auto &&qml_bridge = reinterpret_cast<QMLBridge*>(qml_bridge_p);
@@ -549,6 +533,12 @@ void QMLBridge::toastMessage(QString msg)
     QMetaObject::invokeMethod(toast, "showMessage", Q_RETURN_ARG(QVariant, ret), Q_ARG(QVariant, QVariant(msg)));
 }
 
+void QMLBridge::speedChanged(double speed)
+{
+    this->speed = speed;
+    emit speedChanged();
+}
+
 void QMLBridge::started(bool success)
 {
     if(success)
@@ -571,6 +561,16 @@ void QMLBridge::suspended(bool success)
         toastMessage(tr("Flash and snapshot saved")); // When clicking on save, flash is saved as well
     else
         toastMessage(tr("Couldn't save snapshot"));
+}
+
+double QMLBridge::getSpeed()
+{
+    return speed;
+}
+
+bool QMLBridge::getTurboMode()
+{
+    return turbo_mode;
 }
 
 #endif
