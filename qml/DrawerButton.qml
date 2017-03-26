@@ -10,6 +10,8 @@ Rectangle {
     property alias borderBottomVisible: borderBottom.visible
     property bool disabled: false
     property alias font: label.font
+    property bool toggle: false
+    property bool toggleState: false
 
     opacity: disabled ? 0.5 : 1.0
 
@@ -22,8 +24,13 @@ Rectangle {
         id: mouseArea
         anchors.fill: parent
         onClicked: {
-            if(!disabled)
-                parent.clicked()
+            if(disabled)
+                return;
+
+            parent.clicked()
+
+            if(toggle)
+                toggleState = !toggleState;
         }
     }
 
@@ -53,7 +60,7 @@ Rectangle {
         visible: true
     }
 
-    color: mouseArea.pressed && !disabled ? "#CCC" : "#00000000"
+    color: (mouseArea.pressed !== toggleState) && !disabled ? "#CCC" : "#00000000"
     Behavior on color { ColorAnimation { duration: 200; } }
 
     Image {
