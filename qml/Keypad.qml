@@ -1,3 +1,5 @@
+import Firebird.Emu 1.0
+
 import QtQuick 2.3
 import QtQuick.Layouts 1.0
 
@@ -76,6 +78,18 @@ Rectangle {
             text: "⌂on"
             Layout.fillWidth: true
             keymap_id: 9
+
+            onClicked: {
+                if(!Emu.isRunning)
+                {
+                    Emu.useDefaultKit();
+
+                    if(Emu.getSnapshotPath() !== "")
+                        Emu.resume();
+                    else
+                        Emu.restart();
+                }
+            }
         }
 
         NBigButton {
@@ -551,8 +565,8 @@ Rectangle {
     NDualButton {
         id: nDualButton7
         x: 210
-        topText2: "◂◑"
-        topText1: "◐‣"
+        topText2: "◀◑"
+        topText1: "◐▶"
         anchors.top: nDualButton6.bottom
         anchors.topMargin: 0
         id1: 68

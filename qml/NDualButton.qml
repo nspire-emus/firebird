@@ -2,14 +2,14 @@ import QtQuick 2.0
 
 Rectangle {
     id: rectangle3
-    property string text1: "a"
-    property string text2: "b"
-    property string topText1: "aa"
-    property string topText2: "bb"
+    property alias text1: nbutton1.text
+    property alias text2: nbutton2.text
+    property alias topText1: textTop1.text
+    property alias topText2: textTop2.text
     property alias button1: nbutton1
     property alias button2: nbutton2
-    property int id1: 1
-    property int id2: 2
+    property alias id1: nbutton1.keymap_id
+    property alias id2: nbutton2.keymap_id
 
     width: 50
     height: 30
@@ -19,20 +19,20 @@ Rectangle {
         id: nbutton1
         x: 0
         y: 10
-        keymap_id: id1
+        keymap_id: 1
         width: 25
         height: 20
-        text: text1
+        text: "a"
     }
 
     NButton {
         id: nbutton2
-        keymap_id: id2
+        keymap_id: 2
         x: 25
         y: 10
         width: 25
         height: 20
-        text: text2
+        text: "b"
     }
 
     Rectangle {
@@ -70,10 +70,11 @@ Rectangle {
         width: 25
         height: 13
         color: "#68cce0"
-        text: topText1
+        text: "aa"
         horizontalAlignment: Text.AlignHCenter
+        verticalAlignment: Text.AlignBottom
         z: -1
-        font.pixelSize: 11
+        font.pixelSize: 10
     }
 
     Text {
@@ -83,9 +84,10 @@ Rectangle {
         width: 25
         height: 13
         color: "#68cce0"
-        text: topText2
+        text: "bb"
         horizontalAlignment: Text.AlignHCenter
-        font.pixelSize: 11
+        verticalAlignment: Text.AlignBottom
+        font.pixelSize: 10
         z: -2
     }
 }

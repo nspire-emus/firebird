@@ -6,13 +6,25 @@ Rectangle {
     property string back_color: "#223"
     property string font_color: "#fff"
     property alias text: label.text
-    property bool active: false
+    property bool active: pressed //|| mouseArea.containsMouse
+    property bool pressed: false
     property int keymap_id: 1
+
+    signal clicked()
 
     border.width: active ? 2 : 1
     border.color: "#888"
     radius: 4
     color: active ? active_color : back_color
+
+    onActiveChanged: {
+        if(active === true)
+            clicked();
+    }
+
+    onPressedChanged: {
+        Emu.keypadStateChanged(keymap_id, pressed);
+    }
 
     Text {
         id: label
@@ -28,10 +40,43 @@ Rectangle {
         horizontalAlignment: Text.AlignHCenter
     }
 
+    // This is needed to support pressing multiple buttons at once on multitouch
+    MultiPointTouchArea {
+        id: multiMouseArea
+
+        mouseEnabled: Qt.platform.os === "android" || Qt.platform.os === "ios"
+        maximumTouchPoints: 1
+        minimumTouchPoints: 1
+
+        anchors.centerIn: parent
+        width: parent.width * 1.3
+        height: parent.height * 1.3
+
+        onTouchUpdated: {
+            var newState = false;
+            for(var i in touchPoints)
+            {
+                var tp = touchPoints[i];
+                if(tp.pressed
+                   && tp.x >= 0 && tp.x < width
+                   && tp.y >= 0 && tp.y < height)
+                {
+                    newState = true;
+                    break;
+                }
+            }
+
+            parent.pressed = newState;
+        }
+    }
+
     MouseArea {
+        id: mouseArea
+
+        enabled: !multiMouseArea.mouseEnabled
+
         // Pressing the right mouse button "locks" the button in enabled state
-        property bool fixable: false
-        property bool state: false
+        property bool fixed: false
 
         preventStealing: true
 
@@ -46,28 +91,18 @@ Rectangle {
 
         hoverEnabled: !Emu.isMobile()
 
-        onStateChanged: {
-            parent.active = state || containsMouse;
-
-            Emu.keypadStateChanged(parent.keymap_id, state);
-        }
-
-        onContainsMouseChanged: {
-            parent.active = state || containsMouse;
-        }
-
         onPressed: {
             mouse.accepted = true;
 
             if(mouse.button == Qt.LeftButton)
             {
-                if(!fixable)
-                    state = true;
+                if(!fixed)
+                    parent.pressed = true;
             }
-            else if(fixable == state) // Right button
+            else if(fixed === parent.pressed) // Right button
             {
-                fixable = !fixable;
-                state = !state;
+                fixed = !fixed;
+                parent.pressed = !parent.pressed;
             }
         }
 
@@ -75,8 +110,8 @@ Rectangle {
             mouse.accepted = true;
 
             if(mouse.button == Qt.LeftButton
-                    && !fixable)
-                state = false;
+                    && !fixed)
+                parent.pressed = false;
         }
     }
 }

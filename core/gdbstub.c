@@ -381,19 +381,20 @@ static char *mem2hex(void *mem, char *buf, int count) {
  * If count is null stops at the first non hex digit */
 static void *hex2mem(char *buf, void *mem, int count) {
     int i;
-    char ch;
+    int ch;
+    uint8_t *memb = mem;
 
     for (i = 0; i < count || !count; i++) {
         ch = hex(*buf++);
-        if (ch == (char) -1)
-            return mem;
+        if (ch == -1)
+            return memb;
         ch <<= 4;
         ch |= hex(*buf++);
-        *(char*)(mem)++ = ch;
+        *memb++ = (uint8_t) ch;
         if (mem_err)
             return 0;
     }
-    return mem;
+    return memb;
 }
 
 /*

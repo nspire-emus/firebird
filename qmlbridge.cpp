@@ -62,6 +62,12 @@ QMLBridge::QMLBridge(QObject *parent) : QObject(parent)
 
     connect(&kit_model, SIGNAL(anythingChanged()), this, SLOT(saveKits()), Qt::QueuedConnection);
     #ifdef MOBILE_UI
+        connect(&emu_thread, SIGNAL(speedChanged(double)), this, SLOT(speedChanged(double)), Qt::QueuedConnection);
+        connect(&emu_thread, SIGNAL(turboModeChanged(bool)), this, SIGNAL(turboModeChanged()), Qt::QueuedConnection);
+        connect(&emu_thread, SIGNAL(stopped()), this, SIGNAL(isRunningChanged()), Qt::QueuedConnection);
+        connect(&emu_thread, SIGNAL(started(bool)), this, SIGNAL(isRunningChanged()), Qt::QueuedConnection);
+        connect(&emu_thread, SIGNAL(suspended(bool)), this, SIGNAL(isRunningChanged()), Qt::QueuedConnection);
+        connect(&emu_thread, SIGNAL(resumed(bool)), this, SIGNAL(isRunningChanged()), Qt::QueuedConnection);
         connect(&emu_thread, SIGNAL(started(bool)), this, SLOT(started(bool)), Qt::QueuedConnection);
         connect(&emu_thread, SIGNAL(resumed(bool)), this, SLOT(resumed(bool)), Qt::QueuedConnection);
         connect(&emu_thread, SIGNAL(suspended(bool)), this, SLOT(suspended(bool)), Qt::QueuedConnection);
@@ -72,7 +78,7 @@ QMLBridge::~QMLBridge()
 {
     #ifdef MOBILE_UI
         emu_thread.stop();
-#endif
+    #endif
 }
 
 unsigned int QMLBridge::getGDBPort()
@@ -90,7 +96,7 @@ void QMLBridge::setGDBPort(unsigned int port)
 }
 bool QMLBridge::getGDBEnabled()
 {
-    return settings.value(QStringLiteral("gdbEnabled"), true).toBool();
+    return settings.value(QStringLiteral("gdbEnabled"), !isMobile()).toBool();
 }
 
 void QMLBridge::setGDBEnabled(bool e)
@@ -118,7 +124,7 @@ void QMLBridge::setRDBPort(unsigned int port)
 
 bool QMLBridge::getRDBEnabled()
 {
-    return settings.value(QStringLiteral("rdbgEnabled"), true).toBool();
+    return settings.value(QStringLiteral("rdbgEnabled"), !isMobile()).toBool();
 }
 
 void QMLBridge::setRDBEnabled(bool e)
@@ -228,6 +234,23 @@ void QMLBridge::setUSBDir(QString dir)
 
     settings.setValue(QStringLiteral("usbdirNew"), dir);
     emit usbDirChanged();
+}
+
+bool QMLBridge::getIsRunning()
+{
+    #ifdef MOBILE_UI
+        return emu_thread.isRunning();
+    #else
+        //TODO: Non mobile-ui
+        return true;
+#endif
+}
+
+QString QMLBridge::getVersion()
+{
+    #define STRINGIFYMAGIC(x) #x
+    #define STRINGIFY(x) STRINGIFYMAGIC(x)
+    return QStringLiteral(STRINGIFY(FB_VERSION));
 }
 
 constexpr const int ROWS = 8, COLS = 11;
@@ -391,6 +414,11 @@ void QMLBridge::usblink_progress_changed(int percent, void *qml_bridge_p)
 
 #ifdef MOBILE_UI
 
+void QMLBridge::setTurboMode(bool b)
+{
+    emu_thread.setTurboMode(b);
+}
+
 bool QMLBridge::restart()
 {
     if(emu_thread.isRunning() && !emu_thread.stop())
@@ -398,6 +426,9 @@ bool QMLBridge::restart()
         toastMessage(tr("Could not stop emulation"));
         return false;
     }
+
+    emu_thread.port_gdb = getGDBEnabled() ? getGDBPort() : 0;
+    emu_thread.port_rdbg = getRDBEnabled() ? getRDBPort() : 0;
 
     if(!emu_thread.boot1.isEmpty() && !emu_thread.flash.isEmpty()) {
         toastMessage(tr("Starting emulation"));
@@ -432,6 +463,10 @@ void QMLBridge::suspend()
 void QMLBridge::resume()
 {
     toastMessage(tr("Resuming emulation"));
+
+    emu_thread.port_gdb = getGDBEnabled() ? getGDBPort() : 0;
+    emu_thread.port_rdbg = getRDBEnabled() ? getRDBPort() : 0;
+
     auto snapshot_path = getSnapshotPath();
     if(!snapshot_path.isEmpty())
         emu_thread.resume(snapshot_path);
@@ -498,6 +533,12 @@ void QMLBridge::toastMessage(QString msg)
     QMetaObject::invokeMethod(toast, "showMessage", Q_RETURN_ARG(QVariant, ret), Q_ARG(QVariant, QVariant(msg)));
 }
 
+void QMLBridge::speedChanged(double speed)
+{
+    this->speed = speed;
+    emit speedChanged();
+}
+
 void QMLBridge::started(bool success)
 {
     if(success)
@@ -520,6 +561,16 @@ void QMLBridge::suspended(bool success)
         toastMessage(tr("Flash and snapshot saved")); // When clicking on save, flash is saved as well
     else
         toastMessage(tr("Couldn't save snapshot"));
+}
+
+double QMLBridge::getSpeed()
+{
+    return speed;
+}
+
+bool QMLBridge::getTurboMode()
+{
+    return turbo_mode;
 }
 
 #endif

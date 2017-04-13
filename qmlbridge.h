@@ -25,7 +25,14 @@ public:
     Q_PROPERTY(bool leftHanded READ getLeftHanded WRITE setLeftHanded NOTIFY leftHandedChanged)
     Q_PROPERTY(bool suspendOnClose READ getSuspendOnClose WRITE setSuspendOnClose NOTIFY suspendOnCloseChanged)
     Q_PROPERTY(QString usbdir READ getUSBDir WRITE setUSBDir NOTIFY usbDirChanged)
+    Q_PROPERTY(QString version READ getVersion)
+    Q_PROPERTY(bool isRunning READ getIsRunning NOTIFY isRunningChanged)
     Q_PROPERTY(KitModel* kits READ getKitModel)
+
+    #ifdef MOBILE_UI
+        Q_PROPERTY(double speed READ getSpeed NOTIFY speedChanged)
+        Q_PROPERTY(bool turboMode READ getTurboMode WRITE setTurboMode NOTIFY turboModeChanged)
+    #endif
 
     unsigned int getGDBPort();
     void setGDBPort(unsigned int port);
@@ -49,6 +56,13 @@ public:
     void setSuspendOnClose(bool e);
     QString getUSBDir();
     void setUSBDir(QString dir);
+    bool getIsRunning();
+    QString getVersion();
+#ifdef MOBILE_UI
+    double getSpeed();
+    bool getTurboMode();
+    void setTurboMode(bool e);
+#endif
 
     KitModel *getKitModel() { return &kit_model; }
     Q_INVOKABLE void keypadStateChanged(int keymap_id, bool state);
@@ -96,6 +110,7 @@ public:
 public slots:
     void saveKits();
     #ifdef MOBILE_UI
+        void speedChanged(double speed);
         void started(bool success); // Not called on resume
         void resumed(bool success);
         void suspended(bool success);
@@ -113,6 +128,9 @@ signals:
     void leftHandedChanged();
     void suspendOnCloseChanged();
     void usbDirChanged();
+    void isRunningChanged();
+    void speedChanged();
+    void turboModeChanged();
 
     void usblinkProgressChanged(int percent);
 
@@ -124,6 +142,7 @@ private:
         unsigned int current_kit_id;
         QString fallback_snapshot_path;
     #endif
+    double speed;
     KitModel kit_model;
     QSettings settings;
 };

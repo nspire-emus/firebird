@@ -78,7 +78,7 @@ ColumnLayout {
 
     FBLabel {
         text: qsTr("UI Preferences")
-        font.pixelSize: TextMetrics.title1Size
+        font.pixelSize: TextMetrics.title2Size
         Layout.topMargin: 10
         Layout.bottomMargin: 5
         visible: Emu.isMobile()

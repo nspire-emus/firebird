@@ -27,7 +27,7 @@ Item {
             id: label
             anchors {
                 left: checkBox.right
-                leftMargin: Qt.platform.os === "android" ? 0 : -5;
+                leftMargin: Qt.platform.os === "windows" ? -5 : 0;
             }
 
             Layout.fillWidth: true
