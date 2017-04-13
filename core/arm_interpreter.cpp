@@ -35,7 +35,7 @@ static uint32_t shift(uint32_t value, uint8_t shift_type, uint8_t shift_val, boo
                 // RRX
                 bool carry = arm.cpsr_c;
                 if(setcc) arm.cpsr_c = value & 1;
-                return value >> 1 | carry << 31;
+                return value >> 1 | uint32_t(carry) << 31;
             }
             case SH_ASR:
             case SH_LSR: // #32 is encoded as LSR #0

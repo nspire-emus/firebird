@@ -1,8 +1,6 @@
 .data
 translation_sp: .global translation_sp
     .word 0
-translation_pc_ptr: .global translation_pc_ptr
-    .word 0
 .global arm
 .global get_cpsr_flags
 .global set_cpsr_flags
@@ -26,7 +24,8 @@ translation_pc_ptr: .global translation_pc_ptr
 #define AC_NOT_PTR 0b01
 #define AC_FLAGS (AC_INVALID|AC_NOT_PTR)
 
-#ifdef __clang__
+/* For now enable .text relocations everywhere. */
+#if 1 || defined(__clang__)
 /* On iOS, .text relocations are permitted and due to
    a bug it's unable to handle to handle our way of
    avoiding them anyway... */
@@ -62,12 +61,13 @@ sym  translation_sp
 sym  arm
 sym  cycle_count_delta
 sym  cpu_events
-sym  translation_pc_ptr
 sym  translation_table
 sym  cycle_count_delta, 2
 sym  translation_sp, 2
 #sym  cpu_events, 2
 sym  cycle_count_delta, 3
+sym  translation_table, 2
+sym  cycle_count_delta, 4
 sym  addr_cache
 sym  data_abort
 sym  addr_cache, 2
@@ -98,33 +98,26 @@ translation_next_bx: .global translation_next_bx
     bne     to_thumb
 
 translation_next: .global translation_next
-    mov     r4, r0
     str     r0, [r10, #15*4] // save to arm.reg[15]
-    str     r11, [r10, #18*4] // save to arm.cpsr_flags
-    mov     r0, r11 // apply arm.cpsr_flags to arm.cpsr_*
-    bl      set_cpsr_flags
-    mov     r0, r4
+
 translation_next_enter:
     loadsym r1, cycle_count_delta
     ldr     r1, [r1]
     cmp     r1, #0
-    bpl     return
+    bpl     save_return
     loadsym r1, cpu_events
     ldr     r1, [r1]
     cmp     r1, #0
-    bne     return
+    bne     save_return
 
     bl      read_instruction // r0 = pointer to ARM code
     cmp     r0, #0
-    beq     return
+    beq     save_return
 
     add     r1, r0, #65*1024*1024 // r1 = &(RAM_FLAGS(r0))
     ldr     r1, [r1]
     tst     r1, #RF_CODE_TRANSLATED
-    beq     return // not translated
-
-    loadsym r2, translation_pc_ptr
-    str     r0, [r2]
+    beq     save_return // not translated
 
     mov     r1, r1, lsr #RFS_TRANSLATION_INDEX // r1 is translation index
     mov     r1, r1, lsl #4
@@ -148,27 +141,17 @@ translation_next_enter:
 to_thumb:
     sub     r0, r0, #1
     orr     r11, r11, #0x20 // Set thumb bit
-    b       return
-
-return:
-    mov     r0, #0
-    loadsym r1, translation_sp, 2
-    str     r0, [r1]
-
-    pop     {r4-r11, pc}
+    b       save_return
 
 // Invoked from within translated code to jump to other, already translated code
 // Target address of translated code is in r0 - only r10 and r11 have to be preserved
 // This is used to check for events and leave the translation to process them.
 // arm.reg[15] must be set already!
 translation_jmp: .global translation_jmp
-    /* For now the cpu_events check is commented out. This is a very critical section of code here,
-       having a high impact on performance. To increase accuracy, uncomment the block below.
-
-    loadsym r1, cpu_events, 2
+/*    loadsym r1, cpu_events, 2
     ldr     r2, [r1]
     cmp     r2, #0
-    bne     save_return */
+    bne     save_return*/
 
     loadsym r1, cycle_count_delta, 3
     ldr     r2, [r1]
@@ -179,12 +162,43 @@ translation_jmp: .global translation_jmp
 
     bx      r0 // Jump to the target
 
+translation_jmp_ptr: .global translation_jmp_ptr
+    add     r1, r0, #65*1024*1024 // r1 = &(RAM_FLAGS(r0))
+    ldr     r1, [r1]
+    tst     r1, #RF_CODE_TRANSLATED
+    beq     save_return // not translated
+
+    mov     r1, r1, lsr #RFS_TRANSLATION_INDEX // r1 is translation index
+    mov     r1, r1, lsl #4
+    loadsym r2, translation_table, 2
+    add     r1, r2, r1 // r1 points to struct translation now
+
+    ldr     r2, [r1, #1*4] // load translation.jump_table
+    ldr     r3, [r1, #2*4] // load translation.start_ptr
+    ldr     r4, [r1, #3*4] // load translation.end_ptr
+
+    sub     r4, r4, r0 // r4 = end_ptr - pc_ptr
+    mov     r4, r4, lsr #2 // r4 = number of instructions to the end
+    loadsym r6, cycle_count_delta, 4
+    ldr     r5, [r6]
+    add     r5, r5, r4 // add r4 to cycle_count_delta
+    str     r5, [r6]
+
+    sub     r0, r0, r3 // r0 = pc_ptr - start_ptr
+    ldr     pc, [r2, r0] // jump to jump_table[r0]
+
 // Save flags and leave, arm.reg[15] must be set already!
 save_return:
+    loadsym r1, translation_sp, 2
+    mov     r0, #0
+    str     r0, [r1]
+
     str     r11, [r10, #18*4] // save to arm.cpsr_flags
     mov     r0, r11 // apply arm.cpsr_flags to arm.cpsr_*
-    bl      set_cpsr_flags
-    b return
+
+    pop     {r4-r11, lr}
+
+    b       set_cpsr_flags
 
 // Below is basically a handcoded assembly version of asmcode.c
 //TODO: Invoke write_action for translation invalidation!

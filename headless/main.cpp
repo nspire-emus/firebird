@@ -47,8 +47,8 @@ void gui_debugger_entered_or_left(bool entered) {}
 void gui_debugger_request_input(debug_input_cb callback)
 {
     if(!callback) return;
-    char debug_in[20];
-    fgets(debug_in, 20, stdin);
+    static char debug_in[40];
+    fgets(debug_in, sizeof(debug_in), stdin);
     callback(debug_in);
 }
 
@@ -68,6 +68,8 @@ int main(int argc, char *argv[])
         fprintf(stderr, "Usage: %s boot1.img flash.img\n", argv[0]);
         return 1;
     }
+
+    debug_on_warn = true;
 
     path_boot1 = argv[1];
     path_flash = argv[2];
