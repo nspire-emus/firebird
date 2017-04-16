@@ -632,8 +632,8 @@ static void native_debugger(void) {
     throttle_timer_on();
 }
 
-static int listen_socket_fd = 0;
-static int socket_fd = 0;
+static int listen_socket_fd = -1;
+static int socket_fd = -1;
 
 static void log_socket_error(const char *msg) {
 #ifdef __MINGW32__
@@ -699,8 +699,11 @@ static char rdebug_inbuf[MAX_CMD_LEN];
 size_t rdebug_inbuf_used = 0;
 
 void rdebug_recv(void) {
+    if(listen_socket_fd == -1)
+        return;
+
     int ret, on;
-    if (!socket_fd) {
+    if (socket_fd == -1) {
         ret = accept(listen_socket_fd, NULL, NULL);
         if (ret == -1)
             return;
@@ -740,7 +743,7 @@ void rdebug_recv(void) {
             if(exiting)
             {
                 close(socket_fd);
-                socket_fd = 0;
+                socket_fd = -1;
                 return;
             }
 
@@ -768,7 +771,7 @@ void rdebug_recv(void) {
 #else
         close(socket_fd);
 #endif
-        socket_fd = 0;
+        socket_fd = -1;
         return;
     }
     if (rv < 0 && errno == EAGAIN) {
@@ -806,15 +809,15 @@ void debugger(enum DBG_REASON reason, uint32_t addr) {
 
 void rdebug_quit()
 {
-    if(socket_fd)
+    if(socket_fd != -1)
     {
         close(socket_fd);
-        socket_fd = 0;
+        socket_fd = -1;
     }
 
-    if(listen_socket_fd)
+    if(listen_socket_fd != -1)
     {
         close(listen_socket_fd);
-        listen_socket_fd = 0;
+        listen_socket_fd = -1;
     }
 }
