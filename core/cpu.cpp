@@ -166,7 +166,7 @@ void *try_ptr(uint32_t addr)
             return try_ptr(addr);
         }
         else // MMIO stuff
-            return 0;
+            return nullptr;
     }
 
     entry += addr;
