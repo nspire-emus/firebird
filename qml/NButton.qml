@@ -6,7 +6,7 @@ Rectangle {
     property string back_color: "#223"
     property string font_color: "#fff"
     property alias text: label.text
-    property bool active: pressed //|| mouseArea.containsMouse
+    property bool active: pressed || mouseArea.containsMouse
     property bool pressed: false
     property int keymap_id: 1
 
@@ -24,6 +24,10 @@ Rectangle {
 
     onPressedChanged: {
         Emu.keypadStateChanged(keymap_id, pressed);
+    }
+
+    Component.onCompleted: {
+        Emu.registerNButton(keymap_id, this);
     }
 
     Text {
@@ -79,10 +83,6 @@ Rectangle {
         property bool fixed: false
 
         preventStealing: true
-
-        Component.onCompleted: {
-            Emu.registerNButton(keymap_id, this);
-        }
 
         anchors.centerIn: parent
         width: parent.width * 1.3

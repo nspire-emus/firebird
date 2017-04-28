@@ -586,7 +586,7 @@ void notifyKeypadStateChanged(int row, int col, bool state)
         return;
     }
 
-    QQmlProperty::write(buttons[row][col], QStringLiteral("state"), state);
+    QQmlProperty::write(buttons[row][col], QStringLiteral("pressed"), state);
 }
 
 QObject *qmlBridgeFactory(QQmlEngine *engine, QJSEngine *scriptEngine)
