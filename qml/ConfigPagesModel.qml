@@ -4,21 +4,21 @@ ListModel {
     ListElement {
         title: qsTr("Flash & Boot1")
         icon: "qrc:/icons/resources/icons/media-flash.png"
-        file: "ConfigPageKits.qml"
+        file: "qrc:/qml/qml/ConfigPageKits.qml"
     }
     ListElement {
         title: qsTr("Emulation")
         icon: "qrc:/icons/resources/icons/flash-create.png"
-        file: "ConfigPageEmulation.qml"
+        file: "qrc:/qml/qml/ConfigPageEmulation.qml"
     }
     ListElement {
         title: qsTr("File Transfer")
         icon: "qrc:/icons/resources/icons/drive-removable-media-usb.png"
-        file: "ConfigPageFileTransfer.qml"
+        file: "qrc:/qml/qml/ConfigPageFileTransfer.qml"
     }
     ListElement {
         title: qsTr("Debugging")
         icon: "qrc:/icons/resources/icons/tools-report-bug.png"
-        file: "ConfigPageDebug.qml"
+        file: "qrc:/qml/qml/ConfigPageDebug.qml"
     }
 }
