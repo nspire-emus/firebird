@@ -19,7 +19,7 @@ _Linux:_
 
 _Windows:_ | _Android:_
 --- | ---
-[![](https://i.imgur.com/aibTt9Cl.png)](https://i.imgur.com/aibTt9C.png) | [![](http://i.imgur.com/fpN81kom.png)](http://i.imgur.com/fpN81ko.png)
+[![](https://i.imgur.com/aibTt9Cl.png)](https://i.imgur.com/aibTt9C.png) | [![](https://i.imgur.com/cLphTgnm.png)](https://i.imgur.com/cLphTgn.png)
 _Mac OS X:_ | _iOS:_
 [![](https://i.imgur.com/5Rl7VTG.png)](https://i.imgur.com/YhqkwIN.png) | [![](https://i.imgur.com/Gly3Mzhm.png)](https://i.imgur.com/Gly3Mzh.png)
 
