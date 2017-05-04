@@ -7,7 +7,7 @@ QtObject {
     property bool rdbEnabled: true
     property int rdbPort: 3334
     property bool running: false
-    property string version: "1.2"
+    property string version: "1.3"
     property var toast: null
 
     function useDefaultKit() {}
