@@ -20,7 +20,7 @@
 
 // Uncomment the following line to support relative jumps if possible,
 // it doesn't work that often as the mmaped section is too far away.
-#define REL_BRANCH
+// #define REL_BRANCH
 
 #include "asmcode.h"
 #include "cpu.h"
