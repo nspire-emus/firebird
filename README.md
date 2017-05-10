@@ -35,7 +35,8 @@ cd build
 qmake ..
 make
 ```
-#####A special case: iOS with translation (≈JIT) enabled:
+##### A special case: iOS with translation (≈JIT) enabled:
+
 There seems to be a bug in qmake that makes the required .S get ignored when building a JIT-enabled ([`TRANSLATION_ENABLED = true`](https://github.com/nspire-emus/firebird/blob/master/firebird.pro#L4)) binary.  
 As a workaround, you'll have to take care of it manually:
 
