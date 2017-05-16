@@ -56,7 +56,7 @@
         </property>
         <layout class="QVBoxLayout" name="verticalLayout_6">
          <property name="spacing">
-          <number>2</number>
+          <number>0</number>
          </property>
          <item>
           <layout class="QHBoxLayout" name="horizontalLayout_7">
@@ -355,7 +355,7 @@
         <item>
          <widget class="QQuickWidgetLessBroken" name="keypadWidget">
           <property name="sizePolicy">
-           <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+           <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
             <horstretch>0</horstretch>
             <verstretch>0</verstretch>
            </sizepolicy>
@@ -368,8 +368,8 @@
           </property>
           <property name="maximumSize">
            <size>
-            <width>265</width>
-            <height>340</height>
+            <width>999999</width>
+            <height>999999</height>
            </size>
           </property>
           <property name="focusPolicy">
