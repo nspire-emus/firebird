@@ -49,38 +49,38 @@ MainWindow::MainWindow(QWidget *parent) :
     config_dialog = dialog_component->create();
 
     //Emu -> GUI (QueuedConnection as they're different threads)
-    connect(&emu, SIGNAL(serialChar(char)), this, SLOT(serialChar(char)), Qt::QueuedConnection);
-    connect(&emu, SIGNAL(debugStr(QString)), this, SLOT(debugStr(QString))); //Not queued connection as it may cause a hang
-    connect(&emu, SIGNAL(speedChanged(double)), this, SLOT(showSpeed(double)), Qt::QueuedConnection);
-    connect(&emu, SIGNAL(isBusy(bool)), this, SLOT(isBusy(bool)), Qt::QueuedConnection);
-    connect(&emu, SIGNAL(statusMsg(QString)), this, SLOT(showStatusMsg(QString)), Qt::QueuedConnection);
-    connect(&emu, SIGNAL(turboModeChanged(bool)), ui->buttonSpeed, SLOT(setChecked(bool)), Qt::QueuedConnection);
-    connect(&emu, SIGNAL(usblinkChanged(bool)), this, SLOT(usblinkChanged(bool)), Qt::QueuedConnection);
-    connect(&emu, SIGNAL(debugInputRequested(bool)), this, SLOT(debugInputRequested(bool)), Qt::QueuedConnection);
-    connect(&emu, SIGNAL(started(bool)), this, SLOT(started(bool)), Qt::QueuedConnection);
-    connect(&emu, SIGNAL(paused(bool)), ui->actionPause, SLOT(setChecked(bool)), Qt::QueuedConnection);
-    connect(&emu, SIGNAL(resumed(bool)), this, SLOT(resumed(bool)), Qt::QueuedConnection);
-    connect(&emu, SIGNAL(suspended(bool)), this, SLOT(suspended(bool)), Qt::QueuedConnection);
-    connect(&emu, SIGNAL(stopped()), this, SLOT(stopped()), Qt::QueuedConnection);
+    connect(&emu_thread, SIGNAL(serialChar(char)), this, SLOT(serialChar(char)), Qt::QueuedConnection);
+    connect(&emu_thread, SIGNAL(debugStr(QString)), this, SLOT(debugStr(QString))); //Not queued connection as it may cause a hang
+    connect(&emu_thread, SIGNAL(speedChanged(double)), this, SLOT(showSpeed(double)), Qt::QueuedConnection);
+    connect(&emu_thread, SIGNAL(isBusy(bool)), this, SLOT(isBusy(bool)), Qt::QueuedConnection);
+    connect(&emu_thread, SIGNAL(statusMsg(QString)), this, SLOT(showStatusMsg(QString)), Qt::QueuedConnection);
+    connect(&emu_thread, SIGNAL(turboModeChanged(bool)), ui->buttonSpeed, SLOT(setChecked(bool)), Qt::QueuedConnection);
+    connect(&emu_thread, SIGNAL(usblinkChanged(bool)), this, SLOT(usblinkChanged(bool)), Qt::QueuedConnection);
+    connect(&emu_thread, SIGNAL(debugInputRequested(bool)), this, SLOT(debugInputRequested(bool)), Qt::QueuedConnection);
+    connect(&emu_thread, SIGNAL(started(bool)), this, SLOT(started(bool)), Qt::QueuedConnection);
+    connect(&emu_thread, SIGNAL(paused(bool)), ui->actionPause, SLOT(setChecked(bool)), Qt::QueuedConnection);
+    connect(&emu_thread, SIGNAL(resumed(bool)), this, SLOT(resumed(bool)), Qt::QueuedConnection);
+    connect(&emu_thread, SIGNAL(suspended(bool)), this, SLOT(suspended(bool)), Qt::QueuedConnection);
+    connect(&emu_thread, SIGNAL(stopped()), this, SLOT(stopped()), Qt::QueuedConnection);
 
     //GUI -> Emu (no QueuedConnection possible, watch out!)
-    connect(this, SIGNAL(debuggerCommand(QString)), &emu, SLOT(debuggerInput(QString)));
+    connect(this, SIGNAL(debuggerCommand(QString)), &emu_thread, SLOT(debuggerInput(QString)));
 
     //Menu "Emulator"
-    connect(ui->buttonReset, SIGNAL(clicked(bool)), &emu, SLOT(reset()));
-    connect(ui->actionReset, SIGNAL(triggered()), &emu, SLOT(reset()));
+    connect(ui->buttonReset, SIGNAL(clicked(bool)), &emu_thread, SLOT(reset()));
+    connect(ui->actionReset, SIGNAL(triggered()), &emu_thread, SLOT(reset()));
     connect(ui->actionRestart, SIGNAL(triggered()), this, SLOT(restart()));
-    connect(ui->actionDebugger, SIGNAL(triggered()), &emu, SLOT(enterDebugger()));
+    connect(ui->actionDebugger, SIGNAL(triggered()), &emu_thread, SLOT(enterDebugger()));
     connect(ui->actionConfiguration, SIGNAL(triggered()), this, SLOT(openConfiguration()));
-    connect(ui->buttonPause, SIGNAL(clicked(bool)), &emu, SLOT(setPaused(bool)));
+    connect(ui->buttonPause, SIGNAL(clicked(bool)), &emu_thread, SLOT(setPaused(bool)));
     connect(ui->buttonPause, SIGNAL(clicked(bool)), ui->actionPause, SLOT(setChecked(bool)));
-    connect(ui->actionPause, SIGNAL(toggled(bool)), &emu, SLOT(setPaused(bool)));
+    connect(ui->actionPause, SIGNAL(toggled(bool)), &emu_thread, SLOT(setPaused(bool)));
     connect(ui->actionPause, SIGNAL(toggled(bool)), ui->buttonPause, SLOT(setChecked(bool)));
-    connect(ui->buttonSpeed, SIGNAL(clicked(bool)), &emu, SLOT(setTurboMode(bool)));
+    connect(ui->buttonSpeed, SIGNAL(clicked(bool)), &emu_thread, SLOT(setTurboMode(bool)));
 
     QShortcut *shortcut = new QShortcut(QKeySequence(Qt::Key_F11), this);
     shortcut->setAutoRepeat(false);
-    connect(shortcut, SIGNAL(activated()), &emu, SLOT(toggleTurbo()));
+    connect(shortcut, SIGNAL(activated()), &emu_thread, SLOT(toggleTurbo()));
 
     //Menu "Tools"
     connect(ui->buttonScreenshot, SIGNAL(clicked()), this, SLOT(screenshot()));
@@ -133,7 +133,7 @@ MainWindow::MainWindow(QWidget *parent) :
     //On android the settings file is deleted everytime you update or uninstall,
     //so choose a better, safer, location
     QString path = QStandardPaths::writableLocation(QStandardPaths::GenericDataLocation);
-    settings = new QSettings(path + QStringLiteral("/nspire_emu.ini"), QSettings::IniFormat);
+    settings = new QSettings(path + QStringLiteral("/nspire_emu_thread.ini"), QSettings::IniFormat);
 #else
     settings = new QSettings();
 #endif
@@ -186,8 +186,8 @@ MainWindow::MainWindow(QWidget *parent) :
         if(!resumed)
         {
             // Boot up normally
-            if(!emu.boot1.isEmpty() && !emu.flash.isEmpty())
-                emu.start();
+            if(!emu_thread.boot1.isEmpty() && !emu_thread.flash.isEmpty())
+                emu_thread.start();
             else
                 showStatusMsg(tr("Start the emulation via Emulation->Start."));
         }
@@ -326,12 +326,12 @@ void MainWindow::usblink_progress_callback(int progress, void *)
 
 void MainWindow::suspendToPath(QString path)
 {
-    emu_thread->suspend(path);
+    emu_thread.suspend(path);
 }
 
 bool MainWindow::resumeFromPath(QString path)
 {
-    if(!emu_thread->resume(path))
+    if(!emu_thread.resume(path))
     {
         QMessageBox::warning(this, tr("Could not resume"), tr("Try to restart this app."));
         return false;
@@ -606,7 +606,7 @@ void MainWindow::stopped()
 void MainWindow::closeEvent(QCloseEvent *e)
 {
     if(!close_after_suspend &&
-            settings->value(QStringLiteral("suspendOnClose")).toBool() && emu_thread->isRunning() && exiting == false)
+            settings->value(QStringLiteral("suspendOnClose")).toBool() && emu_thread.isRunning() && exiting == false)
     {
         close_after_suspend = true;
         qDebug("Suspending...");
@@ -615,7 +615,7 @@ void MainWindow::closeEvent(QCloseEvent *e)
         return;
     }
 
-    if(emu.isRunning() && !emu.stop())
+    if(emu_thread.isRunning() && !emu_thread.stop())
         qDebug("Terminating emulator thread failed.");
 
     QMainWindow::closeEvent(e);
@@ -669,15 +669,15 @@ void MainWindow::refillKitMenus()
 
 void MainWindow::applyQMLBridgeSettings()
 {
-    emu.port_gdb = the_qml_bridge->getGDBEnabled() ? the_qml_bridge->getGDBPort() : 0;
-    emu.port_rdbg = the_qml_bridge->getRDBEnabled() ? the_qml_bridge->getRDBPort() : 0;
+    emu_thread.port_gdb = the_qml_bridge->getGDBEnabled() ? the_qml_bridge->getGDBPort() : 0;
+    emu_thread.port_rdbg = the_qml_bridge->getRDBEnabled() ? the_qml_bridge->getRDBPort() : 0;
 }
 
 void MainWindow::setCurrentKit(const Kit &kit)
 {
     current_kit_id = kit.id;
-    emu.boot1 = kit.boot1;
-    emu.flash = kit.flash;
+    emu_thread.boot1 = kit.boot1;
+    emu_thread.flash = kit.flash;
     fallback_snapshot_path = kit.snapshot;
 
     setWindowTitle(QStringLiteral("Firebird Emu - %1").arg(kit.name));
@@ -702,13 +702,13 @@ void MainWindow::restart()
             setCurrentKit(the_qml_bridge->getKitModel()->getKits()[kitIndex]);
     }
 
-    if(emu.boot1.isEmpty())
+    if(emu_thread.boot1.isEmpty())
     {
         QMessageBox::critical(this, trUtf8("No boot1 set"), trUtf8("Before you can start the emulation, you have to select a proper boot1 file."));
         return;
     }
 
-    if(emu.flash.isEmpty())
+    if(emu_thread.flash.isEmpty())
     {
         QMessageBox::critical(this, trUtf8("No flash image loaded"), trUtf8("Before you can start the emulation, you have to load a proper flash file.\n"
                                                                             "You can create one via Flash->Create Flash in the menu."));
@@ -717,8 +717,8 @@ void MainWindow::restart()
 
     applyQMLBridgeSettings();
 
-    if(emu.stop())
-        emu.start();
+    if(emu_thread.stop())
+        emu_thread.start();
     else
         QMessageBox::warning(this, trUtf8("Restart needed"), trUtf8("Failed to restart emulator. Close and reopen this app.\n"));
 }

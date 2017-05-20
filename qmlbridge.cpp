@@ -6,9 +6,7 @@
 
 #include "qmlbridge.h"
 
-#ifndef MOBILE_UI
 #include "flashdialog.h"
-#endif
 
 #include "core/emu.h"
 #include "core/keypad.h"
@@ -63,25 +61,20 @@ QMLBridge::QMLBridge(QObject *parent) : QObject(parent)
     debug_on_warn = getDebugOnWarn();
 
     connect(&kit_model, SIGNAL(anythingChanged()), this, SLOT(saveKits()), Qt::QueuedConnection);
-    #ifdef MOBILE_UI
-        connect(&emu_thread, SIGNAL(speedChanged(double)), this, SLOT(speedChanged(double)), Qt::QueuedConnection);
-        connect(&emu_thread, SIGNAL(turboModeChanged(bool)), this, SIGNAL(turboModeChanged()), Qt::QueuedConnection);
-        connect(&emu_thread, SIGNAL(stopped()), this, SIGNAL(isRunningChanged()), Qt::QueuedConnection);
-        connect(&emu_thread, SIGNAL(started(bool)), this, SIGNAL(isRunningChanged()), Qt::QueuedConnection);
-        connect(&emu_thread, SIGNAL(suspended(bool)), this, SIGNAL(isRunningChanged()), Qt::QueuedConnection);
-        connect(&emu_thread, SIGNAL(resumed(bool)), this, SIGNAL(isRunningChanged()), Qt::QueuedConnection);
-        connect(&emu_thread, SIGNAL(started(bool)), this, SLOT(started(bool)), Qt::QueuedConnection);
-        connect(&emu_thread, SIGNAL(resumed(bool)), this, SLOT(resumed(bool)), Qt::QueuedConnection);
-        connect(&emu_thread, SIGNAL(suspended(bool)), this, SLOT(suspended(bool)), Qt::QueuedConnection);
-    #endif
+
+    connect(&emu_thread, SIGNAL(speedChanged(double)), this, SLOT(speedChanged(double)), Qt::QueuedConnection);
+    connect(&emu_thread, SIGNAL(turboModeChanged(bool)), this, SIGNAL(turboModeChanged()), Qt::QueuedConnection);
+    connect(&emu_thread, SIGNAL(stopped()), this, SIGNAL(isRunningChanged()), Qt::QueuedConnection);
+    connect(&emu_thread, SIGNAL(started(bool)), this, SIGNAL(isRunningChanged()), Qt::QueuedConnection);
+    connect(&emu_thread, SIGNAL(suspended(bool)), this, SIGNAL(isRunningChanged()), Qt::QueuedConnection);
+    connect(&emu_thread, SIGNAL(resumed(bool)), this, SIGNAL(isRunningChanged()), Qt::QueuedConnection);
+    connect(&emu_thread, SIGNAL(started(bool)), this, SLOT(started(bool)), Qt::QueuedConnection);
+    connect(&emu_thread, SIGNAL(resumed(bool)), this, SLOT(resumed(bool)), Qt::QueuedConnection);
+    connect(&emu_thread, SIGNAL(suspended(bool)), this, SLOT(suspended(bool)), Qt::QueuedConnection);
 }
 
 QMLBridge::~QMLBridge()
-{
-    #ifdef MOBILE_UI
-        emu_thread.stop();
-    #endif
-}
+{}
 
 unsigned int QMLBridge::getGDBPort()
 {
@@ -240,12 +233,7 @@ void QMLBridge::setUSBDir(QString dir)
 
 bool QMLBridge::getIsRunning()
 {
-    #ifdef MOBILE_UI
-        return emu_thread.isRunning();
-    #else
-        //TODO: Non mobile-ui
-        return true;
-#endif
+    return emu_thread.isRunning();
 }
 
 QString QMLBridge::getVersion()
@@ -297,7 +285,7 @@ bool QMLBridge::isMobile()
         return true;
     #else
         return false;
-#endif
+    #endif
 }
 
 void QMLBridge::sendFile(QUrl url, QString dir)
@@ -336,8 +324,6 @@ int QMLBridge::kitIndexForID(unsigned int id)
     return kit_model.indexForID(id);
 }
 
-#ifndef MOBILE_UI
-
 void QMLBridge::createFlash(unsigned int kitIndex)
 {
     FlashDialog dialog;
@@ -350,8 +336,6 @@ void QMLBridge::createFlash(unsigned int kitIndex)
     dialog.exec();
 }
 
-#endif
-
 void QMLBridge::saveKits()
 {
     settings.setValue(QStringLiteral("kits"), QVariant::fromValue(kit_model));
@@ -362,8 +346,6 @@ void QMLBridge::usblink_progress_changed(int percent, void *qml_bridge_p)
     auto &&qml_bridge = reinterpret_cast<QMLBridge*>(qml_bridge_p);
     emit qml_bridge->usblinkProgressChanged(percent);
 }
-
-#ifdef MOBILE_UI
 
 void QMLBridge::setTurboMode(bool b)
 {
@@ -523,8 +505,6 @@ bool QMLBridge::getTurboMode()
 {
     return turbo_mode;
 }
-
-#endif
 
 void notifyKeypadStateChanged(int row, int col, bool state)
 {

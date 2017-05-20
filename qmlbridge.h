@@ -29,10 +29,8 @@ public:
     Q_PROPERTY(bool isRunning READ getIsRunning NOTIFY isRunningChanged)
     Q_PROPERTY(KitModel* kits READ getKitModel)
 
-    #ifdef MOBILE_UI
-        Q_PROPERTY(double speed READ getSpeed NOTIFY speedChanged)
-        Q_PROPERTY(bool turboMode READ getTurboMode WRITE setTurboMode NOTIFY turboModeChanged)
-    #endif
+    Q_PROPERTY(double speed READ getSpeed NOTIFY speedChanged)
+    Q_PROPERTY(bool turboMode READ getTurboMode WRITE setTurboMode NOTIFY turboModeChanged)
 
     unsigned int getGDBPort();
     void setGDBPort(unsigned int port);
@@ -58,11 +56,10 @@ public:
     void setUSBDir(QString dir);
     bool getIsRunning();
     QString getVersion();
-#ifdef MOBILE_UI
+
     double getSpeed();
     bool getTurboMode();
     void setTurboMode(bool e);
-#endif
 
     KitModel *getKitModel() { return &kit_model; }
     Q_INVOKABLE void keypadStateChanged(int keymap_id, bool state);
@@ -83,38 +80,33 @@ public:
     Q_INVOKABLE bool fileExists(QString path);
     Q_INVOKABLE int kitIndexForID(unsigned int id);
 
-    #ifdef MOBILE_UI
-        Q_INVOKABLE void useDefaultKit();
+    Q_INVOKABLE void useDefaultKit();
 
-        Q_INVOKABLE bool restart();
-        Q_INVOKABLE void setPaused(bool b);
-        Q_INVOKABLE void reset();
-        Q_INVOKABLE void suspend();
-        Q_INVOKABLE void resume();
-        Q_INVOKABLE bool stop();
+    Q_INVOKABLE bool restart();
+    Q_INVOKABLE void setPaused(bool b);
+    Q_INVOKABLE void reset();
+    Q_INVOKABLE void suspend();
+    Q_INVOKABLE void resume();
+    Q_INVOKABLE bool stop();
 
-        Q_INVOKABLE bool saveFlash();
+    Q_INVOKABLE bool saveFlash();
 
-        Q_INVOKABLE QString getBoot1Path();
-        Q_INVOKABLE QString getFlashPath();
-        Q_INVOKABLE QString getSnapshotPath();
+    Q_INVOKABLE QString getBoot1Path();
+    Q_INVOKABLE QString getFlashPath();
+    Q_INVOKABLE QString getSnapshotPath();
 
-        Q_INVOKABLE void registerToast(QVariant toast);
-        Q_INVOKABLE void toastMessage(QString msg);
+    Q_INVOKABLE void registerToast(QVariant toast);
+    Q_INVOKABLE void toastMessage(QString msg);
 
-        EmuThread emu_thread;
-    #else
-        Q_INVOKABLE void createFlash(unsigned int kitIndex);
-    #endif
+    Q_INVOKABLE void createFlash(unsigned int kitIndex);
+
 
 public slots:
     void saveKits();
-    #ifdef MOBILE_UI
-        void speedChanged(double speed);
-        void started(bool success); // Not called on resume
-        void resumed(bool success);
-        void suspended(bool success);
-    #endif
+    void speedChanged(double speed);
+    void started(bool success); // Not called on resume
+    void resumed(bool success);
+    void suspended(bool success);
 
 signals:
     void gdbPortChanged();
@@ -138,10 +130,10 @@ private:
     static void usblink_progress_changed(int percent, void *qml_bridge_p);
 
     QObject *toast = nullptr;
-    #ifdef MOBILE_UI
-        unsigned int current_kit_id;
-        QString fallback_snapshot_path;
-    #endif
+
+    unsigned int current_kit_id;
+    QString fallback_snapshot_path;
+
     double speed;
     KitModel kit_model;
     QSettings settings;

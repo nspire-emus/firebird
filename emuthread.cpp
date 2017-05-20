@@ -14,11 +14,11 @@
 #include "core/usblink_queue.h"
 #include "mainwindow.h"
 
-EmuThread *emu_thread = nullptr;
+EmuThread emu_thread;
 
 void gui_do_stuff(bool wait)
 {
-    emu_thread->doStuff(wait);
+    emu_thread.doStuff(wait);
 }
 
 void gui_debug_printf(const char *fmt, ...)
@@ -35,7 +35,7 @@ void gui_debug_vprintf(const char *fmt, va_list ap)
 {
     QString str;
     str.vsprintf(fmt, ap);
-    emu_thread->debugStr(str);
+    emu_thread.debugStr(str);
 }
 
 void gui_status_printf(const char *fmt, ...)
@@ -45,7 +45,7 @@ void gui_status_printf(const char *fmt, ...)
 
     QString str;
     str.vsprintf(fmt, ap);
-    emu_thread->statusMsg(str);
+    emu_thread.statusMsg(str);
 
     va_end(ap);
 }
@@ -57,7 +57,7 @@ void gui_perror(const char *msg)
 
 void gui_debugger_entered_or_left(bool entered)
 {
-    emu_thread->debuggerEntered(entered);
+    emu_thread.debuggerEntered(entered);
 }
 
 static debug_input_cb debug_callback;
@@ -65,13 +65,13 @@ static debug_input_cb debug_callback;
 void gui_debugger_request_input(debug_input_cb callback)
 {
     debug_callback = callback;
-    emu_thread->debugInputRequested(callback != nullptr);
+    emu_thread.debugInputRequested(callback != nullptr);
 }
 
 void gui_putchar(char c)
 {
     if(true)
-        emu_thread->serialChar(c);
+        emu_thread.serialChar(c);
     else
         putchar(c);
 }
@@ -83,39 +83,39 @@ int gui_getchar()
 
 void gui_set_busy(bool busy)
 {
-    emit emu_thread->isBusy(busy);
+    emit emu_thread.isBusy(busy);
 }
 
 void gui_show_speed(double d)
 {
-    emit emu_thread->speedChanged(d);
+    emit emu_thread.speedChanged(d);
 }
 
 void gui_usblink_changed(bool state)
 {
-    emit emu_thread->usblinkChanged(state);
+    emit emu_thread.usblinkChanged(state);
 }
 
 void throttle_timer_off()
 {
-    emu_thread->setTurboMode(true);
+    emu_thread.setTurboMode(true);
 }
 
 void throttle_timer_on()
 {
-    emu_thread->setTurboMode(false);
+    emu_thread.setTurboMode(false);
 }
 
 void throttle_timer_wait()
 {
-    emu_thread->throttleTimerWait();
+    emu_thread.throttleTimerWait();
 }
 
 EmuThread::EmuThread(QObject *parent) :
     QThread(parent)
 {
-    assert(emu_thread == nullptr);
-    emu_thread = this;
+    // There can only be one instance, this global one.
+    assert(&emu_thread == this);
 
     // Set default settings
     debug_on_start = debug_on_warn = false;

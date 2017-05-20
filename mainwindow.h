@@ -144,7 +144,6 @@ private:
     // Used to show a status message permanently
     QLabel status_label;
 
-    EmuThread emu;
     QSettings *settings = nullptr;
     FlashDialog flash_dialog;
     // To make it possible to activate the debugger
