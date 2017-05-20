@@ -250,18 +250,11 @@ void QMLBridge::keypadStateChanged(int keymap_id, bool state)
     ::keypad_set_key(row, col, state);
 }
 
-static QObject *buttons[KEYPAD_ROWS][KEYPAD_COLS];
+static std::multimap<int , QObject *> buttons;
 
 void QMLBridge::registerNButton(unsigned int keymap_id, QVariant button)
 {
-    int col = keymap_id % KEYPAD_COLS, row = keymap_id / KEYPAD_COLS;
-    assert(row < KEYPAD_ROWS);
-    //assert(col < KEYPAD_COLS); Not needed.
-
-    if(buttons[row][col])
-        qWarning() << "Warning: Button " << keymap_id << " already registered as " << buttons[row][col] << "!";
-    else
-        buttons[row][col] = button.value<QObject*>();
+    buttons.insert(std::make_pair(keymap_id, button.value<QObject*>()));
 }
 
 void QMLBridge::touchpadStateChanged(qreal x, qreal y, bool contact, bool down)
@@ -271,11 +264,11 @@ void QMLBridge::touchpadStateChanged(qreal x, qreal y, bool contact, bool down)
     notifyTouchpadStateChanged();
 }
 
-static QObject *qml_touchpad;
+static std::vector<QObject *> qml_touchpads;
 
 void QMLBridge::registerTouchpad(QVariant touchpad)
 {
-    qml_touchpad = touchpad.value<QObject*>();
+    qml_touchpads.push_back(touchpad.value<QObject*>());
 }
 
 bool QMLBridge::isMobile()
@@ -511,13 +504,21 @@ void notifyKeypadStateChanged(int row, int col, bool state)
     assert(row < KEYPAD_ROWS);
     assert(col < KEYPAD_COLS);
 
-    if(!buttons[row][col])
+    int keymap_id = col + row * KEYPAD_COLS;
+    auto it = buttons.lower_bound(keymap_id),
+         end = buttons.upper_bound(keymap_id);
+
+    if(it == buttons.end())
     {
-        qWarning() << "Warning: Button " << row*11+col << " not present in keypad!";
+        qWarning() << "Warning: Button " << row*KEYPAD_COLS+col << " not present in keypad!";
         return;
     }
 
-    QQmlProperty::write(buttons[row][col], QStringLiteral("pressed"), state);
+    do
+    {
+        QQmlProperty::write(it->second, QStringLiteral("pressed"), state);
+    }
+    while (++it != end);
 }
 
 QObject *qmlBridgeFactory(QQmlEngine *engine, QJSEngine *scriptEngine)
@@ -530,7 +531,7 @@ QObject *qmlBridgeFactory(QQmlEngine *engine, QJSEngine *scriptEngine)
 
 void notifyTouchpadStateChanged(qreal x, qreal y, bool contact, bool down)
 {
-    if(!qml_touchpad)
+    if(qml_touchpads.empty())
     {
         qWarning("Warning: No touchpad registered!");
         return;
@@ -538,10 +539,13 @@ void notifyTouchpadStateChanged(qreal x, qreal y, bool contact, bool down)
 
     QVariant ret;
 
-    if(contact || down)
-        QMetaObject::invokeMethod(qml_touchpad, "showHighlight", Q_RETURN_ARG(QVariant, ret), Q_ARG(QVariant, QVariant(x)), Q_ARG(QVariant, QVariant(y)), Q_ARG(QVariant, down));
-    else
-        QMetaObject::invokeMethod(qml_touchpad, "hideHighlight");
+    for(auto && qml_touchpad : qml_touchpads)
+    {
+        if(contact || down)
+            QMetaObject::invokeMethod(qml_touchpad, "showHighlight", Q_RETURN_ARG(QVariant, ret), Q_ARG(QVariant, QVariant(x)), Q_ARG(QVariant, QVariant(y)), Q_ARG(QVariant, down));
+        else
+            QMetaObject::invokeMethod(qml_touchpad, "hideHighlight");
+    }
 }
 
 void notifyTouchpadStateChanged()

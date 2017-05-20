@@ -6,7 +6,6 @@ import Firebird.UIComponents 1.0
 
 ColumnLayout {
     property var kitModel
-    property bool triggerSignals: true
     Component.onCompleted: kitModel = Emu.kits
 
     spacing: 5
@@ -20,15 +19,6 @@ ColumnLayout {
         Layout.rightMargin: 1
         Layout.leftMargin: 1
         Layout.topMargin: 5
-
-        onCurrentItemChanged: {
-            triggerSignals = false;
-            nameEdit.text = currentItem.myData.name
-            flashEdit.filePath = currentItem.myData.flash
-            boot1Edit.filePath = currentItem.myData.boot1
-            snapshotEdit.filePath = currentItem.myData.snapshot
-            triggerSignals = true;
-        }
 
         kitModel: parent.kitModel
     }
@@ -62,7 +52,11 @@ ColumnLayout {
                 placeholderText: qsTr("Name")
                 Layout.fillWidth: true
 
-                onTextChanged: if(triggerSignals) kitModel.setDataRow(kitList.currentIndex, text, KitModel.NameRole)
+                text: kitList.currentItem.myData.name;
+                onTextChanged: {
+                    kitModel.setDataRow(kitList.currentIndex, text, KitModel.NameRole);
+                    text = Qt.binding(function() { return kitList.currentItem.myData.name; });
+                }
             }
 
             FBLabel {
@@ -73,7 +67,11 @@ ColumnLayout {
             FileSelect {
                 id: boot1Edit
                 Layout.fillWidth: true
-                onFilePathChanged: if(triggerSignals) kitModel.setDataRow(kitList.currentIndex, filePath, KitModel.Boot1Role)
+                filePath: kitList.currentItem.myData.boot1;
+                onFilePathChanged: {
+                    kitModel.setDataRow(kitList.currentIndex, filePath, KitModel.Boot1Role);
+                    filePath = Qt.binding(function() { return kitList.currentItem.myData.boot1; });
+                }
             }
 
             FBLabel {
@@ -87,7 +85,11 @@ ColumnLayout {
                 FileSelect {
                     id: flashEdit
                     Layout.fillWidth: true
-                    onFilePathChanged: if(triggerSignals)  kitModel.setDataRow(kitList.currentIndex, filePath, KitModel.FlashRole)
+                    filePath: kitList.currentItem.myData.flash;
+                    onFilePathChanged: {
+                        kitModel.setDataRow(kitList.currentIndex, filePath, KitModel.FlashRole);
+                        filePath = Qt.binding(function() { return kitList.currentItem.myData.flash; });
+                    }
                 }
 
                 Button {
@@ -108,8 +110,12 @@ ColumnLayout {
             FileSelect {
                 id: snapshotEdit
                 Layout.fillWidth: true
-                onFilePathChanged: if(triggerSignals) kitModel.setDataRow(kitList.currentIndex, filePath, KitModel.SnapshotRole)
                 dialog.selectExisting: false
+                filePath: kitList.currentItem.myData.snapshot;
+                onFilePathChanged: {
+                    kitModel.setDataRow(kitList.currentIndex, filePath, KitModel.SnapshotRole);
+                    filePath = Qt.binding(function() { return kitList.currentItem.myData.snapshot; });
+                }
             }
         }
     }
