@@ -48,6 +48,13 @@ MainWindow::MainWindow(QWidget *parent) :
 
     config_dialog = dialog_component->create();
 
+    QQmlComponent *mobile_component = new QQmlComponent(ui->keypadWidget->engine(), QUrl(QStringLiteral("qrc:/qml/qml/MobileUI.qml")), this);
+    if(!mobile_component->isReady())
+        qCritical() << "Could not create QML config dialog:" << dialog_component->errorString();
+
+    mobile_dialog = mobile_component->create();
+    mobile_dialog->setProperty("visible", QVariant(false));
+
     //Emu -> GUI (QueuedConnection as they're different threads)
     connect(&emu_thread, SIGNAL(serialChar(char)), this, SLOT(serialChar(char)), Qt::QueuedConnection);
     connect(&emu_thread, SIGNAL(debugStr(QString)), this, SLOT(debugStr(QString))); //Not queued connection as it may cause a hang
