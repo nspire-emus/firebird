@@ -6,7 +6,6 @@
 #include <QMainWindow>
 #include <QSettings>
 #include <QLabel>
-#include <QTreeWidgetItem>
 #include <QQuickWidget>
 
 #include "emuthread.h"
@@ -69,6 +68,7 @@ public slots:
     void usblinkChanged(bool state);
     void setExtLCD(bool state);
     void xmodemSend();
+    void switchToMobileUI();
 
     //Menu "State"
     bool resume();
@@ -112,6 +112,7 @@ signals:
 
 public:
     static void usblink_progress_callback(int progress, void *data);
+    void switchUIMode(bool mobile_ui);
 
 private:
     void suspendToPath(QString path);
@@ -154,6 +155,9 @@ private:
 
     // The about dialog
     FBAboutDialog aboutDialog{this};
+
+    // The QML engine shared by the keypad, config dialog and mobile UI
+    QQmlEngine *qml_engine = nullptr;
 
     // The QML Config Dialog
     QObject *config_dialog = nullptr;

@@ -40,17 +40,19 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->lcdView->installEventFilter(&qt_keypad_bridge);
     lcd.installEventFilter(&qt_keypad_bridge);
 
+    qml_engine = ui->keypadWidget->engine();
+
     // Create config dialog
-    ui->keypadWidget->engine()->addImportPath(QStringLiteral("qrc:/qml/qml"));
-    QQmlComponent *dialog_component = new QQmlComponent(ui->keypadWidget->engine(), QUrl(QStringLiteral("qrc:/qml/qml/FBConfigDialog.qml")), this);
+    qml_engine->addImportPath(QStringLiteral("qrc:/qml/qml"));
+    QQmlComponent *dialog_component = new QQmlComponent(qml_engine, QUrl(QStringLiteral("qrc:/qml/qml/FBConfigDialog.qml")), this);
     if(!dialog_component->isReady())
         qCritical() << "Could not create QML config dialog:" << dialog_component->errorString();
 
     config_dialog = dialog_component->create();
 
-    QQmlComponent *mobile_component = new QQmlComponent(ui->keypadWidget->engine(), QUrl(QStringLiteral("qrc:/qml/qml/MobileUI.qml")), this);
+    QQmlComponent *mobile_component = new QQmlComponent(qml_engine, QUrl(QStringLiteral("qrc:/qml/qml/MobileUI.qml")), this);
     if(!mobile_component->isReady())
-        qCritical() << "Could not create QML config dialog:" << dialog_component->errorString();
+        qCritical() << "Could not create Mobile UI component:" << mobile_component->errorString();
 
     mobile_dialog = mobile_component->create();
     mobile_dialog->setProperty("visible", QVariant(false));
@@ -98,6 +100,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->actionLCD_Window, SIGNAL(triggered(bool)), this, SLOT(setExtLCD(bool)));
     connect(&lcd, SIGNAL(closed()), ui->actionLCD_Window, SLOT(toggle()));
     connect(ui->actionXModem, SIGNAL(triggered()), this, SLOT(xmodemSend()));
+    connect(ui->actionSwitch_to_Mobile_UI, SIGNAL(triggered()), this, SLOT(switchToMobileUI()));
     ui->actionConnect->setShortcut(QKeySequence(Qt::Key_F10));
     ui->actionConnect->setAutoRepeat(false);
 
@@ -329,6 +332,12 @@ void MainWindow::usblink_progress_callback(int progress, void *)
         progress = 0; //No error handling here
 
     emit main_window->usblink_progress_changed(progress);
+}
+
+void MainWindow::switchUIMode(bool mobile_ui)
+{
+    setVisible(!mobile_ui);
+    mobile_dialog->setProperty("visible", mobile_ui);
 }
 
 void MainWindow::suspendToPath(QString path)
@@ -775,6 +784,11 @@ void MainWindow::xmodemSend()
 
     std::string path = filename.toStdString();
     xmodem_send(path.c_str());
+}
+
+void MainWindow::switchToMobileUI()
+{
+    switchUIMode(true);
 }
 
 bool QQuickWidgetLessBroken::event(QEvent *event)

@@ -20,6 +20,8 @@
         <file>resources/icons/document.png</file>
         <file>resources/icons/media-flash.png</file>
         <file>resources/icons/drive-removable-media-usb.png</file>
+        <file>resources/icons/smartphone.png</file>
+        <file>resources/icons/video-display.png</file>
     </qresource>
     <qresource prefix="/qml">
         <file>qml/Keypad.qml</file>

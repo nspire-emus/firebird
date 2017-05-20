@@ -100,6 +100,9 @@ public:
 
     Q_INVOKABLE void createFlash(unsigned int kitIndex);
 
+    #ifndef MOBILE_UI
+        Q_INVOKABLE void switchUIMode(bool mobile_ui);
+    #endif
 
 public slots:
     void saveKits();

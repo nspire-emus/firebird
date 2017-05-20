@@ -6,6 +6,7 @@
 
 #include "qmlbridge.h"
 
+#include "mainwindow.h"
 #include "flashdialog.h"
 
 #include "core/emu.h"
@@ -328,6 +329,13 @@ void QMLBridge::createFlash(unsigned int kitIndex)
     dialog.show();
     dialog.exec();
 }
+
+#ifndef MOBILE_UI
+void QMLBridge::switchUIMode(bool mobile_ui)
+{
+    main_window->switchUIMode(mobile_ui);
+}
+#endif
 
 void QMLBridge::saveKits()
 {
