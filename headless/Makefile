@@ -1,12 +1,12 @@
 #FLAGS := -g -O3 -flto -fno-fat-lto-objects -DBENCHMARK -Wall -I.. -fuse-ld=gold
-FLAGS := -DBENCHMARK -Wall -I..
+FLAGS := -g -DBENCHMARK -Wall -I..
 #FLAGS := -DBENCHMARK -Wall -I.. -fuse-ld=gold
 CFLAGS := -std=c11 $(FLAGS)
 CXXFLAGS := -std=c++11 $(FLAGS)
 LFLAGS := -lz
 OUTPUT := firebird-headless
 
-ASMSOURCES := ../core/asmcode_arm.S
+ASMSOURCES := ../core/asmcode_aarch64.S
 
 CSOURCES   := ../core/armsnippets_loader.c ../core/asmcode.c ../core/casplus.c ../core/des.c ../core/disasm.c \
 	      ../core/gdbstub.c ../core/interrupt.c ../core/keypad.c ../core/lcd.c ../core/link.c ../core/mem.c \
@@ -15,7 +15,7 @@ CSOURCES   := ../core/armsnippets_loader.c ../core/asmcode.c ../core/casplus.c .
 
 CPPSOURCES := ../core/arm_interpreter.cpp ../core/coproc.cpp ../core/cpu.cpp ../core/debug.cpp ../core/emu.cpp \
 	      ../core/flash.cpp ../core/gif.cpp ../core/thumb_interpreter.cpp ../core/usblink_queue.cpp main.cpp \
-	      ../core/translate_arm.cpp
+	      ../core/translate_aarch64.cpp
 
 OBJS = $(patsubst %.S, %.o, $(ASMSOURCES))
 OBJS += $(patsubst %.c, %.o, $(CSOURCES))
