@@ -63,7 +63,8 @@ translation_next_enter:
 
 	sub x25, x22, x25 // x25 = insn_ptr - start_ptr
 	//lsr x25, x25, #2 // x25 = count of instructions
-	//lsl x25, x25, #2
+	//lsl x25, x25, #3
+	lsl x25, x25, #1
 	ldr x0, [x24, x25] // x0 = jump_table[(insn_ptr - start_ptr) / 4]
 
 	br x0
@@ -77,14 +78,14 @@ save_return:
 	ldp x23, x24, [sp], #16
 	ldp x21, x22, [sp], #16
 
-	stp x2, x3, [x19, #0*4]
-	stp x4, x5, [x19, #2*4]
-	stp x6, x7, [x19, #4*4]
-	stp x8, x9, [x19, #6*4]
-	stp x10, x11, [x19, #8*4]
-	stp x12, x13, [x19, #10*4]
-	stp x14, x15, [x19, #12*4]
-	str x16, [x19, #14*4]
+	stp w2, w3, [x19, #0*4]
+	stp w4, w5, [x19, #2*4]
+	stp w6, w7, [x19, #4*4]
+	stp w8, w9, [x19, #6*4]
+	stp w10, w11, [x19, #8*4]
+	stp w12, w13, [x19, #10*4]
+	stp w14, w15, [x19, #12*4]
+	str w16, [x19, #14*4]
 	// Save nzcv to struct arm_state again
 	mrs x17, nzcv
 	ubfx x0, x17, #31, #1
@@ -103,22 +104,22 @@ save_return:
 // x19 has to be a pointer to the arm_state
 load_virt:
 	// Assemble virtual cpsr_nzcv in x17
-	ldrb w17, [x19, #17*4+0] // w17 = bit 31
+	ldrb w17, [x19, #17*4+0] // x17 = bit 31
 	ldrb w3, [x19, #17*4+1] // w3 = bit 30
 	ldrb w4, [x19, #17*4+2] // w4 = bit 29
 	ldrb w5, [x19, #17*4+3] // w5 = bit 28
-	lsl w17, w17, #7
+	lsl w17, w17, #31
 	bfi w17, w3, #30, #1
 	bfi w17, w4, #29, #1
 	bfi w17, w5, #28, #1
-	ldp x2, x3, [x19, #0*4]
-	ldp x4, x5, [x19, #2*4]
-	ldp x6, x7, [x19, #4*4]
-	ldp x8, x9, [x19, #6*4]
-	ldp x10, x11, [x19, #8*4]
-	ldp x12, x13, [x19, #10*4]
-	ldp x14, x15, [x19, #12*4]
-	ldr x16, [x19, #14*4]
+	ldp w2, w3, [x19, #0*4]
+	ldp w4, w5, [x19, #2*4]
+	ldp w6, w7, [x19, #4*4]
+	ldp w8, w9, [x19, #6*4]
+	ldp w10, w11, [x19, #8*4]
+	ldp w12, w13, [x19, #10*4]
+	ldp w14, w15, [x19, #12*4]
+	ldr w16, [x19, #14*4]
 	// Make virtual cpsr_nzcv active
 	msr nzcv, x17
 	br x1
