@@ -28,10 +28,20 @@ translation_enter: .global translation_enter
 
 // Enter translation; sets arm.reg[15] = w0
 translation_next: .global translation_next
+	mrs x17, nzcv
 	str w0, [x19, #15*4]
 
 // Enter translation at w0 (has to equal arm.reg[15])
 translation_next_enter:
+	adr x21, cycle_count_delta
+	ldr w21, [x21]
+	cmp w21, #0
+	bpl save_return // if(cycle_count_delta > 0) goto save_return;
+
+	adr x21, cpu_events
+	ldr w21, [x21]
+	cbnz w21, save_return // if(cpu_events) goto save_return;
+
 	adr x21, addr_cache
 	ldr x21, [x21] // x21 = addr_cache
 	lsr x22, x0, #10
@@ -57,9 +67,9 @@ translation_next_enter:
 
 	// add number of instructions to cycle_count_delta
 	adr x21, cycle_count_delta
-	ldr x23, [x21]
-	add x23, x23, x26
-	str x23, [x21]
+	ldr w23, [x21]
+	add w23, w23, w26
+	str w23, [x21]
 
 	sub x25, x22, x25 // x25 = insn_ptr - start_ptr
 	//lsr x25, x25, #2 // x25 = count of instructions
@@ -67,6 +77,7 @@ translation_next_enter:
 	lsl x25, x25, #1
 	ldr x0, [x24, x25] // x0 = jump_table[(insn_ptr - start_ptr) / 4]
 
+	msr nzcv, x17	
 	br x0
 
 save_return:
@@ -86,8 +97,7 @@ save_return:
 	stp w12, w13, [x19, #10*4]
 	stp w14, w15, [x19, #12*4]
 	str w16, [x19, #14*4]
-	// Save nzcv to struct arm_state again
-	mrs x17, nzcv
+	// Save nzcv (in x17) to struct arm_state again
 	ubfx x0, x17, #31, #1
 	ubfx x1, x17, #30, #1
 	ubfx x2, x17, #29, #1
@@ -120,6 +130,4 @@ load_virt:
 	ldp w12, w13, [x19, #10*4]
 	ldp w14, w15, [x19, #12*4]
 	ldr w16, [x19, #14*4]
-	// Make virtual cpsr_nzcv active
-	msr nzcv, x17
 	br x1
