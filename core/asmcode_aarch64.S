@@ -28,7 +28,7 @@ translation_enter: .global translation_enter
 
 // Enter translation, check for thumb
 translation_next_bx: .global translation_next_bx
-	tbnz w0, #1, to_thumb // if(pc & 1) goto to_thumb;
+	tbnz w0, #0, to_thumb // if(pc & 1) goto to_thumb;
 
 // Enter translation; sets arm.reg[15] = w0
 translation_next: .global translation_next
@@ -51,7 +51,7 @@ translation_next_enter:
 	lsr x22, x0, #10
 	lsl x22, x22, #4
 	ldr x22, [x21, x22] // x22 = addr_cache[(x0 >> 10) << 1]
-	tbnz x22, #1, save_return // if(x22 & 1) goto save_return;
+	tbnz x22, #0, save_return // if(x22 & 1) goto save_return;
 
 	// Load RAM_FLAGS
 	add x22, x22, x0 // x22 = pointer to memory at x0
@@ -116,14 +116,14 @@ save_virt:
 	stp w14, w15, [x19, #12*4]
 	str w16, [x19, #14*4]
 	// Save nzcv (in x17) to struct arm_state again
-	ubfx x0, x17, #31, #1
-	ubfx x1, x17, #30, #1
-	ubfx x2, x17, #29, #1
-	ubfx x3, x17, #28, #1
-	strb w0, [x19, #17*4+0]
-	strb w1, [x19, #17*4+1]
-	strb w2, [x19, #17*4+2]
-	strb w3, [x19, #17*4+3]
+	ubfx x2, x17, #31, #1
+	ubfx x3, x17, #30, #1
+	ubfx x4, x17, #29, #1
+	ubfx x5, x17, #28, #1
+	strb w2, [x19, #17*4+0]
+	strb w3, [x19, #17*4+1]
+	strb w4, [x19, #17*4+2]
+	strb w5, [x19, #17*4+3]
 	ret
 	
 // Loads the virtual CPU state
@@ -147,3 +147,225 @@ load_virt:
 	ldp w14, w15, [x19, #12*4]
 	ldr w16, [x19, #14*4]
 	ret
+
+read_word_asm: .global read_word_asm
+	ldr x21, =addr_cache
+	ldr x21, [x21]
+	lsr w22, w0, #10
+	lsl w22, w22, #4
+	add x21, x21, x22 // x21 = &addr_cache[(x0 >> 10) << 1]
+0:	ldr x22, [x21] // x22 = *x21
+	tbnz x22, #0, 1f
+	ldr w0, [x22, x0]
+	ret
+
+// Not cached
+1:	tbnz x22, #1, 2f
+// MMIO
+	stp x30, x22, [sp, #-16]!
+	mrs x17, nzcv
+	bl save_virt
+	bl mmio_read_word
+	bl load_virt
+	ldp x30, x23, [sp], #16
+	msr nzcv, x17	
+	ret
+
+// Invalid -> 
+2:	stp x30, x22, [sp, #-16]!
+	stp x0, x1, [sp, #-16]!
+	mrs x17, nzcv
+	bl save_virt
+	mov x1, #0
+	ldr x2, =data_abort
+	bl addr_cache_miss
+	bl load_virt
+	ldp x0, x1, [sp], #16
+	ldp x30, x23, [sp], #16
+	msr nzcv, x17	
+	b 0b // Try again
+
+read_half_asm: .global read_half_asm
+	ldr x21, =addr_cache
+	ldr x21, [x21]
+	lsr w22, w0, #10
+	lsl w22, w22, #4
+	add x21, x21, x22 // x21 = &addr_cache[(x0 >> 10) << 1]
+0:	ldr x22, [x21] // x22 = *x21
+	tbnz x22, #0, 1f
+	ldrh w0, [x22, x0]
+	ret
+
+// Not cached
+1:	tbnz x22, #1, 2f
+// MMIO
+	stp x30, x22, [sp, #-16]!
+	mrs x17, nzcv
+	bl save_virt
+	bl mmio_read_half
+	bl load_virt
+	ldp x30, x23, [sp], #16
+	msr nzcv, x17	
+	ret
+
+// Invalid -> 
+2:	stp x30, x22, [sp, #-16]!
+	stp x0, x1, [sp, #-16]!
+	mrs x17, nzcv
+	bl save_virt
+	mov x1, #0
+	ldr x2, =data_abort
+	bl addr_cache_miss
+	bl load_virt
+	ldp x0, x1, [sp], #16
+	ldp x30, x23, [sp], #16
+	msr nzcv, x17	
+	b 0b // Try again
+
+read_byte_asm: .global read_byte_asm
+	ldr x21, =addr_cache
+	ldr x21, [x21]
+	lsr w22, w0, #10
+	lsl w22, w22, #4
+	add x21, x21, x22 // x21 = &addr_cache[(x0 >> 10) << 1]
+0:	ldr x22, [x21] // x22 = *x21
+	tbnz x22, #0, 1f
+	ldrb w0, [x22, x0]
+	ret
+
+// Not cached
+1:	tbnz x22, #1, 2f
+// MMIO
+	stp x30, x22, [sp, #-16]!
+	mrs x17, nzcv
+	bl save_virt
+	bl mmio_read_byte
+	bl load_virt
+	ldp x30, x23, [sp], #16
+	msr nzcv, x17	
+	ret	
+
+// Invalid -> 
+2:	stp x30, x22, [sp, #-16]!
+	stp x0, x1, [sp, #-16]!
+	mrs x17, nzcv
+	bl save_virt
+	mov x1, #0
+	ldr x2, =data_abort
+	bl addr_cache_miss
+	bl load_virt
+	ldp x0, x1, [sp], #16
+	ldp x30, x23, [sp], #16
+	msr nzcv, x17	
+	b 0b // Try again
+
+write_word_asm: .global write_word_asm
+	ldr x21, =addr_cache
+	ldr x21, [x21]
+	lsr w22, w0, #10
+	lsl w22, w22, #4
+	add x21, x21, x22 // x21 = &addr_cache[(x0 >> 10) << 1]
+0:	ldr x22, [x21, #8] // x22 = *x21
+	tbnz x22, #0, 1f
+	str w1, [x22, x0]
+	ret
+
+// Not cached
+1:	tbnz x22, #1, 2f
+// MMIO
+	stp x30, x22, [sp, #-16]!
+	mrs x17, nzcv
+	bl save_virt
+	bl mmio_write_word
+	bl load_virt
+	ldp x30, x23, [sp], #16
+	msr nzcv, x17	
+	ret
+
+// Invalid -> 
+2:	stp x30, x22, [sp, #-16]!
+	stp x0, x1, [sp, #-16]!
+	mrs x17, nzcv
+	bl save_virt
+	mov x1, #1
+	ldr x2, =data_abort
+	bl addr_cache_miss
+	bl load_virt
+	ldp x0, x1, [sp], #16
+	ldp x30, x23, [sp], #16
+	msr nzcv, x17	
+	b 0b // Try again
+
+write_half_asm: .global write_half_asm
+	ldr x21, =addr_cache
+	ldr x21, [x21]
+	lsr w22, w0, #10
+	lsl w22, w22, #4
+	add x21, x21, x22 // x21 = &addr_cache[(x0 >> 10) << 1]
+0:	ldr x22, [x21, #8] // x22 = *x21
+	tbnz x22, #0, 1f
+	strh w1, [x22, x0]
+	ret
+
+// Not cached
+1:	tbnz x22, #1, 2f
+// MMIO
+	stp x30, x22, [sp, #-16]!
+	mrs x17, nzcv
+	bl save_virt
+	bl mmio_write_half
+	bl load_virt
+	ldp x30, x23, [sp], #16
+	msr nzcv, x17	
+	ret
+
+// Invalid -> 
+2:	stp x30, x22, [sp, #-16]!
+	stp x0, x1, [sp, #-16]!
+	mrs x17, nzcv
+	bl save_virt
+	mov x1, #1
+	ldr x2, =data_abort
+	bl addr_cache_miss
+	bl load_virt
+	ldp x0, x1, [sp], #16
+	ldp x30, x23, [sp], #16
+	msr nzcv, x17	
+	b 0b // Try again
+
+write_byte_asm: .global write_byte_asm
+	ldr x21, =addr_cache
+	ldr x21, [x21]
+	lsr w22, w0, #10
+	lsl w22, w22, #4
+	add x21, x21, x22 // x21 = &addr_cache[(x0 >> 10) << 1]
+0:	ldr x22, [x21, #8] // x22 = *x21
+	tbnz x22, #0, 1f
+	strb w1, [x22, x0]
+	ret
+
+// Not cached
+1:	tbnz x22, #1, 2f
+// MMIO
+	stp x30, x22, [sp, #-16]!
+	mrs x17, nzcv
+	bl save_virt
+	bl mmio_write_byte
+	bl load_virt
+	ldp x30, x23, [sp], #16
+	msr nzcv, x17	
+	ret	
+
+// Invalid -> 
+2:	stp x30, x22, [sp, #-16]!
+	stp x0, x1, [sp, #-16]!
+	mrs x17, nzcv
+	bl save_virt
+	mov x1, #1
+	ldr x2, =data_abort
+	bl addr_cache_miss
+	bl load_virt
+	ldp x0, x1, [sp], #16
+	ldp x30, x23, [sp], #16
+	msr nzcv, x17	
+	b 0b // Try again

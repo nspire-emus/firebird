@@ -30,9 +30,15 @@
 
 /* Helper functions in asmcode_aarch64.S */
 extern "C" {
-	extern void translation_next() __asm__("translation_next");
-	extern void translation_next_bx() __asm__("translation_next_bx");
+	extern void translation_next(uint32_t new_pc) __asm__("translation_next");
+	extern void translation_next_bx(uint32_t new_pc) __asm__("translation_next_bx");
 	extern void **translation_sp __asm__("translation_sp");
+	extern void read_word_asm() __asm("read_word_asm");
+	extern void write_word_asm() __asm("write_word_asm");
+	extern void read_half_asm() __asm("read_half_asm");
+	extern void write_half_asm() __asm("write_half_asm");
+	extern void read_byte_asm() __asm("read_byte_asm");
+	extern void write_byte_asm() __asm("write_byte_asm");
 };
 
 enum Reg : uint8_t {
@@ -40,7 +46,7 @@ enum Reg : uint8_t {
 };
 
 enum PReg : uint8_t {
-	W0 = 0, W1, W2, W3, W4, W5, W6, W7, W8, W9, W10, W11, W12, W13, W14, W15, W16, W17,
+	W0 = 0, W1, W2, W3, W4, W5, W6, W7, W8, W9, W10, W11, W12, W13, W14, W15, W16, W17, W24 = 24,
 	X0 = W0, X1 = W1, X30 = 30, X31 = 31, WZR = 31
 };
 
@@ -100,7 +106,7 @@ static uint32_t maybe_branch(const void *target)
 	return 0x12000000 | diff;
 }
 
-// Jumps directly to target, destroys x1
+// Jumps directly to target, destroys x21
 static void emit_jmp(const void *target)
 {
 /*	uint32_t branch = maybe_branch(target);
@@ -109,8 +115,25 @@ static void emit_jmp(const void *target)
 
 	const uint64_t addr = reinterpret_cast<const uint64_t>(target);
 
-	emit(0x58000041); // ldr x1, [pc, #8]
-	emit(0xd61f0020); // br x1
+	emit(0x58000055); // ldr x21, [pc, #8]
+	emit(0xd61f02a0); // br x21
+	emit(addr & 0xFFFFFFFF); // Lower 32bits of target
+	emit(addr >> 32); // Higher 32bits of target
+}
+
+
+// Calls target, destroys x21 and x30
+static void emit_call(const void *target)
+{
+/*	uint32_t branch = maybe_branch(target);
+	if(branch)
+		return emit(branch) | (1 << 31);*/
+
+	const uint64_t addr = reinterpret_cast<const uint64_t>(target);
+
+	emit(0x58000075); // ldr x21, [pc, #8]
+	emit(0x1000009e); // adr x30, <after literal)
+	emit(0xd61f02a0); // br x21
 	emit(addr & 0xFFFFFFFF); // Lower 32bits of target
 	emit(addr >> 32); // Higher 32bits of target
 }
@@ -308,7 +331,90 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
 		}
 		else if((i.raw & 0xC000000) == 0x4000000)
 		{
+			// Memory access: LDR, STRB, etc.
+
+			// User mode access not implemented
+			if(!i.mem_proc.p && i.mem_proc.w)
+				goto unimpl;
+
+			bool offset_is_zero = !i.mem_proc.not_imm && i.mem_proc.immed == 0;
+
+			// Address into w0
+			if(i.mem_proc.rn != PC)
+				emit_mov_reg(W0, mapreg(i.mem_proc.rn));
+			else if(i.mem_proc.not_imm)
+				emit_mov_imm(W0, pc + 8);
+			else // Address known
+			{
+				int offset = i.mem_proc.u ? i.mem_proc.immed :
+				                            -i.mem_proc.immed;
+				unsigned int address = pc + 8 + offset;
+
+				if(!i.mem_proc.l)
+				{
+					emit_mov_imm(W0, address);
+					goto no_offset;
+				}
+
+				// Load: value very likely constant
+				uint32_t *ptr = reinterpret_cast<uint32_t*>(try_ptr(address));
+				if(!ptr)
+				{
+					// Location not readable yet
+					emit_mov_imm(W0, address);
+					goto no_offset;
+				}
+
+				if(i.mem_proc.rd != PC)
+					emit_mov_imm(mapreg(i.mem_proc.rd), i.mem_proc.b ? *ptr & 0xFF : *ptr);
+				else
+				{
+					// pc is destination register
+					emit_mov_imm(W0, i.mem_proc.b ? *ptr & 0xFF : *ptr);
+					emit_jmp(reinterpret_cast<void*>(translation_next));
+					// It's an unconditional jump
+					if(i.cond == CC_AL)
+						jumps_away = stop_here = true;
+				}
+
+				goto instruction_translated;
+			}
+
+			// Skip offset calculation
+			if(offset_is_zero)
+				goto no_offset;
+
 			goto unimpl;
+
+			no_offset:
+			if(i.mem_proc.l)
+			{
+				emit_call(reinterpret_cast<void*>(i.mem_proc.b ? read_byte_asm : read_word_asm));
+				if(i.mem_proc.rd != PC)
+					emit_mov_reg(mapreg(i.mem_proc.rd), W0);
+			}
+			else
+			{
+				if(i.mem_proc.rd != PC)
+					emit_mov_reg(W1, mapreg(i.mem_proc.rd)); // w1 is the value
+				else
+					emit_mov_imm(W1, pc + 12);
+
+				emit_call(reinterpret_cast<void*>(i.mem_proc.b ? write_byte_asm : write_word_asm));
+			}
+
+			if(!offset_is_zero && !i.mem_proc.p)
+				emit_mov_reg(mapreg(i.mem_proc.rn), W24);
+
+			// Jump after writeback, to support post-indexed jumps
+			if(i.mem_proc.l && i.mem_proc.rd == PC)
+			{
+				// pc is destination register
+				emit_jmp(reinterpret_cast<void*>(translation_next));
+				// It's an unconditional jump
+				if(i.cond == CC_AL)
+					jumps_away = stop_here = true;
+			}
 		}
 		else if((i.raw & 0xE000000) == 0x8000000)
 		{
