@@ -41,7 +41,7 @@ enum Reg : uint8_t {
 
 enum PReg : uint8_t {
 	W0 = 0, W1, W2, W3, W4, W5, W6, W7, W8, W9, W10, W11, W12, W13, W14, W15, W16, W17,
-	X0 = W0, X1 = W1, X30 = 30, X31 = 31
+	X0 = W0, X1 = W1, X30 = 30, X31 = 31, WZR = 31
 };
 
 /* This function returns the physical register that contains the virtual register vreg.
@@ -75,10 +75,15 @@ static __attribute__((unused)) void emit_brk()
 // Sets the physical register wd to imm (32bit only)
 static void emit_mov_imm(const PReg wd, uint32_t imm)
 {
-	emit(0x52800000 | ((imm & 0xFFFF) << 5) | wd); // movz wd, #imm, lsl #0
-	imm >>= 16;
-	if(imm)
-		emit(0x72a00000 | (imm << 5) | wd); // movk wd, #imm, lsl #16
+	if((imm & 0x0000FFFF) == imm)
+		emit(0x52800000 | ((imm & 0xFFFF) << 5) | wd); // movz wd, #imm, lsl #0
+	else if((imm & 0xFFFF0000) == imm)
+		emit(0x52a00000 | ((imm >> 16) << 5) | wd); // movz wd, #imm, lsl #16
+	else
+	{
+		emit(0x52800000 | ((imm & 0xFFFF) << 5) | wd); // movz wd, #imm, lsl #0
+		emit(0x72a00000 | ((imm >> 16) << 5) | wd); // movk wd, #imm, lsl #16
+	}
 }
 
 static void emit_mov_reg(const PReg wd, const PReg wm)
@@ -263,10 +268,10 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
 				instruction |= mapreg(i.data_proc.rd);
 			}
 			else
-				instruction |= 31; // rd = wzr
+				instruction |= WZR; // rd = wzr
 
 			if(i.data_proc.op == OP_MOV || i.data_proc.op == OP_MVN)
-				instruction |= 31 << 5; // rn = wzr
+				instruction |= WZR << 5; // rn = wzr
 			else
 				instruction |= mapreg(i.data_proc.rn) << 5;
 
