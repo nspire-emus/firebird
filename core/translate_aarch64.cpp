@@ -46,9 +46,10 @@ enum PReg : uint8_t {
 
 /* This function returns the physical register that contains the virtual register vreg.
    vreg must not be PC. */
-static constexpr PReg mapreg(const uint8_t vreg)
+static PReg mapreg(const uint8_t vreg)
 {
 	// See the first comment on register mapping
+	assert(vreg < PC);
 	return static_cast<PReg>(vreg + 2);
 }
 
@@ -85,9 +86,22 @@ static void emit_mov_reg(const PReg wd, const PReg wm)
 	emit(0x2a0003e0 | (wm << 16) | wd);
 }
 
+static uint32_t maybe_branch(const void *target)
+{
+	ptrdiff_t diff = reinterpret_cast<const uint32_t*>(target) - translate_current;
+	if(diff > 0x3FFFFFF || -diff > 0x4000000)
+		return 0;
+
+	return 0x12000000 | diff;
+}
+
 // Jumps directly to target, destroys x1
 static void emit_jmp(const void *target)
 {
+/*	uint32_t branch = maybe_branch(target);
+	if(branch)
+		return emit(branch);*/
+
 	const uint64_t addr = reinterpret_cast<const uint64_t>(target);
 
 	emit(0x58000041); // ldr x1, [pc, #8]
@@ -189,7 +203,73 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
 		}
 		else if((i.raw & 0xC000000) == 0x0000000)
 		{
-			goto unimpl;
+			// Data processing
+			if(!i.data_proc.imm && i.data_proc.reg_shift) // reg shift
+				goto unimpl;
+
+			if(i.data_proc.imm) // immed
+				goto unimpl;
+
+			if(i.data_proc.shift == SH_ROR && i.data_proc.shift_imm == 0) // RRX
+				goto unimpl;
+
+			// Using pc is not supported
+			if(i.data_proc.rd == PC
+			   || i.data_proc.rn == PC
+			   || (!i.data_proc.imm && i.data_proc.rm == PC))
+				goto unimpl;
+
+			// AArch64 ADC and SBC do not support a shifted reg
+			if((i.data_proc.op == OP_ADC || i.data_proc.op == OP_SBC)
+			   && (i.data_proc.shift != SH_LSL || i.data_proc.shift_imm != 0))
+				goto unimpl;
+
+			uint32_t opmap[] = {
+				0x0A000000, // AND
+				0x4A000000, // EOR
+				0x4B000000, // SUB
+				0, // RSB not possible
+				0x0B000000, // ADD
+				0x1A000000, // ADC (no shift!)
+				0x5A000000, // SBC (no shift!)
+				0, // RSC not possible
+				0x6A000000, // TST
+				0, // TEQ not possible
+				0x6B000000, // CMP
+				0x2B000000, // CMN
+				0x2A000000, // MOV (ORR with rn = wzr)
+				0x2A000000, // ORR
+				0x0A200000, // BIC
+				0x2A200000, // MVN (ORRN with rn = wzr)
+			};
+
+			uint32_t instruction = opmap[i.data_proc.op];
+			if(!instruction)
+				goto unimpl;
+
+			if(i.data_proc.op < OP_TST || i.data_proc.op > OP_CMP)
+			{
+				/* We can't translate the S-bit that easily,
+				   as the barrel shifter output does not influence
+				   the carry flag anymore. */
+				if(i.data_proc.s)
+					goto unimpl;
+
+				instruction |= mapreg(i.data_proc.rd);
+			}
+			else
+				instruction |= 31; // rd = wzr
+
+			if(i.data_proc.op == OP_MOV || i.data_proc.op == OP_MVN)
+				instruction |= 31 << 5; // rn = wzr
+			else
+				instruction |= mapreg(i.data_proc.rn) << 5;
+
+			instruction |= mapreg(i.data_proc.rm) << 16;
+			instruction |= i.data_proc.shift << 22;
+			instruction |= i.data_proc.shift_imm << 10;
+
+			emit(instruction);
 		}
 		else if((i.raw & 0xC000000) == 0x4000000)
 		{

@@ -16,15 +16,15 @@ translation_enter: .global translation_enter
 
 	// Store s into translation_sp
 	mov x0, sp
-	adr x1, translation_sp
+	ldr x1, =translation_sp
 	str x0, [x1]
 
-	adr x19, arm
+	ldr x19, =arm
 	// Load arm.reg[15] into w0
 	ldr w0, [x19, #15*4]
 
-	adr x1, translation_next_enter
-	b load_virt
+	bl load_virt
+	b translation_next_enter
 
 // Enter translation, check for thumb
 translation_next_bx: .global translation_next_bx
@@ -37,16 +37,16 @@ translation_next: .global translation_next
 
 // Enter translation at w0 (has to equal arm.reg[15])
 translation_next_enter:
-	adr x21, cycle_count_delta
+	ldr x21, =cycle_count_delta
 	ldr w21, [x21]
 	cmp w21, #0
 	bpl save_return // if(cycle_count_delta > 0) goto save_return;
 
-	adr x21, cpu_events
+	ldr x21, =cpu_events
 	ldr w21, [x21]
 	cbnz w21, save_return // if(cpu_events) goto save_return;
 
-	adr x21, addr_cache
+	ldr x21, =addr_cache
 	ldr x21, [x21] // x21 = addr_cache
 	lsr x22, x0, #10
 	lsl x22, x22, #4
@@ -60,7 +60,7 @@ translation_next_enter:
 	tbz w21, #5, save_return // if((RAM_FLAGS(x0) & RF_CODE_TRANSLATED) == 0) goto save_return;
 	lsr w21, w21, #9 // w21 = w21 >> RFS_TRANSLATION_INDEX
 
-	adr x23, translation_table
+	ldr x23, =translation_table
 	add x23, x23, x21, lsl #5 // x3 = &translation_table[RAM_FLAGS(x0) >> RFS_TRANSLATION_INDEX]
 
 	ldr x24, [x23, #1*8] // x24 = x3->jump_table
@@ -97,10 +97,16 @@ save_return:
 	mov x1, #0
 	str x1, [x0]
 
+	bl save_virt
+
 	ldp x25, x26, [sp], #16
 	ldp x23, x24, [sp], #16
 	ldp x21, x22, [sp], #16
+	ldp x19, x30, [sp], #16
+	ret
 
+// Saves the virtual CPU state
+save_virt:
 	stp w2, w3, [x19, #0*4]
 	stp w4, w5, [x19, #2*4]
 	stp w6, w7, [x19, #4*4]
@@ -118,11 +124,9 @@ save_return:
 	strb w1, [x19, #17*4+1]
 	strb w2, [x19, #17*4+2]
 	strb w3, [x19, #17*4+3]
-
-	ldp x19, x30, [sp], #16
 	ret
 	
-// Load the virtual CPU state and jump to x1.
+// Loads the virtual CPU state
 // x19 has to be a pointer to the arm_state
 load_virt:
 	// Assemble virtual cpsr_nzcv in x17
@@ -142,4 +146,4 @@ load_virt:
 	ldp w12, w13, [x19, #10*4]
 	ldp w14, w15, [x19, #12*4]
 	ldr w16, [x19, #14*4]
-	br x1
+	ret
