@@ -18,6 +18,7 @@
 #include <cassert>
 #include <cstdint>
 
+#include "cpudefs.h"
 #include "emu.h"
 #include "translate.h"
 #include "mem.h"
@@ -78,6 +79,11 @@ static void emit_mov_imm(const PReg wd, uint32_t imm)
 		emit(0x72a00000 | (imm << 5) | wd); // movk wd, #imm, lsl #16
 }
 
+static void emit_mov_reg(const PReg wd, const PReg wm)
+{
+	emit(0x2a0b03ea | (wm << 5) | wd);
+}
+
 // Jumps directly to target, destroys x1
 static void emit_jmp(const void *target)
 {
@@ -125,15 +131,82 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
 	// Pointer to struct translation for this block
 	translation *this_translation = &translation_table[next_translation_index];
 
+	// Whether we can avoid the jump to translation_next at the end
+	bool jumps_away = false;
+	// Whether to stop translating code
+	bool stop_here = false;
+	// cond_branch points to the b.cond, see below
+	uint32_t *cond_branch = nullptr;
+
 	// We know this already. end_ptr will be set after the loop
 	this_translation->jump_table = reinterpret_cast<void**>(jump_table_start);
 	this_translation->start_ptr = insn_ptr_start;
 
-//	while(1)
+	while(1)
 	{
+		// Translate further?
+		if(stop_here
+		   || size_t((translate_current + 16) - translate_buffer) > (INSN_BUFFER_SIZE/sizeof(*translate_buffer))
+		   || RAM_FLAGS(insn_ptr) & (RF_EXEC_BREAKPOINT | RF_EXEC_DEBUG_NEXT | RF_EXEC_HACK | RF_CODE_TRANSLATED | RF_CODE_NO_TRANSLATE)
+		   || (pc ^ pc_start) & ~0x3ff)
+			goto exit_translation;
+
 		*jump_table_current = translate_current;
 
-		emit_bkpt();
+		Instruction i;
+		i.raw = *insn_ptr;
+
+		if(i.cond != CC_AL && i.cond != CC_NV)
+		{
+			// Conditional instruction -> Generate jump over code with inverse condition
+			cond_branch = translate_current;
+			emit(0x54000000 | (i.cond ^ 1));
+		}
+
+		if((i.raw & 0xE000090) == 0x0000090)
+		{
+			goto unimpl;
+		}
+		else if((i.raw & 0xD900000) == 0x1000000)
+		{
+			goto unimpl;
+		}
+		else if((i.raw & 0xC000000) == 0x0000000)
+		{
+			goto unimpl;
+		}
+		else if((i.raw & 0xC000000) == 0x4000000)
+		{
+			goto unimpl;
+		}
+		else if((i.raw & 0xE000000) == 0x8000000)
+		{
+			goto unimpl;
+		}
+		else if((i.raw & 0xE000000) == 0xA000000)
+		{
+			if(i.branch.l)
+			{
+				// Save return address in LR
+				emit_mov_imm(mapreg(LR), pc + 4);
+			}
+			else
+				jumps_away = stop_here = i.cond == CC_AL;
+
+			uint32_t addr = pc + ((int32_t)(i.raw << 8) >> 6) + 8;
+
+			emit_mov_imm(W0, addr);
+			emit_jmp(reinterpret_cast<void*>(translation_next));
+		}
+		else
+			goto unimpl;
+
+		if(cond_branch)
+		{
+			// Fixup the branch above
+			*cond_branch |= ((translate_current - cond_branch) & 0x7FFFF) << 5;
+			cond_branch = nullptr;
+		}
 
 		RAM_FLAGS(insn_ptr) |= (RF_CODE_TRANSLATED | next_translation_index << RFS_TRANSLATION_INDEX);
 
@@ -143,11 +216,16 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
 	}
 
 	unimpl:
+	// Throw away partial translation
+	translate_current = *jump_table_current;
 	RAM_FLAGS(insn_ptr) |= RF_CODE_NO_TRANSLATE;
 
 	exit_translation:
-	emit_mov_imm(W0, pc);
-	emit_jmp(reinterpret_cast<void*>(translation_next));
+	if(!jumps_away)
+	{
+		emit_mov_imm(W0, pc);
+		emit_jmp(reinterpret_cast<void*>(translation_next));
+	}
 
 	if(insn_ptr == insn_ptr_start)
 	{
@@ -160,6 +238,13 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
 	this_translation->unused = reinterpret_cast<uintptr_t>(translate_current);
 
 	next_translation_index += 1;
+
+	// Flush the instruction cache
+	#ifdef IS_IOS_BUILD
+		sys_cache_control(1 /* kCacheFunctionPrepareForExecution */, jump_table_start[0], (translate_current-jump_table_start[0])*4);
+	#else
+		__builtin___clear_cache(jump_table_start[0], translate_current);
+	#endif
 }
 
 static void _invalidate_translation(int index)
