@@ -31,6 +31,7 @@
 /* Helper functions in asmcode_aarch64.S */
 extern "C" {
 	extern void translation_next() __asm__("translation_next");
+	extern void translation_next_bx() __asm__("translation_next_bx");
 	extern void **translation_sp __asm__("translation_sp");
 };
 
@@ -45,7 +46,7 @@ enum PReg : uint8_t {
 
 /* This function returns the physical register that contains the virtual register vreg.
    vreg must not be PC. */
-static constexpr PReg mapreg(const Reg vreg)
+static constexpr PReg mapreg(const uint8_t vreg)
 {
 	// See the first comment on register mapping
 	return static_cast<PReg>(vreg + 2);
@@ -65,7 +66,7 @@ static void emit(const uint32_t instruction)
 	*translate_current++ = instruction;
 }
 
-static void emit_bkpt()
+static __attribute__((unused)) void emit_brk()
 {
 	emit(0xd4200000); // brk #0
 }
@@ -81,7 +82,7 @@ static void emit_mov_imm(const PReg wd, uint32_t imm)
 
 static void emit_mov_reg(const PReg wd, const PReg wm)
 {
-	emit(0x2a0b03ea | (wm << 5) | wd);
+	emit(0x2a0003e0 | (wm << 16) | wd);
 }
 
 // Jumps directly to target, destroys x1
@@ -169,7 +170,22 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
 		}
 		else if((i.raw & 0xD900000) == 0x1000000)
 		{
-			goto unimpl;
+			if((i.raw & 0xFFFFFD0) == 0x12FFF10)
+			{
+				//B(L)X
+				if(i.bx.rm == PC)
+					goto unimpl;
+
+				if(i.bx.l)
+					emit_mov_imm(mapreg(LR), pc + 4);
+				else if(i.cond == CC_AL)
+					stop_here = jumps_away = true;
+
+				emit_mov_reg(W0, mapreg(i.bx.rm));
+				emit_jmp(reinterpret_cast<void*>(translation_next_bx));
+			}
+			else
+				goto unimpl;
 		}
 		else if((i.raw & 0xC000000) == 0x0000000)
 		{
@@ -190,8 +206,8 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
 				// Save return address in LR
 				emit_mov_imm(mapreg(LR), pc + 4);
 			}
-			else
-				jumps_away = stop_here = i.cond == CC_AL;
+			else if(i.cond == CC_AL)
+				jumps_away = stop_here = true;
 
 			uint32_t addr = pc + ((int32_t)(i.raw << 8) >> 6) + 8;
 

@@ -26,6 +26,10 @@ translation_enter: .global translation_enter
 	adr x1, translation_next_enter
 	b load_virt
 
+// Enter translation, check for thumb
+translation_next_bx: .global translation_next_bx
+	tbnz w0, #1, to_thumb // if(pc & 1) goto to_thumb;
+
 // Enter translation; sets arm.reg[15] = w0
 translation_next: .global translation_next
 	mrs x17, nzcv
@@ -79,6 +83,14 @@ translation_next_enter:
 
 	msr nzcv, x17	
 	br x0
+
+to_thumb:
+	mrs x17, nzcv
+	sub w0, w0, #1
+	str w0, [x19, #15*4] // arm.reg[15] = w0 - 1
+	ldr w1, [x19, #16*4]
+	orr w1, w1, #0x20
+	str w1, [x19, #16*4] // arm.cpsr_low28 |= 0x20
 
 save_return:
 	adr x0, translation_sp
