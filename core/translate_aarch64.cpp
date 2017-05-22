@@ -207,9 +207,6 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
 			if(!i.data_proc.imm && i.data_proc.reg_shift) // reg shift
 				goto unimpl;
 
-			if(i.data_proc.imm) // immed
-				goto unimpl;
-
 			if(i.data_proc.shift == SH_ROR && i.data_proc.shift_imm == 0) // RRX
 				goto unimpl;
 
@@ -224,7 +221,15 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
 			   && (i.data_proc.shift != SH_LSL || i.data_proc.shift_imm != 0))
 				goto unimpl;
 
-			uint32_t opmap[] = {
+			// Shortcut for simple register mov (mov rd, rm)
+			if((i.raw & 0xFFF0FF0) == 0x1a00000)
+			{
+				emit_mov_reg(mapreg(i.data_proc.rd), mapreg(i.data_proc.rm));
+				goto instruction_translated;
+			}
+
+			uint32_t opmap[] =
+			{
 				0x0A000000, // AND
 				0x4A000000, // EOR
 				0x4B000000, // SUB
@@ -265,9 +270,34 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
 			else
 				instruction |= mapreg(i.data_proc.rn) << 5;
 
-			instruction |= mapreg(i.data_proc.rm) << 16;
-			instruction |= i.data_proc.shift << 22;
-			instruction |= i.data_proc.shift_imm << 10;
+			if(!i.data_proc.imm)
+			{
+				instruction |= mapreg(i.data_proc.rm) << 16;
+				instruction |= i.data_proc.shift << 22;
+				instruction |= i.data_proc.shift_imm << 10;
+			}
+			else
+			{
+				// TODO: Could be optimized further,
+				// some AArch64 ops support immediate values
+
+				uint32_t immed = i.data_proc.immed_8;
+				uint8_t count = i.data_proc.rotate_imm << 1;
+				if(count)
+					immed = (immed >> count) | (immed << (32 - count));
+
+				if(i.data_proc.op == OP_MOV)
+				{
+					emit_mov_imm(mapreg(i.data_proc.rd), immed);
+					goto instruction_translated;
+				}
+
+				emit_mov_imm(W0, immed);
+				/* All those operations are nops (or with 0)
+				instruction |= W0 << 16;
+				instruction |= SH_LSL << 22;
+				instruction |= 0 << 10;*/
+			}
 
 			emit(instruction);
 		}
@@ -296,6 +326,8 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
 		}
 		else
 			goto unimpl;
+
+		instruction_translated:
 
 		if(cond_branch)
 		{
