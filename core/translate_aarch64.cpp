@@ -8,7 +8,8 @@
  * (x18: Platform specific, can't use this)
  * x19: Pointer to the arm_state struct
  * x21-x24: Used as temporary registers by various subroutines
- * x25, x26: Temporary registers, not touched by (read|write)_asm routines
+ * x25: Temporary register, not touched by (read|write)_asm routines
+ * x26: Pointer to addr_cache contents
  * x27-x29: Not preserved, so don't touch.
  * x30: lr
  * x31: sp
@@ -118,10 +119,19 @@ static void emit_jmp(const void *target)
 
 	const uint64_t addr = reinterpret_cast<const uint64_t>(target);
 
-	emit(0x58000055); // ldr x21, [pc, #8]
-	emit(0xd61f02a0); // br x21
-	emit(addr & 0xFFFFFFFF); // Lower 32bits of target
-	emit(addr >> 32); // Higher 32bits of target
+	if(addr <= 0xFFFFFFFF)
+	{
+		emit(0x18000055); // ldr w21, [pc, #8]
+		emit(0xd61f02a0); // br w21
+		emit(addr); // Lower 32bits of target
+	}
+	else
+	{
+		emit(0x58000055); // ldr x21, [pc, #8]
+		emit(0xd61f02a0); // br x21
+		emit(addr & 0xFFFFFFFF); // Lower 32bits of target
+		emit(addr >> 32); // Higher 32bits of target
+	}
 }
 
 
@@ -197,10 +207,10 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
 		   || (pc ^ pc_start) & ~0x3ff)
 			goto exit_translation;
 
-		*jump_table_current = translate_current;
-
 		Instruction i;
 		i.raw = *insn_ptr;
+
+		*jump_table_current = translate_current;
 
 		if(i.cond != CC_AL && i.cond != CC_NV)
 		{

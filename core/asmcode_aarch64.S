@@ -20,6 +20,9 @@ translation_enter: .global translation_enter
 	str x0, [x1]
 
 	ldr x19, =arm
+	ldr x26, =addr_cache
+	ldr x26, [x26]
+
 	// Load arm.reg[15] into w0
 	ldr w0, [x19, #15*4]
 
@@ -46,11 +49,9 @@ translation_next_enter:
 	ldr w21, [x21]
 	cbnz w21, save_return // if(cpu_events) goto save_return;
 
-	ldr x21, =addr_cache
-	ldr x21, [x21] // x21 = addr_cache
 	lsr x22, x0, #10
 	lsl x22, x22, #4
-	ldr x22, [x21, x22] // x22 = addr_cache[(x0 >> 10) << 1]
+	ldr x22, [x26, x22] // x22 = addr_cache[(x0 >> 10) << 1]
 	tbnz x22, #0, save_return // if(x22 & 1) goto save_return;
 
 	// Load RAM_FLAGS
@@ -61,25 +62,25 @@ translation_next_enter:
 	lsr w21, w21, #9 // w21 = w21 >> RFS_TRANSLATION_INDEX
 
 	ldr x23, =translation_table
-	add x23, x23, x21, lsl #5 // x3 = &translation_table[RAM_FLAGS(x0) >> RFS_TRANSLATION_INDEX]
+	add x23, x23, x21, lsl #5 // x23 = &translation_table[RAM_FLAGS(x0) >> RFS_TRANSLATION_INDEX]
 
 	ldr x24, [x23, #1*8] // x24 = x3->jump_table
-	ldp x25, x26, [x23, #2*8] // x25 = x23->start_ptr; x26 = x23->end_ptr
+	ldp x25, x21, [x23, #2*8] // x25 = x23->start_ptr; x21 = x23->end_ptr
 
-	sub x26, x26, x22 // x26 = end_ptr - insn_ptr
-	lsr x26, x26, #2 // x26: number of instructions until the end
-
-	// add number of instructions to cycle_count_delta
-	adr x21, cycle_count_delta
-	ldr w23, [x21]
-	add w23, w23, w26
-	str w23, [x21]
+	sub x21, x21, x22 // x21 = end_ptr - insn_ptr
+	lsr x21, x21, #2 // x21: number of instructions until the end
 
 	sub x25, x22, x25 // x25 = insn_ptr - start_ptr
 	//lsr x25, x25, #2 // x25 = count of instructions
 	//lsl x25, x25, #3
 	lsl x25, x25, #1
 	ldr x0, [x24, x25] // x0 = jump_table[(insn_ptr - start_ptr) / 4]
+
+	// add number of instructions to cycle_count_delta
+	ldr x24, =cycle_count_delta
+	ldr w25, [x24]
+	add w25, w25, w21
+	str w25, [x24]
 
 	msr nzcv, x17	
 	br x0
@@ -149,11 +150,8 @@ load_virt:
 	ret
 
 read_word_asm: .global read_word_asm
-	ldr x21, =addr_cache
-	ldr x21, [x21]
 	lsr w22, w0, #10
-	lsl w22, w22, #4
-	add x21, x21, x22 // x21 = &addr_cache[(x0 >> 10) << 1]
+	add x21, x26, x22, lsl #4 // x21 = &addr_cache[(x0 >> 10) << 1]
 0:	ldr x22, [x21] // x22 = *x21
 	tbnz x22, #0, 1f
 	ldr w0, [x22, x0]
@@ -171,7 +169,7 @@ read_word_asm: .global read_word_asm
 	msr nzcv, x17	
 	ret
 
-// Invalid -> 
+// Invalid
 2:	stp x30, x22, [sp, #-16]!
 	stp x0, x1, [sp, #-16]!
 	mrs x17, nzcv
@@ -186,11 +184,8 @@ read_word_asm: .global read_word_asm
 	b 0b // Try again
 
 read_half_asm: .global read_half_asm
-	ldr x21, =addr_cache
-	ldr x21, [x21]
 	lsr w22, w0, #10
-	lsl w22, w22, #4
-	add x21, x21, x22 // x21 = &addr_cache[(x0 >> 10) << 1]
+	add x21, x26, x22, lsl #4 // x21 = &addr_cache[(x0 >> 10) << 1]
 0:	ldr x22, [x21] // x22 = *x21
 	tbnz x22, #0, 1f
 	ldrh w0, [x22, x0]
@@ -208,7 +203,7 @@ read_half_asm: .global read_half_asm
 	msr nzcv, x17	
 	ret
 
-// Invalid -> 
+// Invalid
 2:	stp x30, x22, [sp, #-16]!
 	stp x0, x1, [sp, #-16]!
 	mrs x17, nzcv
@@ -223,11 +218,8 @@ read_half_asm: .global read_half_asm
 	b 0b // Try again
 
 read_byte_asm: .global read_byte_asm
-	ldr x21, =addr_cache
-	ldr x21, [x21]
 	lsr w22, w0, #10
-	lsl w22, w22, #4
-	add x21, x21, x22 // x21 = &addr_cache[(x0 >> 10) << 1]
+	add x21, x26, x22, lsl #4 // x21 = &addr_cache[(x0 >> 10) << 1]
 0:	ldr x22, [x21] // x22 = *x21
 	tbnz x22, #0, 1f
 	ldrb w0, [x22, x0]
@@ -245,7 +237,7 @@ read_byte_asm: .global read_byte_asm
 	msr nzcv, x17	
 	ret	
 
-// Invalid -> 
+// Invalid
 2:	stp x30, x22, [sp, #-16]!
 	stp x0, x1, [sp, #-16]!
 	mrs x17, nzcv
@@ -260,12 +252,9 @@ read_byte_asm: .global read_byte_asm
 	b 0b // Try again
 
 write_word_asm: .global write_word_asm
-	ldr x21, =addr_cache
-	ldr x21, [x21]
 	lsr w22, w0, #10
-	lsl w22, w22, #4
-	add x21, x21, x22 // x21 = &addr_cache[(x0 >> 10) << 1]
-0:	ldr x22, [x21, #8] // x22 = *x21
+	add x21, x26, x22, lsl #4 // x21 = &addr_cache[(x0 >> 10) << 1]
+0:	ldr x22, [x21, #8] // x22 = *(x21+1)
 	tbnz x22, #0, 1f
 	str w1, [x22, x0]
 	ret
@@ -282,7 +271,7 @@ write_word_asm: .global write_word_asm
 	msr nzcv, x17	
 	ret
 
-// Invalid -> 
+// Invalid
 2:	stp x30, x22, [sp, #-16]!
 	stp x0, x1, [sp, #-16]!
 	mrs x17, nzcv
@@ -297,12 +286,9 @@ write_word_asm: .global write_word_asm
 	b 0b // Try again
 
 write_half_asm: .global write_half_asm
-	ldr x21, =addr_cache
-	ldr x21, [x21]
 	lsr w22, w0, #10
-	lsl w22, w22, #4
-	add x21, x21, x22 // x21 = &addr_cache[(x0 >> 10) << 1]
-0:	ldr x22, [x21, #8] // x22 = *x21
+	add x21, x26, x22, lsl #4 // x21 = &addr_cache[(x0 >> 10) << 1]
+0:	ldr x22, [x21, #8] // x22 = *(x21+1)
 	tbnz x22, #0, 1f
 	strh w1, [x22, x0]
 	ret
@@ -319,7 +305,7 @@ write_half_asm: .global write_half_asm
 	msr nzcv, x17	
 	ret
 
-// Invalid -> 
+// Invalid
 2:	stp x30, x22, [sp, #-16]!
 	stp x0, x1, [sp, #-16]!
 	mrs x17, nzcv
@@ -334,12 +320,9 @@ write_half_asm: .global write_half_asm
 	b 0b // Try again
 
 write_byte_asm: .global write_byte_asm
-	ldr x21, =addr_cache
-	ldr x21, [x21]
 	lsr w22, w0, #10
-	lsl w22, w22, #4
-	add x21, x21, x22 // x21 = &addr_cache[(x0 >> 10) << 1]
-0:	ldr x22, [x21, #8] // x22 = *x21
+	add x21, x26, x22, lsl #4 // x21 = &addr_cache[(x0 >> 10) << 1]
+0:	ldr x22, [x21, #8] // x22 = *(x21+1)
 	tbnz x22, #0, 1f
 	strb w1, [x22, x0]
 	ret
@@ -356,7 +339,7 @@ write_byte_asm: .global write_byte_asm
 	msr nzcv, x17	
 	ret	
 
-// Invalid -> 
+// Invalid
 2:	stp x30, x22, [sp, #-16]!
 	stp x0, x1, [sp, #-16]!
 	mrs x17, nzcv
