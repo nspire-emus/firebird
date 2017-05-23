@@ -7,6 +7,9 @@
  * x17: Used as a scratch register for keeping a copy of the virtual cpsr_nzcv
  * (x18: Platform specific, can't use this)
  * x19: Pointer to the arm_state struct
+ * x21-x24: Used as temporary registers by various subroutines
+ * x25, x26: Temporary registers, not touched by (read|write)_asm routines
+ * x27-x29: Not preserved, so don't touch.
  * x30: lr
  * x31: sp
  * x18 and x30 are callee-save, so must be saved and restored properly.
@@ -46,7 +49,7 @@ enum Reg : uint8_t {
 };
 
 enum PReg : uint8_t {
-	W0 = 0, W1, W2, W3, W4, W5, W6, W7, W8, W9, W10, W11, W12, W13, W14, W15, W16, W17, W24 = 24,
+	W0 = 0, W1, W2, W3, W4, W5, W6, W7, W8, W9, W10, W11, W12, W13, W14, W15, W16, W17, W25 = 25, W26,
 	X0 = W0, X1 = W1, X30 = 30, X31 = 31, WZR = 31
 };
 
@@ -208,7 +211,62 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
 
 		if((i.raw & 0xE000090) == 0x0000090)
 		{
-			goto unimpl;
+			if(i.mem_proc2.s && !i.mem_proc2.h)
+				goto unimpl; // Multiply/Swap not implemented
+
+			if(i.mem_proc2.s || !i.mem_proc2.h)
+				goto unimpl; // Signed byte/halfword and doubleword not implemented
+
+			if(i.mem_proc2.rn == PC
+			   || i.mem_proc2.rd == PC
+			   || i.mem_proc2.rm == PC)
+				goto unimpl; // PC as operand or dest. not implemented
+
+			// Load base into w0
+			emit_mov_reg(W0, mapreg(i.mem_proc2.rn));
+
+			// Offset into w25
+			if(i.mem_proc2.i) // Immediate offset
+				emit_mov_imm(W25, (i.mem_proc2.immed_h << 4) | i.mem_proc2.immed_l);
+			else // Register offset
+				emit_mov_reg(W25, mapreg(i.mem_proc2.rm));
+
+			// Get final address..
+			if(i.mem_proc2.p)
+			{
+				// ..into r0
+				if(i.mem_proc2.u)
+					emit(0x0b190000); // add w0, w0, w25
+				else
+					emit(0x4b190000); // sub w0, w0, w25
+
+				if(i.mem_proc2.w) // Writeback: final address into rn
+					emit_mov_reg(mapreg(i.mem_proc2.rn), W0);
+			}
+			else
+			{
+				// ..into r5
+				if(i.mem_proc2.u)
+					emit(0x0b190019); // add w25, w0, w25
+				else
+					emit(0x4b190019); // sub w25, w0, w25
+			}
+
+			if(i.mem_proc2.l)
+			{
+				emit_call(reinterpret_cast<void*>(read_half_asm));
+				emit_mov_reg(mapreg(i.mem_proc2.rd), W0);
+			}
+			else
+			{
+				emit_mov_reg(W1, mapreg(i.mem_proc2.rd));
+				emit_call(reinterpret_cast<void*>(write_half_asm));
+			}
+
+			// Post-indexed: final address in r5 back into rn
+			if(!i.mem_proc.p)
+				emit_mov_reg(mapreg(i.mem_proc.rn), W25);
+
 		}
 		else if((i.raw & 0xD900000) == 0x1000000)
 		{
@@ -404,7 +462,7 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
 			}
 
 			if(!offset_is_zero && !i.mem_proc.p)
-				emit_mov_reg(mapreg(i.mem_proc.rn), W24);
+				emit_mov_reg(mapreg(i.mem_proc.rn), W25);
 
 			// Jump after writeback, to support post-indexed jumps
 			if(i.mem_proc.l && i.mem_proc.rd == PC)
