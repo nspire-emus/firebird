@@ -303,6 +303,17 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
 			if(!i.data_proc.imm && i.data_proc.reg_shift) // reg shift
 				goto unimpl;
 
+			if(i.data_proc.s && (i.data_proc.op < OP_TST || i.data_proc.op > OP_CMP))
+			{
+				/* We can't translate the S-bit that easily,
+				   as the barrel shifter output does not influence
+				   the carry flag anymore. */
+				goto unimpl;
+			}
+
+			if(i.data_proc.op == OP_RSB || i.data_proc.op == OP_RSC || i.data_proc.op == OP_TEQ)
+				goto unimpl;
+
 			if(i.data_proc.shift == SH_ROR && i.data_proc.shift_imm == 0) // RRX
 				goto unimpl;
 
@@ -324,7 +335,7 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
 				goto instruction_translated;
 			}
 
-			uint32_t opmap[] =
+			static const uint32_t opmap[] =
 			{
 				0x0A000000, // AND
 				0x4A000000, // EOR
@@ -334,36 +345,22 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
 				0x1A000000, // ADC (no shift!)
 				0x5A000000, // SBC (no shift!)
 				0, // RSC not possible
-				0x6A000000, // TST
+				0x6A00001F, // TST
 				0, // TEQ not possible
-				0x6B000000, // CMP
-				0x2B000000, // CMN
-				0x2A000000, // MOV (ORR with rn = wzr)
+				0x6B00001F, // CMP
+				0x2B00001F, // CMN
 				0x2A000000, // ORR
+				0x2A0003E0, // MOV (ORR with rn = wzr)
 				0x0A200000, // BIC
-				0x2A200000, // MVN (ORRN with rn = wzr)
+				0x2A2003E0, // MVN (ORRN with rn = wzr)
 			};
 
 			uint32_t instruction = opmap[i.data_proc.op];
-			if(!instruction)
-				goto unimpl;
 
 			if(i.data_proc.op < OP_TST || i.data_proc.op > OP_CMP)
-			{
-				/* We can't translate the S-bit that easily,
-				   as the barrel shifter output does not influence
-				   the carry flag anymore. */
-				if(i.data_proc.s)
-					goto unimpl;
-
 				instruction |= mapreg(i.data_proc.rd);
-			}
-			else
-				instruction |= WZR; // rd = wzr
 
-			if(i.data_proc.op == OP_MOV || i.data_proc.op == OP_MVN)
-				instruction |= WZR << 5; // rn = wzr
-			else
+			if(i.data_proc.op != OP_MOV && i.data_proc.op != OP_MVN)
 				instruction |= mapreg(i.data_proc.rn) << 5;
 
 			if(!i.data_proc.imm)
