@@ -144,11 +144,21 @@ static void emit_call(const void *target)
 
 	const uint64_t addr = reinterpret_cast<const uint64_t>(target);
 
-	emit(0x58000075); // ldr x21, [pc, #8]
-	emit(0x1000009e); // adr x30, <after literal)
-	emit(0xd61f02a0); // br x21
-	emit(addr & 0xFFFFFFFF); // Lower 32bits of target
-	emit(addr >> 32); // Higher 32bits of target
+	if(addr <= 0xFFFFFFFF)
+	{
+		emit(0x18000075); // ldr x21, [pc, #8]
+		emit(0x1000007e); // adr x30, <after literal)
+		emit(0xd61f02a0); // br x21
+		emit(addr);
+	}
+	else
+	{
+		emit(0x58000075); // ldr x21, [pc, #8]
+		emit(0x1000009e); // adr x30, <after literal)
+		emit(0xd61f02a0); // br x21
+		emit(addr & 0xFFFFFFFF); // Lower 32bits of target
+		emit(addr >> 32); // Higher 32bits of target
+	}
 }
 
 bool translate_init()
