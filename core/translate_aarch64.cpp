@@ -407,6 +407,9 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
 
 			bool offset_is_zero = !i.mem_proc.not_imm && i.mem_proc.immed == 0;
 
+			if(!offset_is_zero && (i.mem_proc.rm == PC || (i.mem_proc.shift == SH_ROR && i.mem_proc.shift_imm == 0)))
+				goto unimpl;
+
 			// Address into w0
 			if(i.mem_proc.rn != PC)
 				emit_mov_reg(W0, mapreg(i.mem_proc.rn));
@@ -452,7 +455,42 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
 			if(offset_is_zero)
 				goto no_offset;
 
-			goto unimpl;
+			// Offset into w25
+			if(!i.mem_proc.not_imm) // Immediate offset
+				emit_mov_imm(W25, i.mem_proc.immed);
+			else // Register offset, shifted
+			{
+				uint32_t instruction = 0x2a0003f9; // orr w25, wzr, wX, <shift>, #<amount>
+				instruction |= mapreg(i.mem_proc.rm) << 16;
+				instruction |= i.mem_proc.shift << 22;
+				instruction |= i.mem_proc.shift_imm << 10;
+
+				emit(instruction);
+			}
+
+			// Get final address..
+			if(i.mem_proc2.p)
+			{
+				// ..into r0
+				if(i.mem_proc2.u)
+					emit(0x0b190000); // add w0, w0, w25
+				else
+					emit(0x4b190000); // sub w0, w0, w25
+
+				// TODO: In case of data aborts, this is at the wrong time.
+				// It has to be stored AFTER the memory access, to be able
+				// to perform the access again after an abort.
+				if(i.mem_proc.w) // Writeback: final address into rn
+					emit_mov_reg(mapreg(i.mem_proc.rn), W0);
+			}
+			else
+			{
+				// ..into r5
+				if(i.mem_proc2.u)
+					emit(0x0b190019); // add w25, w0, w25
+				else
+					emit(0x4b190019); // sub w25, w0, w25
+			}
 
 			no_offset:
 			if(i.mem_proc.l)
