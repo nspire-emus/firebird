@@ -524,7 +524,85 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
 		}
 		else if((i.raw & 0xE000000) == 0x8000000)
 		{
-			goto unimpl;
+			// LDM/STM
+
+			if(i.mem_multi.s)
+				goto unimpl; // Exception return or usermode not implemented
+
+			if(i.mem_multi.rn == PC)
+				goto unimpl;
+
+			uint16_t reglist = i.mem_multi.reglist;
+			if(reglist & (1 << i.mem_multi.rn))
+				goto unimpl; // Loading/Saving address register
+
+			int count = __builtin_popcount(reglist), offset, wb_offset;
+
+			if(i.mem_multi.u) // Increment
+			{
+				wb_offset = count * 4;
+				offset = 0;
+			}
+			else // Decrement
+			{
+				wb_offset = count * -4;
+				offset = wb_offset;
+			}
+
+			if(i.mem_multi.p == i.mem_multi.u)
+				offset += 4;
+
+			// Base reg in w25
+			emit_mov_reg(W25, mapreg(i.mem_multi.rn));
+			unsigned int reg = 0;
+			while(reglist)
+			{
+				if((reglist & 1) == 0)
+					goto next;
+
+				if(offset >= 0)
+					emit(0x11000320 | (offset << 10)); // add w0, w25, #offset
+				else
+					emit(0x51000320 | (-offset << 10)); // sub w0, w25, #-offset
+
+				if(i.mem_multi.l)
+				{
+					emit_call(reinterpret_cast<void*>(read_word_asm));
+					if(reg != PC)
+						emit_mov_reg(mapreg(reg), W0);
+					//else written below
+				}
+				else
+				{
+					if(reg == PC)
+						emit_mov_imm(W1, pc + 12);
+					else
+						emit_mov_reg(W1, mapreg(reg));
+
+					emit_call(reinterpret_cast<void*>(write_word_asm));
+				}
+
+				offset += 4;
+				next:
+				reglist >>= 1;
+				++reg;
+			}
+
+			if(i.mem_multi.w)
+			{
+				if(wb_offset >= 0)
+					emit(0x11000320 | (wb_offset << 10) | mapreg(i.mem_multi.rn)); // add wN, w25, #wb_offset
+				else
+					emit(0x51000320 | (-wb_offset << 10) | mapreg(i.mem_multi.rn)); // sub wN, w25, #-wb_offset
+			}
+
+			if(i.mem_multi.l && (i.mem_multi.reglist & (1 << PC))) // Loading PC
+			{
+				// PC already in W0 (last one loaded)
+				emit_jmp(reinterpret_cast<void*>(translation_next_bx));
+				if(i.cond == CC_AL)
+					jumps_away = stop_here = true;
+			}
 		}
 		else if((i.raw & 0xE000000) == 0xA000000)
 		{
