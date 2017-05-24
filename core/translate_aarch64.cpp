@@ -407,11 +407,24 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
 					goto instruction_translated;
 				}
 
-				emit_mov_imm(W0, immed);
-				/* All those operations are nops (or with 0)
-				instruction |= W0 << 16;
-				instruction |= SH_LSL << 22;
-				instruction |= 0 << 10;*/
+				if(immed <= 0xFFF
+				   && (i.data_proc.op == OP_ADD || i.data_proc.op == OP_SUB
+				       || i.data_proc.op == OP_CMP || i.data_proc.op == OP_CMN))
+				{
+					/* Those instructions support a normal 12bit (optionally shifted left by 12) immediate.
+					   This is not the case for logical instructions, they use awfully complicated useless
+					   terrible garbage called "bitmask operand" that not even binutils can encode properly. */
+					instruction &= ~(0x1E000000);
+					instruction |= 1 << 28 | (immed << 10);
+				}
+				else
+				{
+					emit_mov_imm(W0, immed);
+					/* All those operations are nops (or with 0)
+					instruction |= W0 << 16;
+					instruction |= SH_LSL << 22;
+					instruction |= 0 << 10;*/
+				}
 			}
 
 			emit(instruction);
