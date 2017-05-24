@@ -40,15 +40,6 @@ translation_next: .global translation_next
 
 // Enter translation at w0 (has to equal arm.reg[15])
 translation_next_enter:
-	ldr x21, =cycle_count_delta
-	ldr w21, [x21]
-	cmp w21, #0
-	bpl save_return // if(cycle_count_delta > 0) goto save_return;
-
-	ldr x21, =cpu_events
-	ldr w21, [x21]
-	cbnz w21, save_return // if(cpu_events) goto save_return;
-
 	lsr x22, x0, #10
 	lsl x22, x22, #4
 	ldr x22, [x26, x22] // x22 = addr_cache[(x0 >> 10) << 1]
@@ -60,6 +51,15 @@ translation_next_enter:
 	ldr w21, [x22, x21] // w21 = RAM_FLAGS(x0)
 	tbz w21, #5, save_return // if((RAM_FLAGS(x0) & RF_CODE_TRANSLATED) == 0) goto save_return;
 	lsr w21, w21, #9 // w21 = w21 >> RFS_TRANSLATION_INDEX
+
+	ldr x23, =cycle_count_delta
+	ldr w23, [x23]
+	cmp w23, #0
+	bpl save_return // if(cycle_count_delta > 0) goto save_return;
+
+	ldr x23, =cpu_events
+	ldr w23, [x23]
+	cbnz w23, save_return // if(cpu_events) goto save_return;
 
 	ldr x23, =translation_table
 	add x23, x23, x21, lsl #5 // x23 = &translation_table[RAM_FLAGS(x0) >> RFS_TRANSLATION_INDEX]
@@ -83,6 +83,21 @@ translation_next_enter:
 	str w25, [x24]
 
 	msr nzcv, x17	
+	br x0
+
+translation_jmp: .global translation_jmp
+	mrs x17, nzcv
+
+	// add number of instructions to cycle_count_delta
+	ldr x24, =cycle_count_delta
+	ldr w25, [x24]
+	add w25, w25, #4 // We don't know how much will be executed, so use a possible number
+	str w25, [x24]
+	cmp w25, #0
+	bpl save_return
+
+	msr nzcv, x17
+
 	br x0
 
 to_thumb:

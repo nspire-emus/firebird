@@ -26,6 +26,7 @@
 #include "emu.h"
 #include "translate.h"
 #include "mem.h"
+#include "mmu.h"
 #include "os/os.h"
 
 #ifndef __aarch64__
@@ -36,6 +37,7 @@
 extern "C" {
 	extern void translation_next(uint32_t new_pc) __asm__("translation_next");
 	extern void translation_next_bx(uint32_t new_pc) __asm__("translation_next_bx");
+	extern void translation_jmp(void *target) __asm__("translation_jmp");
 	extern void **translation_sp __asm__("translation_sp");
 	extern void read_word_asm() __asm("read_word_asm");
 	extern void write_word_asm() __asm("write_word_asm");
@@ -96,12 +98,24 @@ static void emit_mov_imm(const PReg wd, uint32_t imm)
 	}
 }
 
+// Sets the physical register xd to imm (64bit only)
+static void emit_mov_imm64(const PReg xd, uint64_t imm)
+{
+	emit(0xd2800000 | ((imm & 0xFFFF) << 5) | xd); // movz wd, #imm, lsl #0
+	imm >>= 16;
+	emit(0xf2a00000 | ((imm & 0xFFFF) << 5) | xd); // movk wd, #imm, lsl #16
+	imm >>= 16;
+	emit(0xf2c00000 | ((imm & 0xFFFF) << 5) | xd); // movk wd, #imm, lsl #32
+	imm >>= 16;
+	emit(0xf2e00000 | ((imm & 0xFFFF) << 5) | xd); // movk wd, #imm, lsl #48
+}
+
 static void emit_mov_reg(const PReg wd, const PReg wm)
 {
 	emit(0x2a0003e0 | (wm << 16) | wd);
 }
 
-static uint32_t maybe_branch(const void *target)
+static __attribute__((unused)) uint32_t maybe_branch(const void *target)
 {
 	ptrdiff_t diff = reinterpret_cast<const uint32_t*>(target) - translate_current;
 	if(diff > 0x3FFFFFF || -diff > 0x4000000)
@@ -647,9 +661,26 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
 				jumps_away = stop_here = true;
 
 			uint32_t addr = pc + ((int32_t)(i.raw << 8) >> 6) + 8;
+			uintptr_t entry = reinterpret_cast<uintptr_t>(addr_cache[(addr >> 10) << 1]);
+			uint32_t *ptr = reinterpret_cast<uint32_t*>(entry + addr);
 
-			emit_mov_imm(W0, addr);
-			emit_jmp(reinterpret_cast<void*>(translation_next));
+			if(entry & AC_FLAGS || !(RAM_FLAGS(ptr) & RF_CODE_TRANSLATED))
+			{
+				emit_mov_imm(W0, addr);
+				emit_jmp(reinterpret_cast<void*>(translation_next));
+			}
+			else
+			{
+				// Get address of translated code to jump to it
+				translation *target_translation = &translation_table[RAM_FLAGS(ptr) >> RFS_TRANSLATION_INDEX];
+				uintptr_t jmp_target = reinterpret_cast<uintptr_t>(target_translation->jump_table[ptr - target_translation->start_ptr]);
+
+				// Update PC manually
+				emit_mov_imm(W0, addr);
+				emit(0xb9003e60); // str w0, [x19, #15*4]
+				emit_mov_imm64(X0, jmp_target);
+				emit_jmp(reinterpret_cast<void*>(translation_jmp));
+			}
 		}
 		else
 			goto unimpl;
