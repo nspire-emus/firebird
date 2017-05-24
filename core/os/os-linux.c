@@ -148,22 +148,25 @@ void addr_cache_init(os_exception_frame_t *frame)
 
     setbuf(stdout, NULL);
 
-    unsigned int i;
-    for(i = 0; i < AC_NUM_ENTRIES; ++i)
-    {
-        AC_SET_ENTRY_INVALID(addr_cache[i], (i >> 1) << 10)
-    }
+    #if !defined(AC_FLAGS)
+        unsigned int i;
+        for(unsigned int i = 0; i < AC_NUM_ENTRIES; ++i)
+        {
+            AC_SET_ENTRY_INVALID(addr_cache[i], (i >> 1) << 10)
+        }
+    #else
+        memset(addr_cache, 0xFF, AC_NUM_ENTRIES * sizeof(ac_entry));
+    #endif
 
-#if defined(__i386__) && !defined(NO_TRANSLATION)
-    // Relocate the assembly code that wants addr_cache at a fixed address
-    extern uint32_t *ac_reloc_start[] __asm__("ac_reloc_start"), *ac_reloc_end[] __asm__("ac_reloc_end");
-    uint32_t **reloc;
-    for(reloc = ac_reloc_start; reloc != ac_reloc_end; reloc++)
-    {
-        make_writable(*reloc);
-        **reloc += (uintptr_t)addr_cache;
-    }
-#endif
+    #if defined(__i386__) && !defined(NO_TRANSLATION)
+        // Relocate the assembly code that wants addr_cache at a fixed address
+        extern uint32_t *ac_reloc_start[] __asm__("ac_reloc_start"), *ac_reloc_end[] __asm__("ac_reloc_end");
+        for(uint32_t **reloc = ac_reloc_start; reloc != ac_reloc_end; reloc++)
+        {
+            make_writable(*reloc);
+            **reloc += (uintptr_t)addr_cache;
+        }
+    #endif
 }
 
 void addr_cache_deinit()
