@@ -313,7 +313,12 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
 			if(!i.data_proc.imm && i.data_proc.reg_shift) // reg shift
 				goto unimpl;
 
-			if(i.data_proc.s && (i.data_proc.op < OP_TST || i.data_proc.op > OP_CMP))
+			if(i.data_proc.s
+			   && !(i.data_proc.op == OP_ADD || i.data_proc.op == OP_SUB || i.data_proc.op == OP_CMP || i.data_proc.op == OP_CMN
+				#ifndef SUPPORT_LINUX
+					|| i.data_proc.op == OP_TST
+				#endif
+			   ))
 			{
 				/* We can't translate the S-bit that easily,
 				   as the barrel shifter output does not influence
@@ -355,7 +360,11 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
 				0x1A000000, // ADC (no shift!)
 				0x5A000000, // SBC (no shift!)
 				0, // RSC not possible
-				0x6A00001F, // TST
+				#ifdef SUPPORT_LINUX
+					0, // TST not possible, carry and overflow flags not identical
+				#else
+					0x6A00001F, // TST
+				#endif
 				0, // TEQ not possible
 				0x6B00001F, // CMP
 				0x2B00001F, // CMN
@@ -366,6 +375,9 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
 			};
 
 			uint32_t instruction = opmap[i.data_proc.op];
+
+			if(i.data_proc.s)
+				instruction |= 1 << 29;
 
 			if(i.data_proc.op < OP_TST || i.data_proc.op > OP_CMP)
 				instruction |= mapreg(i.data_proc.rd);
