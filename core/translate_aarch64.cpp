@@ -245,8 +245,36 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
 
 		if((i.raw & 0xE000090) == 0x0000090)
 		{
-			if(i.mem_proc2.s && !i.mem_proc2.h)
-				goto unimpl; // Multiply/Swap not implemented
+			if(!i.mem_proc2.s && !i.mem_proc2.h)
+			{
+				// Not mem_proc2 -> multiply or swap
+				if((i.raw & 0x0FB00000) == 0x01000000)
+					goto unimpl; // SWP/SWPB not implemented
+
+				// MUL, UMLAL, etc.
+				if(i.mult.rm == PC || i.mult.rs == PC
+				   || i.mult.rn == PC || i.mult.rd == PC)
+					goto unimpl; // PC as register not implemented
+
+				if(i.mult.s)
+					goto unimpl; // setcc not implemented (not easily possible as no aarch64 instruction only changes n and z)
+
+				if ((i.raw & 0xFC000F0) == 0x0000090)
+				{
+					uint32_t instruction = 0x1B000000; // madd w0, w0, w0, w0
+
+					instruction |= (mapreg(i.mult.rs) << 16) | (mapreg(i.mult.rm) << 5) | mapreg(i.mult.rd);
+					if(i.mult.a)
+						instruction |= mapreg(i.mult.rn) << 10;
+					else
+						instruction |= WZR << 10;
+
+					emit(instruction);
+					goto instruction_translated;
+				}
+
+				goto unimpl; // UMULL, UMLAL, SMULL, SMLAL not implemented
+			}
 
 			if(i.mem_proc2.s || !i.mem_proc2.h)
 				goto unimpl; // Signed byte/halfword and doubleword not implemented
