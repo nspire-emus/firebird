@@ -1,12 +1,26 @@
-.section .data
-translation_sp: .global translation_sp
-	.dword 0
+.macro loadsym reg, name
+	#ifdef __clang__
+		adrp \reg, \name\()@PAGE
+		add \reg, \reg, \name\()@PAGEOFF
+	#else
+		adrp \reg, \name
+		add \reg, \reg, #:lo12:\name
+	#endif
+.endm
+
+.data
+
 .global arm
 .global cycle_count_delta
 .global cpu_events
-.global get_cpsr
+.global addr_cache
 
-.section .text
+translation_sp: .global translation_sp
+	.dword 0
+
+.text
+
+.global data_abort
 
 translation_enter: .global translation_enter
 	stp x19, x30, [sp, #-16]!
@@ -16,11 +30,11 @@ translation_enter: .global translation_enter
 
 	// Store s into translation_sp
 	mov x0, sp
-	ldr x1, =translation_sp
+	loadsym x1, translation_sp
 	str x0, [x1]
 
 	ldr x19, =arm
-	ldr x26, =addr_cache
+	loadsym x26, addr_cache
 	ldr x26, [x26]
 
 	// Load arm.reg[15] into w0
@@ -52,16 +66,16 @@ translation_next_enter:
 	tbz w21, #5, save_return // if((RAM_FLAGS(x0) & RF_CODE_TRANSLATED) == 0) goto save_return;
 	lsr w21, w21, #9 // w21 = w21 >> RFS_TRANSLATION_INDEX
 
-	ldr x23, =cycle_count_delta
+	loadsym x23, cycle_count_delta
 	ldr w23, [x23]
 	cmp w23, #0
 	bpl save_return // if(cycle_count_delta > 0) goto save_return;
 
-	ldr x23, =cpu_events
+	loadsym x23, cpu_events
 	ldr w23, [x23]
 	cbnz w23, save_return // if(cpu_events) goto save_return;
 
-	ldr x23, =translation_table
+	loadsym x23, translation_table
 	add x23, x23, x21, lsl #5 // x23 = &translation_table[RAM_FLAGS(x0) >> RFS_TRANSLATION_INDEX]
 
 	ldr x24, [x23, #1*8] // x24 = x3->jump_table
@@ -77,7 +91,7 @@ translation_next_enter:
 	ldr x0, [x24, x25] // x0 = jump_table[(insn_ptr - start_ptr) / 4]
 
 	// add number of instructions to cycle_count_delta
-	ldr x24, =cycle_count_delta
+	loadsym x24, cycle_count_delta
 	ldr w25, [x24]
 	add w25, w25, w21
 	str w25, [x24]
@@ -89,7 +103,7 @@ translation_jmp: .global translation_jmp
 	mrs x17, nzcv
 
 	// add number of instructions to cycle_count_delta
-	ldr x24, =cycle_count_delta
+	loadsym x24, cycle_count_delta
 	ldr w25, [x24]
 	add w25, w25, #4 // We don't know how much will be executed, so use a possible number
 	str w25, [x24]
@@ -109,7 +123,7 @@ to_thumb:
 	str w1, [x19, #16*4] // arm.cpsr_low28 |= 0x20
 
 save_return:
-	adr x0, translation_sp
+	loadsym x0, translation_sp
 	mov x1, #0
 	str x1, [x0]
 
@@ -190,7 +204,7 @@ read_word_asm: .global read_word_asm
 	mrs x17, nzcv
 	bl save_virt
 	mov x1, #0
-	ldr x2, =data_abort
+	loadsym x2, data_abort
 	bl addr_cache_miss
 	bl load_virt
 	ldp x0, x1, [sp], #16
@@ -224,7 +238,7 @@ read_half_asm: .global read_half_asm
 	mrs x17, nzcv
 	bl save_virt
 	mov x1, #0
-	ldr x2, =data_abort
+	loadsym x2, data_abort
 	bl addr_cache_miss
 	bl load_virt
 	ldp x0, x1, [sp], #16
@@ -258,7 +272,7 @@ read_byte_asm: .global read_byte_asm
 	mrs x17, nzcv
 	bl save_virt
 	mov x1, #0
-	ldr x2, =data_abort
+	loadsym x2, data_abort
 	bl addr_cache_miss
 	bl load_virt
 	ldp x0, x1, [sp], #16
@@ -292,7 +306,7 @@ write_word_asm: .global write_word_asm
 	mrs x17, nzcv
 	bl save_virt
 	mov x1, #1
-	ldr x2, =data_abort
+	loadsym x2, data_abort
 	bl addr_cache_miss
 	bl load_virt
 	ldp x0, x1, [sp], #16
@@ -326,7 +340,7 @@ write_half_asm: .global write_half_asm
 	mrs x17, nzcv
 	bl save_virt
 	mov x1, #1
-	ldr x2, =data_abort
+	loadsym x2, data_abort
 	bl addr_cache_miss
 	bl load_virt
 	ldp x0, x1, [sp], #16
@@ -360,7 +374,7 @@ write_byte_asm: .global write_byte_asm
 	mrs x17, nzcv
 	bl save_virt
 	mov x1, #1
-	ldr x2, =data_abort
+	loadsym x2, data_abort
 	bl addr_cache_miss
 	bl load_virt
 	ldp x0, x1, [sp], #16
