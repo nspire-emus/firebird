@@ -16,7 +16,7 @@
 .global addr_cache
 
 translation_sp: .global translation_sp
-	.dword 0
+	.xword 0
 
 .text
 
