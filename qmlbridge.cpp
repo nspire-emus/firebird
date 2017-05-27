@@ -535,6 +535,8 @@ void QMLBridge::suspended(bool success)
         toastMessage(tr("Flash and snapshot saved")); // When clicking on save, flash is saved as well
     else
         toastMessage(tr("Couldn't save snapshot"));
+
+    emit emuSuspended(success);
 }
 
 double QMLBridge::getSpeed()

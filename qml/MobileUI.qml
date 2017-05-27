@@ -11,6 +11,9 @@ ApplicationWindow {
     title: "Firebird Emu"
     visible: true
 
+    property bool closeAfterSuspend: false
+    property bool ignoreSuspendOnClose: false
+
     onXChanged: Emu.mobileX = x
     onYChanged: Emu.mobileY = y
     width: Emu.mobileWidth != -1 ? Emu.mobileWidth : 320
@@ -40,6 +43,46 @@ ApplicationWindow {
 
             if(Emu.mobileY != -1)
                 y = Emu.mobileY;
+        }
+    }
+
+    onClosing: {
+        if(Emu.isMobile() || !Emu.isRunning || !Emu.suspendOnClose || ignoreSuspendOnClose)
+            return;
+
+        closeAfterSuspend = true;
+        Emu.suspend();
+        close.accepted = false;
+    }
+
+    MessageDialog {
+        id: suspendFailedDialog
+        standardButtons: StandardButton.Yes | StandardButton.No
+        icon: StandardIcon.Warning
+        title: qsTr("Suspend failed")
+        text: qsTr("Suspending the emulation failed. Do you still want to quit Firebird?")
+
+        onYes: {
+            ignoreSuspendOnClose = true;
+            app.close();
+        }
+    }
+
+    Connections {
+        target: Emu
+        onEmuSuspended: {
+            if(closeAfterSuspend)
+            {
+                closeAfterSuspend = false;
+
+                if(success)
+                {
+                    ignoreSuspendOnClose = true;
+                    app.close();
+                }
+                else
+                    suspendFailedDialog.visible = true;
+            }
         }
     }
 

@@ -141,6 +141,7 @@ signals:
     void speedChanged();
     void turboModeChanged();
 
+    void emuSuspended(bool success);
     void usblinkProgressChanged(int percent);
 
 private:
