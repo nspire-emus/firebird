@@ -353,6 +353,46 @@ void QMLBridge::setTurboMode(bool b)
     emu_thread.setTurboMode(b);
 }
 
+int QMLBridge::getMobileX()
+{
+    return settings.value(QStringLiteral("mobileX"), -1).toInt();
+}
+
+void QMLBridge::setMobileX(int x)
+{
+    settings.setValue(QStringLiteral("mobileX"), x);
+}
+
+int QMLBridge::getMobileY()
+{
+    return settings.value(QStringLiteral("mobileY"), -1).toInt();
+}
+
+void QMLBridge::setMobileY(int y)
+{
+    settings.setValue(QStringLiteral("mobileY"), y);
+}
+
+int QMLBridge::getMobileWidth()
+{
+    return settings.value(QStringLiteral("mobileWidth"), -1).toInt();
+}
+
+void QMLBridge::setMobileWidth(int w)
+{
+    settings.setValue(QStringLiteral("mobileWidth"), w);
+}
+
+int QMLBridge::getMobileHeight()
+{
+    return settings.value(QStringLiteral("mobileHeight"), -1).toInt();
+}
+
+void QMLBridge::setMobileHeight(int h)
+{
+    settings.setValue(QStringLiteral("mobileHeight"), h);
+}
+
 bool QMLBridge::restart()
 {
     if(emu_thread.isRunning() && !emu_thread.stop())

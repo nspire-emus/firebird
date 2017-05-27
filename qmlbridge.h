@@ -32,6 +32,11 @@ public:
     Q_PROPERTY(double speed READ getSpeed NOTIFY speedChanged)
     Q_PROPERTY(bool turboMode READ getTurboMode WRITE setTurboMode NOTIFY turboModeChanged)
 
+    Q_PROPERTY(int mobileX READ getMobileX WRITE setMobileX)
+    Q_PROPERTY(int mobileY READ getMobileY WRITE setMobileY)
+    Q_PROPERTY(int mobileWidth READ getMobileWidth WRITE setMobileWidth)
+    Q_PROPERTY(int mobileHeight READ getMobileHeight WRITE setMobileHeight)
+
     unsigned int getGDBPort();
     void setGDBPort(unsigned int port);
     void setGDBEnabled(bool e);
@@ -60,6 +65,15 @@ public:
     double getSpeed();
     bool getTurboMode();
     void setTurboMode(bool e);
+
+    int getMobileX();
+    void setMobileX(int x);
+    int getMobileY();
+    void setMobileY(int y);
+    int getMobileWidth();
+    void setMobileWidth(int w);
+    int getMobileHeight();
+    void setMobileHeight(int h);
 
     KitModel *getKitModel() { return &kit_model; }
     Q_INVOKABLE void keypadStateChanged(int keymap_id, bool state);

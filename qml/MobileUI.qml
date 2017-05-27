@@ -9,23 +9,37 @@ import QtQuick.Layouts 1.0
 ApplicationWindow {
     id: app
     title: "Firebird Emu"
-    width: 320
-    height: 480
     visible: true
 
+    onXChanged: Emu.mobileX = x
+    onYChanged: Emu.mobileY = y
+    width: Emu.mobileWidth != -1 ? Emu.mobileWidth : 320
+    onWidthChanged: Emu.mobileWidth = width
+    height: Emu.mobileHeight != -1 ? Emu.mobileHeight : 480
+    onHeightChanged: Emu.mobileHeight = height
+
     Component.onCompleted: {
-        // FIXME: The toast might not yet be registered here
-
-        Emu.useDefaultKit();
-
-        if(Emu.autostart
-            && Emu.getFlashPath() !== ""
-            && Emu.getBoot1Path() !== "")
+        if(Emu.isMobile())
         {
-            if(Emu.getSnapshotPath() !== "")
-                Emu.resume();
-            else
-                Emu.restart();
+            Emu.useDefaultKit();
+
+            if(Emu.autostart
+                && Emu.getFlashPath() !== ""
+                && Emu.getBoot1Path() !== "")
+            {
+                if(Emu.getSnapshotPath() !== "")
+                    Emu.resume();
+                else
+                    Emu.restart();
+            }
+        }
+        else
+        {
+            if(Emu.mobileX != -1)
+                x = Emu.mobileX;
+
+            if(Emu.mobileY != -1)
+                y = Emu.mobileY;
         }
     }
 
