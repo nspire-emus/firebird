@@ -178,6 +178,11 @@ MainWindow::MainWindow(QWidget *parent) :
         return;
     }
 
+    if(settings->value(QStringLiteral("lastUIMode"), 0).toUInt() == 1)
+        switchUIMode(true);
+    else
+        show();
+
     if(!the_qml_bridge->getAutostart())
     {
         showStatusMsg(tr("Start the emulation via Emulation->Start."));
@@ -336,6 +341,7 @@ void MainWindow::usblink_progress_callback(int progress, void *)
 
 void MainWindow::switchUIMode(bool mobile_ui)
 {
+    settings->setValue(QStringLiteral("lastUIMode"), mobile_ui ? 1 : 0);
     setVisible(!mobile_ui);
     mobile_dialog->setProperty("visible", mobile_ui);
 }

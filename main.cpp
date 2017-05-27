@@ -38,7 +38,6 @@ int main(int argc, char **argv)
     #ifndef MOBILE_UI
         MainWindow mw;
         main_window = &mw;
-        mw.show();
     #else
         QQuickView mobile_ui;
         mobile_ui.engine()->addImportPath(QStringLiteral("qrc:/qml/qml/"));
