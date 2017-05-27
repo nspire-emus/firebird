@@ -50,12 +50,9 @@ MainWindow::MainWindow(QWidget *parent) :
 
     config_dialog = dialog_component->create();
 
-    QQmlComponent *mobile_component = new QQmlComponent(qml_engine, QUrl(QStringLiteral("qrc:/qml/qml/MobileUI.qml")), this);
-    if(!mobile_component->isReady())
-        qCritical() << "Could not create Mobile UI component:" << mobile_component->errorString();
-
-    mobile_dialog = mobile_component->create();
-    mobile_dialog->setProperty("visible", QVariant(false));
+    mobileui_component = new QQmlComponent(qml_engine, QUrl(QStringLiteral("qrc:/qml/qml/MobileUI.qml")), this);
+    if(!mobileui_component->isReady())
+        qCritical() << "Could not create Mobile UI component:" << mobileui_component->errorString();
 
     //Emu -> GUI (QueuedConnection as they're different threads)
     connect(&emu_thread, SIGNAL(serialChar(char)), this, SLOT(serialChar(char)), Qt::QueuedConnection);
@@ -341,9 +338,12 @@ void MainWindow::usblink_progress_callback(int progress, void *)
 
 void MainWindow::switchUIMode(bool mobile_ui)
 {
+    if(!mobileui_dialog)
+        mobileui_dialog = mobileui_component->create();
+
     settings->setValue(QStringLiteral("lastUIMode"), mobile_ui ? 1 : 0);
     setVisible(!mobile_ui);
-    mobile_dialog->setProperty("visible", mobile_ui);
+    mobileui_dialog->setProperty("visible", mobile_ui);
 }
 
 void MainWindow::suspendToPath(QString path)

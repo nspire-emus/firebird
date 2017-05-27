@@ -162,8 +162,10 @@ private:
     // The QML Config Dialog
     QObject *config_dialog = nullptr;
 
+    // The Mobile UI component, used to create the mobile_dialog
+    QQmlComponent *mobileui_component = nullptr;
     // A Mobile UI instance
-    QObject *mobile_dialog = nullptr;
+    QObject *mobileui_dialog = nullptr;
 
     // Used for autosuspend on close.
     // The close event has to be deferred until the suspend operation completed successfully.
