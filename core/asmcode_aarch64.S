@@ -213,6 +213,7 @@ read_word_asm: .global read_word_asm
 	b 0b // Try again
 
 read_half_asm: .global read_half_asm
+	bic w22, w22, #1
 	lsr w22, w0, #10
 	add x21, x26, x22, lsl #4 // x21 = &addr_cache[(x0 >> 10) << 1]
 0:	ldr x22, [x21] // x22 = *x21
@@ -315,6 +316,7 @@ write_word_asm: .global write_word_asm
 	b 0b // Try again
 
 write_half_asm: .global write_half_asm
+	bic w22, w22, #1
 	lsr w22, w0, #10
 	add x21, x26, x22, lsl #4 // x21 = &addr_cache[(x0 >> 10) << 1]
 0:	ldr x22, [x21, #8] // x22 = *(x21+1)
