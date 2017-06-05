@@ -82,6 +82,7 @@ void QMLBridge::setGDBPort(unsigned int port)
     settings.setValue(QStringLiteral("gdbPort"), port);
     emit gdbPortChanged();
 }
+
 bool QMLBridge::getGDBEnabled()
 {
     return settings.value(QStringLiteral("gdbEnabled"), !isMobile()).toBool();
