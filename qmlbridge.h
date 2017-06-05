@@ -94,7 +94,9 @@ public:
     Q_INVOKABLE bool fileExists(QString path);
     Q_INVOKABLE int kitIndexForID(unsigned int id);
 
-    Q_INVOKABLE void useDefaultKit();
+    Q_INVOKABLE bool setCurrentKit(unsigned int id);
+    Q_INVOKABLE unsigned int getCurrentKitId();
+    Q_INVOKABLE bool useDefaultKit();
 
     Q_INVOKABLE bool restart();
     Q_INVOKABLE void setPaused(bool b);
@@ -142,6 +144,8 @@ signals:
     void isRunningChanged();
     void speedChanged();
     void turboModeChanged();
+
+    void currentKitChanged(const Kit &kit);
 
     void emuSuspended(bool success);
     void usblinkProgressChanged(int percent);

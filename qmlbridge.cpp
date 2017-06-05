@@ -473,17 +473,35 @@ void QMLBridge::resume()
         toastMessage(tr("The current kit does not have a snapshot file configured"));
 }
 
-void QMLBridge::useDefaultKit()
+bool QMLBridge::useDefaultKit()
 {
-    int kitIndex = kitIndexForID(getDefaultKit());
+    if(setCurrentKit(getDefaultKit()))
+        return true;
+
+    setCurrentKit(kit_model.getKits()[0].id); // Use first kit as fallback
+    return false;
+}
+
+bool QMLBridge::setCurrentKit(unsigned int id)
+{
+    int kitIndex = kitIndexForID(id);
     if(kitIndex < 0)
-        return;
+        return false;
 
     auto &&kit = kit_model.getKits()[kitIndex];
     current_kit_id = kit.id;
     emu_thread.boot1 = kit.boot1;
     emu_thread.flash = kit.flash;
     fallback_snapshot_path = kit.snapshot;
+
+    emit currentKitChanged(kit);
+
+    return true;
+}
+
+unsigned int QMLBridge::getCurrentKitId()
+{
+    return current_kit_id;
 }
 
 bool QMLBridge::stop()

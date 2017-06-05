@@ -50,6 +50,7 @@ public slots:
     void showStatusMsg(QString str);
     void kitDataChanged(QModelIndex, QModelIndex, QVector<int> roles);
     void kitAnythingChanged();
+    void currentKitChanged(const Kit &kit);
 
     //Drag & Drop
     void dropEvent(QDropEvent* event) override;
@@ -131,16 +132,6 @@ private:
     // so the settings have to be read from there
     // and emu_thread configured appropriately.
     void applyQMLBridgeSettings();
-
-    // Configure boot1, flash and fallback_snapshot_path
-    // according to the Kit's configuration.
-    void setCurrentKit(const Kit& kit);
-    unsigned int current_kit_id;
-
-    // Returns the snapshot path of the current kit or
-    // if the current kit got deleted, fallback_snapshot_path
-    QString snapshotPath();
-    QString fallback_snapshot_path;
 
     Ui::MainWindow *ui = nullptr;
 

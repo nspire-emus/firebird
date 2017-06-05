@@ -54,6 +54,9 @@ MainWindow::MainWindow(QWidget *parent) :
     if(!mobileui_component->isReady())
         qCritical() << "Could not create Mobile UI component:" << mobileui_component->errorString();
 
+    if(!the_qml_bridge)
+        throw std::runtime_error("Can't continue without QMLBridge");
+
     //Emu -> GUI (QueuedConnection as they're different threads)
     connect(&emu_thread, SIGNAL(serialChar(char)), this, SLOT(serialChar(char)), Qt::QueuedConnection);
     connect(&emu_thread, SIGNAL(debugStr(QString)), this, SLOT(debugStr(QString))); //Not queued connection as it may cause a hang
@@ -116,9 +119,11 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->usblinkTree, SIGNAL(uploadProgress(int)), this, SLOT(changeProgress(int)), Qt::QueuedConnection);
     connect(this, SIGNAL(usblink_progress_changed(int)), this, SLOT(changeProgress(int)), Qt::QueuedConnection);
 
+    // QMLBridge
     KitModel *model = the_qml_bridge->getKitModel();
     connect(model, SIGNAL(anythingChanged()), this, SLOT(kitAnythingChanged()));
     connect(model, SIGNAL(dataChanged(QModelIndex,QModelIndex,QVector<int>)), this, SLOT(kitDataChanged(QModelIndex,QModelIndex,QVector<int>)));
+    connect(the_qml_bridge, SIGNAL(currentKitChanged(const Kit&)), this, SLOT(currentKitChanged(const Kit &)));
 
     //Set up monospace fonts
     QFont monospace = QFontDatabase::systemFont(QFontDatabase::FixedFont);
@@ -151,19 +156,17 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->lcdView->setFocus();
 
     // Select default Kit
-    int kitIndex = the_qml_bridge->kitIndexForID(the_qml_bridge->getDefaultKit());
-    bool defaultKitFound = kitIndex >= 0;
-
-    if(!defaultKitFound)
-        kitIndex = 0;
-
-    setCurrentKit(the_qml_bridge->getKitModel()->getKits()[kitIndex]);
+    bool defaultKitFound = the_qml_bridge->useDefaultKit();
 
     if(the_qml_bridge->getKitModel()->allKitsEmpty())
     {
         // Do not show the window before MainWindow gets shown,
         // otherwise it won't be in focus.
         QTimer::singleShot(0, this, SIGNAL(openConfiguration()));
+
+        switchUIMode(false);
+        show();
+
         return;
     }
 
@@ -187,7 +190,7 @@ MainWindow::MainWindow(QWidget *parent) :
     else
     {
         bool resumed = false;
-        if(!snapshotPath().isEmpty())
+        if(!the_qml_bridge->getSnapshotPath().isEmpty())
             resumed = resume();
 
         if(!resumed)
@@ -561,7 +564,7 @@ bool MainWindow::resume()
 {
     applyQMLBridgeSettings();
 
-    auto snapshot_path = snapshotPath();
+    auto snapshot_path = the_qml_bridge->getSnapshotPath();
     if(!snapshot_path.isEmpty())
         return resumeFromPath(snapshot_path);
     else
@@ -573,7 +576,7 @@ bool MainWindow::resume()
 
 void MainWindow::suspend()
 {
-    auto snapshot_path = snapshotPath();
+    auto snapshot_path = the_qml_bridge->getSnapshotPath();
     if(!snapshot_path.isEmpty())
         suspendToPath(snapshot_path);
     else
@@ -691,7 +694,7 @@ void MainWindow::kitDataChanged(QModelIndex, QModelIndex, QVector<int> roles)
         refillKitMenus();
 
         // Need to update window title if kit is active
-        int kitIndex = the_qml_bridge->kitIndexForID(current_kit_id);
+        int kitIndex = the_qml_bridge->kitIndexForID(the_qml_bridge->getCurrentKitId());
         if(kitIndex >= 0)
         {
             auto name = the_qml_bridge->getKitModel()->getKits()[kitIndex].name;
@@ -704,6 +707,11 @@ void MainWindow::kitAnythingChanged()
 {
     if(the_qml_bridge->getKitModel()->rowCount() != ui->menuRestart_with_Kit->actions().size())
         refillKitMenus();
+}
+
+void MainWindow::currentKitChanged(const Kit &kit)
+{
+    setWindowTitle(QStringLiteral("Firebird Emu - %1").arg(kit.name));
 }
 
 void MainWindow::refillKitMenus()
@@ -730,34 +738,11 @@ void MainWindow::applyQMLBridgeSettings()
     emu_thread.port_rdbg = the_qml_bridge->getRDBEnabled() ? the_qml_bridge->getRDBPort() : 0;
 }
 
-void MainWindow::setCurrentKit(const Kit &kit)
-{
-    current_kit_id = kit.id;
-    emu_thread.boot1 = kit.boot1;
-    emu_thread.flash = kit.flash;
-    fallback_snapshot_path = kit.snapshot;
-
-    setWindowTitle(QStringLiteral("Firebird Emu - %1").arg(kit.name));
-}
-
-QString MainWindow::snapshotPath()
-{
-    int kitIndex = the_qml_bridge->kitIndexForID(current_kit_id);
-    if(kitIndex >= 0)
-        return the_qml_bridge->getKitModel()->getKits()[kitIndex].snapshot;
-    else
-        return fallback_snapshot_path;
-}
-
 void MainWindow::restart()
 {
     /* If the emulation isn't running, use the default kit */
     if(!ui->actionPause->isEnabled())
-    {
-        int kitIndex = the_qml_bridge->kitIndexForID(the_qml_bridge->getDefaultKit());
-        if(kitIndex >= 0)
-            setCurrentKit(the_qml_bridge->getKitModel()->getKits()[kitIndex]);
-    }
+        the_qml_bridge->useDefaultKit();
 
     if(emu_thread.boot1.isEmpty())
     {
@@ -794,9 +779,8 @@ void MainWindow::startKit()
         return;
     }
 
-    auto &&kit_model = the_qml_bridge->getKitModel();
     auto kit_id = static_cast<unsigned int>(action->data().toInt());
-    setCurrentKit(kit_model->getKits().at(kit_model->indexForID(kit_id)));
+    the_qml_bridge->setCurrentKit(kit_id);
     boot_order = ORDER_BOOT2;
     restart();
 }
@@ -810,9 +794,8 @@ void MainWindow::startKitDiags()
         return;
     }
 
-    auto &&kit_model = the_qml_bridge->getKitModel();
     auto kit_id = static_cast<unsigned int>(action->data().toInt());
-    setCurrentKit(kit_model->getKits().at(kit_model->indexForID(kit_id)));
+    the_qml_bridge->setCurrentKit(kit_id);
     boot_order = ORDER_DIAGS;
     restart();
 }
