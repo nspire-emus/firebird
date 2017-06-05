@@ -242,6 +242,7 @@ wwa_miss:
     ret
 
 read_half_asm: .global read_half_asm
+    and     $-2, %rdi
     mov     %rdi, %rax
     shr     $10, %rax
     shl     $1, %rax
@@ -260,6 +261,7 @@ rha_miss:
     ret
 
 write_half_asm: .global write_half_asm
+    and     $-2, %rdi
     mov     %rdi, %rax
     shr     $10, %rax
     shl     $1, %rax

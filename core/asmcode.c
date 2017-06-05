@@ -61,6 +61,7 @@ uint32_t FASTCALL read_byte(uint32_t addr)
 
 uint32_t FASTCALL read_half(uint32_t addr)
 {
+    addr &= ~1;
     uintptr_t entry = *(uintptr_t*)(addr_cache + ((addr >> 10) << 1));
 
     //If the sum doesn't contain the address directly
@@ -113,6 +114,7 @@ void FASTCALL write_byte(uint32_t addr, uint32_t value)
 
 void FASTCALL write_half(uint32_t addr, uint32_t value)
 {
+    addr &= ~1;
     uintptr_t entry = *(uintptr_t*)(addr_cache + ((addr >> 10) << 1) + 1);
 
     //If the sum doesn't contain the address directly
