@@ -57,17 +57,9 @@ MainWindow::MainWindow(QWidget *parent) :
     //Emu -> GUI (QueuedConnection as they're different threads)
     connect(&emu_thread, SIGNAL(serialChar(char)), this, SLOT(serialChar(char)), Qt::QueuedConnection);
     connect(&emu_thread, SIGNAL(debugStr(QString)), this, SLOT(debugStr(QString))); //Not queued connection as it may cause a hang
-    connect(&emu_thread, SIGNAL(speedChanged(double)), this, SLOT(showSpeed(double)), Qt::QueuedConnection);
     connect(&emu_thread, SIGNAL(isBusy(bool)), this, SLOT(isBusy(bool)), Qt::QueuedConnection);
     connect(&emu_thread, SIGNAL(statusMsg(QString)), this, SLOT(showStatusMsg(QString)), Qt::QueuedConnection);
-    connect(&emu_thread, SIGNAL(turboModeChanged(bool)), ui->buttonSpeed, SLOT(setChecked(bool)), Qt::QueuedConnection);
-    connect(&emu_thread, SIGNAL(usblinkChanged(bool)), this, SLOT(usblinkChanged(bool)), Qt::QueuedConnection);
     connect(&emu_thread, SIGNAL(debugInputRequested(bool)), this, SLOT(debugInputRequested(bool)), Qt::QueuedConnection);
-    connect(&emu_thread, SIGNAL(started(bool)), this, SLOT(started(bool)), Qt::QueuedConnection);
-    connect(&emu_thread, SIGNAL(paused(bool)), ui->actionPause, SLOT(setChecked(bool)), Qt::QueuedConnection);
-    connect(&emu_thread, SIGNAL(resumed(bool)), this, SLOT(resumed(bool)), Qt::QueuedConnection);
-    connect(&emu_thread, SIGNAL(suspended(bool)), this, SLOT(suspended(bool)), Qt::QueuedConnection);
-    connect(&emu_thread, SIGNAL(stopped()), this, SLOT(stopped()), Qt::QueuedConnection);
 
     //GUI -> Emu (no QueuedConnection possible, watch out!)
     connect(this, SIGNAL(debuggerCommand(QString)), &emu_thread, SLOT(debuggerInput(QString)));
@@ -178,7 +170,10 @@ MainWindow::MainWindow(QWidget *parent) :
     if(settings->value(QStringLiteral("lastUIMode"), 0).toUInt() == 1)
         switchUIMode(true);
     else
+    {
+        switchUIMode(false);
         show();
+    }
 
     if(!the_qml_bridge->getAutostart())
     {
@@ -284,6 +279,8 @@ void MainWindow::serialChar(const char c)
 
 void MainWindow::debugInputRequested(bool b)
 {
+    switchUIMode(false);
+
     ui->lineEdit->setEnabled(b);
 
     if(b)
@@ -338,12 +335,50 @@ void MainWindow::usblink_progress_callback(int progress, void *)
 
 void MainWindow::switchUIMode(bool mobile_ui)
 {
-    if(!mobileui_dialog)
+    if(!mobileui_dialog && mobile_ui)
         mobileui_dialog = mobileui_component->create();
 
+    if(mobileui_dialog)
+        mobileui_dialog->setProperty("visible", mobile_ui);
+    else if(mobile_ui)
+        return; // Do not switch the UI mode as the mobile UI could not be created
+
+    the_qml_bridge->setActive(mobile_ui);
+    this->setActive(!mobile_ui);
+
     settings->setValue(QStringLiteral("lastUIMode"), mobile_ui ? 1 : 0);
-    setVisible(!mobile_ui);
-    mobileui_dialog->setProperty("visible", mobile_ui);
+}
+
+void MainWindow::setActive(bool b)
+{
+    if(b)
+    {
+        connect(&emu_thread, SIGNAL(speedChanged(double)), this, SLOT(showSpeed(double)), Qt::QueuedConnection);
+        connect(&emu_thread, SIGNAL(turboModeChanged(bool)), ui->buttonSpeed, SLOT(setChecked(bool)), Qt::QueuedConnection);
+        connect(&emu_thread, SIGNAL(usblinkChanged(bool)), this, SLOT(usblinkChanged(bool)), Qt::QueuedConnection);
+        connect(&emu_thread, SIGNAL(started(bool)), this, SLOT(started(bool)), Qt::QueuedConnection);
+        connect(&emu_thread, SIGNAL(paused(bool)), ui->actionPause, SLOT(setChecked(bool)), Qt::QueuedConnection);
+        connect(&emu_thread, SIGNAL(resumed(bool)), this, SLOT(resumed(bool)), Qt::QueuedConnection);
+        connect(&emu_thread, SIGNAL(suspended(bool)), this, SLOT(suspended(bool)), Qt::QueuedConnection);
+        connect(&emu_thread, SIGNAL(stopped()), this, SLOT(stopped()), Qt::QueuedConnection);
+
+        // We might have missed a few events
+        ui->buttonSpeed->setChecked(turbo_mode);
+        usblinkChanged(usblink_connected);
+    }
+    else
+    {
+        disconnect(&emu_thread, SIGNAL(speedChanged(double)), this, SLOT(showSpeed(double)));
+        disconnect(&emu_thread, SIGNAL(turboModeChanged(bool)), ui->buttonSpeed, SLOT(setChecked(bool)));
+        disconnect(&emu_thread, SIGNAL(usblinkChanged(bool)), this, SLOT(usblinkChanged(bool)));
+        disconnect(&emu_thread, SIGNAL(started(bool)), this, SLOT(started(bool)));
+        disconnect(&emu_thread, SIGNAL(paused(bool)), ui->actionPause, SLOT(setChecked(bool)));
+        disconnect(&emu_thread, SIGNAL(resumed(bool)), this, SLOT(resumed(bool)));
+        disconnect(&emu_thread, SIGNAL(suspended(bool)), this, SLOT(suspended(bool)));
+        disconnect(&emu_thread, SIGNAL(stopped()), this, SLOT(stopped()));
+    }
+
+    setVisible(b);
 }
 
 void MainWindow::suspendToPath(QString path)

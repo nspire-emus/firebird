@@ -115,6 +115,8 @@ public:
     void switchUIMode(bool mobile_ui);
 
 private:
+    void setActive(bool b);
+
     void suspendToPath(QString path);
     bool resumeFromPath(QString path);
 

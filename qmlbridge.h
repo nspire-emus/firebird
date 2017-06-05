@@ -118,6 +118,8 @@ public:
         Q_INVOKABLE void switchUIMode(bool mobile_ui);
     #endif
 
+    void setActive(bool b);
+
 public slots:
     void saveKits();
     void speedChanged(double speed);
