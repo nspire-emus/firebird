@@ -33,7 +33,7 @@ translation_enter: .global translation_enter
 	loadsym x1, translation_sp
 	str x0, [x1]
 
-	ldr x19, =arm
+	loadsym x19, arm
 	loadsym x26, addr_cache
 	ldr x26, [x26]
 
