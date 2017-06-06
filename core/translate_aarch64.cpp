@@ -45,7 +45,10 @@ extern "C" {
 	extern void write_half_asm() __asm("write_half_asm");
 	extern void read_byte_asm() __asm("read_byte_asm");
 	extern void write_byte_asm() __asm("write_byte_asm");
-};
+#ifdef IS_IOS_BUILD
+	int sys_cache_control(int function, void *start, size_t len);
+#endif
+}
 
 enum Reg : uint8_t {
 	R0 = 0, R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, SP, LR, PC
