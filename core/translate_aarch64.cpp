@@ -371,15 +371,29 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
 				goto unimpl;
 			}
 
-			if(i.data_proc.op == OP_RSB || i.data_proc.op == OP_RSC || i.data_proc.op == OP_TEQ)
+			if(i.data_proc.op == OP_RSB)
+			{
+				// RSB is not possible on AArch64, so try to convert it to SUB
+				if(!i.data_proc.imm && !i.data_proc.reg_shift && i.data_proc.shift == SH_LSL && i.data_proc.shift_imm == 0)
+				{
+					// Swap rm and rn, change op to SUB
+					unsigned int tmp = i.data_proc.rm;
+					i.data_proc.rm = i.data_proc.rn;
+					i.data_proc.rn = tmp;
+					i.data_proc.op = OP_SUB;
+				}
+				else
+					goto unimpl;
+			}
+
+			if(i.data_proc.op == OP_RSC || i.data_proc.op == OP_TEQ)
 				goto unimpl;
 
-			if(i.data_proc.shift == SH_ROR && (i.data_proc.op == OP_SUB || i.data_proc.op == OP_ADD || i.data_proc.shift_imm == 0))
+			if(i.data_proc.shift == SH_ROR && !i.data_proc.imm && (i.data_proc.op == OP_SUB || i.data_proc.op == OP_ADD || i.data_proc.shift_imm == 0))
 				goto unimpl; // ADD/SUB do not support ROR. RRX (encoded as ror #0) is not supported anywhere
 
 			// Using pc is not supported
 			if(i.data_proc.rd == PC
-			   || i.data_proc.rn == PC
 			   || (!i.data_proc.imm && i.data_proc.rm == PC))
 				goto unimpl;
 
@@ -428,7 +442,15 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
 				instruction |= mapreg(i.data_proc.rd);
 
 			if(i.data_proc.op != OP_MOV && i.data_proc.op != OP_MVN)
-				instruction |= mapreg(i.data_proc.rn) << 5;
+			{
+				if(i.data_proc.rn != PC)
+					instruction |= mapreg(i.data_proc.rn) << 5;
+				else
+				{
+					emit_mov_imm(W1, pc + 8);
+					instruction |= W1 << 5;
+				}
+			}
 
 			if(!i.data_proc.imm)
 			{
@@ -484,7 +506,8 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
 
 			bool offset_is_zero = !i.mem_proc.not_imm && i.mem_proc.immed == 0;
 
-			if(!offset_is_zero && (i.mem_proc.rm == PC || (i.mem_proc.shift == SH_ROR && i.mem_proc.shift_imm == 0)))
+			if(!offset_is_zero && i.mem_proc.not_imm && (i.mem_proc.rm == PC || (i.mem_proc.shift == SH_ROR && i.mem_proc.shift_imm == 
+0)))
 				goto unimpl;
 
 			// Address into w0
