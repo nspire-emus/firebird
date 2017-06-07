@@ -374,8 +374,8 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
 			if(i.data_proc.op == OP_RSB || i.data_proc.op == OP_RSC || i.data_proc.op == OP_TEQ)
 				goto unimpl;
 
-			if(i.data_proc.shift == SH_ROR && i.data_proc.shift_imm == 0) // RRX
-				goto unimpl;
+			if(i.data_proc.shift == SH_ROR && (i.data_proc.op == OP_SUB || i.data_proc.op == OP_ADD || i.data_proc.shift_imm == 0))
+				goto unimpl; // ADD/SUB do not support ROR. RRX (encoded as ror #0) is not supported anywhere
 
 			// Using pc is not supported
 			if(i.data_proc.rd == PC
