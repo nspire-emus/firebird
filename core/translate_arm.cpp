@@ -695,21 +695,28 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
             bool setcc = i.data_proc.s,
                  reg_shift = !i.data_proc.imm && i.data_proc.reg_shift;
 
-            // Using pc is not supported
-            if(i.data_proc.rd == PC
-                    || i.data_proc.rn == PC
-                    || (!i.data_proc.imm && i.data_proc.rm == PC)
-                    || (reg_shift && i.data_proc.rs == PC))
+            if(i.data_proc.rd == PC)
                 goto unimpl;
 
             // Shortcut for simple register mov (mov rd, rm)
             if((i.raw & 0xFFF0FF0) == 0x1a00000)
             {
+                if(i.data_proc.rm == PC)
+                {
+                    emit_mov(regmap_store(i.data_proc.rd), pc + 8);
+                    goto instruction_translated;
+                }
+
                 uint8_t rm = regmap_load(i.data_proc.rm);
                 uint8_t rd = regmap_store(i.data_proc.rd);
                 emit_mov_reg(rd, rm);
                 goto instruction_translated;
             }
+
+            // Using pc is not supported
+            if((!i.data_proc.imm && i.data_proc.rm == PC)
+                    || (reg_shift && i.data_proc.rs == PC))
+                goto unimpl;
 
             Instruction translated;
             translated.raw = (i.raw & 0xFFFFFFF) | 0xE0000000;
@@ -719,7 +726,15 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
 
             // MOV and MVN don't have Rn
             if(i.data_proc.op != OP_MOV && i.data_proc.op != OP_MVN)
-                translated.data_proc.rn = regmap_load(i.data_proc.rn);
+            {
+                if(i.data_proc.rn != PC)
+                    translated.data_proc.rn = regmap_load(i.data_proc.rn);
+                else
+                {
+                    emit_mov(R0, pc + 8);
+                    translated.data_proc.rn = R0;
+                }
+            }
 
             // rm is stored in the immediate, don't overwrite it
             if(!i.data_proc.imm)
