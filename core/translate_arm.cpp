@@ -770,38 +770,10 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
             {
                 int offset = i.mem_proc.u ? i.mem_proc.immed :
                                             -i.mem_proc.immed;
-                unsigned int address = pc + 8 + offset;
 
-                if(!i.mem_proc.l)
-                {
-                    emit_mov(R0, address);
-                    regmap_flush();
-                    goto no_offset;
-                }
-
-                // Load: value very likely constant
-                uint32_t *ptr = reinterpret_cast<uint32_t*>(try_ptr(address));
-                if(!ptr)
-                {
-                    // Location not readable yet
-                    emit_mov(R0, address);
-                    regmap_flush();
-                    goto no_offset;
-                }
-
-                if(i.mem_proc.rd != PC)
-                    emit_mov(regmap_store(i.mem_proc.rd), i.mem_proc.b ? *ptr & 0xFF : *ptr);
-                else
-                {
-                    // pc is destination register
-                    emit_mov(R0, i.mem_proc.b ? *ptr & 0xFF : *ptr);
-                    emit_jmp(reinterpret_cast<void*>(translation_next));
-                    // It's an unconditional jump
-                    if(i.cond == CC_AL)
-                        jumps_away = stop_here = true;
-                }
-
-                goto instruction_translated;
+                emit_mov(R0, pc + 8 + offset);
+                regmap_flush();
+                goto no_offset;
             }
 
             regmap_flush();

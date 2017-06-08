@@ -18,7 +18,6 @@
  * to be preserved. They need to be written back into the virtual arm struct
  * before calling into compiler-generated code though.
  */
-
 #include <cassert>
 #include <cstdint>
 
@@ -499,7 +498,6 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
 		else if((i.raw & 0xC000000) == 0x4000000)
 		{
 			// Memory access: LDR, STRB, etc.
-
 			// User mode access not implemented
 			if(!i.mem_proc.p && i.mem_proc.w)
 				goto unimpl;
@@ -519,36 +517,9 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
 			{
 				int offset = i.mem_proc.u ? i.mem_proc.immed :
 				                            -i.mem_proc.immed;
-				unsigned int address = pc + 8 + offset;
 
-				if(!i.mem_proc.l)
-				{
-					emit_mov_imm(W0, address);
-					goto no_offset;
-				}
-
-				// Load: value very likely constant
-				uint32_t *ptr = reinterpret_cast<uint32_t*>(try_ptr(address));
-				if(!ptr)
-				{
-					// Location not readable yet
-					emit_mov_imm(W0, address);
-					goto no_offset;
-				}
-
-				if(i.mem_proc.rd != PC)
-					emit_mov_imm(mapreg(i.mem_proc.rd), i.mem_proc.b ? *ptr & 0xFF : *ptr);
-				else
-				{
-					// pc is destination register
-					emit_mov_imm(W0, i.mem_proc.b ? *ptr & 0xFF : *ptr);
-					emit_jmp(reinterpret_cast<void*>(translation_next));
-					// It's an unconditional jump
-					if(i.cond == CC_AL)
-						jumps_away = stop_here = true;
-				}
-
-				goto instruction_translated;
+				emit_mov_imm(W0, pc + 8 + offset);
+				goto no_offset;
 			}
 
 			// Skip offset calculation
@@ -585,7 +556,7 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
 			}
 			else
 			{
-				// ..into r5
+				// ..into w25
 				if(i.mem_proc2.u)
 					emit(0x0b190019); // add w25, w0, w25
 				else
@@ -625,7 +596,6 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
 		else if((i.raw & 0xE000000) == 0x8000000)
 		{
 			// LDM/STM
-
 			if(i.mem_multi.s)
 				goto unimpl; // Exception return or usermode not implemented
 
@@ -818,6 +788,7 @@ void invalidate_translation(int index)
     /* Due to translation_jmp using absolute pointers in the JIT, we can't just
        invalidate a single translation. */
     #ifdef SUPPORT_LINUX
+        (void) index;
         flush_translations();
     #else
         _invalidate_translation(index);
