@@ -1,8 +1,9 @@
 #include <errno.h>
 
-#include "core/mmu.h"
 #include "core/debug.h"
 #include "core/emu.h"
+#include "core/mem.h"
+#include "core/mmu.h"
 
 void gui_do_stuff(bool wait)
 {
@@ -63,22 +64,66 @@ void throttle_timer_wait() {}
 
 int main(int argc, char *argv[])
 {
-    if(argc != 3)
-    {
-        fprintf(stderr, "Usage: %s boot1.img flash.img\n", argv[0]);
-        return 1;
-    }
+	const char *boot1 = nullptr, *flash = nullptr, *snapshot = nullptr, *rampayload = nullptr;
 
-    debug_on_warn = true;
+	for(int argi = 1; argi < argc; ++argi)
+	{
+		if(strcmp(argv[argi], "--boot1") == 0)
+			boot1 = argv[++argi];
+		else if(strcmp(argv[argi], "--flash") == 0)
+			flash = argv[++argi];
+		else if(strcmp(argv[argi], "--snapshot") == 0)
+			snapshot = argv[++argi];
+		else if(strcmp(argv[argi], "--rampayload") == 0)
+			rampayload = argv[++argi];
+		else if(strcmp(argv[argi], "--debug-on-start") == 0)
+			debug_on_start = true;
+		else if(strcmp(argv[argi], "--debug-on-warn") == 0)
+			debug_on_warn = true;
+		else if(strcmp(argv[argi], "--diags") == 0)
+			boot_order = ORDER_DIAGS;
+		else
+		{
+			fprintf(stderr, "Unknown argument '%s'.\n", argv[argi]);
+			return 1;
+		}
+	}
 
-    path_boot1 = argv[1];
-    path_flash = argv[2];
+	if(!boot1 || !flash)
+	{
+		fprintf(stderr, "You need to specify at least Boot1 and Flash images.\n");
+		return 2;
+	}
 
-    if(!emu_start(0, 0, NULL))
-        return 1;
+	path_boot1 = boot1;
+	path_flash = flash;
 
-    turbo_mode = true;
-    emu_loop(true);
+	if(!emu_start(0, 0, snapshot))
+		return 1;
 
-    return 0;
+	if(rampayload)
+	{
+		FILE *f = fopen(rampayload, "rb");
+		if(!f)
+		{
+			perror("Could not open RAM payload");
+			return 3;
+		}
+
+		if(fread(mem_areas[1].ptr, 1, mem_areas[1].size, f) < 0)
+		{
+			perror("Could not read RAM payload");
+			return 4;
+		}
+
+		fclose(f);
+
+		// Jump to payload
+		arm.reg[15] = mem_areas[1].base;
+	}
+
+	turbo_mode = true;
+	emu_loop(false);
+
+	return 0;
 }

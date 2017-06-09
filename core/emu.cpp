@@ -157,12 +157,25 @@ struct gui_busy_raii {
     ~gui_busy_raii() { gui_set_busy(false); }
 };
 
+static void emu_reset()
+{
+    memset(mem_areas[1].ptr, 0, mem_areas[1].size);
+
+    memset(&arm, 0, sizeof arm);
+    arm.control = 0x00050078;
+    arm.cpsr_low28 = MODE_SVC | 0xC0;
+    cpu_events &= EVENT_DEBUG_STEP;
+
+    sched_reset();
+    sched.items[SCHED_THROTTLE].clock = CLOCK_27M;
+    sched.items[SCHED_THROTTLE].proc = throttle_interval_event;
+
+    memory_reset();
+}
+
 bool emu_start(unsigned int port_gdb, unsigned int port_rdbg, const char *snapshot_file)
 {
     gui_busy_raii gui_busy;
-
-    if(debug_on_start)
-        cpu_events |= EVENT_DEBUG_STEP;
 
     if(snapshot_file)
     {
@@ -233,6 +246,9 @@ bool emu_start(unsigned int port_gdb, unsigned int port_rdbg, const char *snapsh
         }
     }
 
+    if(debug_on_start)
+        cpu_events |= EVENT_DEBUG_STEP;
+
     uint8_t *rom = mem_areas[0].ptr;
     memset(rom, -1, 0x80000);
     for (int i = 0x00000; i < 0x80000; i += 4)
@@ -269,6 +285,9 @@ bool emu_start(unsigned int port_gdb, unsigned int port_rdbg, const char *snapsh
 
     usblink_queue_reset();
 
+    if(!snapshot_file)
+        emu_reset();
+
     return true;
 }
 
@@ -276,19 +295,8 @@ void emu_loop(bool reset)
 {
     if(reset)
     {
-    reset:
-        memset(mem_areas[1].ptr, 0, mem_areas[1].size);
-
-        memset(&arm, 0, sizeof arm);
-        arm.control = 0x00050078;
-        arm.cpsr_low28 = MODE_SVC | 0xC0;
-        cpu_events &= EVENT_DEBUG_STEP;
-
-        sched_reset();
-        sched.items[SCHED_THROTTLE].clock = CLOCK_27M;
-        sched.items[SCHED_THROTTLE].proc = throttle_interval_event;
-
-        memory_reset();
+        reset:
+        emu_reset();
     }
 
     gdbstub_reset();

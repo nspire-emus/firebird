@@ -20,7 +20,7 @@ typedef struct arm_state {  // Remember to update asmcode.S if this gets rearran
     uint8_t  cpsr_c;     // CPSR bit 29
     uint8_t  cpsr_v;     // CPSR bit 28
 
-    #ifdef __arm__
+    #if defined(__arm__)
     uint32_t cpsr_flags; // Only used in ARM translations
     #endif
 

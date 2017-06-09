@@ -4,7 +4,7 @@ lessThan(QT_MAJOR_VERSION, 5): error("You need at least Qt 5.6 to build firebird
 lessThan(QT_MINOR_VERSION, 6): error("You need at least Qt 5.6 to build firebird!")
 
 # Version
-DEFINES += FB_VERSION=1.3
+DEFINES += FB_VERSION=1.3-dev
 
 # JIT
 TRANSLATION_ENABLED = true
@@ -98,6 +98,10 @@ ios {
 # QMAKE_HOST can be e.g. armv7hl, but QT_ARCH would be arm in such cases
 QMAKE_TARGET.arch = $$QT_ARCH
 
+equals(QMAKE_TARGET.arch, "arm64") {
+    QMAKE_TARGET.arch = aarch64
+}
+
 win32 {
     SOURCES += core/os/os-win32.c
     LIBS += -lwinmm -lws2_32
@@ -131,7 +135,7 @@ equals(TRANSLATION_ENABLED, true) {
 else: DEFINES += NO_TRANSLATION
 
 # The x86_64 and ARM JIT use asmcode.c for mem access
-contains(QMAKE_TARGET.arch, "x86_64") || contains(QMAKE_TARGET.arch, "arm") {
+equals(QMAKE_TARGET.arch, "x86_64") || equals(QMAKE_TARGET.arch, "arm") || equals(QMAKE_TARGET.arch, "aarch64") {
     !contains(ASMCODE_IMPL, "core/asmcode.c") {
         SOURCES += core/asmcode.c
     }

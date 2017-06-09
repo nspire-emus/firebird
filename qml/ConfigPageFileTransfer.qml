@@ -26,7 +26,7 @@ ColumnLayout {
     FBLabel {
         Layout.maximumWidth: parent.width
         wrapMode: Text.WordWrap
-        text: qsTr("Here you can send single files into the target folder specified above.")
+        text: qsTr("Here you can send single files into the target folder specified below.")
         font.pixelSize: TextMetrics.normalSize
     }
 

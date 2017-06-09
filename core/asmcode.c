@@ -5,9 +5,8 @@
 
 //TODO: Read breakpoints, alignment checks
 
-#if (!defined(__i386__) && !defined(__x86_64__) && !defined(__arm__)) || defined(NO_TRANSLATION)
+#if defined(NO_TRANSLATION)
 void flush_translations() {}
-bool range_translated(uintptr_t x, uintptr_t y) { (void) x; (void) y; return false; }
 #endif
 
 uint32_t FASTCALL read_word(uint32_t addr)
