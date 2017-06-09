@@ -177,9 +177,6 @@ bool emu_start(unsigned int port_gdb, unsigned int port_rdbg, const char *snapsh
 {
     gui_busy_raii gui_busy;
 
-    if(debug_on_start)
-        cpu_events |= EVENT_DEBUG_STEP;
-
     if(snapshot_file)
     {
         // Open snapshot
@@ -248,6 +245,9 @@ bool emu_start(unsigned int port_gdb, unsigned int port_rdbg, const char *snapsh
             return false;
         }
     }
+
+    if(debug_on_start)
+        cpu_events |= EVENT_DEBUG_STEP;
 
     uint8_t *rom = mem_areas[0].ptr;
     memset(rom, -1, 0x80000);
