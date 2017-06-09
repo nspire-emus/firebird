@@ -181,7 +181,8 @@ translation_jmp_ptr: .global translation_jmp_ptr
     mov     r4, r4, lsr #2 // r4 = number of instructions to the end
     loadsym r6, cycle_count_delta, 4
     ldr     r5, [r6]
-    add     r5, r5, r4 // add r4 to cycle_count_delta
+    adds    r5, r5, r4 // add r4 to cycle_count_delta
+    bpl     save_return
     str     r5, [r6]
 
     sub     r0, r0, r3 // r0 = pc_ptr - start_ptr
