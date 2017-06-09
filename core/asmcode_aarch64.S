@@ -105,10 +105,9 @@ translation_jmp: .global translation_jmp
 	// add number of instructions to cycle_count_delta
 	loadsym x24, cycle_count_delta
 	ldr w25, [x24]
-	add w25, w25, #4 // We don't know how much will be executed, so use a possible number
-	str w25, [x24]
-	cmp w25, #0
+	adds w25, w25, #4 // We don't know how much will be executed, so use a possible number
 	bpl save_return
+	str w25, [x24]
 
 	msr nzcv, x17
 
