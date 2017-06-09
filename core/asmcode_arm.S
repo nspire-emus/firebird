@@ -25,7 +25,7 @@ translation_sp: .global translation_sp
 #define AC_FLAGS (AC_INVALID|AC_NOT_PTR)
 
 /* For now enable .text relocations everywhere. */
-#if 1 || defined(__clang__)
+#if defined(__clang__)
 /* On iOS, .text relocations are permitted and due to
    a bug it's unable to handle to handle our way of
    avoiding them anyway... */
@@ -64,7 +64,7 @@ sym  cpu_events
 sym  translation_table
 sym  cycle_count_delta, 2
 sym  translation_sp, 2
-#sym  cpu_events, 2
+//sym  cpu_events, 2
 sym  cycle_count_delta, 3
 sym  translation_table, 2
 sym  cycle_count_delta, 4
@@ -230,6 +230,7 @@ write_word_invalid:
 write_half_asm: .global write_half_asm
 // r0 is address, r1 is value
     loadsym r2, addr_cache, 2
+    bic     r0, r0, #1
     ldr     r2, [r2]
     mov     r3, r0, lsr #9
     orr     r3, r3, #1
@@ -301,6 +302,7 @@ read_word_invalid:
 read_half_asm: .global read_half_asm
 // r0 is address
     loadsym r2, addr_cache, 5
+    bic     r0, r0, #1
     ldr     r2, [r2]
     mov     r3, r0, lsr #10
     ldr     r3, [r2, r3, lsl #3] // r3 contains ac_entry
