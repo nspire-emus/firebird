@@ -41,8 +41,8 @@ QMAKE_CXXFLAGS = -g -std=c++11 -Wall -Wextra -D QT_NO_CAST_FROM_ASCII
 LIBS += -lz
 
 # Override bad default options to enable better optimizations
-QMAKE_CFLAGS_RELEASE = -O3 -flto
-QMAKE_CXXFLAGS_RELEASE = -O3 -flto
+QMAKE_CFLAGS_RELEASE = -O3 -flto -DNDEBUG
+QMAKE_CXXFLAGS_RELEASE = -O3 -flto -DNDEBUG
 QMAKE_LFLAGS_RELEASE = -Wl,-O3 -flto
 QMAKE_LFLAGS += -fno-pie
 
