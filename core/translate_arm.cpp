@@ -551,7 +551,14 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
 
         bool can_jump_here = !flags_loaded && !regmap_any_mapped;
 
-        if(i.cond != CC_AL && i.cond != CC_NV)
+        if(unlikely(i.cond == CC_NV))
+        {
+            if((i.raw & 0xFD70F000) == 0xF550F000)
+                goto instruction_translated; // PLD
+            else
+                goto unimpl;
+        }
+        else if(unlikely(i.cond != CC_AL))
         {
             need_flags();
             cond_branch = translate_current;
@@ -815,9 +822,9 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
                 else
                     emit_mov(R1, pc + 8);
 
-                if(unlikely(off.mem_proc.shift == SH_ROR))
+                if(unlikely(off.mem_proc.shift == SH_ROR && off.mem_proc.shift_imm == 0))
                 {
-                    // Possibly RRX
+                    // RRX
                     need_flags();
                     emit(off.raw);
                     changed_flags();

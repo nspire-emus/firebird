@@ -238,7 +238,14 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
 
 		*jump_table_current = translate_current;
 
-		if(i.cond != CC_AL && i.cond != CC_NV)
+		if(unlikely(i.cond == CC_NV))
+		{
+			if((i.raw & 0xFD70F000) == 0xF550F000)
+				goto instruction_translated; // PLD
+			else
+				goto unimpl;
+		}
+		else if(unlikely(i.cond != CC_AL))
 		{
 			// Conditional instruction -> Generate jump over code with inverse condition
 			cond_branch = translate_current;
@@ -504,8 +511,7 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
 
 			bool offset_is_zero = !i.mem_proc.not_imm && i.mem_proc.immed == 0;
 
-			if(!offset_is_zero && i.mem_proc.not_imm && (i.mem_proc.rm == PC || (i.mem_proc.shift == SH_ROR && i.mem_proc.shift_imm == 
-0)))
+			if(i.mem_proc.not_imm && (i.mem_proc.rm == PC || (i.mem_proc.shift == SH_ROR && i.mem_proc.shift_imm == 0)))
 				goto unimpl;
 
 			// Address into w0
@@ -540,10 +546,10 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
 			}
 
 			// Get final address..
-			if(i.mem_proc2.p)
+			if(i.mem_proc.p)
 			{
 				// ..into r0
-				if(i.mem_proc2.u)
+				if(i.mem_proc.u)
 					emit(0x0b190000); // add w0, w0, w25
 				else
 					emit(0x4b190000); // sub w0, w0, w25
@@ -557,7 +563,7 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
 			else
 			{
 				// ..into w25
-				if(i.mem_proc2.u)
+				if(i.mem_proc.u)
 					emit(0x0b190019); // add w25, w0, w25
 				else
 					emit(0x4b190019); // sub w25, w0, w25
