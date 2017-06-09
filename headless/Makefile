@@ -10,13 +10,13 @@ ifeq "$(TOOLCHAIN_ARCH)" ""
 endif
 
 ifeq "$(TRANSLATION_ENABLED)" "TRUE"
-    ifneq "$(filter $(TOOLCHAIN_ARCH),i%86)" "" 
+    ifneq "$(filter i%86,$(TOOLCHAIN_ARCH))" ""
         ASMSOURCES += ../core/asmcode_x86.S
         CSOURCES += ../core/translation_x86.c
     else ifeq "$(TOOLCHAIN_ARCH)" "x86_64"
         ASMSOURCES += ../core/asmcode_x86_64.S
         CSOURCES += ../core/asmcode.c ../core/translate_x86_64.c
-    else ifneq "$(filter $(TOOLCHAIN_ARCH),arm%)" ""
+    else ifneq "$(filter arm%,$(TOOLCHAIN_ARCH))" ""
         ASMSOURCES += ../core/asmcode_arm.S
         CSOURCES += ../core/asmcode.c
         CPPSOURCES += ../core/translate_arm.cpp
