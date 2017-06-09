@@ -1,7 +1,7 @@
 FLAGS := -g -O3 -DBENCHMARK -Wall -I..
 OUTPUT := firebird-headless
 
-TOOLCHAIN_ARCH = $(shell $(CC) -v 2>&1 | awk '/Target:(.*)/{ print $$2 }' | cut -d- -f1)
+TOOLCHAIN_ARCH = $(shell LANG=C $(CC) -v 2>&1 | awk '/Target:(.*)/{ print $$2 }' | cut -d- -f1)
 TRANSLATION_ENABLED ?= TRUE
 SUPPORT_LINUX ?= TRUE
 
