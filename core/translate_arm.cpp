@@ -219,6 +219,7 @@ static uint8_t regmap_next_preg()
     }
 
     assert(!"No physical registers left!");
+    __builtin_unreachable();
 }
 
 static uint8_t regmap_loadstore(uint8_t rvirt)
