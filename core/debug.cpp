@@ -213,6 +213,7 @@ int process_debug_cmd(char *cmdline) {
                     "u[a|t] [address] - disassemble memory\n"
                     "wm <file> <start> <size> - write memory to file\n"
                     "wf <file> <start> [size] - write file to memory\n"
+                    "stop - stop the emulation\n"
                     "exec <path> - exec file with ndless\n");
     } else if (!strcasecmp(cmd, "b")) {
         char *fp = strtok(NULL, " \n\r");
@@ -533,6 +534,9 @@ int process_debug_cmd(char *cmdline) {
         uint32_t addr = parse_expr(strtok(NULL, " \n\r"));
         uint32_t value = parse_expr(strtok(NULL, " \n\r"));
         mmio_write_word(addr, value);
+    } else if(!strcasecmp(cmd, "stop")) {
+	exiting = true;
+        return 0;
     } else if(!strcasecmp(cmd, "exec")) {
         char *path = strtok(NULL, " \n\r");
         if(!path)
