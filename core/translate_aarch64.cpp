@@ -335,7 +335,7 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
 			}
 
 			// Post-indexed: final address in r5 back into rn
-			if(!i.mem_proc.p)
+			if(!i.mem_proc2.p)
 				emit_mov_reg(mapreg(i.mem_proc.rn), W25);
 
 		}
@@ -513,6 +513,9 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
 
 			if(i.mem_proc.not_imm && (i.mem_proc.rm == PC || (i.mem_proc.shift == SH_ROR && i.mem_proc.shift_imm == 0)))
 				goto unimpl;
+
+			if(i.mem_proc.rn == PC && !i.mem_proc.p)
+				goto unimpl; // Writeback into PC not implemented
 
 			// Address into w0
 			if(i.mem_proc.rn != PC)
