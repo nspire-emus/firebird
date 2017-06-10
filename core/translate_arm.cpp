@@ -672,8 +672,8 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
             }
 
             // Post-indexed: final address in r5 back into rn
-            if(!i.mem_proc.p)
-                emit_str_armreg(R5, i.mem_proc.rn);
+            if(!i.mem_proc2.p)
+                emit_str_armreg(R5, i.mem_proc2.rn);
         }
         else if((insn & 0xD900000) == 0x1000000)
         {
@@ -774,6 +774,8 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
             else
                 emit(translated.raw);
         }
+        else if((i.raw & 0xFF000F0) == 0x7F000F0)
+            goto unimpl; // undefined
         else if((insn & 0xC000000) == 0x4000000)
         {
             // Memory access: LDR, STRB, etc.
@@ -798,8 +800,7 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
                                             -i.mem_proc.immed;
 
                 emit_mov(R0, pc + 8 + offset);
-                regmap_flush();
-                goto no_offset;
+                offset_is_zero = true;
             }
 
             regmap_flush();
@@ -846,11 +847,10 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
                 else
                     emit_al(0x0400005); // sub r0, r0, r5
 
-                // TODO: In case of data aborts, this is at the wrong time.
                 // It has to be stored AFTER the memory access, to be able
                 // to perform the access again after an abort.
                 if(i.mem_proc.w) // Writeback: final address into rn
-                    emit_str_armreg(R0, i.mem_proc.rn);
+                    emit_mov_reg(R5, R0);
             }
             else
             {
@@ -879,14 +879,14 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
             }
 
             // Post-indexed: final address from r5 into rn
-            if(!offset_is_zero && !i.mem_proc.p)
+            if(!offset_is_zero && (!i.mem_proc.p || i.mem_proc.w))
                 emit_str_armreg(R5, i.mem_proc.rn);
 
             // Jump after writeback, to support post-indexed jumps
             if(i.mem_proc.l && i.mem_proc.rd == PC)
             {
                 // pc is destination register
-                emit_jmp(reinterpret_cast<void*>(translation_next));
+                emit_jmp(reinterpret_cast<void*>(translation_next_bx));
                 // It's an unconditional jump
                 if(i.cond == CC_AL)
                     jumps_away = stop_here = true;
@@ -1140,6 +1140,23 @@ void translate_fix_pc()
     // but since we are here, this didn't happen (longjmp)
     set_cpsr_flags(arm.cpsr_flags);
 
-    // Not implemented: Get accurate pc back in arm.reg[15]
-    assert(false);
+    uint32_t *insnp = reinterpret_cast<uint32_t*>(try_ptr(arm.reg[15]));
+    uint32_t flags = 0;
+    if(!insnp || !((flags = RAM_FLAGS(insnp)) & RF_CODE_TRANSLATED))
+        return error("Couldn't get PC for fault");
+
+    int index = flags >> RFS_TRANSLATION_INDEX;
+    assert(insnp >= translation_table[index].start_ptr);
+    assert(insnp < translation_table[index].end_ptr);
+
+    void *ret_pc = translation_sp[-1];
+
+    unsigned int jump_index = insnp - translation_table[index].start_ptr;
+    unsigned int translation_insts = translation_table[index].end_ptr - translation_table[index].start_ptr;
+
+    for(unsigned int i = jump_index; ret_pc > translation_table[index].jump_table[i] && i < translation_insts; ++i)
+        arm.reg[15] += 4;
+
+    cycle_count_delta -= translation_table[index].end_ptr - insnp;
+    translation_sp = nullptr;
 }
