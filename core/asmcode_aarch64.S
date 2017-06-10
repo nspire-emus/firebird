@@ -189,7 +189,7 @@ read_word_asm: .global read_word_asm
 1:	tbnz x22, #1, 2f
 // MMIO
 	bic x22, x22, #3
-	stp x30, x22, [sp, #-16]!
+	stp x30, x23, [sp, #-16]!
 	add x0, x0, x22
 	mrs x17, nzcv
 	bl save_virt
@@ -200,7 +200,7 @@ read_word_asm: .global read_word_asm
 	ret
 
 // Invalid
-2:	stp x30, x22, [sp, #-16]!
+2:	stp x30, x23, [sp, #-16]!
 	stp x0, x1, [sp, #-16]!
 	mrs x17, nzcv
 	bl save_virt
@@ -226,7 +226,7 @@ read_half_asm: .global read_half_asm
 1:	tbnz x22, #1, 2f
 // MMIO
 	bic x22, x22, #3
-	stp x30, x22, [sp, #-16]!
+	stp x30, x23, [sp, #-16]!
 	add x0, x0, x22
 	mrs x17, nzcv
 	bl save_virt
@@ -237,7 +237,7 @@ read_half_asm: .global read_half_asm
 	ret
 
 // Invalid
-2:	stp x30, x22, [sp, #-16]!
+2:	stp x30, x23, [sp, #-16]!
 	stp x0, x1, [sp, #-16]!
 	mrs x17, nzcv
 	bl save_virt
@@ -262,7 +262,7 @@ read_byte_asm: .global read_byte_asm
 1:	tbnz x22, #1, 2f
 // MMIO
 	bic x22, x22, #3
-	stp x30, x22, [sp, #-16]!
+	stp x30, x23, [sp, #-16]!
 	add x0, x0, x22
 	mrs x17, nzcv
 	bl save_virt
@@ -273,7 +273,7 @@ read_byte_asm: .global read_byte_asm
 	ret	
 
 // Invalid
-2:	stp x30, x22, [sp, #-16]!
+2:	stp x30, x23, [sp, #-16]!
 	stp x0, x1, [sp, #-16]!
 	mrs x17, nzcv
 	bl save_virt
@@ -298,7 +298,7 @@ write_word_asm: .global write_word_asm
 1:	tbnz x22, #1, 2f
 // MMIO
 	bic x22, x22, #3
-	stp x30, x22, [sp, #-16]!
+	stp x30, x23, [sp, #-16]!
 	add x0, x0, x22
 	mrs x17, nzcv
 	bl save_virt
@@ -309,7 +309,7 @@ write_word_asm: .global write_word_asm
 	ret
 
 // Invalid
-2:	stp x30, x22, [sp, #-16]!
+2:	stp x30, x23, [sp, #-16]!
 	stp x0, x1, [sp, #-16]!
 	mrs x17, nzcv
 	bl save_virt
@@ -335,7 +335,7 @@ write_half_asm: .global write_half_asm
 1:	tbnz x22, #1, 2f
 // MMIO
 	bic x22, x22, #3
-	stp x30, x22, [sp, #-16]!
+	stp x30, x23, [sp, #-16]!
 	add x0, x0, x22
 	mrs x17, nzcv
 	bl save_virt
@@ -346,7 +346,7 @@ write_half_asm: .global write_half_asm
 	ret
 
 // Invalid
-2:	stp x30, x22, [sp, #-16]!
+2:	stp x30, x23, [sp, #-16]!
 	stp x0, x1, [sp, #-16]!
 	mrs x17, nzcv
 	bl save_virt
@@ -371,7 +371,7 @@ write_byte_asm: .global write_byte_asm
 1:	tbnz x22, #1, 2f
 // MMIO
 	bic x22, x22, #3
-	stp x30, x22, [sp, #-16]!
+	stp x30, x23, [sp, #-16]!
 	add x0, x0, x22
 	mrs x17, nzcv
 	bl save_virt
@@ -382,7 +382,7 @@ write_byte_asm: .global write_byte_asm
 	ret	
 
 // Invalid
-2:	stp x30, x22, [sp, #-16]!
+2:	stp x30, x23, [sp, #-16]!
 	stp x0, x1, [sp, #-16]!
 	mrs x17, nzcv
 	bl save_virt

@@ -336,7 +336,7 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
 
 			// Post-indexed: final address in r5 back into rn
 			if(!i.mem_proc2.p)
-				emit_mov_reg(mapreg(i.mem_proc.rn), W25);
+				emit_mov_reg(mapreg(i.mem_proc2.rn), W25);
 
 		}
 		else if((i.raw & 0xD900000) == 0x1000000)
@@ -502,6 +502,8 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
 
 			emit(instruction);
 		}
+		else if((i.raw & 0xFF000F0) == 0x7F000F0)
+			goto unimpl; // undefined
 		else if((i.raw & 0xC000000) == 0x4000000)
 		{
 			// Memory access: LDR, STRB, etc.
@@ -509,13 +511,13 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
 			if(!i.mem_proc.p && i.mem_proc.w)
 				goto unimpl;
 
-			bool offset_is_zero = !i.mem_proc.not_imm && i.mem_proc.immed == 0;
-
 			if(i.mem_proc.not_imm && (i.mem_proc.rm == PC || (i.mem_proc.shift == SH_ROR && i.mem_proc.shift_imm == 0)))
 				goto unimpl;
 
-			if(i.mem_proc.rn == PC && !i.mem_proc.p)
+			if((i.mem_proc.rd == i.mem_proc.rn || i.mem_proc.rn == PC) && (!i.mem_proc.p || i.mem_proc.w))
 				goto unimpl; // Writeback into PC not implemented
+
+			bool offset_is_zero = !i.mem_proc.not_imm && i.mem_proc.immed == 0;
 
 			// Address into w0
 			if(i.mem_proc.rn != PC)
@@ -528,7 +530,7 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
 				                            -i.mem_proc.immed;
 
 				emit_mov_imm(W0, pc + 8 + offset);
-				goto no_offset;
+				offset_is_zero = true;
 			}
 
 			// Skip offset calculation
@@ -557,11 +559,10 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
 				else
 					emit(0x4b190000); // sub w0, w0, w25
 
-				// TODO: In case of data aborts, this is at the wrong time.
 				// It has to be stored AFTER the memory access, to be able
 				// to perform the access again after an abort.
-				if(i.mem_proc.w) // Writeback: final address into rn
-					emit_mov_reg(mapreg(i.mem_proc.rn), W0);
+				if(i.mem_proc.w) // Writeback: final address into w25
+					emit_mov_reg(W25, W0);
 			}
 			else
 			{
@@ -589,14 +590,14 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
 				emit_call(reinterpret_cast<void*>(i.mem_proc.b ? write_byte_asm : write_word_asm));
 			}
 
-			if(!offset_is_zero && !i.mem_proc.p)
+			if(!offset_is_zero && (!i.mem_proc.p || i.mem_proc.w))
 				emit_mov_reg(mapreg(i.mem_proc.rn), W25);
 
 			// Jump after writeback, to support post-indexed jumps
 			if(i.mem_proc.l && i.mem_proc.rd == PC)
 			{
 				// pc is destination register
-				emit_jmp(reinterpret_cast<void*>(translation_next));
+				emit_jmp(reinterpret_cast<void*>(translation_next_bx));
 				// It's an unconditional jump
 				if(i.cond == CC_AL)
 					jumps_away = stop_here = true;
@@ -768,47 +769,66 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
 
 static void _invalidate_translation(int index)
 {
-    /* Disabled for now. write_action not called in asmcode_aarch64.S so this can't happen
-       and translation_pc_ptr is inaccurate due to translation_jmp anyway.
+	/* Disabled for now. write_action not called in asmcode_aarch64.S so this can't happen
+	   and translation_pc_ptr is inaccurate due to translation_jmp anyway.
 
-    uint32_t flags = RAM_FLAGS(translation_pc_ptr);
-    if ((flags & RF_CODE_TRANSLATED) && (int)(flags >> RFS_TRANSLATION_INDEX) == index)
-        error("Cannot modify currently executing code block.");
-    */
+	uint32_t flags = RAM_FLAGS(translation_pc_ptr);
+	if ((flags & RF_CODE_TRANSLATED) && (int)(flags >> RFS_TRANSLATION_INDEX) == index)
+		error("Cannot modify currently executing code block.");
+	*/
 
-    uint32_t *start = translation_table[index].start_ptr;
-    uint32_t *end   = translation_table[index].end_ptr;
-    for (; start < end; start++)
-        RAM_FLAGS(start) &= ~(RF_CODE_TRANSLATED | (~0u << RFS_TRANSLATION_INDEX));
+	uint32_t *start = translation_table[index].start_ptr;
+	uint32_t *end   = translation_table[index].end_ptr;
+	for (; start < end; start++)
+		RAM_FLAGS(start) &= ~(RF_CODE_TRANSLATED | (~0u << RFS_TRANSLATION_INDEX));
 }
 
 void flush_translations()
 {
-    for(unsigned int index = 0; index < next_translation_index; index++)
-        _invalidate_translation(index);
+	for(unsigned int index = 0; index < next_translation_index; index++)
+		_invalidate_translation(index);
 
-    next_translation_index = 0;
-    translate_current = translate_buffer;
-    jump_table_current = jump_table;
+	next_translation_index = 0;
+	translate_current = translate_buffer;
+	jump_table_current = jump_table;
 }
 
 void invalidate_translation(int index)
 {
-    /* Due to translation_jmp using absolute pointers in the JIT, we can't just
-       invalidate a single translation. */
-    #ifdef SUPPORT_LINUX
-        (void) index;
-        flush_translations();
-    #else
-        _invalidate_translation(index);
-    #endif
+	/* Due to translation_jmp using absolute pointers in the JIT, we can't just
+	   invalidate a single translation. */
+	#ifdef SUPPORT_LINUX
+		(void) index;
+		flush_translations();
+	#else
+		_invalidate_translation(index);
+	#endif
 }
 
 void translate_fix_pc()
 {
-    if (!translation_sp)
-        return;
+	if (!translation_sp)
+		return;
 
-    // Not implemented: Get accurate pc back in arm.reg[15]
-    assert(false);
+	uint32_t *insnp = reinterpret_cast<uint32_t*>(try_ptr(arm.reg[15]));
+	uint32_t flags = 0;
+	if(!insnp || !((flags = RAM_FLAGS(insnp)) & RF_CODE_TRANSLATED))
+		return error("Couldn't get PC for fault");
+
+	int index = flags >> RFS_TRANSLATION_INDEX;
+	assert(insnp >= translation_table[index].start_ptr);
+	assert(insnp < translation_table[index].end_ptr);
+
+	void *ret_pc = translation_sp[-2];
+
+	unsigned int jump_index = insnp - translation_table[index].start_ptr;
+	unsigned int translation_insts = translation_table[index].end_ptr - translation_table[index].start_ptr;
+
+	for(unsigned int i = jump_index; ret_pc > translation_table[index].jump_table[i] && i < translation_insts; ++i)
+		arm.reg[15] += 4;
+
+	cycle_count_delta -= translation_table[index].end_ptr - insnp;
+	translation_sp = nullptr;
+
+	assert(!(arm.cpsr_low28 & 0x20));
 }
