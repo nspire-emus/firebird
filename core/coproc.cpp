@@ -91,10 +91,10 @@ void do_cp15_mcr(uint32_t insn)
             arm.fault_address = value;
             break;
         case 0x070080: /* MCR p15, 0, <Rd>, c7, c0, 4: Wait for interrupt */
-            cycle_count_delta = 0;
+            arm.cycle_count_delta = 0;
             if (arm.interrupts == 0) {
                 arm.reg[15] -= 4;
-                cpu_events |= EVENT_WAITING;
+                arm.cpu_events |= EVENT_WAITING;
             }
             break;
         case 0x080005: /* MCR p15, 0, <Rd>, c8, c5, 0: Invalidate instruction TLB */

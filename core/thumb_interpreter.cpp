@@ -79,13 +79,13 @@ static inline void set_nz_flags(uint32_t value) {
 }
 
 void cpu_thumb_loop() {
-    while (!exiting && cycle_count_delta < 0) {
+    while (!exiting && arm.cycle_count_delta < 0) {
         uint16_t *insnp = (uint16_t*) read_instruction(arm.reg[15] & ~1);
         uint16_t insn = *insnp;
         uintptr_t flags = RAM_FLAGS((uintptr_t)insnp & ~3);
 
-        if (cpu_events != 0) {
-            if (cpu_events & ~EVENT_DEBUG_STEP)
+        if (arm.cpu_events != 0) {
+            if (arm.cpu_events & ~EVENT_DEBUG_STEP)
                 break;
             goto enter_debugger;
         }
@@ -98,7 +98,7 @@ enter_debugger:
         }
 
         arm.reg[15] += 2;
-        cycle_count_delta++;
+        arm.cycle_count_delta++;
 
 #define CASE_x2(base) case base: case base+1
 #define CASE_x4(base) CASE_x2(base): CASE_x2(base+2)

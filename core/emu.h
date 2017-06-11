@@ -34,14 +34,7 @@ extern "C" {
 static inline uint16_t BSWAP16(uint16_t x) { return x << 8 | x >> 8; }
 #define BSWAP32(x) __builtin_bswap32(x)
 
-extern int cycle_count_delta __asm__("cycle_count_delta");
 extern int throttle_delay;
-extern uint32_t cpu_events __asm__("cpu_events");
-#define EVENT_IRQ 1
-#define EVENT_FIQ 2
-#define EVENT_RESET 4
-#define EVENT_DEBUG_STEP 8
-#define EVENT_WAITING 16
 
 // Settings
 extern volatile bool exiting, debug_on_start, debug_on_warn;
@@ -96,7 +89,7 @@ typedef void (*debug_input_cb)(const char *input);
 void gui_debugger_request_input(debug_input_cb callback);
 
 #define SNAPSHOT_SIG 0xCAFEBEE0
-#define SNAPSHOT_VER 1
+#define SNAPSHOT_VER 2
 
 typedef struct emu_snapshot {
     uint32_t sig; // SNAPSHOT_SIG

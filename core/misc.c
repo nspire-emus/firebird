@@ -196,7 +196,7 @@ bool timer_suspend(emu_snapshot *snapshot)
 
 uint32_t timer_read(uint32_t addr) {
     struct timerpair *tp = ADDR_TO_TP(addr);
-    cycle_count_delta = 0; // Avoid slowdown by fast-forwarding through polling loops
+    arm.cycle_count_delta = 0; // Avoid slowdown by fast-forwarding through polling loops
     switch (addr & 0x003F) {
         case 0x00: return tp->timers[0].value;
         case 0x04: return tp->timers[0].divider;
@@ -353,7 +353,7 @@ static void watchdog_event(int index) {
 
     if (watchdog.control >> 1 & watchdog.interrupt) {
         warn("Resetting due to watchdog timeout");
-        cpu_events |= EVENT_RESET;
+        arm.cpu_events |= EVENT_RESET;
     } else {
         watchdog.interrupt = 1;
         int_set(INT_WATCHDOG, 1);
@@ -509,7 +509,7 @@ void misc_write(uint32_t addr, uint32_t value) {
     struct timerpair *tp = &timer.pairs[(addr - 0x10) >> 3 & 3];
     switch (addr & 0x0FFF) {
         case 0x04: return;
-        case 0x08: cpu_events |= EVENT_RESET; return;
+        case 0x08: arm.cpu_events |= EVENT_RESET; return;
         case 0x10: case 0x18: case 0x20:
             if (emulate_cx) break;
             tp->int_status &= ~value;

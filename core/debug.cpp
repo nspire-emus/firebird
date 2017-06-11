@@ -322,7 +322,7 @@ int process_debug_cmd(char *cmdline) {
     } else if (!strcasecmp(cmd, "c")) {
         return 1;
     } else if (!strcasecmp(cmd, "s")) {
-        cpu_events |= EVENT_DEBUG_STEP;
+        arm.cpu_events |= EVENT_DEBUG_STEP;
         return 1;
     } else if (!strcasecmp(cmd, "n")) {
         set_debug_next((uint32_t*) virt_mem_ptr(arm.reg[15] & ~3, 4) + 1);
@@ -572,8 +572,8 @@ static void native_debugger(void) {
         disasm_insn(arm.reg[15]);
     }
 
-    if (cpu_events & EVENT_DEBUG_STEP) {
-        cpu_events &= ~EVENT_DEBUG_STEP;
+    if (arm.cpu_events & EVENT_DEBUG_STEP) {
+        arm.cpu_events &= ~EVENT_DEBUG_STEP;
         disasm_insn(arm.reg[15]);
     }
 

@@ -217,7 +217,7 @@ bool EmuThread::stop()
     do_suspend = false;
 
     // Cause the cpu core to leave the loop and check for events
-    cycle_count_delta = 0;
+    arm.cycle_count_delta = 0;
 
     if(!this->wait(200))
     {
@@ -234,7 +234,7 @@ void EmuThread::reset()
 {
     usblink_queue_reset();
 
-    cpu_events |= EVENT_RESET;
+    arm.cpu_events |= EVENT_RESET;
 }
 
 bool EmuThread::resume(QString path)

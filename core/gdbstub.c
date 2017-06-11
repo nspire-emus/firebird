@@ -592,7 +592,7 @@ void gdbstub_loop(void) {
                 if (ptr)
                     ptr++;
             case 's': /* s[AA..AA]  Step at address AA..AA(optional) */
-                cpu_events |= EVENT_DEBUG_STEP;
+                arm.cpu_events |= EVENT_DEBUG_STEP;
                 goto parse_new_pc;
             case 'C': /* Csig[;AA..AA] Continue with signal at address AA..AA(optional). Same as 'c' for us. */
                 ptr = strchr(ptr, ';'); /* skip the signal */
@@ -782,7 +782,7 @@ void gdbstub_recv(void) {
 
 /* addr is only required for read/write breakpoints */
 void gdbstub_debugger(enum DBG_REASON reason, uint32_t addr) {
-    cpu_events &= ~EVENT_DEBUG_STEP;
+    arm.cpu_events &= ~EVENT_DEBUG_STEP;
     char addrstr[9]; // 8 digits
     snprintf(addrstr, sizeof(addrstr), "%x", addr);
     switch (reason) {

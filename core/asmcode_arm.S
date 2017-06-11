@@ -4,8 +4,6 @@ translation_sp: .global translation_sp
 .global arm
 .global get_cpsr_flags
 .global set_cpsr_flags
-.global cycle_count_delta
-.global cpu_events
 .global read_instruction
 
 .text
@@ -59,15 +57,10 @@ _tmp_\name\()_\no: add     \reg, \reg, pc
 
 sym  translation_sp
 sym  arm
-sym  cycle_count_delta
-sym  cpu_events
 sym  translation_table
-sym  cycle_count_delta, 2
 sym  translation_sp, 2
 //sym  cpu_events, 2
-sym  cycle_count_delta, 3
 sym  translation_table, 2
-sym  cycle_count_delta, 4
 sym  addr_cache
 sym  data_abort
 sym  addr_cache, 2
@@ -101,12 +94,11 @@ translation_next: .global translation_next
     str     r0, [r10, #15*4] // save to arm.reg[15]
 
 translation_next_enter:
-    loadsym r1, cycle_count_delta
-    ldr     r1, [r1]
+    ldr     r1, [r10, #25*4]
     cmp     r1, #0
     bpl     save_return
-    loadsym r1, cpu_events
-    ldr     r1, [r1]
+
+    ldr     r1, [r10, #24*4]
     cmp     r1, #0
     bne     save_return
 
@@ -130,10 +122,9 @@ translation_next_enter:
 
     sub     r4, r4, r0 // r4 = end_ptr - pc_ptr
     mov     r4, r4, lsr #2 // r4 = number of instructions to the end
-    loadsym r6, cycle_count_delta, 2
-    ldr     r5, [r6]
-    add     r5, r5, r4 // add r4 to cycle_count_delta
-    str     r5, [r6]
+    ldr     r5, [r10, #25*4]
+    add     r5, r5, r4 // add r4 to arm.cycle_count_delta
+    str     r5, [r10, #25*4]
 
     sub     r0, r0, r3 // r0 = pc_ptr - start_ptr
     ldr     pc, [r2, r0] // jump to jump_table[r0]
@@ -148,15 +139,13 @@ to_thumb:
 // This is used to check for events and leave the translation to process them.
 // arm.reg[15] must be set already!
 translation_jmp: .global translation_jmp
-/*    loadsym r1, cpu_events, 2
-    ldr     r2, [r1]
+    ldr     r2, [r10, #24*4]
     cmp     r2, #0
-    bne     save_return*/
+    bne     save_return
 
-    loadsym r1, cycle_count_delta, 3
-    ldr     r2, [r1]
+    ldr     r2, [r10, #25*4]
     add     r2, #4 // We don't know how much will be executed, so use a possible number
-    str     r2, [r1]
+    str     r2, [r10, #25*4]
     cmp     r2, #0
     bpl     save_return
 
@@ -179,11 +168,10 @@ translation_jmp_ptr: .global translation_jmp_ptr
 
     sub     r4, r4, r0 // r4 = end_ptr - pc_ptr
     mov     r4, r4, lsr #2 // r4 = number of instructions to the end
-    loadsym r6, cycle_count_delta, 4
-    ldr     r5, [r6]
-    adds    r5, r5, r4 // add r4 to cycle_count_delta
+    ldr     r5, [r10, #25*4]
+    adds    r5, r5, r4 // add r4 to arm.cycle_count_delta
     bpl     save_return
-    str     r5, [r6]
+    str     r5, [r10, #25*4]
 
     sub     r0, r0, r3 // r0 = pc_ptr - start_ptr
     ldr     pc, [r2, r0] // jump to jump_table[r0]

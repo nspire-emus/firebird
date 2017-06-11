@@ -16,13 +16,7 @@
 #include "usblink_queue.h"
 #include "os/os.h"
 
-/* cycle_count_delta is a (usually negative) number telling what the time is relative
- * to the next scheduled event. See sched.c */
-int cycle_count_delta = 0;
-
 int throttle_delay = 10; /* in milliseconds */
-
-uint32_t cpu_events;
 
 bool do_translate = true;
 uint32_t product = 0x0E0, features = 0, asic_user_flags = 0;
@@ -73,7 +67,7 @@ void error(const char *fmt, ...) {
     gui_debug_printf("\n");
     va_end(va);
     debugger(DBG_EXCEPTION, 0);
-    cpu_events |= EVENT_RESET;
+    arm.cpu_events |= EVENT_RESET;
     #ifndef NO_SETJMP
         __builtin_longjmp(restart_after_exception, 1);
     #else
@@ -161,10 +155,12 @@ static void emu_reset()
 {
     memset(mem_areas[1].ptr, 0, mem_areas[1].size);
 
+    uint32_t old_events = arm.cpu_events;
+
     memset(&arm, 0, sizeof arm);
     arm.control = 0x00050078;
     arm.cpsr_low28 = MODE_SVC | 0xC0;
-    cpu_events &= EVENT_DEBUG_STEP;
+    arm.cpu_events = old_events & EVENT_DEBUG_STEP;
 
     sched_reset();
     sched.items[SCHED_THROTTLE].clock = CLOCK_27M;
@@ -247,7 +243,7 @@ bool emu_start(unsigned int port_gdb, unsigned int port_rdbg, const char *snapsh
     }
 
     if(debug_on_start)
-        cpu_events |= EVENT_DEBUG_STEP;
+        arm.cpu_events |= EVENT_DEBUG_STEP;
 
     uint8_t *rom = mem_areas[0].ptr;
     memset(rom, -1, 0x80000);
@@ -316,26 +312,26 @@ void emu_loop(bool reset)
 
     while (!exiting) {
         sched_process_pending_events();
-        while (!exiting && cycle_count_delta < 0) {
-            if (cpu_events & EVENT_RESET) {
+        while (!exiting && arm.cycle_count_delta < 0) {
+            if (arm.cpu_events & EVENT_RESET) {
                 gui_status_printf("Reset");
                 goto reset;
             }
 
-            if (cpu_events & (EVENT_FIQ | EVENT_IRQ)) {
+            if (arm.cpu_events & (EVENT_FIQ | EVENT_IRQ)) {
                 // Align PC in case the interrupt occurred immediately after a jump
                 if (arm.cpsr_low28 & 0x20)
                     arm.reg[15] &= ~1;
                 else
                     arm.reg[15] &= ~3;
 
-                if (cpu_events & EVENT_WAITING)
+                if (arm.cpu_events & EVENT_WAITING)
                     arm.reg[15] += 4; // Skip over wait instruction
 
                 arm.reg[15] += 4;
-                cpu_exception((cpu_events & EVENT_FIQ) ? EX_FIQ : EX_IRQ);
+                cpu_exception((arm.cpu_events & EVENT_FIQ) ? EX_FIQ : EX_IRQ);
             }
-            cpu_events &= ~EVENT_WAITING;
+            arm.cpu_events &= ~EVENT_WAITING;
 
             if (arm.cpsr_low28 & 0x20)
                 cpu_thumb_loop();

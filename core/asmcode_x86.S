@@ -3,6 +3,8 @@
 #define ARM_CPSR 64
 #define ARM_FLAG_C 70
 #define ARM_CONTROL 72
+#define ARM_CPU_EVENTS 92
+#define ARM_CYCLE_COUNT_DELTA 96
 
 // translation structure offsets
 #define TRANS_JUMP_TABLE 4
@@ -53,10 +55,10 @@ translation_next_bx:
 translation_next:
 	movl	%eax, ARM_PC(%ebx)
 
-	cmpl	$0, cycle_count_delta
+    cmpl    $0, ARM_CYCLE_COUNT_DELTA(%ebx)
 	jns	return
 
-	cmpl	$0, cpu_events
+    cmpl    $0, ARM_CPU_EVENTS(%ebx)
 	jnz	return
 
 	// eax = VM_MEM_PTR(eax)
@@ -82,7 +84,7 @@ addr_ok:
 	movl	TRANS_END_PTR(%edx), %ecx
 	subl	%eax, %ecx
 	shrl	$2, %ecx
-	addl	%ecx, cycle_count_delta
+    add     %ecx, ARM_CYCLE_COUNT_DELTA(%ebx)
 
 	movl	TRANS_JUMP_TABLE(%edx), %edx
 	jmp	*(%edx, %eax)

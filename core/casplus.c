@@ -329,7 +329,7 @@ void omap_write_word(uint32_t addr, uint32_t value) {
     switch (addr) {
         case 0xFFFEC000: lcd_control = value; return;
         case 0xFFFECC0C: nand.nand_writable = value & 1; return; // EMIFS_CONFIG
-        case 0xFFFECE10: cpu_events |= EVENT_RESET; return;
+        case 0xFFFECE10: arm.cpu_events |= EVENT_RESET; return;
     }
     //bad_write_word(addr, value);
 }

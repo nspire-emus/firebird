@@ -1034,7 +1034,7 @@ void translate_fix_pc() {
     for(unsigned int i = 0; ret_eip > translation_table[index].jump_table[i] && i < translation_insts; ++i)
         arm.reg[15] += 4;
 
-    cycle_count_delta -= ((uintptr_t)translation_table[index].end_ptr - (uintptr_t)insnp) >> 2;
+    arm.cycle_count_delta -= ((uintptr_t)translation_table[index].end_ptr - (uintptr_t)insnp) >> 2;
     in_translation_rsp = NULL;
 
     assert(!(arm.cpsr_low28 & 0x20));

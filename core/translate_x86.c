@@ -998,7 +998,7 @@ void translate_fix_pc() {
             break;
     }
     arm.reg[15] += (uint32_t)start - (uint32_t)insnp;
-    cycle_count_delta -= ((uint32_t)end - (uint32_t)insnp) >> 2;
+    arm.cycle_count_delta -= ((uint32_t)end - (uint32_t)insnp) >> 2;
     in_translation_esp = NULL;
 }
 

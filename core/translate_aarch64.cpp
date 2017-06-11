@@ -843,7 +843,7 @@ void translate_fix_pc()
 	for(unsigned int i = jump_index; ret_pc > translation_table[index].jump_table[i] && i < translation_insts; ++i)
 		arm.reg[15] += 4;
 
-	cycle_count_delta -= translation_table[index].end_ptr - insnp;
+	arm.cycle_count_delta -= translation_table[index].end_ptr - insnp;
 	translation_sp = nullptr;
 
 	assert(!(arm.cpsr_low28 & 0x20));

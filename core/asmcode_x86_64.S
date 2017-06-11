@@ -3,6 +3,8 @@
 #define ARM_CPSR 64
 #define ARM_FLAG_C 70
 #define ARM_CONTROL 72
+#define ARM_CPU_EVENTS 92
+#define ARM_CYCLE_COUNT_DELTA 96
 
 // translation structure offsets
 #define TRANS_JUMP_TABLE 0x08
@@ -43,12 +45,10 @@ translation_next_bx: .global translation_next_bx
 translation_next: .global translation_next
     mov     %eax, ARM_PC(%rbx)
 
-    lea     cycle_count_delta(%rip), %r8
-    cmpl    $0, (%r8)
+    cmpl    $0, ARM_CYCLE_COUNT_DELTA(%rbx)
     jns     return
 
-    lea     cpu_events(%rip), %r8
-    cmpl    $0, (%r8)
+    cmpl    $0, ARM_CPU_EVENTS(%rbx)
     jnz     return
 
     mov     ARM_PC(%rbx), %edi
@@ -73,8 +73,7 @@ addr_ok:
     mov     TRANS_END_PTR(%rdx), %rcx
     sub     %rax, %rcx
     shr     $2, %rcx
-    lea     cycle_count_delta(%rip), %r8
-    add     %ecx, (%r8)
+    add     %ecx, ARM_CYCLE_COUNT_DELTA(%rbx)
 
     mov     %rax, %rcx
     sub     TRANS_START_PTR(%rdx), %rcx

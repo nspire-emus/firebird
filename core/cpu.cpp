@@ -22,7 +22,7 @@ struct arm_state arm;
 
 void cpu_arm_loop()
 {
-    while (!exiting && cycle_count_delta < 0 && current_instr_size == 4)
+    while (!exiting && arm.cycle_count_delta < 0 && current_instr_size == 4)
     {
         arm.reg[15] &= ~0x3; // Align PC
         Instruction *p = static_cast<Instruction*>(read_instruction(arm.reg[15]));
@@ -46,10 +46,10 @@ void cpu_arm_loop()
         uint32_t *flags_ptr = &RAM_FLAGS(p);
 
         // Check for pending events
-        if(cpu_events)
+        if(arm.cpu_events)
         {
             // Events other than DEBUG_STEP are handled outside
-            if(cpu_events & ~EVENT_DEBUG_STEP)
+            if(arm.cpu_events & ~EVENT_DEBUG_STEP)
                 break;
             goto enter_debugger;
         }
@@ -91,7 +91,7 @@ void cpu_arm_loop()
 #endif
 
         arm.reg[15] += 4; // Increment now to account for the pipeline
-        ++cycle_count_delta;
+        ++arm.cycle_count_delta;
         do_arm_instruction(*p);
     }
 }
@@ -224,14 +224,14 @@ void * FASTCALL read_instruction(uint32_t addr)
 void cpu_int_check()
 {
     if (arm.interrupts & ~arm.cpsr_low28 & 0x80)
-        cpu_events |= EVENT_IRQ;
+        arm.cpu_events |= EVENT_IRQ;
     else
-        cpu_events &= ~EVENT_IRQ;
+        arm.cpu_events &= ~EVENT_IRQ;
 
     if (arm.interrupts & ~arm.cpsr_low28 & 0x40)
-        cpu_events |= EVENT_FIQ;
+        arm.cpu_events |= EVENT_FIQ;
     else
-        cpu_events &= ~EVENT_FIQ;
+        arm.cpu_events &= ~EVENT_FIQ;
 }
 
 static const constexpr uint8_t exc_flags[] = {
@@ -445,13 +445,11 @@ void set_reg_bx(uint8_t i, uint32_t value)
 bool cpu_resume(const emu_snapshot *s)
 {
     arm = s->cpu_state;
-    cpu_events = s->cpu_state.cpu_events_state;
     return true;
 }
 
 bool cpu_suspend(emu_snapshot *s)
 {
     s->cpu_state = arm;
-    s->cpu_state.cpu_events_state = cpu_events;
     return true;
 }

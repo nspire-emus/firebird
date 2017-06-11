@@ -50,11 +50,11 @@ void sched_update_next_event(uint32_t cputick) {
         }
     }
     //printf("Next event: (%8d,%d)\n", next_cputick, next_index);
-    cycle_count_delta = cputick - sched.next_cputick;
+    arm.cycle_count_delta = cputick - sched.next_cputick;
 }
 
 uint32_t sched_process_pending_events() {
-    uint32_t cputick = sched.next_cputick + cycle_count_delta;
+    uint32_t cputick = sched.next_cputick + arm.cycle_count_delta;
     while (cputick >= sched.next_cputick) {
         if (sched.next_index < 0) {
             //printf("[%8d] New second\n", cputick);

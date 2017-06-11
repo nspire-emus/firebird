@@ -31,6 +31,12 @@ typedef struct arm_state {  // Remember to update asmcode.S if this gets rearran
     uint8_t  data_fault_status, instruction_fault_status, pad1, pad2; // pad1 and pad2 for better alignment
     uint32_t fault_address;
 
+    uint32_t cpu_events;
+
+    /* cycle_count_delta is a (usually negative) number telling what the time is relative
+     * to the next scheduled event. See sched.c */
+    int32_t cycle_count_delta;
+
     uint32_t r8_usr[5], r13_usr[2];
     uint32_t r8_fiq[5], r13_fiq[2], spsr_fiq;
     uint32_t r13_irq[2], spsr_irq;
@@ -39,7 +45,6 @@ typedef struct arm_state {  // Remember to update asmcode.S if this gets rearran
     uint32_t r13_und[2], spsr_und;
 
     uint8_t  interrupts;
-    uint32_t cpu_events_state; // Only used for suspend and resume!
 }
 #ifndef __EMSCRIPTEN__
 __attribute__((packed))
@@ -64,6 +69,12 @@ extern struct arm_state arm __asm__("arm");
 #define EX_DATA_ABORT     4
 #define EX_IRQ            6
 #define EX_FIQ            7
+
+#define EVENT_IRQ 1
+#define EVENT_FIQ 2
+#define EVENT_RESET 4
+#define EVENT_DEBUG_STEP 8
+#define EVENT_WAITING 16
 
 #define current_instr_size ((arm.cpsr_low28 & 0x20) ? 2 /* thumb */ : 4)
 

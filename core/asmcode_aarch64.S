@@ -66,13 +66,11 @@ translation_next_enter:
 	tbz w21, #5, save_return // if((RAM_FLAGS(x0) & RF_CODE_TRANSLATED) == 0) goto save_return;
 	lsr w21, w21, #9 // w21 = w21 >> RFS_TRANSLATION_INDEX
 
-	loadsym x23, cycle_count_delta
-	ldr w23, [x23]
+	ldr w23, [x19, #24*4]
 	cmp w23, #0
-	bpl save_return // if(cycle_count_delta > 0) goto save_return;
+	bpl save_return // if(arm.cycle_count_delta > 0) goto save_return;
 
-	loadsym x23, cpu_events
-	ldr w23, [x23]
+	ldr w23, [x19, #23*4]
 	cbnz w23, save_return // if(cpu_events) goto save_return;
 
 	loadsym x23, translation_table
@@ -91,10 +89,9 @@ translation_next_enter:
 	ldr x0, [x24, x25] // x0 = jump_table[(insn_ptr - start_ptr) / 4]
 
 	// add number of instructions to cycle_count_delta
-	loadsym x24, cycle_count_delta
-	ldr w25, [x24]
+	ldr w25, [x19, #24*4]
 	add w25, w25, w21
-	str w25, [x24]
+	str w25, [x19, #24*4]
 
 	msr nzcv, x17	
 	br x0
@@ -102,12 +99,11 @@ translation_next_enter:
 translation_jmp: .global translation_jmp
 	mrs x17, nzcv
 
-	// add number of instructions to cycle_count_delta
-	loadsym x24, cycle_count_delta
-	ldr w25, [x24]
+	// add number of instructions to arm.cycle_count_delta
+	ldr w25, [x19, #24*4]
 	adds w25, w25, #4 // We don't know how much will be executed, so use a possible number
-	bpl save_return
-	str w25, [x24]
+	str w25, [x19, #24*4]
+	bpl save_return // return if >= 0
 
 	msr nzcv, x17
 
