@@ -13,6 +13,7 @@
 
 nand_state nand;
 static uint8_t *nand_data = NULL;
+static bool nand_is_virtual = false;
 
 static const struct nand_metrics chips[] = {
     { 0x20, 0x35, 0x210, 5, 0x10000 }, // ST Micro NAND256R3A
@@ -27,16 +28,35 @@ bool nand_initialize(bool large, const char *filename) {
     nand.state = 0xFF;
 
     nand_data = (uint8_t*) os_map_cow(filename, large ? 132*1024*1024 : 33*1024*1024);
+    nand_is_virtual = false;
     if(!nand_data)
         nand_deinitialize();
 
     return nand_data != nullptr;
 }
 
+bool flash_create_virtual(bool flag_large_nand, const char **preload_file, unsigned int product, unsigned int features, bool large_sdram)
+{
+    if(nand_data)
+        nand_deinitialize();
+
+    memcpy(&nand.metrics, &chips[flag_large_nand], sizeof(nand_metrics));
+    nand.state = 0xFF;
+
+    nand_is_virtual = true;
+    size_t unused;
+    return flash_create_new(flag_large_nand, preload_file, product, features, large_sdram, &nand_data, &unused);
+}
+
 void nand_deinitialize()
 {
     if(nand_data)
-        os_unmap_cow(nand_data, (nand.metrics.num_pages == 0x840) ? 132*1024*1024 : 33*1024*1024);
+    {
+        if(nand_is_virtual)
+            free(nand_data);
+        else
+            os_unmap_cow(nand_data, (nand.metrics.num_pages == 0x840) ? 132*1024*1024 : 33*1024*1024);
+    }
 
     nand_data = nullptr;
 }

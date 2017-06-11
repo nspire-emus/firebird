@@ -81,6 +81,7 @@ int flash_save_as(const char *filename);
 bool flash_create_new(bool flag_large_nand, const char **preload_file, unsigned int product, unsigned int features, bool large_sdram, uint8_t **nand_data_ptr, size_t *size);
 bool flash_read_settings(uint32_t *sdram_size, uint32_t *product, uint32_t *features, uint32_t *asic_user_flags);
 void flash_set_bootorder(BootOrder order);
+bool flash_create_virtual(bool flag_large_nand, const char **preload_file, unsigned int product, unsigned int features, bool large_sdram);
 
 #ifdef __cplusplus
 }

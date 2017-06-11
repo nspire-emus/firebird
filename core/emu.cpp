@@ -234,8 +234,18 @@ bool emu_start(unsigned int port_gdb, unsigned int port_rdbg, const char *snapsh
     }
     else
     {
-        if (!flash_open(path_flash.c_str()))
+        if(path_flash.length())
+        {
+            if(!flash_open(path_flash.c_str()))
                 return false;
+        }
+        else
+        {
+            // No flash path specified, create a virtual flash
+            const char *preload[] = {nullptr, nullptr, nullptr, nullptr};
+            if(!flash_create_virtual(emulate_cx, preload, product, features, emulate_cx))
+                return false;
+        }
 
         uint32_t sdram_size;
         flash_read_settings(&sdram_size, &product, &features, &asic_user_flags);
@@ -258,14 +268,17 @@ bool emu_start(unsigned int port_gdb, unsigned int port_rdbg, const char *snapsh
         RAM_FLAGS(&rom[i]) = RF_READ_ONLY;
 
     /* Load the ROM */
-    FILE *f = fopen_utf8(path_boot1.c_str(), "rb");
-    if (!f) {
-        gui_perror(path_boot1.c_str());
-        emu_cleanup();
-        return false;
+    if(path_boot1.length())
+    {
+        FILE *f = fopen_utf8(path_boot1.c_str(), "rb");
+        if (!f) {
+            gui_perror(path_boot1.c_str());
+            emu_cleanup();
+            return false;
+        }
+        (void)fread(rom, 1, 0x80000, f);
+        fclose(f);
     }
-    (void)fread(rom, 1, 0x80000, f);
-    fclose(f);
 
 #ifndef NO_TRANSLATION
     if(!translate_init())

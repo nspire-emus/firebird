@@ -82,6 +82,10 @@ int main(int argc, char *argv[])
 			debug_on_warn = true;
 		else if(strcmp(argv[argi], "--diags") == 0)
 			boot_order = ORDER_DIAGS;
+		else if(strcmp(argv[argi], "--product") == 0)
+			product = strtoul(argv[++argi], nullptr, 0);
+		else if(strcmp(argv[argi], "--features") == 0)
+			features = strtoul(argv[++argi], nullptr, 0);
 		else
 		{
 			fprintf(stderr, "Unknown argument '%s'.\n", argv[argi]);
@@ -89,14 +93,11 @@ int main(int argc, char *argv[])
 		}
 	}
 
-	if(!boot1 || !flash)
-	{
-		fprintf(stderr, "You need to specify at least Boot1 and Flash images.\n");
-		return 2;
-	}
+	if(boot1)
+		path_boot1 = boot1;
 
-	path_boot1 = boot1;
-	path_flash = flash;
+	if(flash)
+		path_flash = flash;
 
 	if(!emu_start(0, 0, snapshot))
 		return 1;
