@@ -391,7 +391,7 @@ typedef enum Partition {
 // Returns offset into nand_data
 size_t flash_partition_offset(Partition p, struct nand_metrics *nand_metrics, uint8_t *nand_data)
 {
-    static size_t offset_classic[] = { 0, 0x4200, 0x15a800, 0x16b000, 0x2100000 };
+    static size_t offset_classic[] = { 0, 0x4200, 0x15a800, 0x16b000, 0x210000 };
 
     if(nand_metrics->page_size < 0x800)
         return offset_classic[p];
