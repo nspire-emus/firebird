@@ -16,6 +16,8 @@ ios|android: SUPPORT_LINUX = false
 TRANSLATIONS += i18n/de_DE.ts i18n/fr_FR.ts
 
 QT += core gui widgets quickwidgets
+android: QT += androidextras
+
 CONFIG += c++11
 
 TEMPLATE = app
@@ -192,7 +194,8 @@ SOURCES += $$ASMCODE_IMPL \
     usblinktreewidget.cpp \
     kitmodel.cpp \
     fbaboutdialog.cpp \
-    dockwidget.cpp
+    dockwidget.cpp \
+    AndroidWrapper.cpp
 
 FORMS += \
     mainwindow.ui \
@@ -238,7 +241,8 @@ HEADERS += \
     usblinktreewidget.h \
     kitmodel.h \
     fbaboutdialog.h \
-    dockwidget.h
+    dockwidget.h \
+    AndroidWrapper.h
 
 # For localization
 lupdate_only {

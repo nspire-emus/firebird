@@ -16,6 +16,8 @@
 #include "usblink_queue.h"
 #include "os/os.h"
 
+#include "AndroidWrapper.h"
+
 /* cycle_count_delta is a (usually negative) number telling what the time is relative
  * to the next scheduled event. See sched.c */
 int cycle_count_delta = 0;
@@ -135,7 +137,12 @@ void throttle_interval_event(int index)
 size_t gzip_filesize(const char *path)
 {
     #if __BYTE_ORDER == __LITTLE_ENDIAN
-        int fp = open(path, O_RDONLY);
+        int fp = -1;
+        if (is_android_provider_file(path)) {
+            fp = android_get_fd_for_uri(path, "r");
+        } else {
+            fp = open(path, O_RDONLY);
+        }
         if(fp == -1)
             return false;
 
@@ -184,7 +191,13 @@ bool emu_start(unsigned int port_gdb, unsigned int port_rdbg, const char *snapsh
         if(snapshot_size < sizeof(emu_snapshot))
             return false;
 
-        gzFile gzf = gzopen(snapshot_file, "r");
+        gzFile gzf;
+        if (is_android_provider_file(snapshot_file)) {
+            int fd = android_get_fd_for_uri(snapshot_file, "r");
+            gzf = gzdopen(fd, "r");
+        } else {
+            gzf = gzopen(snapshot_file, "r");
+        }
         if(!gzf)
             return false;
 
@@ -349,7 +362,13 @@ bool emu_suspend(const char *file)
 {
     gui_busy_raii gui_busy;
 
-    gzFile gzf = gzopen(file, "wb");
+    gzFile gzf;
+    if (is_android_provider_file(file)) {
+        int fd = android_get_fd_for_uri(file, "w");
+        gzf = gzdopen(fd, "wb");
+    } else {
+        gzf = gzopen(file, "wb");
+    }
 
     size_t size = sizeof(emu_snapshot) + flash_suspend_flexsize();
     auto snapshot = (struct emu_snapshot *) malloc(size);

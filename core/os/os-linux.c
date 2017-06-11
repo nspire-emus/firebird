@@ -46,7 +46,12 @@ int iOS_is_debugger_attached()
 
 FILE *fopen_utf8(const char *filename, const char *mode)
 {
-    return fopen(filename, mode);
+    if (is_android_provider_file(filename)) {
+        int fd = android_get_fd_for_uri(filename, "rw");
+        return fdopen(fd, mode);
+    } else {
+        return fopen(filename, mode);
+    }
 }
 
 void *os_reserve(size_t size)
@@ -107,7 +112,12 @@ void *os_alloc_executable(size_t size)
 
 void *os_map_cow(const char *filename, size_t size)
 {
-    int fd = open(filename, O_RDONLY);
+    int fd = -1;
+    if (is_android_provider_file(filename)) {
+        fd = android_get_fd_for_uri(filename, "r");
+    } else {
+        fd = open(filename, O_RDONLY);
+    }
     if(fd == -1)
         return NULL;
 
@@ -149,7 +159,6 @@ void addr_cache_init(os_exception_frame_t *frame)
     setbuf(stdout, NULL);
 
     #if !defined(AC_FLAGS)
-        unsigned int i;
         for(unsigned int i = 0; i < AC_NUM_ENTRIES; ++i)
         {
             AC_SET_ENTRY_INVALID(addr_cache[i], (i >> 1) << 10)
