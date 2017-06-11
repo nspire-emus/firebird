@@ -741,17 +741,18 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
 	RAM_FLAGS(insn_ptr) |= RF_CODE_NO_TRANSLATE;
 
 	exit_translation:
-	if(!jumps_away)
-	{
-		emit_mov_imm(W0, pc);
-		emit_jmp(reinterpret_cast<void*>(translation_next));
-	}
 
 	if(insn_ptr == insn_ptr_start)
 	{
 		// No virtual instruction got translated, just drop everything
 		translate_current = translate_buffer_inst_start;
 		return;
+	}
+
+	if(!jumps_away)
+	{
+		emit_mov_imm(W0, pc);
+		emit_jmp(reinterpret_cast<void*>(translation_next));
 	}
 
 	this_translation->end_ptr = insn_ptr;
