@@ -23,6 +23,7 @@
 
 #include "cpudefs.h"
 #include "emu.h"
+#include "literalpool.h"
 #include "translate.h"
 #include "mem.h"
 #include "mmu.h"
@@ -55,7 +56,7 @@ enum Reg : uint8_t {
 
 enum PReg : uint8_t {
 	W0 = 0, W1, W2, W3, W4, W5, W6, W7, W8, W9, W10, W11, W12, W13, W14, W15, W16, W17, W25 = 25, W26,
-	X0 = W0, X1 = W1, X30 = 30, X31 = 31, WZR = 31
+	X0 = W0, X1 = W1, X21 = 21, X30 = 30, X31 = 31, WZR = 31
 };
 
 /* This function returns the physical register that contains the virtual register vreg.
@@ -67,8 +68,8 @@ static PReg mapreg(const uint8_t vreg)
 	return static_cast<PReg>(vreg + 2);
 }
 
-static uint32_t *translate_buffer = nullptr,
-	*translate_current = nullptr;
+uint32_t *translate_buffer = nullptr,
+         *translate_current = nullptr;
 
 #define MAX_TRANSLATIONS 0x40000
 struct translation translation_table[MAX_TRANSLATIONS];
@@ -86,35 +87,72 @@ static __attribute__((unused)) void emit_brk()
 	emit(0xd4200000); // brk #0
 }
 
-// Sets the physical register wd to imm (32bit only)
-static void emit_mov_imm(const PReg wd, uint32_t imm)
+// Sets the physical register xd to imm
+static void emit_mov_imm(const PReg xd, uint64_t imm)
 {
-	if((imm & 0x0000FFFF) == imm)
-		emit(0x52800000 | ((imm & 0xFFFF) << 5) | wd); // movz wd, #imm, lsl #0
-	else if((imm & 0xFFFF0000) == imm)
-		emit(0x52a00000 | ((imm >> 16) << 5) | wd); // movz wd, #imm, lsl #16
-	else
+	if(imm > 0xFFFF)
 	{
-		emit(0x52800000 | ((imm & 0xFFFF) << 5) | wd); // movz wd, #imm, lsl #0
-		emit(0x72a00000 | ((imm >> 16) << 5) | wd); // movk wd, #imm, lsl #16
+		literalpool_add(imm);
+		if(imm > 0xFFFFFFFFul)
+			emit(0x58000000 | xd); // ldr xd, [pc, #<offset>]
+		else
+			emit(0x18000000 | xd); // ldr xd, [pc, #<offset>]
+		return;
 	}
-}
 
-// Sets the physical register xd to imm (64bit only)
-static void emit_mov_imm64(const PReg xd, uint64_t imm)
-{
-	emit(0xd2800000 | ((imm & 0xFFFF) << 5) | xd); // movz wd, #imm, lsl #0
+	emit(0xd2800000 | ((imm & 0xFFFF) << 5) | xd); // movz xd, #imm, lsl #0
 	imm >>= 16;
-	emit(0xf2a00000 | ((imm & 0xFFFF) << 5) | xd); // movk wd, #imm, lsl #16
+	if(imm & 0xFFFF)
+		emit(0xf2a00000 | ((imm & 0xFFFF) << 5) | xd); // movk xd, #imm, lsl #16
+
+	/* Literal pool used instead.
+
 	imm >>= 16;
-	emit(0xf2c00000 | ((imm & 0xFFFF) << 5) | xd); // movk wd, #imm, lsl #32
+	if(imm & 0xFFFF)
+		emit(0xf2c00000 | ((imm & 0xFFFF) << 5) | xd); // movk xd, #imm, lsl #32
+
 	imm >>= 16;
-	emit(0xf2e00000 | ((imm & 0xFFFF) << 5) | xd); // movk wd, #imm, lsl #48
+	if(imm & 0xFFFF)
+		emit(0xf2e00000 | ((imm & 0xFFFF) << 5) | xd); // movk xd, #imm, lsl #48
+	*/
 }
 
 static void emit_mov_reg(const PReg wd, const PReg wm)
 {
 	emit(0x2a0003e0 | (wm << 16) | wd);
+}
+
+void literalpool_fill()
+{
+	for(unsigned int i = 0; i < literals_count; ++i)
+	{
+		auto &&literal = literals[i];
+		if(!literal.inst)
+			continue;
+
+		// Emit the literal
+		uint32_t *literal_loc = translate_current;
+		emit(static_cast<uint32_t>(literal.value));
+		if(literal.value > 0xFFFFFFFFul)
+			emit(static_cast<uint32_t>(literal.value >> 32));
+
+		// Fixup all literal references for the same value
+		for(unsigned int j = i; j < literals_count; ++j)
+		{
+			auto &&literal_ref = literals[j];
+			if(!literal_ref.inst || literal_ref.value != literal.value)
+				continue;
+
+			ptrdiff_t diff = literal_loc - reinterpret_cast<uint32_t*>(literal_ref.inst);
+			if(diff < -0x40000 || diff > 0x3ffff)
+				error("Literal unreachable");
+
+			*reinterpret_cast<uint32_t*>(literal_ref.inst) |= diff << 5;
+			literal_ref.inst = nullptr;
+		}
+	}
+
+	literals_count = 0;
 }
 
 static __attribute__((unused)) uint32_t maybe_branch(const void *target)
@@ -133,23 +171,9 @@ static void emit_jmp(const void *target)
 	if(branch)
 		return emit(branch);*/
 
-	const uint64_t addr = reinterpret_cast<const uint64_t>(target);
-
-	if(addr <= 0xFFFFFFFF)
-	{
-		emit(0x18000055); // ldr w21, [pc, #8]
-		emit(0xd61f02a0); // br w21
-		emit(addr); // Lower 32bits of target
-	}
-	else
-	{
-		emit(0x58000055); // ldr x21, [pc, #8]
-		emit(0xd61f02a0); // br x21
-		emit(addr & 0xFFFFFFFF); // Lower 32bits of target
-		emit(addr >> 32); // Higher 32bits of target
-	}
+	emit_mov_imm(X21, reinterpret_cast<const uint64_t>(target));
+	emit(0xd61f02a0); // br x21
 }
-
 
 // Calls target, destroys x21 and x30
 static void emit_call(const void *target)
@@ -158,23 +182,8 @@ static void emit_call(const void *target)
 	if(branch)
 		return emit(branch) | (1 << 31);*/
 
-	const uint64_t addr = reinterpret_cast<const uint64_t>(target);
-
-	if(addr <= 0xFFFFFFFF)
-	{
-		emit(0x18000075); // ldr x21, [pc, #8]
-		emit(0x1000007e); // adr x30, <after literal)
-		emit(0xd61f02a0); // br x21
-		emit(addr);
-	}
-	else
-	{
-		emit(0x58000075); // ldr x21, [pc, #8]
-		emit(0x1000009e); // adr x30, <after literal)
-		emit(0xd61f02a0); // br x21
-		emit(addr & 0xFFFFFFFF); // Lower 32bits of target
-		emit(addr >> 32); // Higher 32bits of target
-	}
+	emit_mov_imm(X21, reinterpret_cast<const uint64_t>(target));
+	emit(0xd63f02a0); // blr x21
 }
 
 bool translate_init()
@@ -712,7 +721,7 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
 				// Update PC manually
 				emit_mov_imm(W0, addr);
 				emit(0xb9003e60); // str w0, [x19, #15*4]
-				emit_mov_imm64(X0, jmp_target);
+				emit_mov_imm(X0, jmp_target);
 				emit_jmp(reinterpret_cast<void*>(translation_jmp));
 			}
 		}
@@ -755,6 +764,11 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
 		emit_jmp(reinterpret_cast<void*>(translation_next));
 	}
 
+	// Only flush cache until the literal pool
+	uint32_t *code_end = translate_current;
+	// Emit the literal pool
+	literalpool_fill();
+
 	this_translation->end_ptr = insn_ptr;
 	this_translation->unused = reinterpret_cast<uintptr_t>(translate_current);
 
@@ -762,9 +776,9 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
 
 	// Flush the instruction cache
 	#ifdef IS_IOS_BUILD
-		sys_cache_control(1 /* kCacheFunctionPrepareForExecution */, jump_table_start[0], (translate_current-jump_table_start[0])*4);
+		sys_cache_control(1 /* kCacheFunctionPrepareForExecution */, jump_table_start[0], (code_end-jump_table_start[0])*4);
 	#else
-		__builtin___clear_cache(jump_table_start[0], translate_current);
+		__builtin___clear_cache(jump_table_start[0], code_end);
 	#endif
 }
 
