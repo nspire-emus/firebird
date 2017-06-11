@@ -48,9 +48,11 @@ struct translation translation_table[MAX_TRANSLATIONS];
 uint32_t *jump_table[MAX_TRANSLATIONS*2],
          **jump_table_current = jump_table;
 
-static uint32_t *translate_buffer = nullptr,
+uint32_t *translate_buffer = nullptr,
          *translate_current = nullptr,
          *translate_end = nullptr;
+
+#include "literalpool.h"
 
 static unsigned int next_translation_index = 0;
 
@@ -100,26 +102,67 @@ static void emit_mov(int rd, uint32_t imm)
 {
     // movw/movt only available on >= armv7
     #if defined(__ARM_ARCH_7__) || defined(__ARM_ARCH_7A__)
-        emit_al(0x3000000 | (rd << 12) | ((imm & 0xF000) << 4) | (imm & 0xFFF)); // movw rd, #imm&0xFFFF
-        imm >>= 16;
-        if(imm)
-            emit_al(0x3400000 | (rd << 12) | ((imm & 0xF000) << 4) | (imm & 0xFFF)); // movt rd, #imm>>16
-    #else
-        if((imm & 0xFF) == imm)
-            emit_al(0x3a00000 | (rd << 12) | imm); // mov rd, #imm
-        else
+        if(imm <= 0xFFFF)
         {
-            // Insert immediate into code and jump over it
-            emit_al(0x59f0000 | (rd << 12)); // ldr rd, [pc]
-            emit_al(0xa000000); // b pc
-            emit(imm);
+            emit_al(0x3000000 | (rd << 12) | ((imm & 0xF000) << 4) | (imm & 0xFFF)); // movw rd, #imm&0xFFFF
+            imm >>= 16;
+            if(imm)
+                emit_al(0x3400000 | (rd << 12) | ((imm & 0xF000) << 4) | (imm & 0xFFF)); // movt rd, #imm>>16
+
+            return;
+        }
+    #else
+        if(imm <= 0xFF)
+        {
+            emit_al(0x3a00000 | (rd << 12) | imm); // mov rd, #imm
+            return;
         }
     #endif
+
+    literalpool_add(imm);
+    emit_al(0x51f0000 | (rd << 12)); // ldr rd, [pc, #<offset>]
 }
 
 static void emit_mov_reg(uint8_t rd, uint8_t rm)
 {
     emit_al(0x1a00000 | (rd << 12) | rm);
+}
+
+void literalpool_fill()
+{
+    for(unsigned int i = 0; i < literals_count; ++i)
+    {
+        auto &&literal = literals[i];
+        if(!literal.inst)
+            continue;
+
+        // Emit the literal
+        uint32_t *literal_loc = translate_current;
+        emit(static_cast<uint32_t>(literal.value));
+
+        // Fixup all literal references for the same value
+        for(unsigned int j = i; j < literals_count; ++j)
+        {
+            auto &&literal_ref = literals[j];
+            if(!literal_ref.inst || literal_ref.value != literal.value)
+                continue;
+
+            ptrdiff_t diff = reinterpret_cast<uint8_t*>(literal_loc) - reinterpret_cast<uint8_t*>(literal_ref.inst) - 8;
+
+            if(diff >= 0)
+                *reinterpret_cast<uint32_t*>(literal_ref.inst) |= 1 << 23; // Set U-bit
+            else
+                diff = -diff;
+
+            if(diff > 0xFFF)
+                error("Literal unreachable!");
+
+            *reinterpret_cast<uint32_t*>(literal_ref.inst) |= diff;
+            literal_ref.inst = nullptr;
+        }
+    }
+
+    literals_count = 0;
 }
 
 enum Reg : uint8_t {
@@ -338,9 +381,8 @@ static void emit_jmp(void *target, bool save = true)
     if(branch)
         return emit_al(branch);
 
-    // Doesn't fit into branch, use memory
-    emit_al(0x51ff004); // ldr pc, [pc, #-4]
-    emit(reinterpret_cast<uintptr_t>(target));
+    // Doesn't fit into branch, use literal
+    emit_mov(PC, reinterpret_cast<uintptr_t>(target));
 }
 
 // Registers r0-r3 and r12 are not preserved!
@@ -358,10 +400,8 @@ static void emit_call(void *target, bool save = true)
         return emit_al(branch | (1 << 24)); // Set the L-bit
 
     // This is cheaper than doing it like emit_mov above.
-    emit_al(0x59f3004); // ldr r3, [pc, #4]
+    emit_mov(R3, reinterpret_cast<uintptr_t>(target));
     emit_al(0x12fff33); // blx r3
-    emit_al(0xa000000); // b pc
-    emit(reinterpret_cast<uintptr_t>(target));
 
     if(save)
         emit_ldr_flags();
@@ -531,6 +571,16 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
                may not be effective, so we need to flush those *before and after*. */
 
             regmap_flush();
+        }
+
+        // PC-relative loads only have a 12bit offset, which may not be enough to reach the literal pool.
+        // In those cases, insert the literal pool into the code and jump over it.
+        if(literals_count > 0 && translate_current - reinterpret_cast<uint32_t*>(literals[0].inst) > 0x300)
+        {
+            uint32_t *jump_over_literal = translate_current;
+            emit(0xea000000); // b <after>
+            literalpool_fill();
+            *jump_over_literal |= (translate_current - jump_over_literal - 2) & 0xFFFFFF;
         }
 
         // Rollback translate_current to this val if instruction not supported
@@ -885,7 +935,7 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
             // If more than two addresses is accessed, try to get a ptr to
             // the whole block and access directly.
             uint32_t *branch_end = nullptr;
-            if(count > 2)
+            if(0&&count > 2)
             {
                 // Call mem_ptr(lowest address, size)
                 if(offset < 0)
@@ -1121,6 +1171,11 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
         mprotect(translate_buffer, INSN_BUFFER_SIZE, PROT_READ | PROT_EXEC);
     #endif
     
+    // Only flush cache until the literal pool
+    uint32_t *code_end = translate_current;
+    // Emit the literal pool
+    literalpool_fill();
+
     this_translation->end_ptr = insn_ptr;
     this_translation->unused = reinterpret_cast<uintptr_t>(translate_current);
 
@@ -1131,9 +1186,9 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
 
     // Flush the instruction cache
 #ifdef IS_IOS_BUILD
-    sys_cache_control(1 /* kCacheFunctionPrepareForExecution */, jump_table_start[0], (translate_current-jump_table_start[0])*4);
+    sys_cache_control(1 /* kCacheFunctionPrepareForExecution */, jump_table_start[0], (code_end-jump_table_start[0])*4);
 #else
-    __builtin___clear_cache(jump_table_start[0], translate_current);
+    __builtin___clear_cache(jump_table_start[0], code_end);
 #endif
 }
 
