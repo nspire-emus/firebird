@@ -546,8 +546,8 @@ no_condition:
                 int rotate = insn >> 7 & 30;
                 if (rotate != 0)
                 {
-                    set_carry = imm >> 31;
                     imm = (imm >> rotate) | (imm << (32 - rotate));
+                    set_carry = imm >> 31;
                 }
             } else if (right_reg == 15) {
                 if (insn & 0xFF0) // Shifted PC?! Not likely.
