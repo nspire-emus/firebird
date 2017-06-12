@@ -9,7 +9,7 @@ struct LiteralRef {
 	uintptr_t value;
 };
 
-static constexpr size_t MAX_LITERALS = 512;
+static constexpr size_t MAX_LITERALS = 1024;
 static LiteralRef literals[MAX_LITERALS];
 static size_t literals_count = 0;
 
@@ -19,6 +19,7 @@ void literalpool_add(uintptr_t value)
 
 	if(literals_count >= MAX_LITERALS)
 	{
+		literals_count = 0; // Otherwise it won't ever be empty again
 		error("Literal pool full, please increase the size");
 		return;
 	}
