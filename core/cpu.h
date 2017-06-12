@@ -11,6 +11,8 @@
 extern "C" {
 #endif
 
+typedef uint8_t *ac_entry;
+
 typedef struct arm_state {  // Remember to update asmcode.S if this gets rearranged
     uint32_t reg[16];    // Registers for current mode.
 
@@ -36,6 +38,10 @@ typedef struct arm_state {  // Remember to update asmcode.S if this gets rearran
     /* cycle_count_delta is a (usually negative) number telling what the time is relative
      * to the next scheduled event. See sched.c */
     int32_t cycle_count_delta;
+
+    /* This should not be in here. However, it makes it easier for
+     * asmcode to access it, as it has a pointer to arm_state anyway. */
+    ac_entry *addr_cache;
 
     uint32_t r8_usr[5], r13_usr[2];
     uint32_t r8_fiq[5], r13_fiq[2], spsr_fiq;

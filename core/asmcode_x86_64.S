@@ -5,6 +5,7 @@
 #define ARM_CONTROL 72
 #define ARM_CPU_EVENTS 92
 #define ARM_CYCLE_COUNT_DELTA 96
+#define ARM_ADDR_CACHE 100
 
 // translation structure offsets
 #define TRANS_JUMP_TABLE 0x08
@@ -205,7 +206,7 @@ read_word_asm: .global read_word_asm
     mov     %rdi, %rax
     shr     $10, %rax
     shl     $1, %rax
-    mov     addr_cache(%rip), %r8
+    mov     ARM_ADDR_CACHE(%rbx), %r8
     mov     (%r8, %rax, 8), %rax
     test    $3, %rax
     jnz     rwa_miss
@@ -224,7 +225,7 @@ write_word_asm: .global write_word_asm
     shr     $10, %rax
     shl     $1, %rax
     add     $1, %rax
-    mov     addr_cache(%rip), %r8
+    mov     ARM_ADDR_CACHE(%rbx), %r8
     mov     (%r8, %rax, 8), %rax
     test    $3, %rax
     jnz     wwa_miss
@@ -244,7 +245,7 @@ read_half_asm: .global read_half_asm
     mov     %rdi, %rax
     shr     $10, %rax
     shl     $1, %rax
-    mov     addr_cache(%rip), %r8
+    mov     ARM_ADDR_CACHE(%rbx), %r8
     mov     (%r8, %rax, 8), %rax
     test    $3, %rax
     jnz     rha_miss
@@ -263,7 +264,7 @@ write_half_asm: .global write_half_asm
     shr     $10, %rax
     shl     $1, %rax
     add     $1, %rax
-    mov     addr_cache(%rip), %r8
+    mov     ARM_ADDR_CACHE(%rbx), %r8
     mov     (%r8, %rax, 8), %rax
     test    $3, %rax
     jnz     wha_miss
@@ -283,7 +284,7 @@ read_byte_asm: .global read_byte_asm
     mov     %rdi, %rax
     shr     $10, %rax
     shl     $1, %rax
-    mov     addr_cache(%rip), %r8
+    mov     ARM_ADDR_CACHE(%rbx), %r8
     mov     (%r8, %rax, 8), %rax
     test    $3, %rax
     jnz     rba_miss
@@ -302,7 +303,7 @@ write_byte_asm: .global write_byte_asm
     shr     $10, %rax
     shl     $1, %rax
     add     $1, %rax
-    mov     addr_cache(%rip), %r8
+    mov     ARM_ADDR_CACHE(%rbx), %r8
     mov     (%r8, %rax, 8), %rax
     test    $3, %rax
     jnz     wba_miss

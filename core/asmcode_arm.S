@@ -59,19 +59,12 @@ sym  translation_sp
 sym  arm
 sym  translation_table
 sym  translation_sp, 2
-//sym  cpu_events, 2
 sym  translation_table, 2
-sym  addr_cache
 sym  data_abort
-sym  addr_cache, 2
 sym  data_abort, 2
-sym  addr_cache, 3
 sym  data_abort, 3
-sym  addr_cache, 4
 sym  data_abort, 4
-sym  addr_cache, 5
 sym  data_abort, 5
-sym  addr_cache, 6
 sym  data_abort, 6
 
 #endif
@@ -194,8 +187,7 @@ save_return:
 
 write_word_asm: .global write_word_asm
 // r0 is address, r1 is value
-    loadsym r2, addr_cache
-    ldr     r2, [r2]
+    ldr     r2, [r10, #26*4]
     mov     r3, r0, lsr #9
     orr     r3, r3, #1
     ldr     r3, [r2, r3, lsl #2] // r3 contains ac_entry
@@ -218,9 +210,8 @@ write_word_invalid:
 
 write_half_asm: .global write_half_asm
 // r0 is address, r1 is value
-    loadsym r2, addr_cache, 2
     bic     r0, r0, #1
-    ldr     r2, [r2]
+    ldr     r2, [r10, #26*4]
     mov     r3, r0, lsr #9
     orr     r3, r3, #1
     ldr     r3, [r2, r3, lsl #2] // r3 contains ac_entry
@@ -243,8 +234,7 @@ write_half_invalid:
 
 write_byte_asm: .global write_byte_asm
 // r0 is address, r1 is value
-    loadsym r2, addr_cache, 3
-    ldr     r2, [r2]
+    ldr     r2, [r10, #26*4]
     mov     r3, r0, lsr #9
     orr     r3, r3, #1
     ldr     r3, [r2, r3, lsl #2] // r3 contains ac_entry
@@ -267,8 +257,7 @@ write_byte_invalid:
 
 read_word_asm: .global read_word_asm
 // r0 is address
-    loadsym r2, addr_cache, 4
-    ldr     r2, [r2]
+    ldr     r2, [r10, #26*4]
     mov     r3, r0, lsr #10
     ldr     r3, [r2, r3, lsl #3] // r3 contains ac_entry
     tst     r3, #AC_FLAGS
@@ -290,9 +279,8 @@ read_word_invalid:
 
 read_half_asm: .global read_half_asm
 // r0 is address
-    loadsym r2, addr_cache, 5
     bic     r0, r0, #1
-    ldr     r2, [r2]
+    ldr     r2, [r10, #26*4]
     mov     r3, r0, lsr #10
     ldr     r3, [r2, r3, lsl #3] // r3 contains ac_entry
     tst     r3, #AC_FLAGS
@@ -314,8 +302,7 @@ read_half_invalid:
 
 read_byte_asm: .global read_byte_asm
 // r0 is address
-    loadsym r2, addr_cache, 6
-    ldr     r2, [r2]
+    ldr     r2, [r10, #26*4]
     mov     r3, r0, lsr #10
     ldr     r3, [r2, r3, lsl #3] // r3 contains ac_entry
     tst     r3, #AC_FLAGS

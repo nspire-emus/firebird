@@ -135,13 +135,13 @@ void addr_cache_init(os_exception_frame_t *frame)
     (void) frame;
 
     // Only run this if not already initialized
-    if(addr_cache)
+    if(arm.addr_cache)
         return;
 
-    addr_cache = mmap((void*)0, AC_NUM_ENTRIES * sizeof(ac_entry), PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANON, -1, 0);
-    if(addr_cache == MAP_FAILED)
+    arm.addr_cache = mmap((void*)0, AC_NUM_ENTRIES * sizeof(ac_entry), PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANON, -1, 0);
+    if(arm.addr_cache == MAP_FAILED)
     {
-        addr_cache = NULL;
+        arm.addr_cache = NULL;
         fprintf(stderr, "Failed to mmap addr_cache.\n");
         exit(1);
     }
@@ -152,10 +152,10 @@ void addr_cache_init(os_exception_frame_t *frame)
         unsigned int i;
         for(unsigned int i = 0; i < AC_NUM_ENTRIES; ++i)
         {
-            AC_SET_ENTRY_INVALID(addr_cache[i], (i >> 1) << 10)
+            AC_SET_ENTRY_INVALID(arm.addr_cache[i], (i >> 1) << 10)
         }
     #else
-        memset(addr_cache, 0xFF, AC_NUM_ENTRIES * sizeof(ac_entry));
+        memset(arm.addr_cache, 0xFF, AC_NUM_ENTRIES * sizeof(ac_entry));
     #endif
 
     #if defined(__i386__) && !defined(NO_TRANSLATION)
@@ -164,15 +164,15 @@ void addr_cache_init(os_exception_frame_t *frame)
         for(uint32_t **reloc = ac_reloc_start; reloc != ac_reloc_end; reloc++)
         {
             make_writable(*reloc);
-            **reloc += (uintptr_t)addr_cache;
+            **reloc += (uintptr_t)arm.addr_cache;
         }
     #endif
 }
 
 void addr_cache_deinit()
 {
-    if(addr_cache)
-        munmap(addr_cache, AC_NUM_ENTRIES * sizeof(ac_entry));
+    if(arm.addr_cache)
+        munmap(arm.addr_cache, AC_NUM_ENTRIES * sizeof(ac_entry));
 
-    addr_cache = NULL;
+    arm.addr_cache = NULL;
 }

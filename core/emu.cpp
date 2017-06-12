@@ -156,10 +156,12 @@ static void emu_reset()
     memset(mem_areas[1].ptr, 0, mem_areas[1].size);
 
     uint32_t old_events = arm.cpu_events;
+    ac_entry *addr_cache = arm.addr_cache;
 
     memset(&arm, 0, sizeof arm);
     arm.control = 0x00050078;
     arm.cpsr_low28 = MODE_SVC | 0xC0;
+    arm.addr_cache = addr_cache;
     arm.cpu_events = old_events & EVENT_DEBUG_STEP;
 
     sched_reset();

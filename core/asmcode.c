@@ -11,7 +11,7 @@ void flush_translations() {}
 
 uint32_t FASTCALL read_word(uint32_t addr)
 {
-    uintptr_t entry = *(uintptr_t*)(addr_cache + ((addr >> 10) << 1));
+    uintptr_t entry = *(uintptr_t*)(arm.addr_cache + ((addr >> 10) << 1));
 
     //If the sum doesn't contain the address directly
     if(unlikely(entry & AC_FLAGS))
@@ -36,7 +36,7 @@ uint32_t FASTCALL read_word(uint32_t addr)
 
 uint32_t FASTCALL read_byte(uint32_t addr)
 {
-    uintptr_t entry = *(uintptr_t*)(addr_cache + ((addr >> 10) << 1));
+    uintptr_t entry = *(uintptr_t*)(arm.addr_cache + ((addr >> 10) << 1));
 
     //If the sum doesn't contain the address directly
     if(unlikely(entry & AC_FLAGS))
@@ -61,7 +61,7 @@ uint32_t FASTCALL read_byte(uint32_t addr)
 
 uint32_t FASTCALL read_half(uint32_t addr)
 {
-    uintptr_t entry = *(uintptr_t*)(addr_cache + ((addr >> 10) << 1));
+    uintptr_t entry = *(uintptr_t*)(arm.addr_cache + ((addr >> 10) << 1));
 
     //If the sum doesn't contain the address directly
     if(unlikely(entry & AC_FLAGS))
@@ -86,7 +86,7 @@ uint32_t FASTCALL read_half(uint32_t addr)
 
 void FASTCALL write_byte(uint32_t addr, uint32_t value)
 {
-    uintptr_t entry = *(uintptr_t*)(addr_cache + ((addr >> 10) << 1) + 1);
+    uintptr_t entry = *(uintptr_t*)(arm.addr_cache + ((addr >> 10) << 1) + 1);
 
     //If the sum doesn't contain the address directly
     if(unlikely(entry & AC_FLAGS))
@@ -113,7 +113,7 @@ void FASTCALL write_byte(uint32_t addr, uint32_t value)
 
 void FASTCALL write_half(uint32_t addr, uint32_t value)
 {
-    uintptr_t entry = *(uintptr_t*)(addr_cache + ((addr >> 10) << 1) + 1);
+    uintptr_t entry = *(uintptr_t*)(arm.addr_cache + ((addr >> 10) << 1) + 1);
 
     //If the sum doesn't contain the address directly
     if(unlikely(entry & AC_FLAGS))
@@ -140,7 +140,7 @@ void FASTCALL write_half(uint32_t addr, uint32_t value)
 
 void FASTCALL write_word(uint32_t addr, uint32_t value)
 {
-    uintptr_t entry = *(uintptr_t*)(addr_cache + ((addr >> 10) << 1) + 1);
+    uintptr_t entry = *(uintptr_t*)(arm.addr_cache + ((addr >> 10) << 1) + 1);
 
     //If the sum doesn't contain the address directly
     if(unlikely(entry & AC_FLAGS))

@@ -179,15 +179,13 @@ void mmu_check_priv(uint32_t addr, bool writing)
         data_abort(addr, status);
 }
 
-ac_entry *addr_cache = NULL;
-
 // Keep a list of valid entries so we can invalidate everything quickly
 #define AC_VALID_MAX 256
 static uint32_t ac_valid_index;
 static uint32_t ac_valid_list[AC_VALID_MAX];
 
 static void addr_cache_invalidate(int i) {
-    AC_SET_ENTRY_INVALID(addr_cache[i], i >> 1 << 10)
+    AC_SET_ENTRY_INVALID(arm.addr_cache[i], i >> 1 << 10)
 }
 
 /* Since only a small fraction of the virtual address space, and therefore
@@ -202,7 +200,7 @@ uint32_t ac_commit_index;
 
 bool addr_cache_pagefault(void *addr) {
     ac_entry *page = (ac_entry *)((uintptr_t)addr & -AC_PAGE_SIZE);
-    uint32_t offset = page - addr_cache;
+    uint32_t offset = page - arm.addr_cache;
     if (offset >= AC_NUM_ENTRIES)
         return false;
     ac_entry *oldpage = ac_commit_list[ac_commit_index];
@@ -240,7 +238,7 @@ void *addr_cache_miss(uint32_t virt, bool writing, fault_proc *fault) {
     uint32_t offset = (virt >> 10) * 2 + writing;
     //if (ac_commit_map[oldoffset / (AC_PAGE_SIZE / sizeof(ac_entry))])
     addr_cache_invalidate(oldoffset);
-    addr_cache[offset] = entry;
+    arm.addr_cache[offset] = entry;
     ac_valid_list[ac_valid_index] = offset;
     ac_valid_index = (ac_valid_index + 1) % AC_VALID_MAX;
     return ptr;

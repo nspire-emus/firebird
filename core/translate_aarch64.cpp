@@ -705,7 +705,7 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
 				jumps_away = stop_here = true;
 
 			uint32_t addr = pc + ((int32_t)(i.raw << 8) >> 6) + 8;
-			uintptr_t entry = reinterpret_cast<uintptr_t>(addr_cache[(addr >> 10) << 1]);
+			uintptr_t entry = reinterpret_cast<uintptr_t>(arm.addr_cache[(addr >> 10) << 1]);
 			uint32_t *ptr = reinterpret_cast<uint32_t*>(entry + addr);
 
 			if(entry & AC_FLAGS || !(RAM_FLAGS(ptr) & RF_CODE_TRANSLATED))

@@ -13,7 +13,6 @@
 .global arm
 .global cycle_count_delta
 .global cpu_events
-.global addr_cache
 
 translation_sp: .global translation_sp
 	.xword 0
@@ -34,8 +33,7 @@ translation_enter: .global translation_enter
 	str x0, [x1]
 
 	loadsym x19, arm
-	loadsym x26, addr_cache
-	ldr x26, [x26]
+	ldr x26, [x19, #25*4]
 
 	// Load arm.reg[15] into w0
 	ldr w0, [x19, #15*4]

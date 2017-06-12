@@ -73,13 +73,13 @@ void addr_cache_init(os_exception_frame_t *frame)
     (void) frame;
 
     // Only run this if not already initialized
-    if(addr_cache)
+    if(arm.addr_cache)
         return;
 
-    addr_cache = malloc(AC_NUM_ENTRIES * sizeof(ac_entry));
-    if(!addr_cache)
+    arm.addr_cache = malloc(AC_NUM_ENTRIES * sizeof(ac_entry));
+    if(!arm.addr_cache)
     {
-        addr_cache = NULL;
+        arm.addr_cache = NULL;
         fprintf(stderr, "Failed to mmap addr_cache.\n");
         exit(1);
     }
@@ -87,12 +87,12 @@ void addr_cache_init(os_exception_frame_t *frame)
     unsigned int i;
     for(i = 0; i < AC_NUM_ENTRIES; ++i)
     {
-        AC_SET_ENTRY_INVALID(addr_cache[i], (i >> 1) << 10)
+        AC_SET_ENTRY_INVALID(arm.addr_cache[i], (i >> 1) << 10)
     }
 }
 
 void addr_cache_deinit()
 {
-    free(addr_cache);
-    addr_cache = NULL;
+    free(arm.addr_cache);
+    arm.addr_cache = NULL;
 }

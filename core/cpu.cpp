@@ -156,7 +156,7 @@ void *try_ptr(uint32_t addr)
 {
     //There are two different addr_cache formats...
 #ifdef AC_FLAGS
-    uintptr_t entry = *(uintptr_t*)(addr_cache + ((addr >> 10) << 1));
+    uintptr_t entry = *(uintptr_t*)(arm.addr_cache + ((addr >> 10) << 1));
 
     if(unlikely(entry & AC_FLAGS))
     {
@@ -184,7 +184,7 @@ void * FASTCALL read_instruction(uint32_t addr)
 {
     //There are two different addr_cache formats...
 #ifdef AC_FLAGS
-    uintptr_t entry = *(uintptr_t*)(addr_cache + ((addr >> 10) << 1));
+    uintptr_t entry = *(uintptr_t*)(arm.addr_cache + ((addr >> 10) << 1));
 
     if(unlikely(entry & AC_FLAGS))
     {
@@ -444,7 +444,9 @@ void set_reg_bx(uint8_t i, uint32_t value)
 
 bool cpu_resume(const emu_snapshot *s)
 {
+    ac_entry *addr_cache = arm.addr_cache;
     arm = s->cpu_state;
+    arm.addr_cache = addr_cache;
     return true;
 }
 
