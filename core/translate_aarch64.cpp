@@ -23,7 +23,6 @@
 
 #include "cpudefs.h"
 #include "emu.h"
-#include "literalpool.h"
 #include "translate.h"
 #include "mem.h"
 #include "mmu.h"
@@ -70,6 +69,8 @@ static PReg mapreg(const uint8_t vreg)
 
 uint32_t *translate_buffer = nullptr,
          *translate_current = nullptr;
+
+#include "literalpool.h"
 
 #define MAX_TRANSLATIONS 0x40000
 struct translation translation_table[MAX_TRANSLATIONS];

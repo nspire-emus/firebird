@@ -15,8 +15,6 @@ static size_t literals_count = 0;
 
 void literalpool_add(uintptr_t value)
 {
-	extern void *translate_current;
-
 	if(literals_count >= MAX_LITERALS)
 	{
 		literals_count = 0; // Otherwise it won't ever be empty again
