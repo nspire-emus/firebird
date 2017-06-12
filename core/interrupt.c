@@ -118,10 +118,19 @@ static void update_cx() {
         arm.interrupts &= ~0x40;
     cpu_int_check();
 }
-
+extern bool irqs_read;
 uint32_t int_cx_read_word(uint32_t addr) {
     switch (addr & 0x3FFFFFF) {
-        case 0x000: return intr.active & intr.mask[0] & ~intr.mask[1];
+        case 0x000: {
+            uint32_t val = intr.active & intr.mask[0] & ~intr.mask[1];
+            if(!irqs_read && val == 0 && (arm.cpsr_low28 & 0x1F) == MODE_IRQ)
+            {
+                gui_debug_printf("Workaround triggered");
+                val |= 1 << INT_WATCHDOG;
+                irqs_read = true;
+            }
+            return val;
+        }
         case 0x004: return intr.active & intr.mask[0] & intr.mask[1];
         case 0x008: return intr.active;
         case 0x00C: return intr.mask[1];

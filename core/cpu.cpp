@@ -284,7 +284,7 @@ uint32_t FASTCALL get_cpsr()
          | arm.cpsr_v << 28
          | arm.cpsr_low28;
 }
-
+bool irqs_read = true;
 void set_cpsr_full(uint32_t cpsr)
 {
     uint8_t old_mode = arm.cpsr_low28 & 0x1F,
@@ -292,6 +292,8 @@ void set_cpsr_full(uint32_t cpsr)
 
     if(old_mode == new_mode)
         goto same_mode;
+
+    irqs_read = new_mode != MODE_IRQ;
 
     // Only FIQ mode has more than 2 regs banked
     if(old_mode == MODE_FIQ)
