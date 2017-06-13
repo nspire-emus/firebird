@@ -30,12 +30,12 @@ void gui_debug_printf(const char *fmt, ...)
 
     va_end(ap);
 }
-
+#include <android/log.h>
 void gui_debug_vprintf(const char *fmt, va_list ap)
 {
-    QString str;
-    str.vsprintf(fmt, ap);
-    emu_thread->debugStr(str);
+    char buf[1024];
+    vsnprintf(buf, sizeof(buf), fmt, ap);
+    __android_log_print(ANDROID_LOG_WARN, "FB DBG", "%s", buf);
 }
 
 void gui_status_printf(const char *fmt, ...)

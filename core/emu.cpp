@@ -55,7 +55,10 @@ void warn(const char *fmt, ...) {
     gui_debug_printf("\n");
     va_end(va);
     if (debug_on_warn)
+    {
+        //gui_debug_printf("Suspend: %d", emu_suspend("/sdcard/firebird/statewdog"));
         debugger(DBG_EXCEPTION, 0);
+    }
 }
 
 __attribute__((noreturn))
