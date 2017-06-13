@@ -119,14 +119,17 @@ static void update_cx() {
     cpu_int_check();
 }
 extern bool irqs_read;
+extern uint32_t last_irq;
+#include <android/log.h>
 uint32_t int_cx_read_word(uint32_t addr) {
     switch (addr & 0x3FFFFFF) {
         case 0x000: {
             uint32_t val = intr.active & intr.mask[0] & ~intr.mask[1];
             if(!irqs_read && val == 0 && (arm.cpsr_low28 & 0x1F) == MODE_IRQ)
             {
-                gui_debug_printf("Workaround triggered");
-                val |= 1 << INT_WATCHDOG;
+                __android_log_print(ANDROID_LOG_WARN, "FB DBG", "Workaround: %d", last_irq);
+                //gui_debug_printf("Workaround triggered, %d\n", last_irq);
+                val |= 1 << last_irq;
                 irqs_read = true;
             }
             return val;
@@ -165,14 +168,17 @@ void int_cx_write_word(uint32_t addr, uint32_t value) {
     bad_write_word(addr, value);
     return;
 }
-
+uint32_t last_irq = 0;
 void int_set(uint32_t int_num, bool on) {
+    bool can_switch_mode = on && (arm.cpu_events & EVENT_IRQ) == 0;
     if (on) intr.active |= 1 << int_num;
     else    intr.active &= ~(1 << int_num);
     if (!emulate_cx)
         update();
     else
         update_cx();
+    if(can_switch_mode && (arm.cpu_events & EVENT_IRQ))
+        last_irq = int_num;
 }
 
 void int_reset() {
