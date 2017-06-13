@@ -740,8 +740,8 @@ void MainWindow::applyQMLBridgeSettings()
 
 void MainWindow::restart()
 {
-    /* If the emulation isn't running, use the default kit */
-    if(!ui->actionPause->isEnabled())
+    /* If there's no kit set, use the default kit */
+    if(the_qml_bridge->getCurrentKitId() == -1)
         the_qml_bridge->useDefaultKit();
 
     if(emu_thread.boot1.isEmpty())

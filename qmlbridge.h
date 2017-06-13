@@ -95,7 +95,7 @@ public:
     Q_INVOKABLE int kitIndexForID(unsigned int id);
 
     Q_INVOKABLE bool setCurrentKit(unsigned int id);
-    Q_INVOKABLE unsigned int getCurrentKitId();
+    Q_INVOKABLE int getCurrentKitId();
     Q_INVOKABLE bool useDefaultKit();
 
     Q_INVOKABLE bool restart();
@@ -155,7 +155,7 @@ private:
 
     QObject *toast = nullptr;
 
-    unsigned int current_kit_id;
+    int current_kit_id = -1;
     QString fallback_snapshot_path;
 
     double speed;

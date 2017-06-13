@@ -500,7 +500,7 @@ bool QMLBridge::setCurrentKit(unsigned int id)
     return true;
 }
 
-unsigned int QMLBridge::getCurrentKitId()
+int QMLBridge::getCurrentKitId()
 {
     return current_kit_id;
 }
