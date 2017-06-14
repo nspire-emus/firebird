@@ -95,9 +95,13 @@ translation_next_enter:
     cmp     r1, #0
     bne     save_return
 
-    bl      read_instruction // r0 = pointer to ARM code
-    cmp     r0, #0
-    beq     save_return
+    ldr     r1, [r10, #26*4]
+    mov     r2, r0, lsr #10
+    ldr     r1, [r1, r2, lsl #3]
+    tst     r1, #AC_FLAGS
+    bne     save_return
+
+    add     r0, r0, r1
 
     add     r1, r0, #65*1024*1024 // r1 = &(RAM_FLAGS(r0))
     ldr     r1, [r1]
