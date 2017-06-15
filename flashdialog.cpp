@@ -2,6 +2,7 @@
 #include <QFileDialog>
 #include <QMessageBox>
 
+#include "core/emu.h"
 #include "core/flash.h"
 #include "flashdialog.h"
 #include "ui_flashdialog.h"
@@ -128,10 +129,10 @@ void FlashDialog::hwTypeChanged(int i)
 }
 
 // Map of ui->selectModel indices to manuf product numbers
-const unsigned int product_values[] = { 0x0E0, 0x0C1, 0x100, 0x0F0 };
+const unsigned int product_values[] = { 0x0E0, 0x0C2, 0x100, 0x0F0 };
 
 // Map of ui->selectModelRev indices to manuf feature values
-const unsigned int feature_values[] = { 0x005, 0x085, 0x185 };
+const unsigned int feature_values[] = { FEATURE_CX, FEATURE_HWJ, FEATURE_HWW };
 
 void FlashDialog::saveAs()
 {

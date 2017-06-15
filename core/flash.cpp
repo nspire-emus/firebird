@@ -782,7 +782,11 @@ std::string flash_read_type(FILE *flash)
     switch(manuf.product)
     {
     case 0x0C:
-        ret = "Touchpad CAS";
+        if(manuf.revision < 2)
+            ret = "Clickpad CAS";
+        else
+            ret = "Touchpad CAS";
+
         break;
     case 0x0D:
         ret = "Lab Cradle";
