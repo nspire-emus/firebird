@@ -13,13 +13,31 @@
 .global arm
 .global cycle_count_delta
 .global cpu_events
+.global data_abort
 
 translation_sp: .global translation_sp
 	.xword 0
 
 .text
 
-.global data_abort
+#define MEM_MAXSZ 65*1024*1024
+
+#define RF_CODE_TRANSLATED   32
+#define RFS_TRANSLATION_INDEX 9
+
+#define TRANS_OFF_JUMP_TABLE 1*8
+#define TRANS_OFF_START_PTR 2*8
+#define TRANS_OFF_END_PTR 3*8
+
+#define AC_INVALID 0b10
+#define AC_NOT_PTR 0b01
+#define AC_FLAGS (AC_INVALID|AC_NOT_PTR)
+
+#define ARM_OFF_REG(x) x*4
+#define ARM_OFF_CPSR_LOW28 16*4
+#define ARM_OFF_CPU_EVENTS 23*4
+#define ARM_OFF_CYCLE_COUNT_DELTA 24*4
+#define ARM_OFF_ADDR_CACHE 25*4
 
 translation_enter: .global translation_enter
 	stp x19, x30, [sp, #-16]!
@@ -33,7 +51,7 @@ translation_enter: .global translation_enter
 	str x0, [x1]
 
 	loadsym x19, arm
-	ldr x26, [x19, #25*4]
+	ldr x26, [x19, #ARM_OFF_ADDR_CACHE]
 
 	// Load arm.reg[15] into w0
 	ldr w0, [x19, #15*4]
@@ -48,7 +66,7 @@ translation_next_bx: .global translation_next_bx
 // Enter translation; sets arm.reg[15] = w0
 translation_next: .global translation_next
 	mrs x17, nzcv
-	str w0, [x19, #15*4]
+	str w0, [x19, #ARM_OFF_REG(15)]
 
 // Enter translation at w0 (has to equal arm.reg[15])
 translation_next_enter:
@@ -59,23 +77,23 @@ translation_next_enter:
 
 	// Load RAM_FLAGS
 	add x22, x22, x0 // x22 = pointer to memory at x0
-	mov x21, #65*1024*1024
+	mov x21, #MEM_MAXSZ
 	ldr w21, [x22, x21] // w21 = RAM_FLAGS(x0)
 	tbz w21, #5, save_return // if((RAM_FLAGS(x0) & RF_CODE_TRANSLATED) == 0) goto save_return;
-	lsr w21, w21, #9 // w21 = w21 >> RFS_TRANSLATION_INDEX
+	lsr w21, w21, #RFS_TRANSLATION_INDEX // w21 = w21 >> RFS_TRANSLATION_INDEX
 
-	ldr w23, [x19, #24*4]
+	ldr w23, [x19, #ARM_OFF_CYCLE_COUNT_DELTA]
 	cmp w23, #0
 	bpl save_return // if(arm.cycle_count_delta > 0) goto save_return;
 
-	ldr w23, [x19, #23*4]
+	ldr w23, [x19, #ARM_OFF_CPU_EVENTS]
 	cbnz w23, save_return // if(cpu_events) goto save_return;
 
 	loadsym x23, translation_table
 	add x23, x23, x21, lsl #5 // x23 = &translation_table[RAM_FLAGS(x0) >> RFS_TRANSLATION_INDEX]
 
-	ldr x24, [x23, #1*8] // x24 = x3->jump_table
-	ldp x25, x21, [x23, #2*8] // x25 = x23->start_ptr; x21 = x23->end_ptr
+	ldr x24, [x23, #TRANS_OFF_JUMP_TABLE] // x24 = x3->jump_table
+	ldp x25, x21, [x23, #TRANS_OFF_START_PTR] // x25 = x23->start_ptr; x21 = x23->end_ptr
 
 	sub x21, x21, x22 // x21 = end_ptr - insn_ptr
 	lsr x21, x21, #2 // x21: number of instructions until the end
@@ -87,9 +105,9 @@ translation_next_enter:
 	ldr x0, [x24, x25] // x0 = jump_table[(insn_ptr - start_ptr) / 4]
 
 	// add number of instructions to cycle_count_delta
-	ldr w25, [x19, #24*4]
+	ldr w25, [x19, #ARM_OFF_CYCLE_COUNT_DELTA]
 	add w25, w25, w21
-	str w25, [x19, #24*4]
+	str w25, [x19, #ARM_OFF_CYCLE_COUNT_DELTA]
 
 	msr nzcv, x17	
 	br x0
@@ -98,9 +116,9 @@ translation_jmp: .global translation_jmp
 	mrs x17, nzcv
 
 	// add number of instructions to arm.cycle_count_delta
-	ldr w25, [x19, #24*4]
+	ldr w25, [x19, #ARM_OFF_CYCLE_COUNT_DELTA]
 	adds w25, w25, #4 // We don't know how much will be executed, so use a possible number
-	str w25, [x19, #24*4]
+	str w25, [x19, #ARM_OFF_CYCLE_COUNT_DELTA]
 	bpl save_return // return if >= 0
 
 	msr nzcv, x17
@@ -110,10 +128,10 @@ translation_jmp: .global translation_jmp
 to_thumb:
 	mrs x17, nzcv
 	sub w0, w0, #1
-	str w0, [x19, #15*4] // arm.reg[15] = w0 - 1
-	ldr w1, [x19, #16*4]
+	str w0, [x19, #ARM_OFF_REG(15)] // arm.reg[15] = w0 - 1
+	ldr w1, [x19, #ARM_OFF_CPSR_LOW28]
 	orr w1, w1, #0x20
-	str w1, [x19, #16*4] // arm.cpsr_low28 |= 0x20
+	str w1, [x19, #ARM_OFF_CPSR_LOW28] // arm.cpsr_low28 |= 0x20
 
 save_return:
 	loadsym x0, translation_sp
