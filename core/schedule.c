@@ -133,7 +133,8 @@ bool sched_resume(const emu_snapshot *snapshot)
         struct sched_item j = snapshot->sched.items[i];
         j.proc = sched.items[i].proc;
         if(!j.proc)
-            abort();
+            return false;
+
         sched.items[i] = j;
     }
     memcpy(sched.clock_rates, snapshot->sched.clock_rates, sizeof(sched.clock_rates));
