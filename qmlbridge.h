@@ -78,7 +78,7 @@ public:
 
     // Various utility functions
     Q_INVOKABLE QString basename(QString path);
-    Q_INVOKABLE QString dir(QString path);
+    Q_INVOKABLE QUrl dir(QString path);
     Q_INVOKABLE QString toLocalFile(QUrl url);
     Q_INVOKABLE bool fileExists(QString path);
     Q_INVOKABLE int kitIndexForID(unsigned int id);

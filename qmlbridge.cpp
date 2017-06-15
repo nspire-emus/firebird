@@ -2,6 +2,8 @@
 #include <cassert>
 #include <unistd.h>
 
+#include <QUrl>
+
 #include "qmlbridge.h"
 
 #ifndef MOBILE_UI
@@ -363,11 +365,9 @@ QString QMLBridge::basename(QString path)
                                       pathname.end()));
 }
 
-QString QMLBridge::dir(QString path)
+QUrl QMLBridge::dir(QString path)
 {
-    std::string pathname = path.toStdString();
-    return QString::fromStdString(std::string(pathname.begin(),
-                                              std::find_if(pathname.rbegin(), pathname.rend(), [=](char c) { return c == '/'; }).base()));
+    return QUrl{QUrl::fromLocalFile(path).toString(QUrl::RemoveFilename)};
 }
 
 QString QMLBridge::toLocalFile(QUrl url)

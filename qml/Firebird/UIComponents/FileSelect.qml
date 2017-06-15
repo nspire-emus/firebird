@@ -8,9 +8,6 @@ RowLayout {
     property string filePath: ""
     property alias dialog: dialog
 
-    // This should normally happen automatically...
-    onFilePathChanged: dialog.folder = Emu.dir(filePath)
-
     FileDialog {
         id: dialog
         visible: false
