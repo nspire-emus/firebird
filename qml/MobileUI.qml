@@ -117,6 +117,8 @@ ApplicationWindow {
     ListView {
         id: listView
 
+        focus: true
+
         anchors.fill: parent
         orientation: Qt.Horizontal
         snapMode: ListView.SnapOneItem
@@ -197,6 +199,7 @@ ApplicationWindow {
 
             Loader {
                 z: 0
+                focus: Math.round(parent.x) == Math.round(listView.contentX);
                 anchors.fill: parent
                 source: modelData
             }
