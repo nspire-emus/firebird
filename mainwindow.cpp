@@ -366,6 +366,7 @@ void MainWindow::setActive(bool b)
         connect(&emu_thread, SIGNAL(stopped()), this, SLOT(stopped()), Qt::QueuedConnection);
 
         // We might have missed a few events
+        updateUIActionState(emu_thread.isRunning());
         ui->buttonSpeed->setChecked(turbo_mode);
         usblinkChanged(usblink_connected);
     }
