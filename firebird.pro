@@ -174,7 +174,7 @@ SOURCES += $$ASMCODE_IMPL \
     core/gdbstub.c \
     core/gif.cpp \
     core/interrupt.c \
-    core/keypad.c \
+    core/keypad.cpp \
     core/lcd.c \
     core/link.c \
     core/mem.c \

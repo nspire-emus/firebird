@@ -1,5 +1,9 @@
-#include "emu.h"
+#include <assert.h>
 #include <string.h>
+
+#include <mutex>
+
+#include "emu.h"
 #include "misc.h"
 #include "keypad.h"
 #include "schedule.h"
@@ -8,6 +12,8 @@
 
 /* 900E0000: Keypad controller */
 keypad_state keypad;
+
+static std::mutex keypad_mut;
 
 void keypad_int_check() {
     if(keypad.touchpad_contact != keypad.touchpad_last_contact)
@@ -28,6 +34,8 @@ void keypad_on_pressed() {
 }
 
 uint32_t keypad_read(uint32_t addr) {
+    std::lock_guard<std::mutex> lg(keypad_mut);
+
     switch (addr & 0x7F) {
         case 0x00:
             cycle_count_delta += 1000; // avoid slowdown with polling loops
@@ -49,6 +57,7 @@ uint32_t keypad_read(uint32_t addr) {
     return bad_read_word(addr);
 }
 void keypad_write(uint32_t addr, uint32_t value) {
+    std::lock_guard<std::mutex> lg(keypad_mut);
     switch (addr & 0x7F) {
         case 0x00:
             keypad.kpc.control = value;
@@ -75,6 +84,7 @@ void keypad_write(uint32_t addr, uint32_t value) {
 }
 // Scan next row of keypad, if scanning is enabled
 static void keypad_scan_event(int index) {
+    std::lock_guard<std::mutex> lg(keypad_mut);
     if (keypad.kpc.current_row >= 16)
         error("too many keypad rows");
 
@@ -105,6 +115,7 @@ static void keypad_scan_event(int index) {
     keypad_int_check();
 }
 void keypad_reset() {
+    std::lock_guard<std::mutex> lg(keypad_mut);
     memset(&keypad.kpc, 0, sizeof keypad.kpc);
     keypad.touchpad_page = 0x04;
     sched.items[SCHED_KEYPAD].clock = CLOCK_APB;
@@ -263,17 +274,17 @@ read_again:
 
 /* 90050000 */
 void touchpad_cx_reset(void) {
+    std::lock_guard<std::mutex> lg(keypad_mut);
     keypad.touchpad_cx.state = 0;
 }
 uint32_t touchpad_cx_read(uint32_t addr) {
+    std::lock_guard<std::mutex> lg(keypad_mut);
     switch (addr & 0xFFFF) {
         case 0x0010:
             if (!keypad.touchpad_cx.reading)
                 break;
             keypad.touchpad_cx.reading--;
-            uint32_t val = touchpad_read(keypad.touchpad_cx.port++);
-            //printf("Port %02x = %02x\n", touchpad_cx.port - 1, val);
-            return val;
+            return touchpad_read(keypad.touchpad_cx.port++);
         case 0x0070:
             return keypad.touchpad_cx.reading ? 12 : 4;
         case 0x00FC:
@@ -284,6 +295,7 @@ uint32_t touchpad_cx_read(uint32_t addr) {
     return bad_read_word(addr);
 }
 void touchpad_cx_write(uint32_t addr, uint32_t value) {
+    std::lock_guard<std::mutex> lg(keypad_mut);
     switch (addr & 0xFFFF) {
         case 0x0010:
             if (keypad.touchpad_cx.state == 0) {
@@ -315,4 +327,68 @@ bool keypad_resume(const emu_snapshot *snapshot)
 {
     keypad = snapshot->mem.keypad;
     return true;
+}
+
+void keypad_set_key(int row, int col, bool state)
+{
+    std::lock_guard<std::mutex> lg(keypad_mut);
+
+    assert(row < KEYPAD_ROWS);
+    assert(col < KEYPAD_COLS);
+
+    if(state)
+        keypad.key_map[row] |= 1 << col;
+    else
+        keypad.key_map[row] &= ~(1 << col);
+
+    if(state && row == 0 && col == 9)
+        keypad_on_pressed();
+}
+
+void touchpad_set_state(float x, float y, bool contact, bool down)
+{
+    std::lock_guard<std::mutex> lg(keypad_mut);
+    if(contact || down)
+    {
+        int new_x = x * TOUCHPAD_X_MAX,
+            new_y = TOUCHPAD_Y_MAX - (y * TOUCHPAD_Y_MAX);
+
+        if(new_x < 0)
+            new_x = 0;
+        if(new_x > TOUCHPAD_X_MAX)
+            new_x = TOUCHPAD_X_MAX;
+
+        if(new_y < 0)
+            new_y = 0;
+        if(new_y > TOUCHPAD_Y_MAX)
+            new_y = TOUCHPAD_Y_MAX;
+
+        /* On a move, update the r el registers */
+        if(keypad.touchpad_contact)
+        {
+            int vel_x = new_x - keypad.touchpad_x;
+            int vel_y = new_y - keypad.touchpad_y;
+
+            /* The OS's cursor uses this, but it's a bit too quick */
+            vel_x /= 4;
+            vel_y /= 4;
+
+            keypad.touchpad_rel_x += vel_x;
+            keypad.touchpad_rel_y += vel_y;
+        }
+        else
+        {
+            keypad.touchpad_rel_x = 0;
+            keypad.touchpad_rel_y = 0;
+        }
+
+        keypad.touchpad_x = new_x;
+        keypad.touchpad_y = new_y;
+    }
+
+    keypad.touchpad_down = down;
+    keypad.touchpad_contact = contact;
+
+    keypad.kpc.gpio_int_active |= 0x800;
+    keypad_int_check();
 }

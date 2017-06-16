@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <cassert>
+#include <mutex>
 
 // Uncomment the following line to measure the time until the OS is loaded
 // #define BENCHMARK
@@ -223,6 +224,9 @@ void * FASTCALL read_instruction(uint32_t addr)
 // Update cpu_events
 void cpu_int_check()
 {
+    static std::mutex mut;
+    std::lock_guard<std::mutex> lg(mut);
+
     if (arm.interrupts & ~arm.cpsr_low28 & 0x80)
         cpu_events |= EVENT_IRQ;
     else

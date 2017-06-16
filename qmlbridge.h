@@ -66,7 +66,7 @@ public:
 
     KitModel *getKitModel() { return &kit_model; }
     Q_INVOKABLE void keypadStateChanged(int keymap_id, bool state);
-    Q_INVOKABLE void registerNButton(int keymap_id, QVariant button);
+    Q_INVOKABLE void registerNButton(unsigned int keymap_id, QVariant button);
 
     // Coordinates: (0/0) = top left (1/1) = bottom right
     Q_INVOKABLE void touchpadStateChanged(qreal x, qreal y, bool contact, bool down);

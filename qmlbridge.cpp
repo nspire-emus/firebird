@@ -255,27 +255,20 @@ QString QMLBridge::getVersion()
     return QStringLiteral(STRINGIFY(FB_VERSION));
 }
 
-constexpr const int ROWS = 8, COLS = 11;
-
 void QMLBridge::keypadStateChanged(int keymap_id, bool state)
 {
-    int col = keymap_id % 11, row = keymap_id / 11;
-    assert(row < ROWS);
-    //assert(col < COLS); Not needed.
+    int col = keymap_id % KEYPAD_COLS, row = keymap_id / KEYPAD_COLS;
 
-    if(state)
-        keypad.key_map[row] |= 1 << col;
-    else
-        keypad.key_map[row] &= ~(1 << col);
+    ::keypadStateChanged(row, col, state);
 }
 
-static QObject *buttons[ROWS][COLS];
+static QObject *buttons[KEYPAD_ROWS][KEYPAD_COLS];
 
-void QMLBridge::registerNButton(int keymap_id, QVariant button)
+void QMLBridge::registerNButton(unsigned int keymap_id, QVariant button)
 {
-    int col = keymap_id % COLS, row = keymap_id / COLS;
-    assert(row < ROWS);
-    //assert(col < COLS); Not needed.
+    int col = keymap_id % KEYPAD_COLS, row = keymap_id / KEYPAD_COLS;
+    assert(row < KEYPAD_ROWS);
+    //assert(col < KEYPAD_COLS); Not needed.
 
     if(buttons[row][col])
         qWarning() << "Warning: Button " << keymap_id << " already registered as " << buttons[row][col] << "!";
@@ -285,49 +278,7 @@ void QMLBridge::registerNButton(int keymap_id, QVariant button)
 
 void QMLBridge::touchpadStateChanged(qreal x, qreal y, bool contact, bool down)
 {
-    if(contact || down)
-    {
-        int new_x = x * TOUCHPAD_X_MAX,
-            new_y = TOUCHPAD_Y_MAX - (y * TOUCHPAD_Y_MAX);
-
-        if(new_x < 0)
-            new_x = 0;
-        if(new_x > TOUCHPAD_X_MAX)
-            new_x = TOUCHPAD_X_MAX;
-
-        if(new_y < 0)
-            new_y = 0;
-        if(new_y > TOUCHPAD_Y_MAX)
-            new_y = TOUCHPAD_Y_MAX;
-
-        /* On a move, update the rel registers */
-        if(keypad.touchpad_contact)
-        {
-            int vel_x = new_x - keypad.touchpad_x;
-            int vel_y = new_y - keypad.touchpad_y;
-
-            /* The OS's cursor uses this, but it's a bit too quick */
-            vel_x /= 4;
-            vel_y /= 4;
-
-            keypad.touchpad_rel_x += vel_x;
-            keypad.touchpad_rel_y += vel_y;
-        }
-        else
-        {
-            keypad.touchpad_rel_x = 0;
-            keypad.touchpad_rel_y = 0;
-        }
-
-        keypad.touchpad_x = new_x;
-        keypad.touchpad_y = new_y;
-    }
-
-    keypad.touchpad_down = down;
-    keypad.touchpad_contact = contact;
-
-    keypad.kpc.gpio_int_active |= 0x800;
-    keypad_int_check();
+    ::touchpadStateChanged(x, y, contact, down);
 
     notifyTouchpadStateChanged();
 }
@@ -577,8 +528,8 @@ bool QMLBridge::getTurboMode()
 
 void notifyKeypadStateChanged(int row, int col, bool state)
 {
-    assert(row < ROWS);
-    assert(col < COLS);
+    assert(row < KEYPAD_ROWS);
+    assert(col < KEYPAD_COLS);
 
     if(!buttons[row][col])
     {

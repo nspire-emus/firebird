@@ -8,25 +8,14 @@
 
 QtKeypadBridge qt_keypad_bridge;
 
-void setKeypad(int key, bool state)
+void setKeypad(unsigned int keymap_id, bool state)
 {
-    int row = key / keymap::COLS;
-    int col = key % keymap::COLS;
+    int col = keymap_id % KEYPAD_COLS, row = keymap_id / KEYPAD_COLS;
+    assert(row < KEYPAD_ROWS);
+    //assert(col < KEYPAD_COLS); Not needed.
 
-    assert(row >= 0);
-    assert(row < keymap::ROWS);
-
-    if (state) {
-        if (key == keymap::on)
-            keypad_on_pressed();
-
-        keypad.key_map[row] |= 1 << col;
-    }
-    else
-        keypad.key_map[row] &= ~(1 << col);
-
+    ::keypadStateChanged(row, col, state);
     notifyKeypadStateChanged(row, col, state);
-    keypad_int_check();
 }
 
 void keyToKeypad(QKeyEvent *event)
