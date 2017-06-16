@@ -25,17 +25,17 @@ public:
     Q_PROPERTY(bool leftHanded READ getLeftHanded WRITE setLeftHanded NOTIFY leftHandedChanged)
     Q_PROPERTY(bool suspendOnClose READ getSuspendOnClose WRITE setSuspendOnClose NOTIFY suspendOnCloseChanged)
     Q_PROPERTY(QString usbdir READ getUSBDir WRITE setUSBDir NOTIFY usbDirChanged)
-    Q_PROPERTY(QString version READ getVersion)
+    Q_PROPERTY(QString version READ getVersion CONSTANT)
     Q_PROPERTY(bool isRunning READ getIsRunning NOTIFY isRunningChanged)
-    Q_PROPERTY(KitModel* kits READ getKitModel)
+    Q_PROPERTY(KitModel* kits READ getKitModel CONSTANT)
 
     Q_PROPERTY(double speed READ getSpeed NOTIFY speedChanged)
     Q_PROPERTY(bool turboMode READ getTurboMode WRITE setTurboMode NOTIFY turboModeChanged)
 
-    Q_PROPERTY(int mobileX READ getMobileX WRITE setMobileX)
-    Q_PROPERTY(int mobileY READ getMobileY WRITE setMobileY)
-    Q_PROPERTY(int mobileWidth READ getMobileWidth WRITE setMobileWidth)
-    Q_PROPERTY(int mobileHeight READ getMobileHeight WRITE setMobileHeight)
+    Q_PROPERTY(int mobileX READ getMobileX WRITE setMobileX NOTIFY neverEmitted)
+    Q_PROPERTY(int mobileY READ getMobileY WRITE setMobileY NOTIFY neverEmitted)
+    Q_PROPERTY(int mobileWidth READ getMobileWidth WRITE setMobileWidth NOTIFY neverEmitted)
+    Q_PROPERTY(int mobileHeight READ getMobileHeight WRITE setMobileHeight NOTIFY neverEmitted)
 
     unsigned int getGDBPort();
     void setGDBPort(unsigned int port);
@@ -149,6 +149,10 @@ signals:
 
     void emuSuspended(bool success);
     void usblinkProgressChanged(int percent);
+
+    /* Never called. Used as NOTIFY value for writable properties
+     * that aren't used outside of QML. */
+    void neverEmitted();
 
 private:
     static void usblink_progress_changed(int percent, void *qml_bridge_p);

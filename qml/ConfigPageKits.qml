@@ -54,7 +54,8 @@ ColumnLayout {
 
                 text: kitList.currentItem.myData.name;
                 onTextChanged: {
-                    kitModel.setDataRow(kitList.currentIndex, text, KitModel.NameRole);
+                    if(text !== kitList.currentItem.myData.name)
+                        kitModel.setDataRow(kitList.currentIndex, text, KitModel.NameRole);
                     text = Qt.binding(function() { return kitList.currentItem.myData.name; });
                 }
             }
@@ -69,7 +70,8 @@ ColumnLayout {
                 Layout.fillWidth: true
                 filePath: kitList.currentItem.myData.boot1;
                 onFilePathChanged: {
-                    kitModel.setDataRow(kitList.currentIndex, filePath, KitModel.Boot1Role);
+                    if(filePath !== kitList.currentItem.myData.boot1)
+                        kitModel.setDataRow(kitList.currentIndex, filePath, KitModel.Boot1Role);
                     filePath = Qt.binding(function() { return kitList.currentItem.myData.boot1; });
                 }
             }
@@ -87,7 +89,8 @@ ColumnLayout {
                     Layout.fillWidth: true
                     filePath: kitList.currentItem.myData.flash;
                     onFilePathChanged: {
-                        kitModel.setDataRow(kitList.currentIndex, filePath, KitModel.FlashRole);
+                        if(filePath !== kitList.currentItem.myData.flash)
+                            kitModel.setDataRow(kitList.currentIndex, filePath, KitModel.FlashRole);
                         filePath = Qt.binding(function() { return kitList.currentItem.myData.flash; });
                     }
                 }
@@ -113,7 +116,8 @@ ColumnLayout {
                 dialog.selectExisting: false
                 filePath: kitList.currentItem.myData.snapshot;
                 onFilePathChanged: {
-                    kitModel.setDataRow(kitList.currentIndex, filePath, KitModel.SnapshotRole);
+                    if(filePath !== kitList.currentItem.myData.snapshot)
+                        kitModel.setDataRow(kitList.currentIndex, filePath, KitModel.SnapshotRole);
                     filePath = Qt.binding(function() { return kitList.currentItem.myData.snapshot; });
                 }
             }
