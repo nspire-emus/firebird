@@ -536,7 +536,7 @@ int process_debug_cmd(char *cmdline) {
         mmio_write_word(addr, value);
     } else if(!strcasecmp(cmd, "stop")) {
 	exiting = true;
-        return 0;
+        return 1;
     } else if(!strcasecmp(cmd, "exec")) {
         char *path = strtok(NULL, " \n\r");
         if(!path)
