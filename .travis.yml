@@ -16,6 +16,8 @@ script:
   - cd build
   - qmake ..
   - make -j4 CC=gcc-5 CXX=g++-5 LINK=g++-5
+  - cd ../tests/
+  - ./run_tests.sh
 
 notifications:
   irc:
