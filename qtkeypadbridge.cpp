@@ -14,7 +14,7 @@ void setKeypad(unsigned int keymap_id, bool state)
     assert(row < KEYPAD_ROWS);
     //assert(col < KEYPAD_COLS); Not needed.
 
-    ::keypadStateChanged(row, col, state);
+    ::keypad_set_key(row, col, state);
     notifyKeypadStateChanged(row, col, state);
 }
 

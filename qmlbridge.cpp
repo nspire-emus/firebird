@@ -259,7 +259,7 @@ void QMLBridge::keypadStateChanged(int keymap_id, bool state)
 {
     int col = keymap_id % KEYPAD_COLS, row = keymap_id / KEYPAD_COLS;
 
-    ::keypadStateChanged(row, col, state);
+    ::keypad_set_key(row, col, state);
 }
 
 static QObject *buttons[KEYPAD_ROWS][KEYPAD_COLS];
@@ -278,7 +278,7 @@ void QMLBridge::registerNButton(unsigned int keymap_id, QVariant button)
 
 void QMLBridge::touchpadStateChanged(qreal x, qreal y, bool contact, bool down)
 {
-    ::touchpadStateChanged(x, y, contact, down);
+    ::touchpad_set_state(x, y, contact, down);
 
     notifyTouchpadStateChanged();
 }

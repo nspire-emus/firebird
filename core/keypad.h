@@ -56,7 +56,7 @@ bool keypad_suspend(emu_snapshot *snapshot);
 bool keypad_resume(const emu_snapshot *snapshot);
 #define KEYPAD_ROWS 8
 #define KEYPAD_COLS 11
-void keypadStateChanged(int row, int col, bool state);
+void keypad_set_key(int row, int col, bool state);
 void keypad_int_check();
 void keypad_on_pressed();
 uint32_t keypad_read(uint32_t addr);
@@ -64,7 +64,7 @@ void keypad_write(uint32_t addr, uint32_t value);
 void touchpad_cx_reset(void);
 uint32_t touchpad_cx_read(uint32_t addr);
 void touchpad_cx_write(uint32_t addr, uint32_t value);
-void touchpadStateChanged(float x, float y, bool contact, bool down);
+void touchpad_set_state(float x, float y, bool contact, bool down);
 
 #define TOUCHPAD_X_MAX 0x0918
 #define TOUCHPAD_Y_MAX 0x069B
