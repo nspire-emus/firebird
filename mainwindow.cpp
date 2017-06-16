@@ -41,18 +41,17 @@ MainWindow::MainWindow(QWidget *parent) :
     lcd.installEventFilter(&qt_keypad_bridge);
 
     qml_engine = ui->keypadWidget->engine();
-
-    // Create config dialog
     qml_engine->addImportPath(QStringLiteral("qrc:/qml/qml"));
-    QQmlComponent *dialog_component = new QQmlComponent(qml_engine, QUrl(QStringLiteral("qrc:/qml/qml/FBConfigDialog.qml")), this);
-    if(!dialog_component->isReady())
-        qCritical() << "Could not create QML config dialog:" << dialog_component->errorString();
 
-    config_dialog = dialog_component->create();
+    // Create config dialog component
+    config_component = new QQmlComponent(qml_engine, QUrl(QStringLiteral("qrc:/qml/qml/FBConfigDialog.qml")), this);
+    if(!config_component->isReady())
+        qCritical() << "Could not create QML config dialog:" << config_component->errorString();
 
+    // Create mobile UI component
     mobileui_component = new QQmlComponent(qml_engine, QUrl(QStringLiteral("qrc:/qml/qml/MobileUI.qml")), this);
     if(!mobileui_component->isReady())
-        qCritical() << "Could not create Mobile UI component:" << mobileui_component->errorString();
+        qCritical() << "Could not create mobile UI component:" << mobileui_component->errorString();
 
     if(!the_qml_bridge)
         throw std::runtime_error("Can't continue without QMLBridge");
@@ -344,7 +343,10 @@ void MainWindow::switchUIMode(bool mobile_ui)
     if(mobileui_dialog)
         mobileui_dialog->setProperty("visible", mobile_ui);
     else if(mobile_ui)
+    {
+        qWarning() << "Could not create mobile UI!";
         return; // Do not switch the UI mode as the mobile UI could not be created
+    }
 
     the_qml_bridge->setActive(mobile_ui);
     this->setActive(!mobile_ui);
@@ -768,7 +770,13 @@ void MainWindow::restart()
 
 void MainWindow::openConfiguration()
 {
-    config_dialog->setProperty("visible", QVariant(true));
+    if(!config_dialog)
+        config_dialog = config_component->create();
+
+    if(!config_dialog)
+        qWarning() << "Could not create config dialog!";
+    else
+        config_dialog->setProperty("visible", QVariant(true));
 }
 
 void MainWindow::startKit()

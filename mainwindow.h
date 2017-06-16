@@ -152,6 +152,8 @@ private:
     // The QML engine shared by the keypad, config dialog and mobile UI
     QQmlEngine *qml_engine = nullptr;
 
+    // The config dialog component, used to create the config_dialog
+    QQmlComponent *config_component = nullptr;
     // The QML Config Dialog
     QObject *config_dialog = nullptr;
 
