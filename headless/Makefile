@@ -65,7 +65,7 @@ all: $(OUTPUT)
 	$(CXX) -c $(CXXFLAGS) $< -o $@
 
 $(OUTPUT): $(OBJS)
-	$(CXX) $(CXXFLAGS) $(LFLAGS) $^ -o $@
+	$(CXX) $(CXXFLAGS) $^ $(LFLAGS) -o $@
 
 clean:
 	rm -f $(OBJS) $(OUTPUT)
