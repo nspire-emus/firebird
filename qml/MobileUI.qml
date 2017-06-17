@@ -186,7 +186,7 @@ ApplicationWindow {
                 listView.pageX[index] = x;
             }
 
-            width: modelData === "MobileUIDrawer.qml" ? app.width * 0.6 : app.width
+            width: modelData === "MobileUIDrawer.qml" ? app.width * (app.width > app.height ? 0.3 : 0.6) : app.width
             height: app.height
 
             Rectangle {
