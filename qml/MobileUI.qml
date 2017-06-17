@@ -21,6 +21,9 @@ ApplicationWindow {
     height: Emu.mobileHeight != -1 ? Emu.mobileHeight : 480
     onHeightChanged: Emu.mobileHeight = height
 
+    minimumWidth: 320
+    minimumHeight: 480
+
     Component.onCompleted: {
         if(Emu.isMobile())
         {
