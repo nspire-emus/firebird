@@ -198,6 +198,16 @@ ApplicationWindow {
                     var xOffset = listView.contentX - parent.x;
                     return Math.min(Math.max(0.0, Math.abs(xOffset) / listView.width), 0.6);
                 }
+                visible: opacity > 0.01
+
+                MouseArea {
+                    anchors.fill: parent
+                    enabled: parent.visible
+
+                    onReleased: {
+                        listView.animateToIndex(index)
+                    }
+                }
             }
 
             Loader {
