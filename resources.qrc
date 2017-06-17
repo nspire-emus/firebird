@@ -67,5 +67,8 @@
         <file>resources/keyimages/catalog.png</file>
         <file>resources/keyimages/flag.png</file>
         <file>resources/keyimages/templates.png</file>
+        <file>resources/keyimages/contrast_minus.png</file>
+        <file>resources/keyimages/contrast_plus.png</file>
+        <file>resources/keyimages/context_menu.png</file>
     </qresource>
 </RCC>

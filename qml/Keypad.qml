@@ -124,20 +124,15 @@ Rectangle {
             Layout.fillWidth: true
             keymap_id: 71
 
-            Text {
-                id: text8
-                x: 0
-                y: -11
-                width: 33
-                height: 11
-                color: "#68cce0"
-                text: "▤▸"
-                horizontalAlignment: Text.AlignHCenter
-                font.pixelSize: 10
-                anchors.bottomMargin: 0
-                font.bold: false
-                verticalAlignment: Text.AlignVCenter
-                anchors.bottom: parent.top
+            Image {
+                source: "qrc:/keyimages/resources/keyimages/context_menu.png"
+                width: nButton6.width * .5
+                anchors.bottom: nButton6.top
+                anchors.left: nButton6.left
+                anchors.leftMargin: nButton6.width / 4
+                fillMode: Image.PreserveAspectFit
+                smooth: true
+                mipmap: true
             }
         }
     }
@@ -452,7 +447,7 @@ Rectangle {
         x: 5
         anchors.top: nButton7.bottom
         anchors.topMargin: 0
-        topText1: "|≠≥▸"
+        topText1: "|≠≥>"
         topText2: ""
         id1: 51
         id2: 20
@@ -565,8 +560,8 @@ Rectangle {
     NDualButton {
         id: nDualButton7
         x: 210
-        topText2: "◀◑"
-        topText1: "◐▶"
+        topText2: ""
+        topText1: ""
         anchors.top: nDualButton6.bottom
         anchors.topMargin: 0
         id1: 68
@@ -575,6 +570,28 @@ Rectangle {
         anchors.rightMargin: 5
         text2: "‒"
         text1: "+"
+
+        Image {
+            source: "qrc:/keyimages/resources/keyimages/contrast_plus.png"
+            width: nDualButton7.button1.width * .5
+            anchors.bottom: nDualButton7.button1.top
+            anchors.left: nDualButton7.button1.left
+            anchors.leftMargin: nDualButton7.button1.width / 4
+            fillMode: Image.PreserveAspectFit
+            smooth: true
+            mipmap: true
+        }
+
+        Image {
+            source: "qrc:/keyimages/resources/keyimages/contrast_minus.png"
+            width: nDualButton7.button2.width * .5
+            anchors.bottom: nDualButton7.button2.top
+            anchors.left: nDualButton7.button2.left
+            anchors.leftMargin: nDualButton7.button2.width / 4
+            fillMode: Image.PreserveAspectFit
+            smooth: true
+            mipmap: true
+        }
     }
 
     NButton {
