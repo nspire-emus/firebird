@@ -517,7 +517,7 @@ Rectangle {
         x: 210
         anchors.top: nButton10.bottom
         anchors.topMargin: 0
-        topText2: "∞ß°"
+        topText2: "∞β°"
         topText1: ":="
         id1: 63
         id2: 62
