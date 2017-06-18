@@ -444,7 +444,7 @@ void MainWindow::convertTabsToDocks()
     QMenu *docks_menu = new QMenu(tr("Docks"), this);
     ui->menubar->insertMenu(ui->menuAbout->menuAction(), docks_menu);
 
-    QAction *editmode_toggle = new QAction(tr("Enable UI edit mode"));
+    QAction *editmode_toggle = new QAction(tr("Enable UI edit mode"), this);
     editmode_toggle->setCheckable(true);
     editmode_toggle->setChecked(settings->value(QStringLiteral("uiEditModeEnabled"), true).toBool());
     connect(editmode_toggle, SIGNAL(toggled(bool)), this, SLOT(setUIEditMode(bool)));
