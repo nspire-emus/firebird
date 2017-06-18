@@ -1,11 +1,8 @@
 #include <QApplication>
 #include <QTranslator>
 
-#ifndef MOBILE_UI
 #include "mainwindow.h"
-#else
-#include <QQuickView>
-#endif
+#include <QQmlApplicationEngine>
 
 #include "qtframebuffer.h"
 #include "qmlbridge.h"
@@ -41,11 +38,12 @@ int main(int argc, char **argv)
     #ifndef MOBILE_UI
         MainWindow mw;
         main_window = &mw;
-        mw.show();
     #else
-        QQmlApplicationEngine mobile_ui;
-        mobile_ui.addImportPath(QStringLiteral("qrc:/qml/qml/"));
-        mobile_ui.load(QUrl(QStringLiteral("qrc:/qml/qml/MobileUI.qml")));
+        QQmlApplicationEngine engine;
+        engine.addImportPath(QStringLiteral("qrc:/qml/qml/"));
+        engine.load(QUrl(QStringLiteral("qrc:/qml/qml/MobileUI.qml")));
+        /*mobile_ui.setResizeMode(QQuickView::SizeRootObjectToView);
+        mobile_ui.show();*/
     #endif
 
     return app.exec();

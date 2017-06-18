@@ -6,7 +6,6 @@
 #include <QMainWindow>
 #include <QSettings>
 #include <QLabel>
-#include <QTreeWidgetItem>
 #include <QQuickWidget>
 
 #include "emuthread.h"
@@ -51,6 +50,7 @@ public slots:
     void showStatusMsg(QString str);
     void kitDataChanged(QModelIndex, QModelIndex, QVector<int> roles);
     void kitAnythingChanged();
+    void currentKitChanged(const Kit &kit);
 
     //Drag & Drop
     void dropEvent(QDropEvent* event) override;
@@ -69,6 +69,7 @@ public slots:
     void usblinkChanged(bool state);
     void setExtLCD(bool state);
     void xmodemSend();
+    void switchToMobileUI();
 
     //Menu "State"
     bool resume();
@@ -112,8 +113,11 @@ signals:
 
 public:
     static void usblink_progress_callback(int progress, void *data);
+    void switchUIMode(bool mobile_ui);
 
 private:
+    void setActive(bool b);
+
     void suspendToPath(QString path);
     bool resumeFromPath(QString path);
 
@@ -129,22 +133,11 @@ private:
     // and emu_thread configured appropriately.
     void applyQMLBridgeSettings();
 
-    // Configure boot1, flash and fallback_snapshot_path
-    // according to the Kit's configuration.
-    void setCurrentKit(const Kit& kit);
-    unsigned int current_kit_id;
-
-    // Returns the snapshot path of the current kit or
-    // if the current kit got deleted, fallback_snapshot_path
-    QString snapshotPath();
-    QString fallback_snapshot_path;
-
     Ui::MainWindow *ui = nullptr;
 
     // Used to show a status message permanently
     QLabel status_label;
 
-    EmuThread emu;
     QSettings *settings = nullptr;
     FlashDialog flash_dialog;
     // To make it possible to activate the debugger
@@ -156,8 +149,18 @@ private:
     // The about dialog
     FBAboutDialog aboutDialog{this};
 
+    // The QML engine shared by the keypad, config dialog and mobile UI
+    QQmlEngine *qml_engine = nullptr;
+
+    // The config dialog component, used to create the config_dialog
+    QQmlComponent *config_component = nullptr;
     // The QML Config Dialog
     QObject *config_dialog = nullptr;
+
+    // The Mobile UI component, used to create the mobile_dialog
+    QQmlComponent *mobileui_component = nullptr;
+    // A Mobile UI instance
+    QObject *mobileui_dialog = nullptr;
 
     // Used for autosuspend on close.
     // The close event has to be deferred until the suspend operation completed successfully.

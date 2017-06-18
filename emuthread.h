@@ -62,6 +62,6 @@ private:
     std::string debug_input, snapshot_path;
 };
 
-extern EmuThread *emu_thread;
+extern EmuThread emu_thread;
 
 #endif // EMUTHREAD_H

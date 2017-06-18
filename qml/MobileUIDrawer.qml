@@ -30,7 +30,7 @@ Rectangle {
 
         ColumnLayout {
             Layout.fillWidth: true
-            spacing: 0
+            spacing: -1 // Collapse borders
 
             DrawerButton {
                  id: restartButton
@@ -50,8 +50,6 @@ Rectangle {
 
                  disabled: !Emu.isRunning
 
-                 borderTopVisible: false
-
                  title: qsTr("Reset")
                  icon: "qrc:/icons/resources/icons/system-reboot.png"
 
@@ -63,8 +61,6 @@ Rectangle {
 
              DrawerButton {
                  id: resumeButton
-
-                 borderTopVisible: false
 
                  title: qsTr("Resume")
                  icon: "qrc:/icons/resources/icons/system-suspend-hibernate.png"
@@ -80,8 +76,6 @@ Rectangle {
                  id: saveButton
 
                  disabled: !Emu.isRunning
-
-                 borderTopVisible: false
 
                  title: qsTr("Save")
                  icon: "qrc:/icons/resources/icons/media-floppy.png"
@@ -119,7 +113,17 @@ Rectangle {
             }
 
             Item {
-                Layout.minimumHeight: 100
+                Layout.minimumHeight: 60
+            }
+
+            DrawerButton {
+                id: desktopUIButton
+                visible: !Emu.isMobile()
+
+                title: qsTr("Desktop UI")
+                icon: "qrc:/icons/resources/icons/video-display.png"
+
+                onClicked: Emu.switchUIMode(false);
             }
 
             DrawerButton {
@@ -138,13 +142,13 @@ Rectangle {
 
         ColumnLayout {
             Layout.fillWidth: true
-            spacing: 0
+            spacing: -1 // Collapse borders
 
             DrawerButton {
                 id: speedButton
                 toggle: true
                 toggleState: Emu.turboMode
-                borderBottomVisible: false
+
                 title: qsTr("Speed: %1 %").arg(Math.round(100*Emu.speed))
                 font.pixelSize: TextMetrics.normalSize
                 onToggleStateChanged: {

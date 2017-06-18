@@ -383,7 +383,7 @@
        </attribute>
        <layout class="QHBoxLayout" name="horizontalLayout_5">
         <item>
-         <widget class="QQuickWidgetLessBroken" name="keypadWidget">
+         <widget class="QQuickWidgetLessBroken" name="keypadWidget" native="true">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
             <horstretch>0</horstretch>
@@ -437,23 +437,21 @@
     </property>
     <widget class="QMenu" name="menuRestart_with_Kit">
      <property name="title">
-      <string>Restart with Kit</string>
+      <string>Restart &amp;with Kit</string>
      </property>
      <property name="icon">
       <iconset resource="resources.qrc">
        <normaloff>:/icons/resources/icons/edit-bomb.png</normaloff>:/icons/resources/icons/edit-bomb.png</iconset>
      </property>
-     <addaction name="actionKit1"/>
     </widget>
     <widget class="QMenu" name="menuBoot_Diags_with_Kit">
      <property name="title">
-      <string>Boot Diags with Kit</string>
+      <string>&amp;Boot Diags with Kit</string>
      </property>
      <property name="icon">
       <iconset resource="resources.qrc">
        <normaloff>:/icons/resources/icons/edit-bomb.png</normaloff>:/icons/resources/icons/edit-bomb.png</iconset>
      </property>
-     <addaction name="actionKit1_2"/>
     </widget>
     <addaction name="actionReset"/>
     <addaction name="actionPause"/>
@@ -486,6 +484,7 @@
     <addaction name="actionDebugger"/>
     <addaction name="separator"/>
     <addaction name="actionXModem"/>
+    <addaction name="actionSwitch_to_Mobile_UI"/>
    </widget>
    <widget class="QMenu" name="menuState">
     <property name="title">
@@ -682,17 +681,16 @@
      <normaloff>:/icons/resources/icons/preferences-other.png</normaloff>:/icons/resources/icons/preferences-other.png</iconset>
    </property>
    <property name="text">
-    <string>Configuration</string>
+    <string>&amp;Configuration</string>
    </property>
   </action>
-  <action name="actionKit1">
-   <property name="text">
-    <string notr="true">Kit1</string>
+  <action name="actionSwitch_to_Mobile_UI">
+   <property name="icon">
+    <iconset resource="resources.qrc">
+     <normaloff>:/icons/resources/icons/smartphone.png</normaloff>:/icons/resources/icons/smartphone.png</iconset>
    </property>
-  </action>
-  <action name="actionKit1_2">
    <property name="text">
-    <string notr="true">Kit1</string>
+    <string>Switch to Mobile UI</string>
    </property>
   </action>
  </widget>

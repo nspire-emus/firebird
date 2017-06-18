@@ -9,23 +9,83 @@ import QtQuick.Layouts 1.0
 ApplicationWindow {
     id: app
     title: "Firebird Emu"
-    width: 320
-    height: 480
     visible: true
 
+    property bool closeAfterSuspend: false
+    property bool ignoreSuspendOnClose: false
+
+    onXChanged: Emu.mobileX = x
+    onYChanged: Emu.mobileY = y
+    width: Emu.mobileWidth != -1 ? Emu.mobileWidth : 320
+    onWidthChanged: Emu.mobileWidth = width
+    height: Emu.mobileHeight != -1 ? Emu.mobileHeight : 480
+    onHeightChanged: Emu.mobileHeight = height
+
+    minimumWidth: 320
+    minimumHeight: 480
+
     Component.onCompleted: {
-        // FIXME: The toast might not yet be registered here
-
-        Emu.useDefaultKit();
-
-        if(Emu.autostart
-            && Emu.getFlashPath() !== ""
-            && Emu.getBoot1Path() !== "")
+        if(Emu.isMobile())
         {
-            if(Emu.getSnapshotPath() !== "")
-                Emu.resume();
-            else
-                Emu.restart();
+            Emu.useDefaultKit();
+
+            if(Emu.autostart
+                && Emu.getFlashPath() !== ""
+                && Emu.getBoot1Path() !== "")
+            {
+                if(Emu.getSnapshotPath() !== "")
+                    Emu.resume();
+                else
+                    Emu.restart();
+            }
+        }
+        else
+        {
+            if(Emu.mobileX != -1)
+                x = Emu.mobileX;
+
+            if(Emu.mobileY != -1)
+                y = Emu.mobileY;
+        }
+    }
+
+    onClosing: {
+        if(Emu.isMobile() || !Emu.isRunning || !Emu.suspendOnClose || ignoreSuspendOnClose)
+            return;
+
+        closeAfterSuspend = true;
+        Emu.suspend();
+        close.accepted = false;
+    }
+
+    MessageDialog {
+        id: suspendFailedDialog
+        standardButtons: StandardButton.Yes | StandardButton.No
+        icon: StandardIcon.Warning
+        title: qsTr("Suspend failed")
+        text: qsTr("Suspending the emulation failed. Do you still want to quit Firebird?")
+
+        onYes: {
+            ignoreSuspendOnClose = true;
+            app.close();
+        }
+    }
+
+    Connections {
+        target: Emu
+        onEmuSuspended: {
+            if(closeAfterSuspend)
+            {
+                closeAfterSuspend = false;
+
+                if(success)
+                {
+                    ignoreSuspendOnClose = true;
+                    app.close();
+                }
+                else
+                    suspendFailedDialog.visible = true;
+            }
         }
     }
 
@@ -59,6 +119,8 @@ ApplicationWindow {
 
     ListView {
         id: listView
+
+        focus: true
 
         anchors.fill: parent
         orientation: Qt.Horizontal
@@ -124,7 +186,7 @@ ApplicationWindow {
                 listView.pageX[index] = x;
             }
 
-            width: modelData === "MobileUIDrawer.qml" ? app.width * 0.6 : app.width
+            width: modelData === "MobileUIDrawer.qml" ? app.width * (app.width > app.height ? 0.3 : 0.6) : app.width
             height: app.height
 
             Rectangle {
@@ -136,10 +198,21 @@ ApplicationWindow {
                     var xOffset = listView.contentX - parent.x;
                     return Math.min(Math.max(0.0, Math.abs(xOffset) / listView.width), 0.6);
                 }
+                visible: opacity > 0.01
+
+                MouseArea {
+                    anchors.fill: parent
+                    enabled: parent.visible
+
+                    onReleased: {
+                        listView.animateToIndex(index)
+                    }
+                }
             }
 
             Loader {
                 z: 0
+                focus: Math.round(parent.x) == Math.round(listView.contentX);
                 anchors.fill: parent
                 source: modelData
             }

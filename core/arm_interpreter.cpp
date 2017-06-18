@@ -57,7 +57,7 @@ static uint32_t shift(uint32_t value, uint8_t shift_type, uint8_t shift_val, boo
             return value >> shift_val;
         case SH_ASR:
             if(setcc) arm.cpsr_c = (value >> (shift_val - 1)) & 1;
-            if(value & (1 << 31)) //TODO: Verify!
+            if(value & (1u << 31)) //TODO: Verify!
                 return ~((~value) >> shift_val);
             else
                 return value >> shift_val;
@@ -71,9 +71,9 @@ static uint32_t shift(uint32_t value, uint8_t shift_type, uint8_t shift_val, boo
         switch(shift_type)
         {
         case SH_LSL: if(setcc) arm.cpsr_c = value & 1; return 0;
-        case SH_LSR: if(setcc) arm.cpsr_c = !!(value & (1 << 31)); return 0;
-        case SH_ASR: if(setcc) arm.cpsr_c = !!(value & (1 << 31));
-            if(value & (1 << 31))
+        case SH_LSR: if(setcc) arm.cpsr_c = !!(value & (1u << 31)); return 0;
+        case SH_ASR: if(setcc) arm.cpsr_c = !!(value & (1u << 31));
+            if(value & (1u << 31))
                 return 0xFFFFFFFF;
             else
                 return 0x00000000;
@@ -107,7 +107,7 @@ static uint32_t rotated_imm(Instruction i, bool setcc)
 
     imm = (imm >> count) | (imm << (32 - count));
     if(setcc)
-        arm.cpsr_c = imm & (1 << 31);
+        arm.cpsr_c = !!(imm & (1u << 31));
     return imm;
 }
 

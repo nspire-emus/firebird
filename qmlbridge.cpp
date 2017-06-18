@@ -6,9 +6,8 @@
 
 #include "qmlbridge.h"
 
-#ifndef MOBILE_UI
+#include "mainwindow.h"
 #include "flashdialog.h"
-#endif
 
 #include "core/emu.h"
 #include "core/keypad.h"
@@ -63,25 +62,12 @@ QMLBridge::QMLBridge(QObject *parent) : QObject(parent)
     debug_on_warn = getDebugOnWarn();
 
     connect(&kit_model, SIGNAL(anythingChanged()), this, SLOT(saveKits()), Qt::QueuedConnection);
-    #ifdef MOBILE_UI
-        connect(&emu_thread, SIGNAL(speedChanged(double)), this, SLOT(speedChanged(double)), Qt::QueuedConnection);
-        connect(&emu_thread, SIGNAL(turboModeChanged(bool)), this, SIGNAL(turboModeChanged()), Qt::QueuedConnection);
-        connect(&emu_thread, SIGNAL(stopped()), this, SIGNAL(isRunningChanged()), Qt::QueuedConnection);
-        connect(&emu_thread, SIGNAL(started(bool)), this, SIGNAL(isRunningChanged()), Qt::QueuedConnection);
-        connect(&emu_thread, SIGNAL(suspended(bool)), this, SIGNAL(isRunningChanged()), Qt::QueuedConnection);
-        connect(&emu_thread, SIGNAL(resumed(bool)), this, SIGNAL(isRunningChanged()), Qt::QueuedConnection);
-        connect(&emu_thread, SIGNAL(started(bool)), this, SLOT(started(bool)), Qt::QueuedConnection);
-        connect(&emu_thread, SIGNAL(resumed(bool)), this, SLOT(resumed(bool)), Qt::QueuedConnection);
-        connect(&emu_thread, SIGNAL(suspended(bool)), this, SLOT(suspended(bool)), Qt::QueuedConnection);
-    #endif
+
+    setActive(true);
 }
 
 QMLBridge::~QMLBridge()
-{
-    #ifdef MOBILE_UI
-        emu_thread.stop();
-    #endif
-}
+{}
 
 unsigned int QMLBridge::getGDBPort()
 {
@@ -96,6 +82,7 @@ void QMLBridge::setGDBPort(unsigned int port)
     settings.setValue(QStringLiteral("gdbPort"), port);
     emit gdbPortChanged();
 }
+
 bool QMLBridge::getGDBEnabled()
 {
     return settings.value(QStringLiteral("gdbEnabled"), !isMobile()).toBool();
@@ -240,12 +227,7 @@ void QMLBridge::setUSBDir(QString dir)
 
 bool QMLBridge::getIsRunning()
 {
-    #ifdef MOBILE_UI
-        return emu_thread.isRunning();
-    #else
-        //TODO: Non mobile-ui
-        return true;
-#endif
+    return emu_thread.isRunning();
 }
 
 QString QMLBridge::getVersion()
@@ -262,18 +244,11 @@ void QMLBridge::keypadStateChanged(int keymap_id, bool state)
     ::keypad_set_key(row, col, state);
 }
 
-static QObject *buttons[KEYPAD_ROWS][KEYPAD_COLS];
+static std::multimap<int , QObject *> buttons;
 
 void QMLBridge::registerNButton(unsigned int keymap_id, QVariant button)
 {
-    int col = keymap_id % KEYPAD_COLS, row = keymap_id / KEYPAD_COLS;
-    assert(row < KEYPAD_ROWS);
-    //assert(col < KEYPAD_COLS); Not needed.
-
-    if(buttons[row][col])
-        qWarning() << "Warning: Button " << keymap_id << " already registered as " << buttons[row][col] << "!";
-    else
-        buttons[row][col] = button.value<QObject*>();
+    buttons.insert(std::make_pair(keymap_id, button.value<QObject*>()));
 }
 
 void QMLBridge::touchpadStateChanged(qreal x, qreal y, bool contact, bool down)
@@ -283,11 +258,11 @@ void QMLBridge::touchpadStateChanged(qreal x, qreal y, bool contact, bool down)
     notifyTouchpadStateChanged();
 }
 
-static QObject *qml_touchpad;
+static std::vector<QObject *> qml_touchpads;
 
 void QMLBridge::registerTouchpad(QVariant touchpad)
 {
-    qml_touchpad = touchpad.value<QObject*>();
+    qml_touchpads.push_back(touchpad.value<QObject*>());
 }
 
 bool QMLBridge::isMobile()
@@ -297,7 +272,7 @@ bool QMLBridge::isMobile()
         return true;
     #else
         return false;
-#endif
+    #endif
 }
 
 void QMLBridge::sendFile(QUrl url, QString dir)
@@ -336,8 +311,6 @@ int QMLBridge::kitIndexForID(unsigned int id)
     return kit_model.indexForID(id);
 }
 
-#ifndef MOBILE_UI
-
 void QMLBridge::createFlash(unsigned int kitIndex)
 {
     FlashDialog dialog;
@@ -350,7 +323,45 @@ void QMLBridge::createFlash(unsigned int kitIndex)
     dialog.exec();
 }
 
+#ifndef MOBILE_UI
+void QMLBridge::switchUIMode(bool mobile_ui)
+{
+    main_window->switchUIMode(mobile_ui);
+}
 #endif
+
+void QMLBridge::setActive(bool b)
+{
+    if(b)
+    {
+        connect(&emu_thread, SIGNAL(speedChanged(double)), this, SLOT(speedChanged(double)), Qt::QueuedConnection);
+        connect(&emu_thread, SIGNAL(turboModeChanged(bool)), this, SIGNAL(turboModeChanged()), Qt::QueuedConnection);
+        connect(&emu_thread, SIGNAL(stopped()), this, SIGNAL(isRunningChanged()), Qt::QueuedConnection);
+        connect(&emu_thread, SIGNAL(started(bool)), this, SIGNAL(isRunningChanged()), Qt::QueuedConnection);
+        connect(&emu_thread, SIGNAL(suspended(bool)), this, SIGNAL(isRunningChanged()), Qt::QueuedConnection);
+        connect(&emu_thread, SIGNAL(resumed(bool)), this, SIGNAL(isRunningChanged()), Qt::QueuedConnection);
+        connect(&emu_thread, SIGNAL(started(bool)), this, SLOT(started(bool)), Qt::QueuedConnection);
+        connect(&emu_thread, SIGNAL(resumed(bool)), this, SLOT(resumed(bool)), Qt::QueuedConnection);
+        connect(&emu_thread, SIGNAL(suspended(bool)), this, SLOT(suspended(bool)), Qt::QueuedConnection);
+
+        // We might have missed some events.
+        turboModeChanged();
+        speedChanged();
+        isRunningChanged();
+    }
+    else
+    {
+        disconnect(&emu_thread, SIGNAL(speedChanged(double)), this, SLOT(speedChanged(double)));
+        disconnect(&emu_thread, SIGNAL(turboModeChanged(bool)), this, SIGNAL(turboModeChanged()));
+        disconnect(&emu_thread, SIGNAL(stopped()), this, SIGNAL(isRunningChanged()));
+        disconnect(&emu_thread, SIGNAL(started(bool)), this, SIGNAL(isRunningChanged()));
+        disconnect(&emu_thread, SIGNAL(suspended(bool)), this, SIGNAL(isRunningChanged()));
+        disconnect(&emu_thread, SIGNAL(resumed(bool)), this, SIGNAL(isRunningChanged()));
+        disconnect(&emu_thread, SIGNAL(started(bool)), this, SLOT(started(bool)));
+        disconnect(&emu_thread, SIGNAL(resumed(bool)), this, SLOT(resumed(bool)));
+        disconnect(&emu_thread, SIGNAL(suspended(bool)), this, SLOT(suspended(bool)));
+    }
+}
 
 void QMLBridge::saveKits()
 {
@@ -363,11 +374,49 @@ void QMLBridge::usblink_progress_changed(int percent, void *qml_bridge_p)
     emit qml_bridge->usblinkProgressChanged(percent);
 }
 
-#ifdef MOBILE_UI
-
 void QMLBridge::setTurboMode(bool b)
 {
     emu_thread.setTurboMode(b);
+}
+
+int QMLBridge::getMobileX()
+{
+    return settings.value(QStringLiteral("mobileX"), -1).toInt();
+}
+
+void QMLBridge::setMobileX(int x)
+{
+    settings.setValue(QStringLiteral("mobileX"), x);
+}
+
+int QMLBridge::getMobileY()
+{
+    return settings.value(QStringLiteral("mobileY"), -1).toInt();
+}
+
+void QMLBridge::setMobileY(int y)
+{
+    settings.setValue(QStringLiteral("mobileY"), y);
+}
+
+int QMLBridge::getMobileWidth()
+{
+    return settings.value(QStringLiteral("mobileWidth"), -1).toInt();
+}
+
+void QMLBridge::setMobileWidth(int w)
+{
+    settings.setValue(QStringLiteral("mobileWidth"), w);
+}
+
+int QMLBridge::getMobileHeight()
+{
+    return settings.value(QStringLiteral("mobileHeight"), -1).toInt();
+}
+
+void QMLBridge::setMobileHeight(int h)
+{
+    settings.setValue(QStringLiteral("mobileHeight"), h);
 }
 
 bool QMLBridge::restart()
@@ -425,17 +474,35 @@ void QMLBridge::resume()
         toastMessage(tr("The current kit does not have a snapshot file configured"));
 }
 
-void QMLBridge::useDefaultKit()
+bool QMLBridge::useDefaultKit()
 {
-    int kitIndex = kitIndexForID(getDefaultKit());
+    if(setCurrentKit(getDefaultKit()))
+        return true;
+
+    setCurrentKit(kit_model.getKits()[0].id); // Use first kit as fallback
+    return false;
+}
+
+bool QMLBridge::setCurrentKit(unsigned int id)
+{
+    int kitIndex = kitIndexForID(id);
     if(kitIndex < 0)
-        return;
+        return false;
 
     auto &&kit = kit_model.getKits()[kitIndex];
     current_kit_id = kit.id;
     emu_thread.boot1 = kit.boot1;
     emu_thread.flash = kit.flash;
     fallback_snapshot_path = kit.snapshot;
+
+    emit currentKitChanged(kit);
+
+    return true;
+}
+
+int QMLBridge::getCurrentKitId()
+{
+    return current_kit_id;
 }
 
 bool QMLBridge::stop()
@@ -512,6 +579,8 @@ void QMLBridge::suspended(bool success)
         toastMessage(tr("Flash and snapshot saved")); // When clicking on save, flash is saved as well
     else
         toastMessage(tr("Couldn't save snapshot"));
+
+    emit emuSuspended(success);
 }
 
 double QMLBridge::getSpeed()
@@ -524,20 +593,26 @@ bool QMLBridge::getTurboMode()
     return turbo_mode;
 }
 
-#endif
-
 void notifyKeypadStateChanged(int row, int col, bool state)
 {
     assert(row < KEYPAD_ROWS);
     assert(col < KEYPAD_COLS);
 
-    if(!buttons[row][col])
+    int keymap_id = col + row * KEYPAD_COLS;
+    auto it = buttons.lower_bound(keymap_id),
+         end = buttons.upper_bound(keymap_id);
+
+    if(it == buttons.end())
     {
-        qWarning() << "Warning: Button " << row*11+col << " not present in keypad!";
+        qWarning() << "Warning: Button " << row*KEYPAD_COLS+col << " not present in keypad!";
         return;
     }
 
-    QQmlProperty::write(buttons[row][col], QStringLiteral("pressed"), state);
+    do
+    {
+        QQmlProperty::write(it->second, QStringLiteral("pressed"), state);
+    }
+    while (++it != end);
 }
 
 QObject *qmlBridgeFactory(QQmlEngine *engine, QJSEngine *scriptEngine)
@@ -550,7 +625,7 @@ QObject *qmlBridgeFactory(QQmlEngine *engine, QJSEngine *scriptEngine)
 
 void notifyTouchpadStateChanged(qreal x, qreal y, bool contact, bool down)
 {
-    if(!qml_touchpad)
+    if(qml_touchpads.empty())
     {
         qWarning("Warning: No touchpad registered!");
         return;
@@ -558,10 +633,13 @@ void notifyTouchpadStateChanged(qreal x, qreal y, bool contact, bool down)
 
     QVariant ret;
 
-    if(contact || down)
-        QMetaObject::invokeMethod(qml_touchpad, "showHighlight", Q_RETURN_ARG(QVariant, ret), Q_ARG(QVariant, QVariant(x)), Q_ARG(QVariant, QVariant(y)), Q_ARG(QVariant, down));
-    else
-        QMetaObject::invokeMethod(qml_touchpad, "hideHighlight");
+    for(auto && qml_touchpad : qml_touchpads)
+    {
+        if(contact || down)
+            QMetaObject::invokeMethod(qml_touchpad, "showHighlight", Q_RETURN_ARG(QVariant, ret), Q_ARG(QVariant, QVariant(x)), Q_ARG(QVariant, QVariant(y)), Q_ARG(QVariant, down));
+        else
+            QMetaObject::invokeMethod(qml_touchpad, "hideHighlight");
+    }
 }
 
 void notifyTouchpadStateChanged()

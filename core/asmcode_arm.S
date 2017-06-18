@@ -230,6 +230,7 @@ write_word_invalid:
 
 write_half_asm: .global write_half_asm
 // r0 is address, r1 is value
+    bic     r0, r0, #1
     loadsym r2, addr_cache, 2
     bic     r0, r0, #1
     ldr     r2, [r2]
@@ -302,6 +303,7 @@ read_word_invalid:
 
 read_half_asm: .global read_half_asm
 // r0 is address
+    bic     r0, r0, #1
     loadsym r2, addr_cache, 5
     bic     r0, r0, #1
     ldr     r2, [r2]

@@ -118,7 +118,10 @@ ColumnLayout {
 
         TextField {
             text: Emu.usbdir
-            onTextChanged: Emu.usbdir = text
+            onTextChanged: {
+                Emu.usbdir = text
+                text = Qt.binding(function() { return Emu.usbdir; });
+            }
         }
     }
 

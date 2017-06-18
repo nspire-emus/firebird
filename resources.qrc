@@ -20,6 +20,8 @@
         <file>resources/icons/document.png</file>
         <file>resources/icons/media-flash.png</file>
         <file>resources/icons/drive-removable-media-usb.png</file>
+        <file>resources/icons/smartphone.png</file>
+        <file>resources/icons/video-display.png</file>
     </qresource>
     <qresource prefix="/qml">
         <file>qml/Keypad.qml</file>
@@ -65,5 +67,8 @@
         <file>resources/keyimages/catalog.png</file>
         <file>resources/keyimages/flag.png</file>
         <file>resources/keyimages/templates.png</file>
+        <file>resources/keyimages/contrast_minus.png</file>
+        <file>resources/keyimages/contrast_plus.png</file>
+        <file>resources/keyimages/context_menu.png</file>
     </qresource>
 </RCC>

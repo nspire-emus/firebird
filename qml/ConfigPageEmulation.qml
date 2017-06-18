@@ -48,7 +48,10 @@ ColumnLayout {
             textRole: "name"
             model: Emu.kits
             currentIndex: Emu.kitIndexForID(Emu.defaultKit)
-            onCurrentIndexChanged: Emu.defaultKit = model.getDataRow(currentIndex, KitModel.IDRole)
+            onCurrentIndexChanged: {
+                Emu.defaultKit = model.getDataRow(currentIndex, KitModel.IDRole);
+                currentIndex = Qt.binding(function() { return Emu.kitIndexForID(Emu.defaultKit); });
+            }
         }
     }
 
@@ -72,8 +75,11 @@ ColumnLayout {
         text: qsTr("Save snapshot on shutdown")
 
         checked: Emu.suspendOnClose
-        onCheckedChanged: Emu.suspendOnClose = checked
         visible: !Emu.isMobile()
+        onCheckedChanged: {
+            Emu.suspendOnClose = checked;
+            checked = Qt.binding(function() { return Emu.suspendOnClose; });
+        }
     }
 
     FBLabel {
@@ -96,8 +102,11 @@ ColumnLayout {
         text: qsTr("Left-handed mode")
 
         checked: Emu.leftHanded
-        onCheckedChanged: Emu.leftHanded = checked
         visible: Emu.isMobile()
+        onCheckedChanged: {
+            Emu.leftHanded = checked;
+            checked = Qt.binding(function() { return Emu.leftHanded; });
+        }
     }
 
     Item {

@@ -40,47 +40,47 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->lcdView->installEventFilter(&qt_keypad_bridge);
     lcd.installEventFilter(&qt_keypad_bridge);
 
-    // Create config dialog
-    ui->keypadWidget->engine()->addImportPath(QStringLiteral("qrc:/qml/qml"));
-    QQmlComponent *dialog_component = new QQmlComponent(ui->keypadWidget->engine(), QUrl(QStringLiteral("qrc:/qml/qml/FBConfigDialog.qml")), this);
-    if(!dialog_component->isReady())
-        qCritical() << "Could not create QML config dialog:" << dialog_component->errorString();
+    qml_engine = ui->keypadWidget->engine();
+    qml_engine->addImportPath(QStringLiteral("qrc:/qml/qml"));
 
-    config_dialog = dialog_component->create();
+    // Create config dialog component
+    config_component = new QQmlComponent(qml_engine, QUrl(QStringLiteral("qrc:/qml/qml/FBConfigDialog.qml")), this);
+    if(!config_component->isReady())
+        qCritical() << "Could not create QML config dialog:" << config_component->errorString();
+
+    // Create mobile UI component
+    mobileui_component = new QQmlComponent(qml_engine, QUrl(QStringLiteral("qrc:/qml/qml/MobileUI.qml")), this);
+    if(!mobileui_component->isReady())
+        qCritical() << "Could not create mobile UI component:" << mobileui_component->errorString();
+
+    if(!the_qml_bridge)
+        throw std::runtime_error("Can't continue without QMLBridge");
 
     //Emu -> GUI (QueuedConnection as they're different threads)
-    connect(&emu, SIGNAL(serialChar(char)), this, SLOT(serialChar(char)), Qt::QueuedConnection);
-    connect(&emu, SIGNAL(debugStr(QString)), this, SLOT(debugStr(QString))); //Not queued connection as it may cause a hang
-    connect(&emu, SIGNAL(speedChanged(double)), this, SLOT(showSpeed(double)), Qt::QueuedConnection);
-    connect(&emu, SIGNAL(isBusy(bool)), this, SLOT(isBusy(bool)), Qt::QueuedConnection);
-    connect(&emu, SIGNAL(statusMsg(QString)), this, SLOT(showStatusMsg(QString)), Qt::QueuedConnection);
-    connect(&emu, SIGNAL(turboModeChanged(bool)), ui->buttonSpeed, SLOT(setChecked(bool)), Qt::QueuedConnection);
-    connect(&emu, SIGNAL(usblinkChanged(bool)), this, SLOT(usblinkChanged(bool)), Qt::QueuedConnection);
-    connect(&emu, SIGNAL(debugInputRequested(bool)), this, SLOT(debugInputRequested(bool)), Qt::QueuedConnection);
-    connect(&emu, SIGNAL(started(bool)), this, SLOT(started(bool)), Qt::QueuedConnection);
-    connect(&emu, SIGNAL(paused(bool)), ui->actionPause, SLOT(setChecked(bool)), Qt::QueuedConnection);
-    connect(&emu, SIGNAL(resumed(bool)), this, SLOT(resumed(bool)), Qt::QueuedConnection);
-    connect(&emu, SIGNAL(suspended(bool)), this, SLOT(suspended(bool)), Qt::QueuedConnection);
-    connect(&emu, SIGNAL(stopped()), this, SLOT(stopped()), Qt::QueuedConnection);
+    connect(&emu_thread, SIGNAL(serialChar(char)), this, SLOT(serialChar(char)), Qt::QueuedConnection);
+    connect(&emu_thread, SIGNAL(debugStr(QString)), this, SLOT(debugStr(QString))); //Not queued connection as it may cause a hang
+    connect(&emu_thread, SIGNAL(isBusy(bool)), this, SLOT(isBusy(bool)), Qt::QueuedConnection);
+    connect(&emu_thread, SIGNAL(statusMsg(QString)), this, SLOT(showStatusMsg(QString)), Qt::QueuedConnection);
+    connect(&emu_thread, SIGNAL(debugInputRequested(bool)), this, SLOT(debugInputRequested(bool)), Qt::QueuedConnection);
 
     //GUI -> Emu (no QueuedConnection possible, watch out!)
-    connect(this, SIGNAL(debuggerCommand(QString)), &emu, SLOT(debuggerInput(QString)));
+    connect(this, SIGNAL(debuggerCommand(QString)), &emu_thread, SLOT(debuggerInput(QString)));
 
     //Menu "Emulator"
-    connect(ui->buttonReset, SIGNAL(clicked(bool)), &emu, SLOT(reset()));
-    connect(ui->actionReset, SIGNAL(triggered()), &emu, SLOT(reset()));
+    connect(ui->buttonReset, SIGNAL(clicked(bool)), &emu_thread, SLOT(reset()));
+    connect(ui->actionReset, SIGNAL(triggered()), &emu_thread, SLOT(reset()));
     connect(ui->actionRestart, SIGNAL(triggered()), this, SLOT(restart()));
-    connect(ui->actionDebugger, SIGNAL(triggered()), &emu, SLOT(enterDebugger()));
+    connect(ui->actionDebugger, SIGNAL(triggered()), &emu_thread, SLOT(enterDebugger()));
     connect(ui->actionConfiguration, SIGNAL(triggered()), this, SLOT(openConfiguration()));
-    connect(ui->buttonPause, SIGNAL(clicked(bool)), &emu, SLOT(setPaused(bool)));
+    connect(ui->buttonPause, SIGNAL(clicked(bool)), &emu_thread, SLOT(setPaused(bool)));
     connect(ui->buttonPause, SIGNAL(clicked(bool)), ui->actionPause, SLOT(setChecked(bool)));
-    connect(ui->actionPause, SIGNAL(toggled(bool)), &emu, SLOT(setPaused(bool)));
+    connect(ui->actionPause, SIGNAL(toggled(bool)), &emu_thread, SLOT(setPaused(bool)));
     connect(ui->actionPause, SIGNAL(toggled(bool)), ui->buttonPause, SLOT(setChecked(bool)));
-    connect(ui->buttonSpeed, SIGNAL(clicked(bool)), &emu, SLOT(setTurboMode(bool)));
+    connect(ui->buttonSpeed, SIGNAL(clicked(bool)), &emu_thread, SLOT(setTurboMode(bool)));
 
     QShortcut *shortcut = new QShortcut(QKeySequence(Qt::Key_F11), this);
     shortcut->setAutoRepeat(false);
-    connect(shortcut, SIGNAL(activated()), &emu, SLOT(toggleTurbo()));
+    connect(shortcut, SIGNAL(activated()), &emu_thread, SLOT(toggleTurbo()));
 
     //Menu "Tools"
     connect(ui->buttonScreenshot, SIGNAL(clicked()), this, SLOT(screenshot()));
@@ -91,6 +91,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->actionLCD_Window, SIGNAL(triggered(bool)), this, SLOT(setExtLCD(bool)));
     connect(&lcd, SIGNAL(closed()), ui->actionLCD_Window, SLOT(toggle()));
     connect(ui->actionXModem, SIGNAL(triggered()), this, SLOT(xmodemSend()));
+    connect(ui->actionSwitch_to_Mobile_UI, SIGNAL(triggered()), this, SLOT(switchToMobileUI()));
     ui->actionConnect->setShortcut(QKeySequence(Qt::Key_F10));
     ui->actionConnect->setAutoRepeat(false);
 
@@ -117,9 +118,11 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->usblinkTree, SIGNAL(uploadProgress(int)), this, SLOT(changeProgress(int)), Qt::QueuedConnection);
     connect(this, SIGNAL(usblink_progress_changed(int)), this, SLOT(changeProgress(int)), Qt::QueuedConnection);
 
+    // QMLBridge
     KitModel *model = the_qml_bridge->getKitModel();
     connect(model, SIGNAL(anythingChanged()), this, SLOT(kitAnythingChanged()));
     connect(model, SIGNAL(dataChanged(QModelIndex,QModelIndex,QVector<int>)), this, SLOT(kitDataChanged(QModelIndex,QModelIndex,QVector<int>)));
+    connect(the_qml_bridge, SIGNAL(currentKitChanged(const Kit&)), this, SLOT(currentKitChanged(const Kit &)));
 
     //Set up monospace fonts
     QFont monospace = QFontDatabase::systemFont(QFontDatabase::FixedFont);
@@ -133,7 +136,7 @@ MainWindow::MainWindow(QWidget *parent) :
     //On android the settings file is deleted everytime you update or uninstall,
     //so choose a better, safer, location
     QString path = QStandardPaths::writableLocation(QStandardPaths::GenericDataLocation);
-    settings = new QSettings(path + QStringLiteral("/nspire_emu.ini"), QSettings::IniFormat);
+    settings = new QSettings(path + QStringLiteral("/nspire_emu_thread.ini"), QSettings::IniFormat);
 #else
     settings = new QSettings();
 #endif
@@ -152,20 +155,26 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->lcdView->setFocus();
 
     // Select default Kit
-    int kitIndex = the_qml_bridge->kitIndexForID(the_qml_bridge->getDefaultKit());
-    bool defaultKitFound = kitIndex >= 0;
-
-    if(!defaultKitFound)
-        kitIndex = 0;
-
-    setCurrentKit(the_qml_bridge->getKitModel()->getKits()[kitIndex]);
+    bool defaultKitFound = the_qml_bridge->useDefaultKit();
 
     if(the_qml_bridge->getKitModel()->allKitsEmpty())
     {
         // Do not show the window before MainWindow gets shown,
         // otherwise it won't be in focus.
         QTimer::singleShot(0, this, SIGNAL(openConfiguration()));
+
+        switchUIMode(false);
+        show();
+
         return;
+    }
+
+    if(settings->value(QStringLiteral("lastUIMode"), 0).toUInt() == 1)
+        switchUIMode(true);
+    else
+    {
+        switchUIMode(false);
+        show();
     }
 
     if(!the_qml_bridge->getAutostart())
@@ -180,14 +189,14 @@ MainWindow::MainWindow(QWidget *parent) :
     else
     {
         bool resumed = false;
-        if(!snapshotPath().isEmpty())
+        if(!the_qml_bridge->getSnapshotPath().isEmpty())
             resumed = resume();
 
         if(!resumed)
         {
             // Boot up normally
-            if(!emu.boot1.isEmpty() && !emu.flash.isEmpty())
-                emu.start();
+            if(!emu_thread.boot1.isEmpty() && !emu_thread.flash.isEmpty())
+                emu_thread.start();
             else
                 showStatusMsg(tr("Start the emulation via Emulation->Start."));
         }
@@ -272,6 +281,8 @@ void MainWindow::serialChar(const char c)
 
 void MainWindow::debugInputRequested(bool b)
 {
+    switchUIMode(false);
+
     ui->lineEdit->setEnabled(b);
 
     if(b)
@@ -324,14 +335,66 @@ void MainWindow::usblink_progress_callback(int progress, void *)
     emit main_window->usblink_progress_changed(progress);
 }
 
+void MainWindow::switchUIMode(bool mobile_ui)
+{
+    if(!mobileui_dialog && mobile_ui)
+        mobileui_dialog = mobileui_component->create();
+
+    if(mobileui_dialog)
+        mobileui_dialog->setProperty("visible", mobile_ui);
+    else if(mobile_ui)
+    {
+        qWarning() << "Could not create mobile UI!";
+        return; // Do not switch the UI mode as the mobile UI could not be created
+    }
+
+    the_qml_bridge->setActive(mobile_ui);
+    this->setActive(!mobile_ui);
+
+    settings->setValue(QStringLiteral("lastUIMode"), mobile_ui ? 1 : 0);
+}
+
+void MainWindow::setActive(bool b)
+{
+    if(b)
+    {
+        connect(&emu_thread, SIGNAL(speedChanged(double)), this, SLOT(showSpeed(double)), Qt::QueuedConnection);
+        connect(&emu_thread, SIGNAL(turboModeChanged(bool)), ui->buttonSpeed, SLOT(setChecked(bool)), Qt::QueuedConnection);
+        connect(&emu_thread, SIGNAL(usblinkChanged(bool)), this, SLOT(usblinkChanged(bool)), Qt::QueuedConnection);
+        connect(&emu_thread, SIGNAL(started(bool)), this, SLOT(started(bool)), Qt::QueuedConnection);
+        connect(&emu_thread, SIGNAL(paused(bool)), ui->actionPause, SLOT(setChecked(bool)), Qt::QueuedConnection);
+        connect(&emu_thread, SIGNAL(resumed(bool)), this, SLOT(resumed(bool)), Qt::QueuedConnection);
+        connect(&emu_thread, SIGNAL(suspended(bool)), this, SLOT(suspended(bool)), Qt::QueuedConnection);
+        connect(&emu_thread, SIGNAL(stopped()), this, SLOT(stopped()), Qt::QueuedConnection);
+
+        // We might have missed a few events
+        updateUIActionState(emu_thread.isRunning());
+        ui->buttonSpeed->setChecked(turbo_mode);
+        usblinkChanged(usblink_connected);
+    }
+    else
+    {
+        disconnect(&emu_thread, SIGNAL(speedChanged(double)), this, SLOT(showSpeed(double)));
+        disconnect(&emu_thread, SIGNAL(turboModeChanged(bool)), ui->buttonSpeed, SLOT(setChecked(bool)));
+        disconnect(&emu_thread, SIGNAL(usblinkChanged(bool)), this, SLOT(usblinkChanged(bool)));
+        disconnect(&emu_thread, SIGNAL(started(bool)), this, SLOT(started(bool)));
+        disconnect(&emu_thread, SIGNAL(paused(bool)), ui->actionPause, SLOT(setChecked(bool)));
+        disconnect(&emu_thread, SIGNAL(resumed(bool)), this, SLOT(resumed(bool)));
+        disconnect(&emu_thread, SIGNAL(suspended(bool)), this, SLOT(suspended(bool)));
+        disconnect(&emu_thread, SIGNAL(stopped()), this, SLOT(stopped()));
+    }
+
+    setVisible(b);
+}
+
 void MainWindow::suspendToPath(QString path)
 {
-    emu_thread->suspend(path);
+    emu_thread.suspend(path);
 }
 
 bool MainWindow::resumeFromPath(QString path)
 {
-    if(!emu_thread->resume(path))
+    if(!emu_thread.resume(path))
     {
         QMessageBox::warning(this, tr("Could not resume"), tr("Try to restart this app."));
         return false;
@@ -504,7 +567,7 @@ bool MainWindow::resume()
 {
     applyQMLBridgeSettings();
 
-    auto snapshot_path = snapshotPath();
+    auto snapshot_path = the_qml_bridge->getSnapshotPath();
     if(!snapshot_path.isEmpty())
         return resumeFromPath(snapshot_path);
     else
@@ -516,7 +579,7 @@ bool MainWindow::resume()
 
 void MainWindow::suspend()
 {
-    auto snapshot_path = snapshotPath();
+    auto snapshot_path = the_qml_bridge->getSnapshotPath();
     if(!snapshot_path.isEmpty())
         suspendToPath(snapshot_path);
     else
@@ -606,7 +669,7 @@ void MainWindow::stopped()
 void MainWindow::closeEvent(QCloseEvent *e)
 {
     if(!close_after_suspend &&
-            settings->value(QStringLiteral("suspendOnClose")).toBool() && emu_thread->isRunning() && exiting == false)
+            settings->value(QStringLiteral("suspendOnClose")).toBool() && emu_thread.isRunning() && exiting == false)
     {
         close_after_suspend = true;
         qDebug("Suspending...");
@@ -615,7 +678,7 @@ void MainWindow::closeEvent(QCloseEvent *e)
         return;
     }
 
-    if(emu.isRunning() && !emu.stop())
+    if(emu_thread.isRunning() && !emu_thread.stop())
         qDebug("Terminating emulator thread failed.");
 
     QMainWindow::closeEvent(e);
@@ -634,7 +697,7 @@ void MainWindow::kitDataChanged(QModelIndex, QModelIndex, QVector<int> roles)
         refillKitMenus();
 
         // Need to update window title if kit is active
-        int kitIndex = the_qml_bridge->kitIndexForID(current_kit_id);
+        int kitIndex = the_qml_bridge->kitIndexForID(the_qml_bridge->getCurrentKitId());
         if(kitIndex >= 0)
         {
             auto name = the_qml_bridge->getKitModel()->getKits()[kitIndex].name;
@@ -647,6 +710,11 @@ void MainWindow::kitAnythingChanged()
 {
     if(the_qml_bridge->getKitModel()->rowCount() != ui->menuRestart_with_Kit->actions().size())
         refillKitMenus();
+}
+
+void MainWindow::currentKitChanged(const Kit &kit)
+{
+    setWindowTitle(QStringLiteral("Firebird Emu - %1").arg(kit.name));
 }
 
 void MainWindow::refillKitMenus()
@@ -669,46 +737,23 @@ void MainWindow::refillKitMenus()
 
 void MainWindow::applyQMLBridgeSettings()
 {
-    emu.port_gdb = the_qml_bridge->getGDBEnabled() ? the_qml_bridge->getGDBPort() : 0;
-    emu.port_rdbg = the_qml_bridge->getRDBEnabled() ? the_qml_bridge->getRDBPort() : 0;
-}
-
-void MainWindow::setCurrentKit(const Kit &kit)
-{
-    current_kit_id = kit.id;
-    emu.boot1 = kit.boot1;
-    emu.flash = kit.flash;
-    fallback_snapshot_path = kit.snapshot;
-
-    setWindowTitle(QStringLiteral("Firebird Emu - %1").arg(kit.name));
-}
-
-QString MainWindow::snapshotPath()
-{
-    int kitIndex = the_qml_bridge->kitIndexForID(current_kit_id);
-    if(kitIndex >= 0)
-        return the_qml_bridge->getKitModel()->getKits()[kitIndex].snapshot;
-    else
-        return fallback_snapshot_path;
+    emu_thread.port_gdb = the_qml_bridge->getGDBEnabled() ? the_qml_bridge->getGDBPort() : 0;
+    emu_thread.port_rdbg = the_qml_bridge->getRDBEnabled() ? the_qml_bridge->getRDBPort() : 0;
 }
 
 void MainWindow::restart()
 {
-    /* If the emulation isn't running, use the default kit */
-    if(!ui->actionPause->isEnabled())
-    {
-        int kitIndex = the_qml_bridge->kitIndexForID(the_qml_bridge->getDefaultKit());
-        if(kitIndex >= 0)
-            setCurrentKit(the_qml_bridge->getKitModel()->getKits()[kitIndex]);
-    }
+    /* If there's no kit set, use the default kit */
+    if(the_qml_bridge->getCurrentKitId() == -1)
+        the_qml_bridge->useDefaultKit();
 
-    if(emu.boot1.isEmpty())
+    if(emu_thread.boot1.isEmpty())
     {
         QMessageBox::critical(this, trUtf8("No boot1 set"), trUtf8("Before you can start the emulation, you have to select a proper boot1 file."));
         return;
     }
 
-    if(emu.flash.isEmpty())
+    if(emu_thread.flash.isEmpty())
     {
         QMessageBox::critical(this, trUtf8("No flash image loaded"), trUtf8("Before you can start the emulation, you have to load a proper flash file.\n"
                                                                             "You can create one via Flash->Create Flash in the menu."));
@@ -717,15 +762,21 @@ void MainWindow::restart()
 
     applyQMLBridgeSettings();
 
-    if(emu.stop())
-        emu.start();
+    if(emu_thread.stop())
+        emu_thread.start();
     else
         QMessageBox::warning(this, trUtf8("Restart needed"), trUtf8("Failed to restart emulator. Close and reopen this app.\n"));
 }
 
 void MainWindow::openConfiguration()
 {
-    config_dialog->setProperty("visible", QVariant(true));
+    if(!config_dialog)
+        config_dialog = config_component->create();
+
+    if(!config_dialog)
+        qWarning() << "Could not create config dialog!";
+    else
+        config_dialog->setProperty("visible", QVariant(true));
 }
 
 void MainWindow::startKit()
@@ -737,9 +788,8 @@ void MainWindow::startKit()
         return;
     }
 
-    auto &&kit_model = the_qml_bridge->getKitModel();
     auto kit_id = static_cast<unsigned int>(action->data().toInt());
-    setCurrentKit(kit_model->getKits().at(kit_model->indexForID(kit_id)));
+    the_qml_bridge->setCurrentKit(kit_id);
     boot_order = ORDER_BOOT2;
     restart();
 }
@@ -753,9 +803,8 @@ void MainWindow::startKitDiags()
         return;
     }
 
-    auto &&kit_model = the_qml_bridge->getKitModel();
     auto kit_id = static_cast<unsigned int>(action->data().toInt());
-    setCurrentKit(kit_model->getKits().at(kit_model->indexForID(kit_id)));
+    the_qml_bridge->setCurrentKit(kit_id);
     boot_order = ORDER_DIAGS;
     restart();
 }
@@ -768,6 +817,11 @@ void MainWindow::xmodemSend()
 
     std::string path = filename.toStdString();
     xmodem_send(path.c_str());
+}
+
+void MainWindow::switchToMobileUI()
+{
+    switchUIMode(true);
 }
 
 bool QQuickWidgetLessBroken::event(QEvent *event)

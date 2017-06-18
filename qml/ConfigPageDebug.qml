@@ -33,7 +33,10 @@ ColumnLayout {
             text: qsTr("Enable GDB stub on Port")
 
             checked: Emu.gdbEnabled
-            onCheckedChanged: Emu.gdbEnabled = checked
+            onCheckedChanged: {
+                Emu.gdbEnabled = checked;
+                checked = Qt.binding(function() { return Emu.gdbEnabled; });
+            }
         }
 
         SpinBox {
@@ -44,7 +47,10 @@ ColumnLayout {
             maximumValue: 65535
 
             value: Emu.gdbPort
-            onValueChanged: Emu.gdbPort = value
+            onValueChanged: {
+                Emu.gdbPort = value;
+                value = Qt.binding(function() { return Emu.gdbPort; });
+            }
         }
     }
 
@@ -74,7 +80,10 @@ ColumnLayout {
             text: qsTr("Enable internal debugger on Port")
 
             checked: Emu.rdbEnabled
-            onCheckedChanged: Emu.rdbEnabled = checked
+            onCheckedChanged: {
+                Emu.rdbEnabled = checked;
+                checked = Qt.binding(function() { return Emu.rdbEnabled; });
+            }
         }
 
         SpinBox {
@@ -85,7 +94,10 @@ ColumnLayout {
             maximumValue: 65535
 
             value: Emu.rdbPort
-            onValueChanged: Emu.rdbPort = value
+            onValueChanged: {
+                Emu.rdbPort = value;
+                value = Qt.binding(function() { return Emu.rdbPort; });
+            }
         }
     }
 
@@ -108,7 +120,10 @@ ColumnLayout {
         text: qsTr("Enter Debugger on Startup")
 
         checked: Emu.debugOnStart
-        onCheckedChanged: Emu.debugOnStart = checked
+        onCheckedChanged: {
+            Emu.debugOnStart = checked;
+            checked = Qt.binding(function() { return Emu.debugOnStart; });
+        }
     }
 
     LabeledCheckBox {
@@ -116,7 +131,10 @@ ColumnLayout {
         text: qsTr("Enter Debugger on Warnings and Errors")
 
         checked: Emu.debugOnWarn
-        onCheckedChanged: Emu.debugOnWarn = checked
+        onCheckedChanged: {
+            Emu.debugOnWarn = checked;
+            checked = Qt.binding(function() { return Emu.debugOnWarn; });
+        }
     }
 
     Item {
