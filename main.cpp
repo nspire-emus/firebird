@@ -2,7 +2,7 @@
 #include <QTranslator>
 
 #include "mainwindow.h"
-#include <QQuickView>
+#include <QQmlApplicationEngine>
 
 #include "qtframebuffer.h"
 #include "qmlbridge.h"
@@ -39,11 +39,11 @@ int main(int argc, char **argv)
         MainWindow mw;
         main_window = &mw;
     #else
-        QQuickView mobile_ui;
-        mobile_ui.engine()->addImportPath(QStringLiteral("qrc:/qml/qml/"));
-        mobile_ui.setSource(QUrl(QStringLiteral("qrc:/qml/qml/MobileUI.qml")));
-        mobile_ui.setResizeMode(QQuickView::SizeRootObjectToView);
-        mobile_ui.show();
+        QQmlApplicationEngine engine;
+        engine.addImportPath(QStringLiteral("qrc:/qml/qml/"));
+        engine.load(QUrl(QStringLiteral("qrc:/qml/qml/MobileUI.qml")));
+        /*mobile_ui.setResizeMode(QQuickView::SizeRootObjectToView);
+        mobile_ui.show();*/
     #endif
 
     return app.exec();
