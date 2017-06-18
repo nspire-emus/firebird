@@ -18,6 +18,7 @@
 #include "core/misc.h"
 #include "core/usblink_queue.h"
 
+#include "dockwidget.h"
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include "qmlbridge.h"
@@ -144,7 +145,7 @@ MainWindow::MainWindow(QWidget *parent) :
     updateUIActionState(false);
 
     //Load settings
-    setUIMode(true);
+    convertTabsToDocks();
     setExtLCD(settings->value(QStringLiteral("extLCDVisible")).toBool());
     lcd.restoreGeometry(settings->value(QStringLiteral("extLCDGeometry")).toByteArray());
     restoreGeometry(settings->value(QStringLiteral("windowGeometry")).toByteArray());
@@ -437,30 +438,27 @@ void MainWindow::raiseDebugger()
     ui->tabWidget->setCurrentWidget(ui->tabDebugger);
 }
 
-void MainWindow::setUIMode(bool docks_enabled)
+void MainWindow::convertTabsToDocks()
 {
-    // Already in this mode?
-    if(docks_enabled == ui->tabWidget->isHidden())
-        return;
-
-    settings->setValue(QStringLiteral("docksEnabled"), docks_enabled);
-
-    // Enabling tabs needs a restart
-    if(!docks_enabled)
-    {
-        QMessageBox::warning(this, trUtf8("Restart needed"), trUtf8("You need to restart firebird to enable the tab interface."));
-        return;
-    }
-
     // Create "Docks" menu to make closing and opening docks more intuitive
     QMenu *docks_menu = new QMenu(tr("Docks"), this);
     ui->menubar->insertMenu(ui->menuAbout->menuAction(), docks_menu);
 
+    QAction *editmode_toggle = new QAction(tr("Enable UI edit mode"));
+    editmode_toggle->setCheckable(true);
+    editmode_toggle->setChecked(settings->value(QStringLiteral("uiEditModeEnabled"), true).toBool());
+    connect(editmode_toggle, SIGNAL(toggled(bool)), this, SLOT(setUIEditMode(bool)));
+
+    docks_menu->addAction(editmode_toggle);
+
+    docks_menu->addSeparator();
+
     //Convert the tabs into QDockWidgets
-    QDockWidget *last_dock = nullptr;
+    DockWidget *last_dock = nullptr;
     while(ui->tabWidget->count())
     {
-        QDockWidget *dw = new QDockWidget(ui->tabWidget->tabText(0));
+        DockWidget *dw = new DockWidget(ui->tabWidget->tabText(0), this);
+        dw->hideTitlebar(true); // Create with hidden titlebar to not resize the window on startup
         dw->setWindowIcon(ui->tabWidget->tabIcon(0));
         dw->setObjectName(dw->windowTitle());
 
@@ -481,6 +479,8 @@ void MainWindow::setUIMode(bool docks_enabled)
 
         last_dock = dw;
     }
+
+    setUIEditMode(editmode_toggle->isChecked());
 
     ui->tabWidget->setHidden(true);
 }
@@ -609,6 +609,14 @@ void MainWindow::createFlash()
 {
     flash_dialog.show();
     flash_dialog.exec();
+}
+
+void MainWindow::setUIEditMode(bool e)
+{
+    settings->setValue(QStringLiteral("uiEditModeEnabled"), e);
+
+    for(DockWidget *dw : findChildren<DockWidget*>())
+        dw->hideTitlebar(!e);
 }
 
 void MainWindow::showAbout()

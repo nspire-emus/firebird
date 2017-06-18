@@ -81,6 +81,9 @@ public slots:
     void saveFlash();
     void createFlash();
 
+    //Menu "Docks"
+    void setUIEditMode(bool e);
+
     //Menu "About"
     void showAbout();
 
@@ -121,7 +124,7 @@ private:
     void suspendToPath(QString path);
     bool resumeFromPath(QString path);
 
-    void setUIMode(bool docks_enabled);
+    void convertTabsToDocks();
 
     void updateUIActionState(bool emulation_running);
     void raiseDebugger();
