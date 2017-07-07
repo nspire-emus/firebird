@@ -28,12 +28,12 @@ void AndroidWrapper::handleActivityResult(int receiverRequestCode, int resultCod
     }
 }
 
-void AndroidWrapper::openFile(QString type) {
+void AndroidWrapper::selectFile(bool selectExisting) {
     QAndroidJniObject intent("android/content/Intent");
     QAndroidJniObject setAction = NULL;
-    if (type == QLatin1String("openFile")) {
+    if (selectExisting) {
         setAction = QAndroidJniObject::fromString(QLatin1String("android.intent.action.OPEN_DOCUMENT"));
-    } else if (type == QLatin1String("saveFile")) {
+    } else {
         setAction = QAndroidJniObject::fromString(QLatin1String("android.intent.action.CREATE_DOCUMENT"));
     }
     QAndroidJniObject setType = QAndroidJniObject::fromString(QLatin1String("*/*"));
@@ -46,16 +46,6 @@ void AndroidWrapper::openFile(QString type) {
                 setExtra.object<jstring>(), jboolean(true));
         QtAndroid::startActivity(intent.object<jobject>(), SDCARD_DOCUMENT_REQUEST, this);
     }
-}
-
-int AndroidWrapper::isAndroidProviderFile(QString path) {
-    const char *c_path = path.toStdString().c_str();
-    return is_android_provider_file(c_path);
-}
-
-bool AndroidWrapper::fileExists(QString path) {
-    const char *c_path = path.toStdString().c_str();
-    return (android_get_fd_for_uri(c_path, "r") >= 0);
 }
 
 /* do some C functions which can be called from anywhere */

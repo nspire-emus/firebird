@@ -8,13 +8,12 @@ import Firebird.AndroidWrapper 1.0
 RowLayout {
     property string filePath: ""
     property alias dialog: dialog
-    property string type: ""
 
     AndroidWrapper {
-       id: androidWrapper
-       onFilePicked: {
-           filePath = fileUrl
-       }
+        id: androidWrapper
+        onFilePicked: {
+            filePath = fileUrl
+        }
     }
 
     FileDialog {
@@ -33,9 +32,7 @@ RowLayout {
 
         font.italic: filePath === ""
         text: filePath === "" ? qsTr("(none)") : Emu.basename(filePath)
-        color: (!dialog.selectExisting || filePath === "" || Emu.fileExists(filePath)
-            || (androidWrapper.isAndroidProviderFile(filePath) && androidWrapper.fileExists(filePath)))
-            ? "" : "red"
+        color: (!dialog.selectExisting || filePath === "" || Emu.fileExists(filePath)) ? "" : "red"
     }
 
     Button {
@@ -44,7 +41,7 @@ RowLayout {
 
         onClicked: {
             if (Qt.platform.os === "android" && androidWrapper.is_content_provider_supported()) {
-                androidWrapper.openFile(type)
+                androidWrapper.selectFile(dialog.selectExisting)
             } else {
                 dialog.visible = true
             }

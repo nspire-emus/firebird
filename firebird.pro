@@ -97,6 +97,11 @@ ios {
     QMAKE_BUNDLE_DATA += ios_icon
 }
 
+android {
+    SOURCES += AndroidWrapper.cpp
+    HEADERS += AndroidWrapper.h
+}
+
 # QMAKE_HOST can be e.g. armv7hl, but QT_ARCH would be arm in such cases
 QMAKE_TARGET.arch = $$QT_ARCH
 
@@ -194,8 +199,7 @@ SOURCES += $$ASMCODE_IMPL \
     usblinktreewidget.cpp \
     kitmodel.cpp \
     fbaboutdialog.cpp \
-    dockwidget.cpp \
-    AndroidWrapper.cpp
+    dockwidget.cpp
 
 FORMS += \
     mainwindow.ui \
@@ -241,8 +245,7 @@ HEADERS += \
     usblinktreewidget.h \
     kitmodel.h \
     fbaboutdialog.h \
-    dockwidget.h \
-    AndroidWrapper.h
+    dockwidget.h
 
 # For localization
 lupdate_only {

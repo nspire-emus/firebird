@@ -1,5 +1,5 @@
-#ifndef WRAPPER_H
-#define WRAPPER_H
+#ifndef ANDROIDWRAPPER_H
+#define ANDROIDWRAPPER_H
 
 #include <QObject>
 #include <QtAndroid>
@@ -17,10 +17,8 @@ class AndroidWrapper : public QObject, public QAndroidActivityResultReceiver {
 public:
     explicit AndroidWrapper(QObject *parent = 0);
     void handleActivityResult(int receiverRequestCode, int resultCode, const QAndroidJniObject &data);
-    Q_INVOKABLE int is_content_provider_supported();
-    Q_INVOKABLE void openFile(QString type);
-    Q_INVOKABLE int isAndroidProviderFile(QString path);
-    Q_INVOKABLE bool fileExists(QString path);
+    Q_INVOKABLE static int is_content_provider_supported();
+    Q_INVOKABLE void selectFile(bool selectExisting);
 
 private:
     const static int SDCARD_DOCUMENT_REQUEST = 2;
@@ -33,4 +31,4 @@ signals:
 extern "C" int is_android_provider_file(const char *path);
 extern "C" int android_get_fd_for_uri(const char *path, const char *mode);
 
-#endif // WRAPPER_H
+#endif // ANDROIDWRAPPER_H

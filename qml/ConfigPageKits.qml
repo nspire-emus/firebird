@@ -69,7 +69,6 @@ ColumnLayout {
                 id: boot1Edit
                 Layout.fillWidth: true
                 filePath: kitList.currentItem.myData.boot1;
-                type: "openFile";
                 onFilePathChanged: {
                     if(filePath !== kitList.currentItem.myData.boot1)
                         kitModel.setDataRow(kitList.currentIndex, filePath, KitModel.Boot1Role);
@@ -89,7 +88,6 @@ ColumnLayout {
                     id: flashEdit
                     Layout.fillWidth: true
                     filePath: kitList.currentItem.myData.flash;
-                    type: "openFile";
                     onFilePathChanged: {
                         if(filePath !== kitList.currentItem.myData.flash)
                             kitModel.setDataRow(kitList.currentIndex, filePath, KitModel.FlashRole);
@@ -117,7 +115,6 @@ ColumnLayout {
                 Layout.fillWidth: true
                 dialog.selectExisting: false
                 filePath: kitList.currentItem.myData.snapshot;
-                type: "saveFile";
                 onFilePathChanged: {
                     if(filePath !== kitList.currentItem.myData.snapshot)
                         kitModel.setDataRow(kitList.currentIndex, filePath, KitModel.SnapshotRole);

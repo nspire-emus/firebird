@@ -13,6 +13,10 @@
 #include "core/keypad.h"
 #include "core/usblink_queue.h"
 
+#ifdef Q_OS_ANDROID
+    #include "AndroidWrapper.h"
+#endif
+
 QMLBridge *the_qml_bridge = nullptr;
 
 QMLBridge::QMLBridge(QObject *parent) : QObject(parent)
@@ -303,7 +307,15 @@ QString QMLBridge::toLocalFile(QUrl url)
 
 bool QMLBridge::fileExists(QString path)
 {
+#ifdef Q_OS_ANDROID
+    const char *c_path = path.toStdString().c_str();
+    if (is_android_provider_file(c_path))
+        return (android_get_fd_for_uri(c_path, "r") >= 0);
+    else
+        return QFile::exists(path);
+#else
     return QFile::exists(path);
+#endif
 }
 
 int QMLBridge::kitIndexForID(unsigned int id)

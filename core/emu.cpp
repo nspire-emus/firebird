@@ -16,8 +16,6 @@
 #include "usblink_queue.h"
 #include "os/os.h"
 
-#include "AndroidWrapper.h"
-
 /* cycle_count_delta is a (usually negative) number telling what the time is relative
  * to the next scheduled event. See sched.c */
 int cycle_count_delta = 0;
@@ -137,22 +135,17 @@ void throttle_interval_event(int index)
 size_t gzip_filesize(const char *path)
 {
     #if __BYTE_ORDER == __LITTLE_ENDIAN
-        int fp = -1;
-        if (is_android_provider_file(path)) {
-            fp = android_get_fd_for_uri(path, "r");
-        } else {
-            fp = open(path, O_RDONLY);
-        }
-        if(fp == -1)
+        FILE *f = fopen_utf8(path, "rb");
+        if (!f)
             return false;
 
         // The last four bytes of a gzip file are the uncompressed size (% 2^32)
-        lseek(fp, -4, SEEK_END);
+        fseek(f, -4, SEEK_END);
         size_t ret = 0;
-        if(read(fp, &ret, 4) != 4)
+        if(fread(&ret, 1, 4, f) != 4)
             ret = 0;
 
-        close(fp);
+        fclose(f);
         return ret;
     #else
         #error "Not implemented"
@@ -191,13 +184,13 @@ bool emu_start(unsigned int port_gdb, unsigned int port_rdbg, const char *snapsh
         if(snapshot_size < sizeof(emu_snapshot))
             return false;
 
-        gzFile gzf;
-        if (is_android_provider_file(snapshot_file)) {
-            int fd = android_get_fd_for_uri(snapshot_file, "r");
-            gzf = gzdopen(fd, "r");
-        } else {
-            gzf = gzopen(snapshot_file, "r");
-        }
+        FILE *f = fopen_utf8(snapshot_file, "rb");
+        if (!f)
+            return false;
+        int fd = fileno(f);
+        if (fd < 0)
+            return false;
+        gzFile gzf = gzdopen(fd, "rb");
         if(!gzf)
             return false;
 
@@ -362,13 +355,15 @@ bool emu_suspend(const char *file)
 {
     gui_busy_raii gui_busy;
 
-    gzFile gzf;
-    if (is_android_provider_file(file)) {
-        int fd = android_get_fd_for_uri(file, "w");
-        gzf = gzdopen(fd, "wb");
-    } else {
-        gzf = gzopen(file, "wb");
-    }
+    FILE *f = fopen_utf8(file, "wb");
+    if (!f)
+        return false;
+    int fd = fileno(f);
+    if (fd < 0)
+        return false;
+    gzFile gzf = gzdopen(fd, "wb");
+    if(!gzf)
+        return false;
 
     size_t size = sizeof(emu_snapshot) + flash_suspend_flexsize();
     auto snapshot = (struct emu_snapshot *) malloc(size);
