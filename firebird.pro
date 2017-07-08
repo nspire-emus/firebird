@@ -16,7 +16,6 @@ ios|android: SUPPORT_LINUX = false
 TRANSLATIONS += i18n/de_DE.ts i18n/fr_FR.ts
 
 QT += core gui widgets quickwidgets
-android: QT += androidextras
 
 CONFIG += c++11
 
@@ -73,16 +72,19 @@ android: QMAKE_LFLAGS += -fPIC
 
 macx: ICON = resources/logo.icns
 
+android {
+    # QT headers are not included in os-linux.c so we needs to define Q_OS_ANDROID manually
+    QT += androidextras
+    DEFINES += Q_OS_ANDROID
+    SOURCES += AndroidWrapper.cpp
+    HEADERS += AndroidWrapper.h
+}
+
 # This does also apply to android
 linux|macx|ios: SOURCES += core/os/os-linux.c
 
 # To make it appear in Qt Creator
 emscripten: SOURCES += core/os/os-emscripten.c
-
-equals(QT_MAJOR_VERSION, 5): lessThan(QT_MINOR_VERSION, 6) {
-    # This should not be required. But somehow, it is...
-    android: DEFINES += Q_OS_ANDROID
-}
 
 ios|android: DEFINES += MOBILE_UI
 
@@ -95,11 +97,6 @@ ios {
     QMAKE_IOS_DEVICE_ARCHS = armv7
     ios_icon.files = $$files(resources/ios/Icon*.png)
     QMAKE_BUNDLE_DATA += ios_icon
-}
-
-android {
-    SOURCES += AndroidWrapper.cpp
-    HEADERS += AndroidWrapper.h
 }
 
 # QMAKE_HOST can be e.g. armv7hl, but QT_ARCH would be arm in such cases

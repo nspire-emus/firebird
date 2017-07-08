@@ -311,11 +311,8 @@ bool QMLBridge::fileExists(QString path)
     const char *c_path = path.toStdString().c_str();
     if (is_android_provider_file(c_path))
         return (android_get_fd_for_uri(c_path, "r") >= 0);
-    else
-        return QFile::exists(path);
-#else
-    return QFile::exists(path);
 #endif
+    return QFile::exists(path);
 }
 
 int QMLBridge::kitIndexForID(unsigned int id)

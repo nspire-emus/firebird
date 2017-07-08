@@ -19,7 +19,6 @@
 #include "../debug.h"
 #include "../mmu.h"
 
-
 #ifdef IS_IOS_BUILD
 
 #include <unistd.h>
@@ -46,12 +45,13 @@ int iOS_is_debugger_attached()
 
 FILE *fopen_utf8(const char *filename, const char *mode)
 {
+#ifdef Q_OS_ANDROID
     if (is_android_provider_file(filename)) {
         int fd = android_get_fd_for_uri(filename, "rw");
         return fdopen(fd, mode);
-    } else {
-        return fopen(filename, mode);
     }
+#endif
+    return fopen(filename, mode);
 }
 
 void *os_reserve(size_t size)
