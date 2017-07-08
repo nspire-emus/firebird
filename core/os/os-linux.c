@@ -113,11 +113,14 @@ void *os_alloc_executable(size_t size)
 void *os_map_cow(const char *filename, size_t size)
 {
     int fd = -1;
-    if (is_android_provider_file(filename)) {
+#ifdef Q_OS_ANDROID
+    if (is_android_provider_file(filename))
         fd = android_get_fd_for_uri(filename, "r");
-    } else {
+    else
         fd = open(filename, O_RDONLY);
-    }
+#else
+    fd = open(filename, O_RDONLY);
+#endif
     if(fd == -1)
         return NULL;
 

@@ -308,9 +308,9 @@ QString QMLBridge::toLocalFile(QUrl url)
 bool QMLBridge::fileExists(QString path)
 {
 #ifdef Q_OS_ANDROID
-    const char *c_path = path.toStdString().c_str();
-    if (is_android_provider_file(c_path))
-        return (android_get_fd_for_uri(c_path, "r") >= 0);
+    std::string pathname = path.toStdString();
+    if (is_android_provider_file(pathname.c_str()))
+        return (android_get_fd_for_uri(pathname.c_str(), "r") >= 0);
 #endif
     return QFile::exists(path);
 }
