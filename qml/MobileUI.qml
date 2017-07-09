@@ -50,7 +50,7 @@ ApplicationWindow {
     }
 
     onClosing: {
-        if(Emu.isMobile() || !Emu.isRunning || !Emu.suspendOnClose || ignoreSuspendOnClose)
+        if(!Emu.isRunning || !Emu.suspendOnClose || ignoreSuspendOnClose)
             return;
 
         closeAfterSuspend = true;
@@ -94,12 +94,18 @@ ApplicationWindow {
         onStateChanged: {
             switch (Qt.application.state)
             {
-                case Qt.ApplicationSuspended:
-                case Qt.ApplicationHidden:
+                case Qt.ApplicationSuspended: // Might be reaped on mobile
+                    // fallthrough
+                case Qt.ApplicationInactive: // Not focused
+                    // fallthrough
+                case Qt.ApplicationHidden: // Not visible
+                    if(!Emu.isMobile())
+                        break; // Keep running on desktop
                     Emu.setPaused(true);
                 break;
-                case Qt.ApplicationActive:
-                    Emu.setPaused(false);
+                case Qt.ApplicationActive: // Visible and in focus
+                    if(!Emu.isMobile())
+                        Emu.setPaused(false); // Only unpause if paused
                 break;
             }
         }

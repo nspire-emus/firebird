@@ -60,22 +60,27 @@ ColumnLayout {
         font.pixelSize: TextMetrics.title1Size
         Layout.topMargin: 10
         Layout.bottomMargin: 5
-        visible: !Emu.isMobile()
+        visible: Qt.platform.os !== "ios"
     }
 
     FBLabel {
         Layout.maximumWidth: parent.width
         wrapMode: Text.WordWrap
-        text: qsTr("On Application end, write the current state in the current snapshot.")
+        text: {
+            if(Qt.platform.os === "android")
+                return qsTr("When closing firebird using the back button, save the current state to the current snapshot. Does not work when firebird is in the background.")
+            else
+                return qsTr("On Application end, save the current state to the current snapshot.");
+        }
         font.pixelSize: TextMetrics.normalSize
-        visible: !Emu.isMobile()
+        visible: Qt.platform.os !== "ios"
     }
 
     LabeledCheckBox {
         text: qsTr("Save snapshot on shutdown")
 
         checked: Emu.suspendOnClose
-        visible: !Emu.isMobile()
+        visible: Qt.platform.os !== "ios"
         onCheckedChanged: {
             Emu.suspendOnClose = checked;
             checked = Qt.binding(function() { return Emu.suspendOnClose; });
