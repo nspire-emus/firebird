@@ -99,13 +99,12 @@ ApplicationWindow {
                 case Qt.ApplicationInactive: // Not focused
                     // fallthrough
                 case Qt.ApplicationHidden: // Not visible
-                    if(!Emu.isMobile())
-                        break; // Keep running on desktop
-                    Emu.setPaused(true);
+                    if(Emu.isMobile()) // Keep running on desktop
+                        Emu.setPaused(true);
                 break;
                 case Qt.ApplicationActive: // Visible and in focus
-                    if(!Emu.isMobile())
-                        Emu.setPaused(false); // Only unpause if paused
+                    if(Emu.isMobile()) // Only unpause if paused
+                        Emu.setPaused(false);
                 break;
             }
         }
