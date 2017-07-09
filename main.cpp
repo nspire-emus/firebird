@@ -2,7 +2,9 @@
 #include <QTranslator>
 
 #include "mainwindow.h"
+#include <QDebug>
 #include <QQmlApplicationEngine>
+#include <qpa/qwindowsysteminterface_p.h>
 
 #include "qtframebuffer.h"
 #include "qmlbridge.h"
@@ -45,6 +47,20 @@ int main(int argc, char **argv)
         /*mobile_ui.setResizeMode(QQuickView::SizeRootObjectToView);
         mobile_ui.show();*/
     #endif
+QWindowSystemInterface::setSynchronousWindowSystemEvents(true);
+        bool suspended = false;
+        app.connect(&app, &QGuiApplication::applicationStateChanged, [&] (Qt::ApplicationState state) {
+           if(state == Qt::ApplicationInactive && !suspended)
+           {
+               qDebug() << "LOLOLOL";
+               QEventLoop loop;
+               suspended = true;
+               app.connect(the_qml_bridge, SIGNAL(emuSuspended(bool)), &loop, SLOT(quit()));
+               if(the_qml_bridge->suspend())
+               loop.exec();
+               qDebug() << "LALALAL";
+           }
+        });
 
     app.connect(&app, &QGuiApplication::lastWindowClosed, [&] { emu_thread.stop(); });
 

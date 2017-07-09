@@ -15,7 +15,7 @@ ios|android: SUPPORT_LINUX = false
 # Localization
 TRANSLATIONS += i18n/de_DE.ts i18n/fr_FR.ts
 
-QT += core gui widgets quickwidgets
+QT += core gui widgets quickwidgets gui-private
 CONFIG += c++11
 
 TEMPLATE = app
@@ -82,7 +82,7 @@ equals(QT_MAJOR_VERSION, 5): lessThan(QT_MINOR_VERSION, 6) {
     android: DEFINES += Q_OS_ANDROID
 }
 
-ios|android: DEFINES += MOBILE_UI
+ios|android: DEFINES += MOBILE_UI "INSN_BUFFER_SIZE=0x400000"
 
 ios {
     DEFINES += IS_IOS_BUILD __arm__

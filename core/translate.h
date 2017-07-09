@@ -17,7 +17,9 @@ struct translation {
     uint32_t *end_ptr;
 } __attribute__((packed));
 extern struct translation translation_table[] __asm__("translation_table");
-#define INSN_BUFFER_SIZE 0x1000000
+#ifndef INSN_BUFFER_SIZE
+    #define INSN_BUFFER_SIZE 0x1000000
+#endif
 
 bool translate_init();
 void translate_deinit();

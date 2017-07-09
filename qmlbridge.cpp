@@ -450,14 +450,20 @@ void QMLBridge::reset()
     emu_thread.reset();
 }
 
-void QMLBridge::suspend()
+bool QMLBridge::suspend()
 {
     toastMessage(tr("Suspending emulation"));
     auto snapshot_path = getSnapshotPath();
     if(!snapshot_path.isEmpty())
+    {
         emu_thread.suspend(snapshot_path);
+        return true;
+    }
     else
+    {
         toastMessage(tr("The current kit does not have a snapshot file configured"));
+        return false;
+    }
 }
 
 void QMLBridge::resume()
