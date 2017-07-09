@@ -46,5 +46,7 @@ int main(int argc, char **argv)
         mobile_ui.show();*/
     #endif
 
+    app.connect(&app, &QGuiApplication::lastWindowClosed, [&] { emu_thread.stop(); });
+
     return app.exec();
 }
