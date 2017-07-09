@@ -162,7 +162,7 @@ private:
     int current_kit_id = -1;
     QString fallback_snapshot_path;
 
-    double speed;
+    double speed = 0;
     KitModel kit_model;
     QSettings settings;
 };
