@@ -591,6 +591,7 @@ void gdbstub_loop(void) {
                 ptr = strchr(ptr, ';'); /* skip the signal */
                 if (ptr)
                     ptr++;
+                // fallthrough
             case 's': /* s[AA..AA]  Step at address AA..AA(optional) */
                 cpu_events |= EVENT_DEBUG_STEP;
                 goto parse_new_pc;
@@ -598,6 +599,7 @@ void gdbstub_loop(void) {
                 ptr = strchr(ptr, ';'); /* skip the signal */
                 if (ptr)
                     ptr++;
+                // fallthrough
             case 'c':    /* c[AA..AA]    Continue at address AA..AA(optional) */
 parse_new_pc:
                 if (ptr && hexToInt(&ptr, &addr)) {
@@ -677,6 +679,7 @@ parse_new_pc:
                             else *flags &= ~RF_WRITE_BREAKPOINT;
                             if (*ptr1 != '4')
                                 break;
+                            // fallthrough
                         case '3': // read watchpoint, access watchpoint
                             if (set) *flags |= RF_READ_BREAKPOINT;
                             else *flags &= ~RF_READ_BREAKPOINT;
