@@ -1132,7 +1132,7 @@ Schieben sie die Tastatur nach links, um die Einstellungen zu ändern.</translat
     <message>
         <location filename="../qmlbridge.cpp" line="415"/>
         <source>Suspending emulation</source>
-        <translation>Snapshort wird erstellt</translation>
+        <translation type="unfinished">Snapshot wird erstellt</translation>
     </message>
     <message>
         <location filename="../qmlbridge.cpp" line="425"/>
