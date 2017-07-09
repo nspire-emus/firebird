@@ -204,6 +204,7 @@ fail:
             emuprintf("Send failed\n");
             usblink_connected = false;
             gui_usblink_changed(false);
+            // fallthrough
         case DONE:
             if(current_file_callback)
                 current_file_callback((in->data_size == 2 && in->data[0] == 0xFF && in->data[1] == 00) ? 100 : 0, current_user_data);
