@@ -19,7 +19,7 @@ QT += core gui widgets quickwidgets
 CONFIG += c++11
 
 TEMPLATE = app
-TARGET = firebird
+TARGET = firebird-emu
 
 # Warn if git submodules not downloaded
 !exists("core/gif-h/gif.h"): error("You have to run 'git submodule init' and 'git submodule update' first.")
@@ -28,8 +28,8 @@ linux: !android {
     # For make install support
     target.path = /usr/bin
     desktop.path = /usr/share/applications
-    desktop.files += resources/firebird.desktop
-    icon.path = /usr/share/icons
+    desktop.files += resources/org.firebird.firebird-emu.desktop
+    icon.path = /usr/share/icons/hicolor/512x512/apps
     icon.files += resources/firebird.png
     sendtool.path = /usr/bin
     sendtool.files = core/firebird-send
@@ -286,6 +286,7 @@ RESOURCES += \
     resources.qrc
 
 DISTFILES += \
+    resources/org.firebird.firebird-emu.desktop \
     core/firebird-send \
     android/AndroidManifest.xml \
     android/res/values/libs.xml \

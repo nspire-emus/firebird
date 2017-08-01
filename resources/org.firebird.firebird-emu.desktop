@@ -1,7 +1,6 @@
-#!/usr/bin/env xdg-open
 [Desktop Entry]
 Categories=Qt;Development;Emulator
-Exec=/usr/bin/firebird
+Exec=firebird-emu
 Name=Firebird Emu
 GenericName=TI-Nspire Emulator
 Terminal=false
