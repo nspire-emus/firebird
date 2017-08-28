@@ -221,7 +221,7 @@ void do_arm_instruction(Instruction i)
                 }
                 set_reg(insn >> 12 & 15, ld);
             } else {
-                assert(false);
+                undefined_instruction();
             }
         } else {
             /* Load/store halfword, signed byte/halfword, or doubleword */
