@@ -803,6 +803,10 @@ void rdebug_recv(void) {
 volatile bool in_debugger = false;
 
 void debugger(enum DBG_REASON reason, uint32_t addr) {
+    /* Avoid debugging the debugger. */
+    if (in_debugger)
+        return;
+
     gui_debugger_entered_or_left(in_debugger = true);
     if (gdb_connected)
         gdbstub_debugger(reason, addr);
