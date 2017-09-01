@@ -6,6 +6,56 @@
 
 #include "qtframebuffer.h"
 #include "qmlbridge.h"
+#include "kitmodel.h"
+
+/* This function reads all keys of all sections available in a QSettings
+ * instance created with org and app as parameters. */
+static QVariantHash readOldSettings(const QString &org, const QString &app)
+{
+    QSettings settings(org, app);
+
+    const auto keys = settings.allKeys();
+
+    if(keys.isEmpty())
+        return {};
+
+    QVariantHash ret;
+
+    for(auto & key : keys)
+        ret[key] = settings.value(key);
+
+    return ret;
+}
+
+/* If a default-constructed QSettings does not have version != 1,
+ * this function tries to load settings from the old locations and
+ * imports them. */
+static void migrateSettings()
+{
+    QSettings current;
+    if(current.value(QStringLiteral("version"), 0).toInt() == 0)
+    {
+        qDebug("Trying to import old settings");
+
+        QVariantHash old = readOldSettings(QStringLiteral("ndless"), QStringLiteral("firebird"));
+        if(!old.count())
+            old = readOldSettings(QStringLiteral("ndless"), QStringLiteral("nspire_emu"));
+
+        if(old.count())
+        {
+            // Copy over values
+            for (auto it = old.begin(); it != old.end(); ++it)
+                current.setValue(it.key(), it.value());
+
+            current.setValue(QStringLiteral("version"), 1);
+            current.sync();
+
+            qDebug("Settings imported");
+        }
+        else
+            qDebug("No previous settings found");
+    }
+}
 
 int main(int argc, char **argv)
 {
@@ -27,13 +77,21 @@ int main(int argc, char **argv)
     appTranslator.load(QLocale::system().name(), QStringLiteral(":/i18n/i18n/"));
     app.installTranslator(&appTranslator);
 
-    QCoreApplication::setOrganizationName(QStringLiteral("ndless"));
-    QCoreApplication::setApplicationName(QStringLiteral("firebird"));
+    QCoreApplication::setOrganizationName(QStringLiteral("org.firebird"));
+    QCoreApplication::setApplicationName(QStringLiteral("firebird-emu"));
+
+    // Needed for settings migration
+    qRegisterMetaTypeStreamOperators<KitModel>();
+    qRegisterMetaType<KitModel>();
+
+    migrateSettings();
 
     // Register QMLBridge for Keypad<->Emu communication
     qmlRegisterSingletonType<QMLBridge>("Firebird.Emu", 1, 0, "Emu", qmlBridgeFactory);
     // Register QtFramebuffer for QML display
     qmlRegisterType<QMLFramebuffer>("Firebird.Emu", 1, 0, "EmuScreen");
+    // Register KitModel
+    qmlRegisterType<KitModel>("Firebird.Emu", 1, 0, "KitModel");
 
     #ifndef MOBILE_UI
         MainWindow mw;

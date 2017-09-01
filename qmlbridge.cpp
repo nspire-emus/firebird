@@ -24,10 +24,6 @@ QMLBridge::QMLBridge(QObject *parent) : QObject(parent)
     assert(the_qml_bridge == nullptr);
     the_qml_bridge = this;
 
-    qmlRegisterType<KitModel>("Firebird.Emu", 1, 0, "KitModel");
-    qRegisterMetaTypeStreamOperators<KitModel>();
-    qRegisterMetaType<KitModel>();
-
     //Migrate old settings
     if(settings.contains(QStringLiteral("usbdir")) && !settings.contains(QStringLiteral("usbdirNew")))
         setUSBDir(QStringLiteral("/") + settings.value(QStringLiteral("usbdir")).toString());
