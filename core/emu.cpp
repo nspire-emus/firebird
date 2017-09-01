@@ -28,7 +28,7 @@ bool do_translate = true;
 uint32_t product = 0x0E0, features = 0, asic_user_flags = 0;
 bool turbo_mode = false;
 
-volatile bool exiting, debug_on_start, debug_on_warn;
+volatile bool exiting, debug_on_start, debug_on_warn, print_on_warn;
 BootOrder boot_order = ORDER_DEFAULT;
 uint32_t boot2_base;
 std::string path_boot1, path_flash;
@@ -54,6 +54,9 @@ void emuprintf(const char *format, ...) {
 }
 
 void warn(const char *fmt, ...) {
+    if (!print_on_warn && !debug_on_warn)
+        return;
+
     va_list va;
     va_start(va, fmt);
     gui_debug_printf("Warning (%08x): ", arm.reg[15]);

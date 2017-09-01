@@ -20,6 +20,7 @@ public:
     Q_PROPERTY(bool rdbEnabled READ getRDBEnabled WRITE setRDBEnabled NOTIFY rdbEnabledChanged)
     Q_PROPERTY(bool debugOnStart READ getDebugOnStart WRITE setDebugOnStart NOTIFY debugOnStartChanged)
     Q_PROPERTY(bool debugOnWarn READ getDebugOnWarn WRITE setDebugOnWarn NOTIFY debugOnWarnChanged)
+    Q_PROPERTY(bool printOnWarn READ getPrintOnWarn WRITE setPrintOnWarn NOTIFY printOnWarnChanged)
     Q_PROPERTY(bool autostart READ getAutostart WRITE setAutostart NOTIFY autostartChanged)
     Q_PROPERTY(unsigned int defaultKit READ getDefaultKit WRITE setDefaultKit NOTIFY defaultKitChanged)
     Q_PROPERTY(bool leftHanded READ getLeftHanded WRITE setLeftHanded NOTIFY leftHandedChanged)
@@ -49,6 +50,8 @@ public:
     bool getDebugOnWarn();
     void setDebugOnStart(bool e);
     bool getDebugOnStart();
+    void setPrintOnWarn(bool p);
+    bool getPrintOnWarn();
     void setAutostart(bool e);
     bool getAutostart();
     unsigned int getDefaultKit();
@@ -136,6 +139,7 @@ signals:
     void rdbEnabledChanged();
     void debugOnWarnChanged();
     void debugOnStartChanged();
+    void printOnWarnChanged();
     void autostartChanged();
     void defaultKitChanged();
     void leftHandedChanged();

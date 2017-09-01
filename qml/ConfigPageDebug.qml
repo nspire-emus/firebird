@@ -137,6 +137,19 @@ ColumnLayout {
         }
     }
 
+    LabeledCheckBox {
+        Layout.maximumWidth: parent.width
+        text: qsTr("Print a message on Warnings")
+
+        enabled: !Emu.debugOnWarn
+
+        checked: Emu.printOnWarn
+        onCheckedChanged: {
+            Emu.printOnWarn = checked;
+            checked = Qt.binding(function() { return Emu.printOnWarn; });
+        }
+    }
+
     Item {
         Layout.fillHeight: true
     }

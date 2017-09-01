@@ -57,6 +57,8 @@ QMLBridge::QMLBridge(QObject *parent) : QObject(parent)
     debug_on_start = getDebugOnStart();
     debug_on_warn = getDebugOnWarn();
 
+    print_on_warn = getPrintOnWarn();
+
     connect(&kit_model, SIGNAL(anythingChanged()), this, SLOT(saveKits()), Qt::QueuedConnection);
 
     setActive(true);
@@ -149,6 +151,21 @@ void QMLBridge::setDebugOnStart(bool e)
     debug_on_start = e;
     settings.setValue(QStringLiteral("debugOnStart"), e);
     emit debugOnStartChanged();
+}
+
+void QMLBridge::setPrintOnWarn(bool p)
+{
+    if (getPrintOnWarn() == p)
+        return;
+
+    print_on_warn = p;
+    settings.setValue(QStringLiteral("printOnWarn"), p);
+    emit printOnWarnChanged();
+}
+
+bool QMLBridge::getPrintOnWarn()
+{
+    return settings.value(QStringLiteral("printOnWarn"), true).toBool();
 }
 
 bool QMLBridge::getAutostart()
