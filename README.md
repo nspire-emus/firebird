@@ -20,8 +20,8 @@ _Linux:_
 _Windows:_ | _Android:_
 --- | ---
 [![](https://i.imgur.com/aibTt9Cl.png)](https://i.imgur.com/aibTt9C.png) | [![](https://i.imgur.com/cLphTgnm.png)](https://i.imgur.com/cLphTgn.png)
-_Mac OS X:_ | _iOS:_
-[![](https://i.imgur.com/5Rl7VTG.png)](https://i.imgur.com/YhqkwIN.png) | [![](https://i.imgur.com/Gly3Mzhm.png)](https://i.imgur.com/Gly3Mzh.png)
+_macOS:_ | _iOS:_
+[![](https://i.imgur.com/ymDtYsj.png)](https://i.imgur.com/O8R2aSo.png) | [![](https://i.imgur.com/LT1u2bim.png)](https://i.imgur.com/LT1u2bi.png)
 
 Building
 --------
