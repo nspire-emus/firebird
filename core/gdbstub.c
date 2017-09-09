@@ -230,12 +230,18 @@ static void gdb_connect_ndls_cb(struct arm_state *state) {
 
 static const char hexchars[]="0123456789abcdef";
 
-#define NUMREGS 26
+enum regnames {R0, R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, SP, LR, PC,
+               F0H, F0M, F0L,
+               F1H, F1M, F1L,
+               F2H, F2M, F2L,
+               F3H, F3M, F3L,
+               F4H, F4M, F4L,
+               F5H, F5M, F5L,
+               F6H, F6M, F6L,
+               F7H, F7M, F7L, FPS, CPSR, NUMREGS};
 
 /* Number of bytes of registers. */
 #define NUMREGBYTES (NUMREGS * 4)
-enum regnames {R0, R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, SP, LR, PC,
-               F0, F1, F2, F3, F4, F5, F6, F7, FPS, CPSR};
 
 // see GDB's include/gdb/signals.h
 enum target_signal {SIGNAL_ILL_INSTR = 4, SIGNAL_TRAP = 5};
