@@ -45,7 +45,9 @@ if [ $# -ge 2 ]; then
     st_cmd="ln st $2"
 fi
 
-nc -N localhost "$rdebug_port" <<EOT
+NC_ARGS=
+nc -N | grep "invalid option" || NC_ARGS=-N
+nc ${NC_ARGS} localhost "$rdebug_port" <<EOT
 $st_cmd
 ln s ${abs_tns_path}
 EOT
