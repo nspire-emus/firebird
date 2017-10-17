@@ -264,7 +264,7 @@ bool emu_start(unsigned int port_gdb, unsigned int port_rdbg, const char *snapsh
         emu_cleanup();
         return false;
     }
-    fread(rom, 1, 0x80000, f);
+    (void)fread(rom, 1, 0x80000, f);
     fclose(f);
 
 #ifndef NO_TRANSLATION
