@@ -1,4 +1,4 @@
-!macx: load(configure)
+!macx: !ios: load(configure)
 
 lessThan(QT_MAJOR_VERSION, 5): error("You need at least Qt 5.6 to build firebird!")
 lessThan(QT_MINOR_VERSION, 6): error("You need at least Qt 5.6 to build firebird!")
@@ -56,6 +56,7 @@ macx|ios: QMAKE_CXXFLAGS += -stdlib=libc++
 
 # ios: The linker can't deal with LLVM bitcode directly (missing plugin?)
 ios {
+    QMAKE_LFLAGS -= -fno-pie
     QMAKE_CFLAGS_RELEASE -= -flto
     QMAKE_CXXFLAGS_RELEASE -= -flto
     QMAKE_LFLAGS_RELEASE -= -Wl,-O3 -flto

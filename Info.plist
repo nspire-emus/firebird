@@ -5,7 +5,7 @@
 	<key>CFBundleDisplayName</key>
 	<string>Firebird Emu</string>
 	<key>CFBundleExecutable</key>
-	<string>firebird</string>
+	<string>firebird-emu</string>
 	<key>CFBundleGetInfoString</key>
 	<string>Created by Qt/QMake</string>
 	<key>CFBundleIconFile</key>
@@ -42,7 +42,7 @@
 		</dict>
 	</dict>
 	<key>CFBundleIdentifier</key>
-	<string>com.firebird.firebirdemu</string>
+    <string>com.firebird.firebird-emu</string>
 	<key>CFBundleName</key>
 	<string>Firebird</string>
 	<key>CFBundlePackageType</key>
