@@ -8,7 +8,7 @@ Download:
 ---------
 
 * *Latest release* (Windows, Mac, Android, iOS): https://github.com/nspire-emus/firebird/releases/latest
-* *Repo for Arch and openSUSE*: https://software.opensuse.org/download.html?project=home%3AVogtinator%3Afirebird-emu&package=firebird-emu
+* *Repo for Arch, Fedora, Debian, Ubuntu and openSUSE*: https://software.opensuse.org/download.html?project=home%3AVogtinator%3Afirebird-emu&package=firebird-emu
 
 Screenshots/Videos:
 -------------------
