@@ -28,6 +28,10 @@
 #include "mmu.h"
 #include "os/os.h"
 
+#ifdef IS_IOS_BUILD
+#include <sys/mman.h>
+#endif
+
 #ifndef __aarch64__
 #error "I'm sorry Dave, I'm afraid I can't do that."
 #endif
@@ -216,6 +220,11 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
 		return;
 	}
 
+    #ifdef IS_IOS_BUILD
+        // Mark translate_buffer as RW_
+        mprotect(translate_buffer, INSN_BUFFER_SIZE, PROT_READ | PROT_WRITE);
+    #endif
+    
 	uint32_t **jump_table_start = jump_table_current;
 	uint32_t pc = pc_start, *insn_ptr = insn_ptr_start;
 	// Pointer to translation of current instruction
@@ -752,6 +761,12 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
 
 	exit_translation:
 
+    #ifdef IS_IOS_BUILD
+        // Mark translate_buffer as R_X
+        // Even if no translation was done, pages got marked RW_
+        mprotect(translate_buffer, INSN_BUFFER_SIZE, PROT_READ | PROT_EXEC);
+    #endif
+    
 	if(insn_ptr == insn_ptr_start)
 	{
 		// No virtual instruction got translated, just drop everything
