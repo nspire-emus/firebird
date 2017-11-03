@@ -298,10 +298,7 @@ QString QMLBridge::basename(QString path)
     if(path.isEmpty())
         return tr("None");
 
-    std::string pathname = path.toStdString();
-    return QString::fromStdString(std::string(
-                std::find_if(pathname.rbegin(), pathname.rend(), [=](char c) { return c == '/'; }).base(),
-                                      pathname.end()));
+    return QFileInfo(path).fileName();
 }
 
 QUrl QMLBridge::dir(QString path)
