@@ -220,10 +220,10 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
 		return;
 	}
 
-    #ifdef IS_IOS_BUILD
-        // Mark translate_buffer as RW_
-        mprotect(translate_buffer, INSN_BUFFER_SIZE, PROT_READ | PROT_WRITE);
-    #endif
+	#ifdef IS_IOS_BUILD
+		// Mark translate_buffer as RW_
+		mprotect(translate_buffer, INSN_BUFFER_SIZE, PROT_READ | PROT_WRITE);
+	#endif
     
 	uint32_t **jump_table_start = jump_table_current;
 	uint32_t pc = pc_start, *insn_ptr = insn_ptr_start;
@@ -761,14 +761,14 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
 
 	exit_translation:
 
-    #ifdef IS_IOS_BUILD
-        // Mark translate_buffer as R_X
-        // Even if no translation was done, pages got marked RW_
-        mprotect(translate_buffer, INSN_BUFFER_SIZE, PROT_READ | PROT_EXEC);
-    #endif
-    
 	if(insn_ptr == insn_ptr_start)
 	{
+		#ifdef IS_IOS_BUILD
+			// Mark translate_buffer as R_X
+			// Even if no translation was done, pages got marked RW_
+			mprotect(translate_buffer, INSN_BUFFER_SIZE, PROT_READ | PROT_EXEC);
+		#endif
+
 		// No virtual instruction got translated, just drop everything
 		translate_current = translate_buffer_inst_start;
 		return;
@@ -792,6 +792,8 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
 
 	// Flush the instruction cache
 	#ifdef IS_IOS_BUILD
+		// Mark translate_buffer as R_X
+		mprotect(translate_buffer, INSN_BUFFER_SIZE, PROT_READ | PROT_EXEC);
 		sys_cache_control(1 /* kCacheFunctionPrepareForExecution */, jump_table_start[0], (code_end-jump_table_start[0])*4);
 	#else
 		__builtin___clear_cache(jump_table_start[0], code_end);
