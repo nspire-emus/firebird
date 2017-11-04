@@ -127,7 +127,7 @@ void QMLBridge::setRDBEnabled(bool e)
 
 bool QMLBridge::getDebugOnWarn()
 {
-    return settings.value(QStringLiteral("debugOnWarn"), true).toBool();
+    return settings.value(QStringLiteral("debugOnWarn"), !isMobile()).toBool();
 }
 
 void QMLBridge::setDebugOnWarn(bool e)
