@@ -21,6 +21,7 @@
 #include <cassert>
 #include <cstdint>
 
+#include "asmcode.h"
 #include "cpudefs.h"
 #include "emu.h"
 #include "translate.h"
@@ -40,14 +41,7 @@
 extern "C" {
 	extern void translation_next(uint32_t new_pc) __asm__("translation_next");
 	extern void translation_next_bx(uint32_t new_pc) __asm__("translation_next_bx");
-	extern void translation_jmp(void *target) __asm__("translation_jmp");
 	extern void **translation_sp __asm__("translation_sp");
-	extern void read_word_asm() __asm("read_word_asm");
-	extern void write_word_asm() __asm("write_word_asm");
-	extern void read_half_asm() __asm("read_half_asm");
-	extern void write_half_asm() __asm("write_half_asm");
-	extern void read_byte_asm() __asm("read_byte_asm");
-	extern void write_byte_asm() __asm("write_byte_asm");
 #ifdef IS_IOS_BUILD
 	int sys_cache_control(int function, void *start, size_t len);
 #endif
