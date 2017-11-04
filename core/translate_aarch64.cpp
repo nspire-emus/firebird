@@ -190,7 +190,20 @@ bool translate_init()
 	if(translate_buffer)
 		return true;
 
-	translate_current = translate_buffer = reinterpret_cast<uint32_t*>(os_alloc_executable(INSN_BUFFER_SIZE));
+#ifdef IS_IOS_BUILD
+#include <sys/syscall.h>
+    if (!iOS_is_debugger_attached())
+    {
+        syscall(SYS_ptrace, 0 /*PTRACE_TRACEME*/, 0, 0, 0);
+        if (!iOS_is_debugger_attached())
+        {
+            fprintf(stderr, "Was not able to force ptrace to allow JIT :(\n");
+            return false;
+        }
+    }
+#endif
+
+    translate_current = translate_buffer = reinterpret_cast<uint32_t*>(os_alloc_executable(INSN_BUFFER_SIZE));
 	jump_table_current = jump_table;
 	next_translation_index = 0;
 
