@@ -86,12 +86,11 @@ equals(QT_MAJOR_VERSION, 5): lessThan(QT_MINOR_VERSION, 6) {
 ios|android: DEFINES += MOBILE_UI
 
 ios {
-    DEFINES += IS_IOS_BUILD __arm__
+    DEFINES += IS_IOS_BUILD
     QMAKE_INFO_PLIST = Info.plist
     QMAKE_CFLAGS += -mno-thumb
     QMAKE_CXXFLAGS += -mno-thumb
     QMAKE_LFLAGS += -mno-thumb
-    QMAKE_IOS_DEVICE_ARCHS = armv7
     ios_icon.files = $$files(resources/ios/Icon*.png)
     QMAKE_BUNDLE_DATA += ios_icon
 }
