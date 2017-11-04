@@ -6,8 +6,10 @@
 
 #include "qmlbridge.h"
 
-#include "mainwindow.h"
-#include "flashdialog.h"
+#ifndef MOBILE_UI
+    #include "mainwindow.h"
+    #include "flashdialog.h"
+#endif
 
 #include "core/emu.h"
 #include "core/keypad.h"
@@ -321,6 +323,7 @@ int QMLBridge::kitIndexForID(unsigned int id)
     return kit_model.indexForID(id);
 }
 
+#ifndef MOBILE_UI
 void QMLBridge::createFlash(unsigned int kitIndex)
 {
     FlashDialog dialog;
@@ -333,7 +336,6 @@ void QMLBridge::createFlash(unsigned int kitIndex)
     dialog.exec();
 }
 
-#ifndef MOBILE_UI
 void QMLBridge::switchUIMode(bool mobile_ui)
 {
     main_window->switchUIMode(mobile_ui);

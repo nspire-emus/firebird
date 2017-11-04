@@ -12,7 +12,6 @@
 #include "core/debug.h"
 #include "core/emu.h"
 #include "core/usblink_queue.h"
-#include "mainwindow.h"
 
 EmuThread emu_thread;
 

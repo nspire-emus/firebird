@@ -1,7 +1,11 @@
+#ifdef MOBILE_UI
+#include <QGuiApplication>
+#else
 #include <QApplication>
+#include "mainwindow.h"
+#endif
 #include <QTranslator>
 
-#include "mainwindow.h"
 #include <QQmlApplicationEngine>
 
 #include "qtframebuffer.h"
@@ -64,7 +68,11 @@ int main(int argc, char **argv)
     #endif
     QGuiApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
 
-    QApplication app(argc, argv);
+    #ifdef MOBILE_UI
+        QGuiApplication app(argc, argv);
+    #else
+        QApplication app(argc, argv);
+    #endif
 
     /* On iOS, sometimes garbage text gets rendered:
      * https://bugreports.qt.io/browse/QTBUG-47399
