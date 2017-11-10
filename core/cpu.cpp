@@ -109,8 +109,6 @@ void fix_pc_for_fault()
 
 void prefetch_abort(uint32_t mva, uint8_t status)
 {
-    // TODO: Why doesn't linux boot anymore with this in place?
-    //fix_pc_for_fault();
     warn("Prefetch abort: address=%08x status=%02x\n", mva, status);
     arm.reg[15] += 4;
     // Fault address register not changed
