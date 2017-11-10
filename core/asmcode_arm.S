@@ -140,7 +140,10 @@ translation_next_enter:
 
 to_thumb:
     sub     r0, r0, #1
-    orr     r11, r11, #0x20 // Set thumb bit
+    str     r0, [r10, #15*4] // arm.reg[PC] = r0
+    ldr     r1, [r10, #16*4]
+    orr     r1, r1, #0x20 // Set thumb bit
+    str     r1, [r10, #16*4]
     b       save_return
 
 // Invoked from within translated code to jump to other, already translated code
