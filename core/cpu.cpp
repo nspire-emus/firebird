@@ -27,8 +27,6 @@ void cpu_arm_loop()
     {
         arm.reg[15] &= ~0x3; // Align PC
         Instruction *p = static_cast<Instruction*>(read_instruction(arm.reg[15]));
-        if(!p)
-            error("Bad PC: 0x%08x\n", arm.reg[15]);
 
         #ifdef BENCHMARK
             static clock_t start = 0;
@@ -194,8 +192,7 @@ void * FASTCALL read_instruction(uint32_t addr)
         }
         else // Executing MMIO stuff
         {
-            warn("PC in MMIO range: 0x%x\n", addr);
-            return 0;
+            error("PC in MMIO range: 0x%x\n", addr);
         }
     }
 
