@@ -206,6 +206,12 @@ MainWindow::MainWindow(QWidget *parent) :
 
 MainWindow::~MainWindow()
 {
+    if(config_dialog)
+        config_dialog->deleteLater();
+
+    if(mobileui_component)
+        mobileui_component->deleteLater();
+
     // Save external LCD geometry
     settings->setValue(QStringLiteral("extLCDGeometry"), lcd.saveGeometry());
     settings->setValue(QStringLiteral("extLCDVisible"), lcd.isVisible());
@@ -383,6 +389,10 @@ void MainWindow::setActive(bool b)
         disconnect(&emu_thread, SIGNAL(resumed(bool)), this, SLOT(resumed(bool)));
         disconnect(&emu_thread, SIGNAL(suspended(bool)), this, SLOT(suspended(bool)));
         disconnect(&emu_thread, SIGNAL(stopped()), this, SLOT(stopped()));
+
+        // Close the config dialog
+        if(config_dialog)
+            config_dialog->setProperty("visible", false);
     }
 
     setVisible(b);
@@ -676,6 +686,9 @@ void MainWindow::stopped()
 
 void MainWindow::closeEvent(QCloseEvent *e)
 {
+    if(config_dialog)
+        config_dialog->setProperty("visible", false);
+
     if(!close_after_suspend &&
             settings->value(QStringLiteral("suspendOnClose")).toBool() && emu_thread.isRunning() && exiting == false)
     {
@@ -690,7 +703,6 @@ void MainWindow::closeEvent(QCloseEvent *e)
         qDebug("Terminating emulator thread failed.");
 
     QMainWindow::closeEvent(e);
-    qApp->exit(0);
 }
 
 void MainWindow::showStatusMsg(QString str)
