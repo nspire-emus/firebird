@@ -52,7 +52,7 @@ ColumnLayout {
                 placeholderText: qsTr("Name")
                 Layout.fillWidth: true
 
-                text: kitList.currentItem.myData.name;
+                text: kitList.currentItem.myData.name
                 onTextChanged: {
                     if(text !== kitList.currentItem.myData.name)
                         kitModel.setDataRow(kitList.currentIndex, text, KitModel.NameRole);
@@ -68,7 +68,7 @@ ColumnLayout {
             FileSelect {
                 id: boot1Edit
                 Layout.fillWidth: true
-                filePath: kitList.currentItem.myData.boot1;
+                filePath: kitList.currentItem.myData.boot1
                 onFilePathChanged: {
                     if(filePath !== kitList.currentItem.myData.boot1)
                         kitModel.setDataRow(kitList.currentIndex, filePath, KitModel.Boot1Role);
@@ -87,7 +87,7 @@ ColumnLayout {
                 FileSelect {
                     id: flashEdit
                     Layout.fillWidth: true
-                    filePath: kitList.currentItem.myData.flash;
+                    filePath: kitList.currentItem.myData.flash
                     onFilePathChanged: {
                         if(filePath !== kitList.currentItem.myData.flash)
                             kitModel.setDataRow(kitList.currentIndex, filePath, KitModel.FlashRole);
@@ -114,7 +114,7 @@ ColumnLayout {
                 id: snapshotEdit
                 Layout.fillWidth: true
                 dialog.selectExisting: false
-                filePath: kitList.currentItem.myData.snapshot;
+                filePath: kitList.currentItem.myData.snapshot
                 onFilePathChanged: {
                     if(filePath !== kitList.currentItem.myData.snapshot)
                         kitModel.setDataRow(kitList.currentIndex, filePath, KitModel.SnapshotRole);
