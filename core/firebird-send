@@ -46,7 +46,7 @@ if [ $# -ge 2 ]; then
 fi
 
 NC_ARGS=
-nc -N | grep "invalid option" || NC_ARGS=-N
+nc -N 2>&1 | grep "invalid option" || NC_ARGS=-N
 nc ${NC_ARGS} localhost "$rdebug_port" <<EOT
 $st_cmd
 ln s ${abs_tns_path}
