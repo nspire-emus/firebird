@@ -197,7 +197,7 @@ MainWindow::MainWindow(QWidget *parent) :
         {
             // Boot up normally
             if(!emu_thread.boot1.isEmpty() && !emu_thread.flash.isEmpty())
-                emu_thread.start();
+                restart();
             else
                 showStatusMsg(tr("Start the emulation via Emulation->Start."));
         }
