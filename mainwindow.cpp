@@ -110,6 +110,11 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->actionAbout_Firebird, SIGNAL(triggered(bool)), this, SLOT(showAbout()));
     connect(ui->actionAbout_Qt, SIGNAL(triggered(bool)), qApp, SLOT(aboutQt()));
 
+    // Lang switch
+    connect(ui->actionEnglish,  &QAction::triggered, this, [this]{ switchTranslator(QStringLiteral("en_EN")); });
+    connect(ui->actionFran_ais, &QAction::triggered, this, [this]{ switchTranslator(QStringLiteral("fr_FR")); });
+    connect(ui->actionDeutsch,  &QAction::triggered, this, [this]{ switchTranslator(QStringLiteral("de_DE")); });
+
     //Debugging
     connect(ui->lineEdit, SIGNAL(returnPressed()), this, SLOT(debugCommand()));
 
@@ -202,6 +207,11 @@ MainWindow::MainWindow(QWidget *parent) :
                 showStatusMsg(tr("Start the emulation via Emulation->Start."));
         }
     }
+
+    QString prefLang = settings->value(QStringLiteral("preferred_lang"), QStringLiteral("none")).toString();
+    if (prefLang != QStringLiteral("none")) {
+        switchTranslator(prefLang);
+    }
 }
 
 MainWindow::~MainWindow()
@@ -222,6 +232,30 @@ MainWindow::~MainWindow()
 
     delete settings;
     delete ui;
+}
+
+void MainWindow::switchTranslator(const QString& lang)
+{
+    qApp->removeTranslator(&appTranslator);
+    // For English, nothing to load after removing the translator.
+    if (lang == QStringLiteral("en_EN") || (appTranslator.load(lang, QStringLiteral(":/i18n/i18n/"))
+                                            && qApp->installTranslator(&appTranslator)))
+    {
+        settings->setValue(QStringLiteral("preferred_lang"), lang);
+    } else {
+        QMessageBox::warning(this, tr("Language change"), tr("No translation available for this language :("));
+    }
+}
+
+void MainWindow::changeEvent(QEvent* event)
+{
+    const auto eventType = event->type();
+    if (eventType == QEvent::LanguageChange)
+        ui->retranslateUi(this);
+    else if (eventType == QEvent::LocaleChange)
+        switchTranslator(QLocale::system().name());
+
+    QMainWindow::changeEvent(event);
 }
 
 void MainWindow::dropEvent(QDropEvent *e)
