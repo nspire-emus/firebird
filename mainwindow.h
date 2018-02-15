@@ -168,6 +168,9 @@ private:
     // Used for autosuspend on close.
     // The close event has to be deferred until the suspend operation completed successfully.
     bool close_after_suspend = false;
+
+    // Whether this MainWindow is in charge of communicating with EmuThread
+    bool is_active = false;
 };
 
 // Used as global instance by EmuThread and friends

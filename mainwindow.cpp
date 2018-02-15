@@ -363,6 +363,13 @@ void MainWindow::switchUIMode(bool mobile_ui)
 
 void MainWindow::setActive(bool b)
 {
+    // There is no UniqueQueuedConnection, so we need to avoid duplicate connections
+    // manually
+    if(b == is_active)
+        return;
+
+    is_active = b;
+
     if(b)
     {
         connect(&emu_thread, SIGNAL(speedChanged(double)), this, SLOT(showSpeed(double)), Qt::QueuedConnection);
