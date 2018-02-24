@@ -17,12 +17,10 @@ Rectangle {
     radius: 4
     color: active ? active_color : back_color
 
-    onActiveChanged: {
-        if(active === true)
-            clicked();
-    }
-
     onPressedChanged: {
+        if(pressed)
+            clicked();
+
         Emu.keypadStateChanged(keymap_id, pressed);
     }
 
