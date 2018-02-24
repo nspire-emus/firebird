@@ -632,7 +632,8 @@ void MainWindow::setUIEditMode(bool e)
 {
     settings->setValue(QStringLiteral("uiEditModeEnabled"), e);
 
-    for(DockWidget *dw : findChildren<DockWidget*>())
+    const auto dockChildren = findChildren<DockWidget*>();
+    for(DockWidget *dw : dockChildren)
         dw->hideTitlebar(!e);
 }
 
