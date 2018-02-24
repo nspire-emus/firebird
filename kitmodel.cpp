@@ -198,7 +198,7 @@ int KitModel::indexForID(const unsigned int id)
     return it == kits.end() ? -1 : (it - kits.begin());
 }
 
-bool KitModel::allKitsEmpty()
+bool KitModel::allKitsEmpty() const
 {
     for(const auto&  kit : kits)
         if(!kit.boot1.isEmpty() || !kit.flash.isEmpty())

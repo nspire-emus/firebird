@@ -36,7 +36,7 @@ public:
     Q_INVOKABLE bool remove(const int row);
     Q_INVOKABLE void addKit(QString name, QString boot1, QString flash, QString snapshot_path);
     Q_INVOKABLE int indexForID(const unsigned int id);
-    Q_INVOKABLE bool allKitsEmpty();
+    Q_INVOKABLE bool allKitsEmpty() const;
 
     QString typeForFlash(QString flash);
 
