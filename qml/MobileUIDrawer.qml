@@ -18,7 +18,7 @@ Rectangle {
 
         Image {
             id: logo
-            source: "qrc:/icons/resources/firebird.png"
+            source: "qrc:/icons/resources/org.firebird-emus.firebird-emu.png"
 
             Layout.maximumWidth: parent.width * 0.5
             Layout.maximumHeight: parent.width * 0.5

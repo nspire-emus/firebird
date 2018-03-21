@@ -18,7 +18,7 @@
   </property>
   <property name="windowIcon">
    <iconset resource="resources.qrc">
-    <normaloff>:/icons/resources/firebird.png</normaloff>:/icons/resources/firebird.png</iconset>
+    <normaloff>:/icons/resources/org.firebird-emus.firebird-emu.png</normaloff>:/icons/resources/org.firebird-emus.firebird-emu.png</iconset>
   </property>
   <property name="dockOptions">
    <set>QMainWindow::AllowNestedDocks|QMainWindow::AllowTabbedDocks|QMainWindow::AnimatedDocks</set>
@@ -618,7 +618,7 @@
   <action name="actionAbout_Firebird">
    <property name="icon">
     <iconset resource="resources.qrc">
-     <normaloff>:/icons/resources/firebird.png</normaloff>:/icons/resources/firebird.png</iconset>
+     <normaloff>:/icons/resources/org.firebird-emus.firebird-emu.png</normaloff>:/icons/resources/org.firebird-emus.firebird-emu.png</iconset>
    </property>
    <property name="text">
     <string>&amp;About Firebird</string>

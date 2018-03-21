@@ -41,7 +41,10 @@ static void migrateSettings()
     {
         qDebug("Trying to import old settings");
 
-        QVariantHash old = readOldSettings(QStringLiteral("ndless"), QStringLiteral("firebird"));
+        QVariantHash old = readOldSettings(QStringLiteral("org.firebird"), QStringLiteral("firebird-emu"));
+        if(!old.count())
+            old = readOldSettings(QStringLiteral("ndless"), QStringLiteral("firebird"));
+
         if(!old.count())
             old = readOldSettings(QStringLiteral("ndless"), QStringLiteral("nspire_emu"));
 
@@ -85,7 +88,8 @@ int main(int argc, char **argv)
     appTranslator.load(QLocale::system().name(), QStringLiteral(":/i18n/i18n/"));
     app.installTranslator(&appTranslator);
 
-    QCoreApplication::setOrganizationName(QStringLiteral("org.firebird"));
+    QCoreApplication::setOrganizationDomain(QStringLiteral("firebird-emus.org"));
+    QCoreApplication::setOrganizationName(QStringLiteral("Firebird Emus"));
     QCoreApplication::setApplicationName(QStringLiteral("firebird-emu"));
 
     // Needed for settings migration

@@ -28,9 +28,9 @@ linux: !android {
     # For make install support
     target.path = /usr/bin
     desktop.path = /usr/share/applications
-    desktop.files += resources/org.firebird.firebird-emu.desktop
+    desktop.files += resources/org.firebird-emus.firebird-emu.desktop
     icon.path = /usr/share/icons/hicolor/512x512/apps
-    icon.files += resources/firebird.png
+    icon.files += resources/org.firebird-emus.firebird-emu.png
     sendtool.path = /usr/bin
     sendtool.files = core/firebird-send
     INSTALLS += target desktop icon sendtool

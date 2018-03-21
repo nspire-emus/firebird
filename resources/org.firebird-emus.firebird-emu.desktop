@@ -5,4 +5,4 @@ Name=Firebird Emu
 GenericName=TI-Nspire Emulator
 Terminal=false
 Type=Application
-Icon=firebird
+Icon=org.firebird-emus.firebird-emu

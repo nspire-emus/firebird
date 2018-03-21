@@ -15,7 +15,7 @@
   </property>
   <property name="windowIcon">
    <iconset resource="resources.qrc">
-    <normaloff>:/icons/resources/firebird.png</normaloff>:/icons/resources/firebird.png</iconset>
+    <normaloff>:/icons/resources/org.firebird-emus.firebird-emu.png</normaloff>:/icons/resources/org.firebird-emus.firebird-emu.png</iconset>
   </property>
   <layout class="QGridLayout" name="gridLayout">
    <item row="4" column="0">

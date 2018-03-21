@@ -17,7 +17,7 @@
 FBAboutDialog::FBAboutDialog(QWidget *parent)
     : QDialog(parent)
 {
-    QIcon icon{QStringLiteral(":/icons/resources/firebird.png")};
+    QIcon icon{QStringLiteral(":/icons/resources/org.firebird-emus.firebird-emu.png")};
     iconLabel.setPixmap(icon.pixmap(icon.actualSize(QSize{64, 64})));
 
     setWindowTitle(tr("About Firebird"));
