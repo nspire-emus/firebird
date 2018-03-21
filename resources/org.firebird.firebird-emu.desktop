@@ -1,5 +1,5 @@
 [Desktop Entry]
-Categories=Qt;DesktopUtility;System;Emulator;Education;Math
+Categories=Qt;System;Emulator;Education;Math;
 Exec=firebird-emu
 Name=Firebird Emu
 GenericName=TI-Nspire Emulator
