@@ -549,7 +549,14 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
                may not be effective, so we need to flush those *before and after*. */
 
             regmap_flush();
-            flush_flags();
+
+            /* This also applies to flags - but if they're loaded already, keep
+             * them loaded. */
+            if(flags_changed)
+            {
+                emit_str_flags();
+                flags_changed = false;
+            }
         }
 
         // Rollback translate_current to this val if instruction not supported
