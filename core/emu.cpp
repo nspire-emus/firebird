@@ -275,8 +275,7 @@ bool emu_start(unsigned int port_gdb, unsigned int port_rdbg, const char *snapsh
     }
 #endif
 
-    os_exception_frame_t frame;
-    addr_cache_init(&frame);
+    addr_cache_init();
 
     throttle_timer_on();
 

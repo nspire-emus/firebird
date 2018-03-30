@@ -103,7 +103,7 @@ static int addr_cache_exception(PEXCEPTION_RECORD er, void *x, void *y, void *z)
     return 1; // Continue search
 }
 
-void addr_cache_init(os_exception_frame_t *frame) {
+void addr_cache_init() {
     // Don't run more than once
     if(addr_cache)
         return;
@@ -117,9 +117,13 @@ void addr_cache_init(os_exception_frame_t *frame) {
 
     addr_cache = VirtualAlloc(NULL, AC_NUM_ENTRIES * sizeof(ac_entry), flags, PAGE_READWRITE);
 
-    frame->function = (void *)addr_cache_exception;
-    asm ("movl %%fs:(%1), %0" : "=r" (frame->prev) : "r" (0));
-    asm ("movl %0, %%fs:(%1)" : : "r" (frame), "r" (0));
+    typedef struct { void *prev, *function; } os_exception_frame_t;
+
+    static os_exception_frame_t frame;
+
+    frame.function = (void *)addr_cache_exception;
+    asm ("movl %%fs:(%1), %0" : "=r" (frame.prev) : "r" (0));
+    asm ("movl %0, %%fs:(%1)" : : "r" (&frame), "r" (0));
 
 #ifndef NDEBUG
     // Without segfaults we have to invalidate everything here

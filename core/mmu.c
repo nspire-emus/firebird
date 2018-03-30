@@ -11,20 +11,30 @@
 static uint32_t mmu_translation_table[0x1000];
 
 void mmu_dump_tables(void) {
-    uint32_t i, j;
+    if ((arm.control & 1) == 0) {
+        gui_debug_printf("MMU disabled\n");
+        return;
+    }
+
     gui_debug_printf("MMU translations:\n");
     uint32_t *tt = (uint32_t*)phys_mem_ptr(arm.translation_table_base, 0x4000);
-    for (i = 0; i < 0x1000; i++) {
+    if (!tt) {
+        gui_debug_printf("TTB points to invalid memory, using TLB\n");
+        tt = mmu_translation_table;
+    }
+
+    for (uint32_t i = 0; i < 0x1000; i++) {
         uint32_t tt_entry = tt[i];
         uint32_t virt_addr = i << 20;
         uint32_t virt_shift = 0;
         uint32_t *l1_table = NULL;
         uint32_t l1_table_size = 0;;
         uint32_t l1_entry;
+        uint32_t j = 0;
         uint32_t page_size = 0;
         char *page_type = "?";
         if (!(tt_entry & 3))
-        continue; // Invalid
+            continue; // Invalid
         if ((tt_entry & 3) == 2) { // Section (1MB)
             page_size = 0x100000;
             page_type = "1mB";
@@ -190,17 +200,20 @@ static void addr_cache_invalidate(int i) {
     AC_SET_ENTRY_INVALID(addr_cache[i], i >> 1 << 10)
 }
 
+#if OS_HAS_PAGEFAULT_HANDLER
+
 /* Since only a small fraction of the virtual address space, and therefore
  * only a small fraction of the pages making up addr_cache, will be in use
  * at a time, we can keep only a few pages committed and thereby reduce
  * the memory used by a lot. */
 #define AC_COMMIT_MAX 128
 #define AC_PAGE_SIZE 4096
-uint8_t ac_commit_map[AC_NUM_ENTRIES * sizeof(ac_entry) / AC_PAGE_SIZE];
-ac_entry *ac_commit_list[AC_COMMIT_MAX];
-uint32_t ac_commit_index;
 
 bool addr_cache_pagefault(void *addr) {
+    static uint8_t ac_commit_map[AC_NUM_ENTRIES * sizeof(ac_entry) / AC_PAGE_SIZE];
+    static ac_entry *ac_commit_list[AC_COMMIT_MAX];
+    static uint32_t ac_commit_index;
+
     ac_entry *page = (ac_entry *)((uintptr_t)addr & -AC_PAGE_SIZE);
     uint32_t offset = page - addr_cache;
     if (offset >= AC_NUM_ENTRIES)
@@ -224,6 +237,8 @@ bool addr_cache_pagefault(void *addr) {
     ac_commit_index = (ac_commit_index + 1) % AC_COMMIT_MAX;
     return true;
 }
+
+#endif
 
 void *addr_cache_miss(uint32_t virt, bool writing, fault_proc *fault) {
     ac_entry entry;

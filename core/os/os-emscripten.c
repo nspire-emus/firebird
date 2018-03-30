@@ -25,24 +25,6 @@ void os_free(void *ptr, size_t size)
     free(ptr);
 }
 
-void *os_commit(void *addr, size_t size)
-{
-    (void) size;
-    return addr;
-}
-
-void *os_sparse_commit(void *page, size_t size)
-{
-    (void) size;
-    return page;
-}
-
-void os_sparse_decommit(void *page, size_t size)
-{
-    (void) page;
-    (void) size;
-}
-
 void *os_alloc_executable(size_t size)
 {
     (void) size;
@@ -70,8 +52,6 @@ void os_unmap_cow(void *addr, size_t size)
 
 void addr_cache_init(os_exception_frame_t *frame)
 {
-    (void) frame;
-
     // Only run this if not already initialized
     if(addr_cache)
         return;

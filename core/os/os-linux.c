@@ -130,10 +130,8 @@ __attribute__((unused)) static void make_writable(void *addr)
         emuprintf("mprotect failed.\n");
 }
 
-void addr_cache_init(os_exception_frame_t *frame)
+void addr_cache_init()
 {
-    (void) frame;
-
     // Only run this if not already initialized
     if(addr_cache)
         return;
