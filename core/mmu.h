@@ -14,9 +14,11 @@ uint32_t mmu_translate(uint32_t addr, bool writing, fault_proc *fault, uint8_t *
 /* Used for t-type (usermode-like) access */
 void mmu_check_priv(uint32_t addr, bool writing);
 
-/* Table for quickly accessing RAM and ROM by virtual addresses. This contains
- * two entries for each 1kB of virtual address space, one for reading and one
- * for writing, and each entry may contain one of three kinds of values:
+/* addr_cache is used to cache the translation of VA to PA per page.
+ * It has two entries per page (1k), one for reading and one for writing.
+ * The format for 32-bit x86 with JIT is different to minimize the needed
+ * registers in the x86 memory access functions and won't work for all
+ * platforms:
  *
  * a) Pointer entry
  *    The result of adding the virtual address (VA) to the entry has bit 31
@@ -30,9 +32,14 @@ void mmu_check_priv(uint32_t addr, bool writing);
  * c) Invalid entry
  *    VA + entry has bit 31 set, entry has bit 22 set. Entry is invalid and
  *    addr_cache_miss must be called.
+ *
+ * In all other cases the format is simpler:
+ * a) Pointer entry: Bit 0 clear, rest difference to pointer to start of physical page
+ * b) Physical entry: Bit 0 set, Bit 1 clear, rest difference to physical address
+ * c) Invalid entry: Bit 0 set, Bit 1 set
  */
 
-#define AC_NUM_ENTRIES (4194304*2)
+#define AC_NUM_ENTRIES (((1ull << 32) >> 10) * 2)
 typedef uint8_t *ac_entry;
 extern ac_entry *addr_cache __asm__("addr_cache");
 
