@@ -994,18 +994,22 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
              * Either jump to translation_next if code not translated (yet) or
              * jump directly to the translated code, over a small function checking for pending events */
 
+            uint32_t addr = pc + ((int32_t)(i.raw << 8) >> 6) + 8;
+
             if(i.branch.l)
             {
                 // Save return address in LR
                 emit_mov(regmap_store(LR), pc + 4);
             }
-            else if(i.cond == CC_AL)
+            /* If the control flow diverges, end this block.
+               The condition for this is that the branch is unconditional
+               and the branch target doesn't point to the next 4 instructions. */
+            else if(i.cond == CC_AL && (addr <= pc || addr - pc > 16))
             {
                 // It's not likely that the branch will return
                 jumps_away = stop_here = true;
             }
 
-            uint32_t addr = pc + ((int32_t)(i.raw << 8) >> 6) + 8;
             uintptr_t entry = reinterpret_cast<uintptr_t>(addr_cache[(addr >> 10) << 1]);
             uint32_t *ptr = reinterpret_cast<uint32_t*>(entry + addr);
 
