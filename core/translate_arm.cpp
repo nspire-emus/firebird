@@ -530,7 +530,7 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
             || translate_current + 0x200 > translate_end
             || RAM_FLAGS(insn_ptr) & (RF_EXEC_BREAKPOINT | RF_EXEC_DEBUG_NEXT | RF_EXEC_HACK | RF_CODE_TRANSLATED | RF_CODE_NO_TRANSLATE)
             || (pc ^ pc_start) & ~0x3ff)
-            goto exit_translation;
+            break;
 
         Instruction i;
         uint32_t insn = i.raw = *insn_ptr;
@@ -1029,7 +1029,20 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
             }
         }
         else
-            goto unimpl;
+        {
+            unimpl:
+            // There may be a partial translation in memory, scrap it.
+            translate_current = translate_buffer_inst_start;
+            RAM_FLAGS(insn_ptr) |= RF_CODE_NO_TRANSLATE;
+
+            /* For conditional instructions, the flags are unconditionally loaded,
+             * but if the instruction can't be translated, the flag loading gets
+             * scrapped by the above. This means the flags aren't actually available. */
+            if(cond_branch)
+                flags_loaded = false;
+
+            break;
+        }
 
         instruction_translated:
 
@@ -1053,28 +1066,6 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
         pc += 4;
     }
 
-    unimpl:
-    // There may be a partial translation in memory, scrap it.
-    translate_current = translate_buffer_inst_start;
-    RAM_FLAGS(insn_ptr) |= RF_CODE_NO_TRANSLATE;
-
-    exit_translation:
-
-    if(!jumps_away)
-    {
-        flush_flags();
-        regmap_flush();
-
-        emit_mov(R0, pc);
-        emit_jmp(reinterpret_cast<void*>(translation_next), false);
-    }
-
-    #ifdef IS_IOS_BUILD
-        // Mark translate_buffer as R_X
-        // Even if no translation was done, pages got marked RW_
-        mprotect(translate_buffer, INSN_BUFFER_SIZE, PROT_READ | PROT_EXEC);
-    #endif
-    
     // Did we do any translation at all?
     if(insn_ptr == insn_ptr_start)
     {
@@ -1083,6 +1074,46 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
         return;
     }
 
+    if(!jumps_away)
+    {
+        // Same code as for relative branches
+        uint32_t addr = pc;
+        uintptr_t entry = reinterpret_cast<uintptr_t>(addr_cache[(addr >> 10) << 1]);
+        uint32_t *ptr = reinterpret_cast<uint32_t*>(entry + addr);
+
+        if(entry & AC_FLAGS)
+        {
+            // Not translated, use translation_next
+            emit_mov(R0, addr);
+            emit_jmp(reinterpret_cast<void*>(translation_next));
+        }
+        else if (!(RAM_FLAGS(ptr) & RF_CODE_TRANSLATED))
+        {
+            emit_mov(R0, addr);
+            emit_str_armreg(R0, PC);
+            emit_mov(R0, uintptr_t(ptr));
+            emit_jmp(reinterpret_cast<void*>(translation_jmp_ptr));
+        }
+        else
+        {
+            // Get address of translated code to jump to it
+            translation *target_translation = &translation_table[RAM_FLAGS(ptr) >> RFS_TRANSLATION_INDEX];
+            uintptr_t jmp_target = reinterpret_cast<uintptr_t>(target_translation->jump_table[ptr - target_translation->start_ptr]);
+
+            // Update pc first
+            emit_mov(R0, addr);
+            emit_str_armreg(R0, PC);
+            emit_mov(R0, jmp_target);
+            emit_jmp(reinterpret_cast<void*>(translation_jmp));
+        }
+    }
+
+    #ifdef IS_IOS_BUILD
+        // Mark translate_buffer as R_X
+        // Even if no translation was done, pages got marked RW_
+        mprotect(translate_buffer, INSN_BUFFER_SIZE, PROT_READ | PROT_EXEC);
+    #endif
+    
     this_translation->end_ptr = insn_ptr;
     this_translation->unused = reinterpret_cast<uintptr_t>(translate_current);
 
