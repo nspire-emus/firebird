@@ -71,24 +71,6 @@ void os_free(void *ptr, size_t size)
         munmap(ptr, size);
 }
 
-void *os_commit(void *addr, size_t size)
-{
-    (void) size;
-    return addr;
-}
-
-void *os_sparse_commit(void *page, size_t size)
-{
-    (void) size;
-    return page;
-}
-
-void os_sparse_decommit(void *page, size_t size)
-{
-    (void) page;
-    (void) size;
-}
-
 void *os_alloc_executable(size_t size)
 {
 #if defined(__i386__) || defined(__x86_64__)

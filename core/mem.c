@@ -231,14 +231,8 @@ bool memory_initialize(uint32_t sdram_size)
             total_mem += mem_areas[i].size;
         }
     }
-    if (total_mem > MEM_MAXSIZE ||
-            !os_commit(mem_and_flags, total_mem) ||
-            !os_commit(mem_and_flags + MEM_MAXSIZE, total_mem))
-    {
-        emuprintf("Couldn't allocate memory\n");
-        memory_deinitialize();
-        return false;
-    }
+
+    assert (total_mem <= MEM_MAXSIZE);
 
     current_product = product;
 
