@@ -9,7 +9,15 @@
 extern "C" {
 #endif
 
+#ifdef __arm__
+// Supply the pointer to the instruction directly to avoid read_instruction
+void translation_enter(void *ptr) __asm__("translation_enter");
+#define TRANSLATION_ENTER_HAS_PTR 1
+#else
 void translation_enter() __asm__("translation_enter");
+#define TRANSLATION_ENTER_HAS_PTR 0
+#endif
+
 void translation_jmp(void *ptr) __asm__("translation_jmp");
 
 void * FASTCALL read_instruction(uint32_t addr) __asm__("read_instruction");

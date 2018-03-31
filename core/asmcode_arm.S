@@ -24,7 +24,6 @@ translation_sp: .global translation_sp
 #define AC_NOT_PTR 0b01
 #define AC_FLAGS (AC_INVALID|AC_NOT_PTR)
 
-/* For now enable .text relocations everywhere. */
 #if defined(__clang__)
 /* On iOS, .text relocations are permitted and due to
    a bug it's unable to handle to handle our way of
@@ -65,7 +64,7 @@ sym  translation_table
 sym  cycle_count_delta, 2
 sym  translation_sp, 2
 //sym  cpu_events, 2
-sym  cycle_count_delta, 3
+//sym  cycle_count_delta, 3
 sym  translation_table, 2
 sym  cycle_count_delta, 4
 sym  addr_cache
@@ -83,32 +82,32 @@ sym  data_abort, 6
 
 #endif
 
+// r0: pointer to the instruction
 translation_enter: .global translation_enter
     push    {r4-r11, lr}
+    mov     r4, r0
     loadsym r0, translation_sp
     str     sp, [r0]
+
     bl      get_cpsr
     mov     r11, r0 // r11 = cpsr
+
+    mov     r0, r4
+
+    add     r1, r0, #65*1024*1024 // r1 = &(RAM_FLAGS(r0))
+    ldr     r1, [r1]
+
     loadsym r10, arm // r10 is a pointer to the global arm_state
-    ldr     r0, [r10, #15*4] // load arm.reg[15]
     b       translation_next_enter
 
+// r0: pc
 translation_next_bx: .global translation_next_bx
     tst     r0, #1
     bne     to_thumb
 
+// r0: pc
 translation_next: .global translation_next
     str     r0, [r10, #15*4] // save to arm.reg[15]
-
-translation_next_enter:
-    loadsym r1, cycle_count_delta
-    ldr     r1, [r1]
-    cmp     r1, #0
-    bpl     save_return
-    loadsym r1, cpu_events
-    ldr     r1, [r1]
-    cmp     r1, #0
-    bne     save_return
 
     bl      read_instruction // r0 = pointer to ARM code
     cmp     r0, #0
@@ -118,6 +117,18 @@ translation_next_enter:
     ldr     r1, [r1]
     tst     r1, #RF_CODE_TRANSLATED
     beq     save_return // not translated
+
+// r0: pointer to instruction
+// r1: RAM_FLAGS(r0)
+translation_next_enter:
+    loadsym r2, cycle_count_delta
+    ldr     r2, [r2]
+    cmp     r2, #0
+    bpl     save_return
+    loadsym r2, cpu_events
+    ldr     r2, [r2]
+    cmp     r2, #0
+    bne     save_return
 
     mov     r1, r1, lsr #RFS_TRANSLATION_INDEX // r1 is translation index
     mov     r1, r1, lsl #4

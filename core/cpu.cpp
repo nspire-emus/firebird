@@ -57,7 +57,11 @@ void cpu_arm_loop()
         // If the instruction is translated, use the translation
         if(*flags_ptr & RF_CODE_TRANSLATED)
         {
-            translation_enter();
+            #if TRANSLATION_ENTER_HAS_PTR
+                translation_enter(p);
+            #else
+                translation_enter(p);
+            #endif
             continue;
         }
 #endif
