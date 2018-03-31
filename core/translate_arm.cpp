@@ -1,11 +1,11 @@
 /*
  * How the ARM translation works:
  * translation_enter in asmcode_arm.S finds the entry point and jumps to it.
- * r10 in translation mode points to the global arm_state and r11 has a copy of
- * cpsr_nzcv that is updated after every virtual instruction if it changes the
- * flags. After returning from translation mode because either a branch was
- * executed or the translated block ends, r11 is split into cpsr_nzcv again
- * and all registers restored.
+ * r10 in translation mode points to the global arm_state and the cpsr contains
+ * the flags of the virtual processor. To preserve them across function calls
+ * and to save them back into struct arm_state, r11 is used.  After returning
+ * from translation mode because either a branch was executed or the translated
+ * block ends, r11 is split into cpsr_nzcv again and all registers restored.
  */
 
 #include <algorithm>
@@ -310,35 +310,6 @@ static void regmap_mark_all_unused()
     }
 }
 
-/* Whether flags are currently loaded and may have been changed. */
-static bool flags_loaded = false, flags_changed = false;
-
-static void need_flags()
-{
-    if(flags_loaded)
-        return;
-
-    emit_ldr_flags();
-    flags_loaded = true;
-}
-
-static void changed_flags()
-{
-    flags_changed = true;
-}
-
-// Flushing of any kind is irreversible! It means that you *must* not call goto unimpl; after flushing.
-// Otherwise it thinks that the flags aren't dirty, but the flush code got rolled back.
-static void flush_flags()
-{
-    flags_loaded = false;
-    if(!flags_changed)
-        return;
-
-    emit_str_flags();
-    flags_loaded = flags_changed = false;
-}
-
 // Returns 0 if target not reachable
 static uint32_t maybe_branch(void *target)
 {
@@ -358,10 +329,10 @@ static uint32_t maybe_branch(void *target)
 static void emit_jmp(void *target, bool save = true)
 {
     if(save)
-    {
-        flush_flags();
         regmap_flush();
-    }
+
+    // Store the flags to r11, the callee is responsible now
+    emit_str_flags();
 
     uint32_t branch = maybe_branch(target);
     if(branch)
@@ -376,10 +347,10 @@ static void emit_jmp(void *target, bool save = true)
 static void emit_call(void *target, bool save = true)
 {
     if(save)
-    {
-        flush_flags();
         regmap_flush();
-    }
+
+    // Preserve the flags across calls
+    emit_str_flags();
 
     uint32_t branch = maybe_branch(target);
     if(branch)
@@ -389,6 +360,8 @@ static void emit_call(void *target, bool save = true)
     emit_al(0x28fe004); // add lr, pc, #4
     emit_al(0x51ff004); // ldr pc, [pc, #-4]
     emit(reinterpret_cast<uintptr_t>(target));
+
+    emit_ldr_flags();
 }
 
 bool translate_init()
@@ -517,8 +490,6 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
 
     // Assert that the translated code does not assume any state
     assert(!regmap_any_mapped);
-    assert(!flags_loaded);
-    assert(!flags_changed);
 
     // This loop is executed once per instruction.
     // Due to the CPU being able to jump to each instruction seperately,
@@ -549,20 +520,12 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
                may not be effective, so we need to flush those *before and after*. */
 
             regmap_flush();
-
-            /* This also applies to flags - but if they're loaded already, keep
-             * them loaded. */
-            if(flags_changed)
-            {
-                emit_str_flags();
-                flags_changed = false;
-            }
         }
 
         // Rollback translate_current to this val if instruction not supported
         *jump_table_current = translate_buffer_inst_start = translate_current;
 
-        bool can_jump_here = !flags_loaded && !regmap_any_mapped;
+        bool can_jump_here = !regmap_any_mapped;
 
         if(unlikely(i.cond == CC_NV))
         {
@@ -573,7 +536,6 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
         }
         else if(unlikely(i.cond != CC_AL))
         {
-            need_flags();
             cond_branch = translate_current;
             emit(0x0a000000 | ((i.cond ^ 1) << 28));
         }
@@ -620,14 +582,7 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
                 else
                     translated.mult.rd = regmap_store(i.mult.rd);
 
-                if(i.mult.s)
-                {
-                    need_flags();
-                    emit(translated.raw);
-                    changed_flags();
-                }
-                else
-                    emit(translated.raw);
+                emit(translated.raw);
 
                 goto instruction_translated;
             }
@@ -712,8 +667,6 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
         {
             // Data processing:
             // The registers the instruction uses are renamed
-            bool setcc = i.data_proc.s,
-                 reg_shift = !i.data_proc.imm && i.data_proc.reg_shift;
 
             if(i.data_proc.rd == PC)
                 goto unimpl;
@@ -732,6 +685,8 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
                 emit_mov_reg(rd, rm);
                 goto instruction_translated;
             }
+
+            bool reg_shift = !i.data_proc.imm && i.data_proc.reg_shift;
 
             // Using pc is not supported
             if((!i.data_proc.imm && i.data_proc.rm == PC)
@@ -768,23 +723,8 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
             if(i.data_proc.op < OP_TST || i.data_proc.op > OP_CMN)
                 translated.data_proc.rd = regmap_store(i.data_proc.rd);
 
-            if(unlikely(setcc
-                        || i.data_proc.op == OP_ADC
-                        || i.data_proc.op == OP_SBC
-                        || i.data_proc.op == OP_RSC
-                        || i.data_proc.shift == SH_ROR)) // ROR with #0 as imm is RRX
-            {
-                // This instruction impacts the flags, load them...
-                need_flags();
-
-                // Emit the instruction itself
-                emit(translated.raw);
-
-                // ... and store them again
-                changed_flags();
-            }
-            else
-                emit(translated.raw);
+            // Emit the instruction itself
+            emit(translated.raw);
         }
         else if((i.raw & 0xFF000F0) == 0x7F000F0)
             goto unimpl; // undefined
@@ -839,15 +779,7 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
                 else
                     emit_mov(R1, pc + 8);
 
-                if(unlikely(off.mem_proc.shift == SH_ROR && off.mem_proc.shift_imm == 0))
-                {
-                    // RRX
-                    need_flags();
-                    emit(off.raw);
-                    changed_flags();
-                }
-                else
-                    emit(off.raw);
+                emit(off.raw);
             }
 
             // Get final address..
@@ -1046,12 +978,6 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
             translate_current = translate_buffer_inst_start;
             RAM_FLAGS(insn_ptr) |= RF_CODE_NO_TRANSLATE;
 
-            /* For conditional instructions, the flags are unconditionally loaded,
-             * but if the instruction can't be translated, the flag loading gets
-             * scrapped by the above. This means the flags aren't actually available. */
-            if(cond_branch)
-                flags_loaded = false;
-
             break;
         }
 
@@ -1059,9 +985,8 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
 
         if(cond_branch)
         {
-            // The code up until this point might never get executed, so regmaps and flag actions won't have any effect
+            // The code up until this point might never get executed, so regmaps won't have any effect
             regmap_flush();
-            flush_flags();
 
             // Fixup the branch above (-2 to account for the pipeline)
             *cond_branch |= (translate_current - cond_branch - 2) & 0xFFFFFF;
