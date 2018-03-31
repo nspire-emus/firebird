@@ -60,7 +60,7 @@ void cpu_arm_loop()
             #if TRANSLATION_ENTER_HAS_PTR
                 translation_enter(p);
             #else
-                translation_enter(p);
+                translation_enter();
             #endif
             continue;
         }
