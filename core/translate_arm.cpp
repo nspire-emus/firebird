@@ -361,8 +361,9 @@ static void emit_call(void *target, bool save = true)
         return emit_al(branch | (1 << 24)); // Set the L-bit
 
     // This is cheaper than doing it like emit_mov above.
-    emit_al(0x28fe004); // add lr, pc, #4
-    emit_al(0x51ff004); // ldr pc, [pc, #-4]
+    emit_al(0x59f3004); // ldr r3, [pc, #4]
+    emit_al(0x12fff33); // blx r3
+    emit_al(0xa000000); // b pc
     emit(reinterpret_cast<uintptr_t>(target));
 
     if(save)
