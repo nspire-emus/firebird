@@ -40,6 +40,7 @@ extern void translation_jmp_ptr() __asm__("translation_jmp_ptr");
 extern void translation_next() __asm__("translation_next");
 extern void translation_next_bx() __asm__("translation_next_bx");
 extern void **translation_sp __asm__("translation_sp");
+extern void *mem_ptr(uint32_t addr, uint32_t size) __asm__("mem_ptr");
 #ifdef IS_IOS_BUILD
     int sys_cache_control(int function, void *start, size_t len);
 #endif
@@ -329,10 +330,12 @@ static uint32_t maybe_branch(void *target)
 static void emit_jmp(void *target, bool save = true)
 {
     if(save)
+    {
         regmap_flush();
 
-    // Store the flags to r11, the callee is responsible now
-    emit_str_flags();
+        // Store the flags to r11, the callee is responsible now
+        emit_str_flags();
+    }
 
     uint32_t branch = maybe_branch(target);
     if(branch)
@@ -347,10 +350,11 @@ static void emit_jmp(void *target, bool save = true)
 static void emit_call(void *target, bool save = true)
 {
     if(save)
+    {
         regmap_flush();
-
-    // Preserve the flags across calls
-    emit_str_flags();
+        // Preserve the flags across calls
+        emit_str_flags();
+    }
 
     uint32_t branch = maybe_branch(target);
     if(branch)
@@ -361,7 +365,8 @@ static void emit_call(void *target, bool save = true)
     emit_al(0x51ff004); // ldr pc, [pc, #-4]
     emit(reinterpret_cast<uintptr_t>(target));
 
-    emit_ldr_flags();
+    if(save)
+        emit_ldr_flags();
 }
 
 bool translate_init()
@@ -849,6 +854,7 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
                 goto unimpl; // Loading/Saving address register
 
             regmap_flush();
+            emit_str_flags();
 
             int count = __builtin_popcount(reglist), offset, wb_offset;
 
@@ -868,11 +874,64 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
 
             // Base reg in r4
             emit_ldr_armreg(R4, i.mem_multi.rn);
-            unsigned int reg = 0;
-            while(reglist)
+
+            // If more than two addresses is accessed, try to get a ptr to
+            // the whole block and access directly.
+            uint32_t *branch_end = nullptr;
+            if(count > 2)
+            {
+                // Call mem_ptr(lowest address, size)
+                if(offset < 0)
+                    emit_al(0x2440000 | -offset); // sub r0, r4, #-offset
+                else
+                    emit_al(0x2840000 | offset); // add r0, r4, #offset
+
+                emit_mov(R1, count * 4);
+
+                emit_call(reinterpret_cast<void*>(mem_ptr), false);
+                emit_al(0x3500000); // cmp r0, #0
+                uint32_t *branch_slower = translate_current;
+                emit(0x0a000000); // beq slower_fallback
+
+                unsigned int reg = 0;
+                for(uint32_t list = reglist; list; reg++, list >>= 1)
+                {
+                    if((list & 1) == 0)
+                        continue;
+
+                    if(i.mem_multi.l)
+                    {
+                        if(reg != PC)
+                        {
+                            emit_al(0x4901004); // ldr r1, [r0], #4
+                            emit_str_armreg(R1, reg);
+                        }
+                        else
+                        {
+                            emit_al(0x5900000); // ldr r0, [r0]
+                            // Written below
+                        }
+                    }
+                    else
+                    {
+                        if(reg == PC)
+                            emit_mov(R1, pc + 12);
+                        else
+                            emit_ldr_armreg(R1, reg);
+
+                        emit_al(0x4801004); // str r1, [r0], #4
+                    }
+                }
+
+                branch_end = translate_current;
+                emit(0xea000000); // b end
+                *branch_slower |= (translate_current - branch_slower - 2);
+            }
+
+            for(unsigned int reg = 0; reglist; reglist >>= 1, reg++)
             {
                 if((reglist & 1) == 0)
-                    goto next;
+                    continue;
 
                 if(offset >= 0)
                     emit_al(0x2840000 | offset); // add r0, r4, #offset
@@ -881,7 +940,7 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
 
                 if(i.mem_multi.l)
                 {
-                    emit_call(reinterpret_cast<void*>(read_word_asm));
+                    emit_call(reinterpret_cast<void*>(read_word_asm), false);
                     if(reg != PC)
                         emit_str_armreg(R0, reg);
                     //else written below
@@ -893,14 +952,14 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
                     else
                         emit_ldr_armreg(R1, reg);
 
-                    emit_call(reinterpret_cast<void*>(write_word_asm));
+                    emit_call(reinterpret_cast<void*>(write_word_asm), false);
                 }
 
                 offset += 4;
-                next:
-                reglist >>= 1;
-                ++reg;
             }
+
+            if(branch_end)
+                *branch_end |= (translate_current - branch_end - 2);
 
             if(i.mem_multi.w)
             {
@@ -915,10 +974,12 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
             if(i.mem_multi.l && (i.mem_multi.reglist & (1 << PC))) // Loading PC
             {
                 // PC already in R0 (last one loaded)
-                emit_jmp(reinterpret_cast<void*>(translation_next_bx));
+                emit_jmp(reinterpret_cast<void*>(translation_next_bx), false);
                 if(i.cond == CC_AL)
                     jumps_away = stop_here = true;
             }
+
+            emit_ldr_flags();
         }
         else if((insn & 0xE000000) == 0xA000000)
         {
