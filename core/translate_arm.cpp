@@ -468,7 +468,15 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
 {
     if(next_translation_index >= MAX_TRANSLATIONS)
     {
-        warn("Out of translation slots!");
+        gui_debug_printf("Out of translation slots!");
+        flush_translations();
+        return;
+    }
+
+    if(translate_current + 0x100 > translate_end)
+    {
+        gui_debug_printf("Out of translation space!");
+        flush_translations();
         return;
     }
 
@@ -504,7 +512,7 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
     {
         // Translate further?
         if(stop_here
-            || translate_current + 0x200 > translate_end
+            || translate_current + 0x100 > translate_end
             || RAM_FLAGS(insn_ptr) & (RF_EXEC_BREAKPOINT | RF_EXEC_DEBUG_NEXT | RF_EXEC_HACK | RF_CODE_TRANSLATED | RF_CODE_NO_TRANSLATE)
             || (pc ^ pc_start) & ~0x3ff)
             break;
