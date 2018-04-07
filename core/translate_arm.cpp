@@ -1004,17 +1004,17 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
                 jumps_away = stop_here = true;
             }
 
-            uintptr_t entry = reinterpret_cast<uintptr_t>(addr_cache[(addr >> 10) << 1]);
-            uint32_t *ptr = reinterpret_cast<uint32_t*>(entry + addr);
+            const uint32_t *ptr = reinterpret_cast<uint32_t*>(try_ptr(addr));
 
-            if(entry & AC_FLAGS)
+            if(ptr == nullptr)
             {
-                // Not translated, use translation_next
+                // Not readable, use translation_next
                 emit_mov(R0, addr);
                 emit_jmp(reinterpret_cast<void*>(translation_next));
             }
             else if (!(RAM_FLAGS(ptr) & RF_CODE_TRANSLATED))
             {
+                // Not translated - use translation_jmp_ptr(ptr)
                 emit_mov(R0, addr);
                 emit_str_armreg(R0, PC);
                 emit_mov(R0, uintptr_t(ptr));
