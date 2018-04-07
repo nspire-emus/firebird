@@ -53,19 +53,6 @@ void cpu_arm_loop()
             goto enter_debugger;
         }
 
-#ifndef NO_TRANSLATION
-        // If the instruction is translated, use the translation
-        if(*flags_ptr & RF_CODE_TRANSLATED)
-        {
-            #if TRANSLATION_ENTER_HAS_PTR
-                translation_enter(p);
-            #else
-                translation_enter();
-            #endif
-            continue;
-        }
-#endif
-
         // TODO: Other flags
         if(*flags_ptr & (RF_EXEC_BREAKPOINT | RF_EXEC_DEBUG_NEXT | RF_ARMLOADER_CB))
         {
@@ -87,8 +74,16 @@ void cpu_arm_loop()
         }
 #ifndef NO_TRANSLATION
         else if(do_translate && !(*flags_ptr & RF_CODE_NO_TRANSLATE))
-        {
             translate(arm.reg[15], &p->raw);
+
+        // If the instruction is translated, use the translation
+        if(*flags_ptr & RF_CODE_TRANSLATED)
+        {
+            #if TRANSLATION_ENTER_HAS_PTR
+                translation_enter(p);
+            #else
+                translation_enter();
+            #endif
             continue;
         }
 #endif
