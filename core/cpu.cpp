@@ -157,10 +157,7 @@ void *try_ptr(uint32_t addr)
     if(unlikely(entry & AC_FLAGS))
     {
         if(entry & AC_INVALID)
-        {
-            addr_cache_miss(addr, false, nullptr);
-            return try_ptr(addr);
-        }
+            return addr_cache_miss(addr, false, nullptr);
         else // MMIO stuff
             return nullptr;
     }
@@ -185,14 +182,9 @@ void * FASTCALL read_instruction(uint32_t addr)
     if(unlikely(entry & AC_FLAGS))
     {
         if(entry & AC_INVALID)
-        {
-            addr_cache_miss(addr, false, prefetch_abort);
-            return read_instruction(addr);
-        }
+            return addr_cache_miss(addr, false, prefetch_abort);
         else // Executing MMIO stuff
-        {
             error("PC in MMIO range: 0x%x\n", addr);
-        }
     }
 
     entry += addr;
