@@ -373,12 +373,13 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
 				if(i.bx.rm == PC)
 					goto unimpl;
 
+				emit_mov_reg(W0, mapreg(i.bx.rm));
+
 				if(i.bx.l)
 					emit_mov_imm(mapreg(LR), pc + 4);
 				else if(i.cond == CC_AL)
 					stop_here = jumps_away = true;
 
-				emit_mov_reg(W0, mapreg(i.bx.rm));
 				emit_jmp(reinterpret_cast<void*>(translation_next_bx));
 			}
 			else

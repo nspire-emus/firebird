@@ -664,11 +664,12 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
                 if(i.bx.rm == PC)
                     goto unimpl;
 
+                // Load destination into R0
+                emit_mov_reg(R0, regmap_load(i.bx.rm));
+
                 if(i.bx.l)
                     emit_mov(regmap_store(LR), pc + 4);
 
-                // Load destination into R0
-                emit_mov_reg(R0, regmap_load(i.bx.rm));
                 emit_jmp(reinterpret_cast<void*>(translation_next_bx));
 
                 if(i.cond == CC_AL)
