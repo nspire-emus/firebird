@@ -29,16 +29,13 @@ translation_enter: .global translation_enter
 	stp x25, x26, [sp, #-16]!
 
 	// Store s into translation_sp
-	mov x0, sp
-	loadsym x1, translation_sp
-	str x0, [x1]
+	mov x1, sp
+	loadsym x2, translation_sp
+	str x1, [x2]
 
 	loadsym x19, arm
 	loadsym x26, addr_cache
 	ldr x26, [x26]
-
-	// Load arm.reg[15] into w0
-	ldr w0, [x19, #15*4]
 
 	bl load_virt
 	b translation_next_enter
@@ -52,17 +49,21 @@ translation_next: .global translation_next
 	mrs x17, nzcv
 	str w0, [x19, #15*4]
 
-// Enter translation at w0 (has to equal arm.reg[15])
-translation_next_enter:
-	lsr x22, x0, #10
-	lsl x22, x22, #4
-	ldr x22, [x26, x22] // x22 = addr_cache[(x0 >> 10) << 1]
-	tbnz x22, #0, save_return // if(x22 & 1) goto save_return;
+	mov w1, w0
+
+	lsr x0, x0, #10
+	lsl x0, x0, #4
+	ldr x0, [x26, x0] // x0 = addr_cache[(x0 >> 10) << 1]
+	tbnz x0, #0, save_return // if(x0 & 1) goto save_return;
 
 	// Load RAM_FLAGS
-	add x22, x22, x0 // x22 = pointer to memory at x0
+	add x0, x0, x1 // x0 = pointer to memory at x0
+
+// Enter translation at w0 (has to be ptr to arm.reg[15]'s memory)
+// x1 has to be ptr to arm.reg[15]'s memory
+translation_next_enter:
 	mov x21, #65*1024*1024
-	ldr w21, [x22, x21] // w21 = RAM_FLAGS(x0)
+	ldr w21, [x0, x21] // w21 = RAM_FLAGS(x0)
 	tbz w21, #5, save_return // if((RAM_FLAGS(x0) & RF_CODE_TRANSLATED) == 0) goto save_return;
 	lsr w21, w21, #9 // w21 = w21 >> RFS_TRANSLATION_INDEX
 
@@ -81,10 +82,10 @@ translation_next_enter:
 	ldr x24, [x23, #1*8] // x24 = x3->jump_table
 	ldp x25, x21, [x23, #2*8] // x25 = x23->start_ptr; x21 = x23->end_ptr
 
-	sub x21, x21, x22 // x21 = end_ptr - insn_ptr
+	sub x21, x21, x0 // x21 = end_ptr - insn_ptr
 	lsr x21, x21, #2 // x21: number of instructions until the end
 
-	sub x25, x22, x25 // x25 = insn_ptr - start_ptr
+	sub x25, x0, x25 // x25 = insn_ptr - start_ptr
 	//lsr x25, x25, #2 // x25 = count of instructions
 	//lsl x25, x25, #3
 	lsl x25, x25, #1

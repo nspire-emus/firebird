@@ -9,7 +9,7 @@
 extern "C" {
 #endif
 
-#ifdef __arm__
+#if defined(__arm__) || defined(__aarch64__)
 // Supply the pointer to the instruction directly to avoid read_instruction
 void translation_enter(void *ptr) __asm__("translation_enter");
 #define TRANSLATION_ENTER_HAS_PTR 1
