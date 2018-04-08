@@ -58,15 +58,12 @@ _tmp_\name\()_\no: add     \reg, \reg, pc
 
 sym  translation_sp
 sym  arm
-sym  cycle_count_delta
 sym  cpu_events
 sym  translation_table
 sym  cycle_count_delta, 2
 sym  translation_sp, 2
 //sym  cpu_events, 2
 sym  cycle_count_delta, 3
-sym  translation_table, 2
-sym  cycle_count_delta, 4
 sym  addr_cache
 sym  data_abort
 sym  addr_cache, 2
@@ -115,6 +112,7 @@ translation_next: .global translation_next
     cmp     r0, #0
     beq     save_return
 
+translation_jmp_ptr: .global translation_jmp_ptr
     add     r1, r0, #65*1024*1024 // r1 = &(RAM_FLAGS(r0))
     ldr     r1, [r1]
     tst     r1, #RF_CODE_TRANSLATED
@@ -123,10 +121,6 @@ translation_next: .global translation_next
 // r0: pointer to instruction
 // r1: RAM_FLAGS(r0)
 translation_next_enter:
-    loadsym r2, cycle_count_delta
-    ldr     r2, [r2]
-    cmp     r2, #0
-    bpl     save_return
     loadsym r2, cpu_events
     ldr     r2, [r2]
     cmp     r2, #0
@@ -147,6 +141,8 @@ translation_next_enter:
     ldr     r5, [r6]
     add     r5, r5, r4 // add r4 to cycle_count_delta
     str     r5, [r6]
+    cmp     r5, #0
+    bpl     save_return
 
     sub     r0, r0, r3 // r0 = pc_ptr - start_ptr
     msr     cpsr_f, r11
@@ -179,33 +175,6 @@ translation_jmp: .global translation_jmp
 
     msr     cpsr_f, r11
     bx      r0 // Jump to the target
-
-translation_jmp_ptr: .global translation_jmp_ptr
-    add     r1, r0, #65*1024*1024 // r1 = &(RAM_FLAGS(r0))
-    ldr     r1, [r1]
-    tst     r1, #RF_CODE_TRANSLATED
-    beq     save_return // not translated
-
-    mov     r1, r1, lsr #RFS_TRANSLATION_INDEX // r1 is translation index
-    mov     r1, r1, lsl #4
-    loadsym r2, translation_table, 2
-    add     r1, r2, r1 // r1 points to struct translation now
-
-    ldr     r2, [r1, #1*4] // load translation.jump_table
-    ldr     r3, [r1, #2*4] // load translation.start_ptr
-    ldr     r4, [r1, #3*4] // load translation.end_ptr
-
-    sub     r4, r4, r0 // r4 = end_ptr - pc_ptr
-    mov     r4, r4, lsr #2 // r4 = number of instructions to the end
-    loadsym r6, cycle_count_delta, 4
-    ldr     r5, [r6]
-    adds    r5, r5, r4 // add r4 to cycle_count_delta
-    bpl     save_return
-    str     r5, [r6]
-
-    sub     r0, r0, r3 // r0 = pc_ptr - start_ptr
-    msr     cpsr_f, r11
-    ldr     pc, [r2, r0] // jump to jump_table[r0]
 
 // Save flags and leave, arm.reg[15] must be set already!
 save_return:
