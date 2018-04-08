@@ -783,8 +783,25 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
 
 	if(!jumps_away)
 	{
-		emit_mov_imm(W0, pc);
-		emit_jmp(reinterpret_cast<void*>(translation_next));
+		uint32_t *ptr = reinterpret_cast<uint32_t*>(try_ptr(pc));
+
+		if(ptr == nullptr || !(RAM_FLAGS(ptr) & RF_CODE_TRANSLATED))
+		{
+			emit_mov_imm(W0, pc);
+			emit_jmp(reinterpret_cast<void*>(translation_next));
+		}
+		else
+		{
+			// Get address of translated code to jump to it
+			translation *target_translation = &translation_table[RAM_FLAGS(ptr) >> RFS_TRANSLATION_INDEX];
+			uintptr_t jmp_target = reinterpret_cast<uintptr_t>(target_translation->jump_table[ptr - target_translation->start_ptr]);
+
+			// Update PC manually
+			emit_mov_imm(W0, pc);
+			emit(0xb9003e60); // str w0, [x19, #15*4]
+			emit_mov_imm(X0, jmp_target);
+			emit_jmp(reinterpret_cast<void*>(translation_jmp));
+		}
 	}
 
 	// Only flush cache until the literal pool
