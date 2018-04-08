@@ -1083,19 +1083,17 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
     if(!jumps_away)
     {
         // Same code as for relative branches
-        uint32_t addr = pc;
-        uintptr_t entry = reinterpret_cast<uintptr_t>(addr_cache[(addr >> 10) << 1]);
-        uint32_t *ptr = reinterpret_cast<uint32_t*>(entry + addr);
+        uint32_t *ptr = reinterpret_cast<uint32_t*>(try_ptr(pc));
 
-        if(entry & AC_FLAGS)
+        if(ptr == nullptr)
         {
             // Not translated, use translation_next
-            emit_mov(R0, addr);
+            emit_mov(R0, pc);
             emit_jmp(reinterpret_cast<void*>(translation_next));
         }
         else if (!(RAM_FLAGS(ptr) & RF_CODE_TRANSLATED))
         {
-            emit_mov(R0, addr);
+            emit_mov(R0, pc);
             emit_str_armreg(R0, PC);
             emit_mov(R0, uintptr_t(ptr));
             emit_jmp(reinterpret_cast<void*>(translation_jmp_ptr));
@@ -1107,7 +1105,7 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
             uintptr_t jmp_target = reinterpret_cast<uintptr_t>(target_translation->jump_table[ptr - target_translation->start_ptr]);
 
             // Update pc first
-            emit_mov(R0, addr);
+            emit_mov(R0, pc);
             emit_str_armreg(R0, PC);
             emit_mov(R0, jmp_target);
             emit_jmp(reinterpret_cast<void*>(translation_jmp));
