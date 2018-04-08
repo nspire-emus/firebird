@@ -724,10 +724,18 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
 			uint32_t addr = pc + ((int32_t)(i.raw << 8) >> 6) + 8;
 			uint32_t *ptr = reinterpret_cast<uint32_t*>(try_ptr(addr));
 
-			if(ptr == nullptr || !(RAM_FLAGS(ptr) & RF_CODE_TRANSLATED))
+			if(ptr == nullptr)
 			{
 				emit_mov_imm(W0, addr);
 				emit_jmp(reinterpret_cast<void*>(translation_next));
+			}
+			else if(!(RAM_FLAGS(ptr) & RF_CODE_TRANSLATED))
+			{
+				// Update PC manually
+				emit_mov_imm(W0, addr);
+				emit(0xb9003e60); // str w0, [x19, #15*4]
+				emit_mov_imm(X0, uintptr_t(ptr));
+				emit_jmp(reinterpret_cast<void*>(translation_jmp_ptr));
 			}
 			else
 			{
@@ -785,10 +793,18 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
 	{
 		uint32_t *ptr = reinterpret_cast<uint32_t*>(try_ptr(pc));
 
-		if(ptr == nullptr || !(RAM_FLAGS(ptr) & RF_CODE_TRANSLATED))
+		if(ptr == nullptr)
 		{
 			emit_mov_imm(W0, pc);
 			emit_jmp(reinterpret_cast<void*>(translation_next));
+		}
+		else if(!(RAM_FLAGS(ptr) & RF_CODE_TRANSLATED))
+		{
+			// Update PC manually
+			emit_mov_imm(W0, pc);
+			emit(0xb9003e60); // str w0, [x19, #15*4]
+			emit_mov_imm(X0, uintptr_t(ptr));
+			emit_jmp(reinterpret_cast<void*>(translation_jmp_ptr));
 		}
 		else
 		{

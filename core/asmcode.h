@@ -18,7 +18,11 @@ void translation_enter() __asm__("translation_enter");
 #define TRANSLATION_ENTER_HAS_PTR 0
 #endif
 
+// Jump to the translated code starting at ptr.
+// Checks for cycle_count_delta and exits if necessary.
 void translation_jmp(void *ptr) __asm__("translation_jmp");
+// Checks whether code at ptr is now translated and if so, jumps to it
+void translation_jmp_ptr(void *ptr) __asm__("translation_jmp_ptr");
 
 void * FASTCALL read_instruction(uint32_t addr) __asm__("read_instruction");
 uint32_t FASTCALL read_byte(uint32_t addr) __asm__("read_byte");

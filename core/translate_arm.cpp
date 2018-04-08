@@ -36,7 +36,6 @@
 #endif
 
 extern "C" {
-extern void translation_jmp_ptr() __asm__("translation_jmp_ptr");
 extern void translation_next() __asm__("translation_next");
 extern void translation_next_bx() __asm__("translation_next_bx");
 extern void **translation_sp __asm__("translation_sp");

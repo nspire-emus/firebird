@@ -59,22 +59,16 @@ translation_next: .global translation_next
 	// Load RAM_FLAGS
 	add x0, x0, x1 // x0 = pointer to memory at x0
 
-// Enter translation at w0 (has to be ptr to arm.reg[15]'s memory)
-// x1 has to be ptr to arm.reg[15]'s memory
+// Enter translation at x0 (has to be ptr to arm.reg[15]'s memory)
 translation_next_enter:
+	loadsym x23, cpu_events
+	ldr w23, [x23]
+	cbnz w23, save_return // if(cpu_events) goto save_return;
+
 	mov x21, #65*1024*1024
 	ldr w21, [x0, x21] // w21 = RAM_FLAGS(x0)
 	tbz w21, #5, save_return // if((RAM_FLAGS(x0) & RF_CODE_TRANSLATED) == 0) goto save_return;
 	lsr w21, w21, #9 // w21 = w21 >> RFS_TRANSLATION_INDEX
-
-	loadsym x23, cycle_count_delta
-	ldr w23, [x23]
-	cmp w23, #0
-	bpl save_return // if(cycle_count_delta > 0) goto save_return;
-
-	loadsym x23, cpu_events
-	ldr w23, [x23]
-	cbnz w23, save_return // if(cpu_events) goto save_return;
 
 	loadsym x23, translation_table
 	add x23, x23, x21, lsl #5 // x23 = &translation_table[RAM_FLAGS(x0) >> RFS_TRANSLATION_INDEX]
@@ -96,9 +90,16 @@ translation_next_enter:
 	ldr w25, [x24]
 	add w25, w25, w21
 	str w25, [x24]
+	cmp w25, #0
+	bpl save_return // if(cycle_count_delta > 0) goto save_return;
 
 	msr nzcv, x17	
 	br x0
+
+translation_jmp_ptr: .global translation_jmp_ptr
+	mrs x17, nzcv
+
+        b translation_next_enter
 
 translation_jmp: .global translation_jmp
 	mrs x17, nzcv
