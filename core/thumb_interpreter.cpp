@@ -79,7 +79,7 @@ static inline void set_nz_flags(uint32_t value) {
 }
 
 void cpu_thumb_loop() {
-    while (!exiting && cycle_count_delta < 0) {
+    while (!exiting && cycle_count_delta < 0 && current_instr_size == 2) {
         uint16_t *insnp = (uint16_t*) read_instruction(arm.reg[15] & ~1);
         uint16_t insn = *insnp;
         uintptr_t flags = RAM_FLAGS((uintptr_t)insnp & ~3);
@@ -92,9 +92,12 @@ void cpu_thumb_loop() {
 
         if (flags & (RF_EXEC_BREAKPOINT | RF_EXEC_DEBUG_NEXT)) {
             if (flags & RF_EXEC_BREAKPOINT)
-                printf("Hit breakpoint at %08X. Entering debugger.\n", arm.reg[15]);
-enter_debugger:
+                gui_debug_printf("Breakpoint at 0x%08x\n", arm.reg[15]);
+            enter_debugger:
+            uint32_t pc = arm.reg[15];
             debugger(DBG_EXEC_BREAKPOINT, 0);
+            if(arm.reg[15] != pc)
+                continue; // Debugger changed PC
         }
 
         arm.reg[15] += 2;
