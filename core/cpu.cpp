@@ -77,7 +77,7 @@ void cpu_arm_loop()
             translate(arm.reg[15], &p->raw);
 
         // If the instruction is translated, use the translation
-        if(*flags_ptr & RF_CODE_TRANSLATED)
+        if((~cpu_events & EVENT_DEBUG_STEP) && *flags_ptr & RF_CODE_TRANSLATED)
         {
             #if TRANSLATION_ENTER_HAS_PTR
                 translation_enter(p);
