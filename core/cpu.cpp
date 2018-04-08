@@ -73,7 +73,7 @@ void cpu_arm_loop()
             }
         }
 #ifndef NO_TRANSLATION
-        else if(do_translate && !(*flags_ptr & RF_CODE_NO_TRANSLATE))
+        else if(do_translate && !(*flags_ptr & DONT_TRANSLATE))
             translate(arm.reg[15], &p->raw);
 
         // If the instruction is translated, use the translation

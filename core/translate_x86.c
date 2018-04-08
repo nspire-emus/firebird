@@ -276,7 +276,7 @@ void translate(uint32_t start_pc, uint32_t *start_insnp) {
             //printf("stopping translation - end of page\n");
             goto branch_conditional;
         }
-        if (RAM_FLAGS(insnp) & (RF_EXEC_BREAKPOINT | RF_EXEC_DEBUG_NEXT | RF_EXEC_HACK | RF_CODE_TRANSLATED | RF_CODE_NO_TRANSLATE)) {
+        if (RAM_FLAGS(insnp) & DONT_TRANSLATE) {
             //printf("stopping translation - at breakpoint %x (%x)\n", pc);
             goto branch_conditional;
         }

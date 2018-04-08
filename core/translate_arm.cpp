@@ -513,7 +513,7 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
         // Translate further?
         if(stop_here
             || translate_current + 0x100 > translate_end
-            || RAM_FLAGS(insn_ptr) & (RF_EXEC_BREAKPOINT | RF_EXEC_DEBUG_NEXT | RF_EXEC_HACK | RF_CODE_TRANSLATED | RF_CODE_NO_TRANSLATE)
+            || RAM_FLAGS(insn_ptr) & DONT_TRANSLATE
             || (pc ^ pc_start) & ~0x3ff)
             break;
 
