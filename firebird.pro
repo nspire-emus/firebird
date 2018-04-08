@@ -268,6 +268,20 @@ SOURCES += qml/Keypad.qml \
     qml/Firebird/UIComponents/LabeledCheckBox.qml
 }
 
+# This doesn't exist, but Qt Creator ignores that
+just_show_up_in_qt_creator {
+SOURCES += core/asmcode_arm.S \
+    core/asmcode_aarch64.S \
+    core/asmcode_x86.S \
+    core/asmcode_x86_64.S \
+    core/translate_arm.cpp \
+    core/translate_aarch64.cpp \
+    core/translate_x86.c \
+    core/translate_x86_64.c \
+    headless/main.cpp \
+    emscripten/main.cpp
+}
+
 # Generate the binary arm code into armcode_bin.h
 armsnippets.commands = arm-none-eabi-gcc -fno-leading-underscore -c $$PWD/core/armsnippets.S -o armsnippets.o -mcpu=arm926ej-s \
                         && arm-none-eabi-objcopy -O binary armsnippets.o snippets.bin \
