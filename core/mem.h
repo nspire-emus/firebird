@@ -42,7 +42,6 @@ uint32_t phys_mem_addr(void *ptr);
 #define RF_WRITE_BREAKPOINT  2
 #define RF_EXEC_BREAKPOINT   4
 #define RF_EXEC_DEBUG_NEXT   8
-#define RF_EXEC_HACK         16
 #define RF_CODE_TRANSLATED   32
 #define RF_CODE_NO_TRANSLATE 64
 #define RF_READ_ONLY         128
@@ -51,7 +50,7 @@ uint32_t phys_mem_addr(void *ptr);
 
 #define DO_READ_ACTION (RF_READ_BREAKPOINT)
 #define DO_WRITE_ACTION (RF_WRITE_BREAKPOINT | RF_CODE_TRANSLATED | RF_CODE_NO_TRANSLATE)
-#define DONT_TRANSLATE (RF_EXEC_BREAKPOINT | RF_EXEC_DEBUG_NEXT | RF_EXEC_HACK | RF_CODE_TRANSLATED | RF_CODE_NO_TRANSLATE)
+#define DONT_TRANSLATE (RF_EXEC_BREAKPOINT | RF_EXEC_DEBUG_NEXT | RF_CODE_TRANSLATED | RF_CODE_NO_TRANSLATE)
 
 uint8_t bad_read_byte(uint32_t addr);
 uint16_t bad_read_half(uint32_t addr);

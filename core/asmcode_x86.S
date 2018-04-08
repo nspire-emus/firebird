@@ -13,14 +13,13 @@
 #define RF_WRITE_BREAKPOINT  2
 #define RF_EXEC_BREAKPOINT   4
 #define RF_EXEC_DEBUG_NEXT   8
-#define RF_EXEC_HACK         16
 #define RF_CODE_TRANSLATED   32
 #define RF_CODE_NO_TRANSLATE 64
 #define RF_READ_ONLY         128
 #define RF_ARMLOADER_CB      256
 #define RFS_TRANSLATION_INDEX 9
 
-#define WRITE_SPECIAL_FLAGS 64+32+2
+#define WRITE_SPECIAL_FLAGS 2+32+64
 
 // List of locations of addresses which need to be relocated to addr_cache
 // (necessary since it's now allocated at runtime)
