@@ -751,12 +751,6 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
             if(i.mem_proc.rn == PC && !i.mem_proc.p)
                 goto unimpl; // Writeback into PC not implemented
 
-            if(insn_ptr != insn_ptr_start && (insn_ptr[-1] ^ 0x100000) == i.raw)
-            {
-                can_jump_here = false;
-                goto instruction_translated;
-            }
-
             bool offset_is_zero = !i.mem_proc.not_imm && i.mem_proc.immed == 0;
 
             // Base register gets in r0
