@@ -80,6 +80,7 @@ void write_action(void *ptr) {
     } else {
         *flags &= ~RF_CODE_NO_TRANSLATE;
     }
+    *flags &= ~RF_CODE_EXECUTED;
 #endif
 }
 

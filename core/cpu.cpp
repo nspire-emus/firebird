@@ -73,7 +73,7 @@ void cpu_arm_loop()
             }
         }
 #ifndef NO_TRANSLATION
-        else if(do_translate && !(*flags_ptr & DONT_TRANSLATE))
+        else if(do_translate && !(*flags_ptr & DONT_TRANSLATE) && (*flags_ptr & RF_CODE_EXECUTED))
             translate(arm.reg[15], &p->raw);
 
         // If the instruction is translated, use the translation
@@ -86,6 +86,8 @@ void cpu_arm_loop()
             #endif
             continue;
         }
+
+	*flags_ptr |= RF_CODE_EXECUTED;
 #endif
 
         arm.reg[15] += 4; // Increment now to account for the pipeline
