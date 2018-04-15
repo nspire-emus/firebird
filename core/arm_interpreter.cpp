@@ -468,60 +468,55 @@ void do_arm_instruction(Instruction i)
         int base_reg = insn >> 16 & 15;
         uint32_t addr = reg(base_reg);
         uint32_t new_base = addr;
-        int i, count = 0;
-        uint16_t reglist = insn;
-        while(reglist)
-        {
-            count += reglist & 1;
-            reglist >>= 1;
-        }
+        int count = __builtin_popcount(i.mem_multi.reglist);
 
-        if (insn & (1 << 23)) { // Increasing
-            if (insn & (1 << 21)) // Writeback
+        if (i.mem_multi.u) { // Increasing
+            if (i.mem_multi.w) // Writeback
                 new_base += count * 4;
-            if (insn & (1 << 24)) // Preincrement
+            if (i.mem_multi.p) // Preincrement
                 addr += 4;
         } else { // Decreasing
             addr -= count * 4;
-            if (insn & (1 << 21)) // Writeback
+            if (i.mem_multi.w) // Writeback
                 new_base = addr;
-            if (!(insn & (1 << 24))) // Postdecrement
+            if (!i.mem_multi.p) // Postdecrement
                 addr += 4;
         }
 
-        for (i = 0; i < 15; i++) {
-            if (insn >> i & 1) {
-                uint32_t *reg_ptr = &arm.reg[i];
-                if (insn & (1 << 22) && ~insn & ((1 << 20) | (1 << 15))) {
-                    // User-mode registers
-                    int mode = arm.cpsr_low28 & 0x1F;
-                    if (i >= 13) {
-                        if (mode != MODE_USR && mode != MODE_SYS) reg_ptr = &arm.r13_usr[i - 13];
-                    } else if (i >= 8) {
-                        if (mode == MODE_FIQ) reg_ptr = &arm.r8_usr[i - 8];
-                    }
+        for (unsigned reg = 0, reglist = i.mem_multi.reglist; reglist && reg < 15; reglist >>= 1, reg++) {
+            if ((reglist & 1) == 0)
+                continue;
+
+            uint32_t *reg_ptr = &arm.reg[reg];
+            if (i.mem_multi.s && !i.mem_multi.w && !(i.mem_multi.reglist & (1<<15))) {
+                // User-mode registers
+                int mode = arm.cpsr_low28 & 0x1F;
+                if (reg >= 13) {
+                    if (mode != MODE_USR && mode != MODE_SYS) reg_ptr = &arm.r13_usr[reg - 13];
+                } else if (reg >= 8) {
+                    if (mode == MODE_FIQ) reg_ptr = &arm.r8_usr[reg - 8];
                 }
-                if (insn & (1 << 20)) { // Load
-                    if (reg_ptr == &arm.reg[base_reg]) {
-                        if (insn & (1 << 21)) // Writeback
-                            error("Load instruction modifies base register twice");
-                        reg_ptr = &new_base;
-                    }
-                    *reg_ptr = read_word(addr);
-                } else { // Store
-                    write_word(addr, *reg_ptr);
-                }
-                addr += 4;
             }
+            if (i.mem_multi.l) { // Load
+                if (reg_ptr == &arm.reg[base_reg]) {
+                    if (i.mem_multi.w) // Writeback
+                        error("Load instruction modifies base register twice");
+                    reg_ptr = &new_base;
+                }
+                *reg_ptr = read_word(addr);
+            } else { // Store
+                write_word(addr, *reg_ptr);
+            }
+            addr += 4;
         }
-        if (insn & (1 << 15)) {
-            if (insn & (1 << 20)) // Load
+        if (i.mem_multi.reglist & (1 << 15)) {
+            if (i.mem_multi.l) // Load
                 set_reg_bx(15, read_word(addr));
             else // Store
                 write_word(addr, reg_pc_mem(15));
         }
         arm.reg[base_reg] = new_base;
-        if ((~insn & (1 << 22 | 1 << 20 | 1 << 15)) == 0)
+        if (i.mem_multi.l && i.mem_multi.s && i.mem_multi.reglist & (1<<15))
             set_cpsr_full(get_spsr());
     }
     else if((insn & 0xE000000) == 0xA000000)
@@ -529,7 +524,7 @@ void do_arm_instruction(Instruction i)
         // B and BL
         if(i.branch.l)
             arm.reg[14] = arm.reg[15];
-        arm.reg[15] += (int32_t) (i.raw << 8) >> 6;
+		arm.reg[15] += (int32_t) (i.branch.immed << 8) >> 6;
         arm.reg[15] += 4;
     }
     else if((insn & 0xF000F10) == 0xE000F10)
