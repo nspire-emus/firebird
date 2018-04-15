@@ -58,7 +58,7 @@ public slots:
 
 private:
     bool enter_debugger = false;
-    volatile bool is_paused = false, do_suspend = false, do_resume = false;
+    bool is_paused = false, do_suspend = false, do_resume = false;
     std::string debug_input, snapshot_path;
 };
 

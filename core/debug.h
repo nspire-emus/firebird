@@ -18,7 +18,7 @@ extern "C" {
 extern FILE *debugger_input;
 
 extern bool gdb_connected;
-extern volatile bool in_debugger;
+extern bool in_debugger;
 extern int rdbg_port;
 
 enum DBG_REASON {

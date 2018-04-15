@@ -217,7 +217,7 @@ bool gdbstub_init(unsigned int port) {
 
 // program block pre-allocated by Ndless, used for vOffsets queries
 static uint32_t ndls_debug_alloc_block = 0;
-static volatile bool ndls_debug_received = false;
+static bool ndls_debug_received = false;
 
 static void gdb_connect_ndls_cb(struct arm_state *state) {
     ndls_debug_alloc_block = state->reg[0]; // can be 0
@@ -359,7 +359,7 @@ static bool putpacket(char *buffer) {
 
 /* Indicate to caller of mem2hex or hex2mem that there has been an
  * error.  */
-static volatile int mem_err = 0;
+static int mem_err = 0;
 
 /* Convert the memory pointed to by mem into hex, placing result in buf.
  * Return a pointer to the last char put in buf (null), in case of mem fault,

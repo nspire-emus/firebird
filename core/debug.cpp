@@ -36,7 +36,7 @@ std::string ln_target_folder;
 // Used for debugger input
 static std::mutex debug_input_m;
 static std::condition_variable debug_input_cv;
-static const char * volatile debug_input_cur = nullptr;
+static const char * debug_input_cur = nullptr;
 
 static void debug_input_callback(const char *input)
 {
@@ -800,7 +800,7 @@ void rdebug_recv(void) {
     memmove(rdebug_inbuf, line_start, rdebug_inbuf_used);
 }
 
-volatile bool in_debugger = false;
+bool in_debugger = false;
 
 void debugger(enum DBG_REASON reason, uint32_t addr) {
     /* Avoid debugging the debugger. */
