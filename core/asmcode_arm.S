@@ -76,8 +76,6 @@ sym  addr_cache, 5
 sym  data_abort, 5
 sym  addr_cache, 6
 sym  data_abort, 6
-sym  addr_cache, 7
-sym  data_abort, 7
 
 #endif
 
@@ -334,34 +332,3 @@ read_byte_invalid:
     bl      addr_cache_miss
     pop     {r0, lr}
     b       read_byte_asm
-
-// r0: address
-// r1: size
-// returns either pointer to memory region or nullptr
-mem_ptr: .global mem_ptr
-    // r0 + r1 in same page as r0?
-    add     r1, r0, r1
-    mov     r1, r1, lsr #10
-    cmp     r1, r0, lsr #10
-    bne     mem_ptr_out
-    // r2 = addr_cache[address >> 10]
-    loadsym r2, addr_cache, 7
-    ldr     r2, [r2]
-    // Write? add r2, r2, #4
-    ldr     r2, [r2, r1, lsl #3]
-    // If ptr, return address + r2
-    tst     r2, #AC_NOT_PTR
-    addeq   r0, r0, r2
-    bxeq    lr
-    // Cache miss
-    tst     r2, #AC_INVALID
-    bne     mem_ptr_invalid
-    // MMIO
-mem_ptr_out:
-    mov     r0, #0
-    bx      lr
-mem_ptr_invalid:
-    str     r11, [r10, #18*4] // save to arm.cpsr_flags
-    mov     r1, #0
-    loadsym r2, data_abort, 7
-    b       addr_cache_miss
