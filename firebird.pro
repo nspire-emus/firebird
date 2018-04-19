@@ -1,7 +1,7 @@
 !macx: !ios: load(configure)
 
 lessThan(QT_MAJOR_VERSION, 5): error("You need at least Qt 5.6 to build firebird!")
-lessThan(QT_MINOR_VERSION, 6): error("You need at least Qt 5.6 to build firebird!")
+equals(QT_MAJOR_VERSION, 5):lessThan(QT_MINOR_VERSION, 6): error("You need at least Qt 5.6 to build firebird!")
 
 # Version
 DEFINES += FB_VERSION=1.4-dev
@@ -75,10 +75,7 @@ macx: ICON = resources/logo.icns
 # This does also apply to android
 linux|macx|ios: SOURCES += core/os/os-linux.c
 
-# To make it appear in Qt Creator
-emscripten: SOURCES += core/os/os-emscripten.c
-
-equals(QT_MAJOR_VERSION, 5): lessThan(QT_MINOR_VERSION, 6) {
+lessThan(QT_MINOR_VERSION, 6) {
     # This should not be required. But somehow, it is...
     android: DEFINES += Q_OS_ANDROID
 }
@@ -134,8 +131,8 @@ equals(TRANSLATION_ENABLED, true) {
 }
 else: DEFINES += NO_TRANSLATION
 
-# The x86_64 and ARM JIT use asmcode.c for mem access
-equals(QMAKE_TARGET.arch, "x86_64") || equals(QMAKE_TARGET.arch, "arm") || equals(QMAKE_TARGET.arch, "aarch64") {
+# Only the asmcode_x86.S functions can be called from outside the JIT
+!equals(QMAKE_TARGET.arch, "x86") {
     !contains(ASMCODE_IMPL, "core/asmcode.c") {
         SOURCES += core/asmcode.c
     }
@@ -152,7 +149,9 @@ contains(QMAKE_TARGET.arch, "arm") {
     QMAKE_LFLAGS += -march=armv7-a -marm # We're using LTO, so the linker has to get the same flags
 }
 
-QML_IMPORT_PATH += qml
+ANDROID_PACKAGE_SOURCE_DIR = $$PWD/android
+
+QML_IMPORT_PATH += $$PWD/qml
 
 SOURCES += $$ASMCODE_IMPL \
     lcdwidget.cpp \
@@ -274,6 +273,7 @@ SOURCES += core/asmcode_arm.S \
     core/asmcode_aarch64.S \
     core/asmcode_x86.S \
     core/asmcode_x86_64.S \
+    core/os/os-emscripten.c \
     core/translate_arm.cpp \
     core/translate_aarch64.cpp \
     core/translate_x86.c \
@@ -281,20 +281,6 @@ SOURCES += core/asmcode_arm.S \
     headless/main.cpp \
     emscripten/main.cpp
 }
-
-# Generate the binary arm code into armcode_bin.h
-armsnippets.commands = arm-none-eabi-gcc -fno-leading-underscore -c $$PWD/core/armsnippets.S -o armsnippets.o -mcpu=arm926ej-s \
-                        && arm-none-eabi-objcopy -O binary armsnippets.o snippets.bin \
-                        && xxd -i snippets.bin > $$PWD/core/armcode_bin.h \
-                        && rm armsnippets.o
-
-# In case you change armsnippets.S, run "make armsnippets" and update armcode_bin.h
-QMAKE_EXTRA_TARGETS = armsnippets
-
-OTHER_FILES += \
-    TODO \
-    emscripten/main.cpp \
-    emscripten/Makefile
 
 RESOURCES += \
     resources.qrc
@@ -306,4 +292,11 @@ DISTFILES += \
     android/res/values/libs.xml \
     android/build.gradle
 
-ANDROID_PACKAGE_SOURCE_DIR = $$PWD/android
+# Generate the binary arm code into armcode_bin.h
+armsnippets.commands = arm-none-eabi-gcc -fno-leading-underscore -c $$PWD/core/armsnippets.S -o armsnippets.o -mcpu=arm926ej-s \
+                        && arm-none-eabi-objcopy -O binary armsnippets.o snippets.bin \
+                        && xxd -i snippets.bin > $$PWD/core/armcode_bin.h \
+                        && rm armsnippets.o
+
+# In case you change armsnippets.S, run "make armsnippets" and update armcode_bin.h
+QMAKE_EXTRA_TARGETS = armsnippets
