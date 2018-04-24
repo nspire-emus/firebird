@@ -5,15 +5,18 @@ import QtQuick.Layouts 1.0
 import Firebird.Emu 1.0
 
 RowLayout {
+    id: root
     property string filePath: ""
-    property alias dialog: dialog
+    property bool selectExisting: true
 
-    FileDialog {
-        id: dialog
-        visible: false
-        folder: Emu.dir(filePath)
-
-        onAccepted: filePath = Emu.toLocalFile(dialog.fileUrl)
+    Loader {
+        id: dialogLoader
+        active: false
+        sourceComponent: FileDialog {
+            folder: Emu.dir(filePath)
+            selectExisting: root.selectExisting
+            onAccepted: filePath = Emu.toLocalFile(dialog.fileUrl)
+        }
     }
 
     FBLabel {
@@ -24,13 +27,16 @@ RowLayout {
 
         font.italic: filePath === ""
         text: filePath === "" ? qsTr("(none)") : Emu.basename(filePath)
-        color: (!dialog.selectExisting || filePath === "" || Emu.fileExists(filePath)) ? "" : "red"
+        color: (!selectExisting || filePath === "" || Emu.fileExists(filePath)) ? "" : "red"
     }
 
     Button {
         id: selectButton
         text: qsTr("Select")
 
-        onClicked: dialog.visible = true
+        onClicked: {
+            dialogLoader.active = true
+            dialogLoader.item.visible = true
+        }
     }
 }

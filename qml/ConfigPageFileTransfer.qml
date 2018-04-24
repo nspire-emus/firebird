@@ -30,13 +30,16 @@ ColumnLayout {
         font.pixelSize: TextMetrics.normalSize
     }
 
-    FileDialog {
-        id: fileDialog
-        nameFilters: [ "TNS Documents (*.tns)", "Operating Systems (*.tno, *.tnc, *.tco, *.tcc, *.tlo, *.tmo, *.tmc)" ]
-        onAccepted: {
-            transferProgress.indeterminate = true;
-            transferProgress.visible = true;
-            Emu.sendFile(fileUrl, Emu.usbdir);
+    Loader {
+        id: fileDialogLoader
+        active: false
+        sourceComponent: FileDialog {
+            nameFilters: [ "TNS Documents (*.tns)", "Operating Systems (*.tno, *.tnc, *.tco, *.tcc, *.tlo, *.tmo, *.tmc)" ]
+            onAccepted: {
+                transferProgress.indeterminate = true;
+                transferProgress.visible = true;
+                Emu.sendFile(fileUrl, Emu.usbdir);
+            }
         }
     }
 
@@ -48,7 +51,10 @@ ColumnLayout {
             // enabled: Emu.isRunning
             Layout.topMargin: 5
             Layout.bottomMargin: 5
-            onClicked: fileDialog.visible = true
+            onClicked: {
+                fileDialogLoader.active = true;
+                fileDialogLoader.item.visible = true;
+            }
         }
 
         FBLabel {
