@@ -11,13 +11,14 @@
 #define SUB_OVERFLOW(left, right, sum) ((int32_t)(((left) ^ (right)) & ((left) ^ (sum))) < 0)
 
 static uint32_t add(uint32_t left, uint32_t right, int carry, int setcc) {
-    uint64_t sum64 = left + right + carry;
-    uint32_t sum = sum64;
-    if(!setcc)
+    uint32_t sum = left + right + carry;
+    if (!setcc)
         return sum;
 
-    arm.cpsr_c = sum == left ? carry : sum < left;
-    arm.cpsr_v = sum64 != sum;
+    if (sum < left) carry = 1;
+    if (sum > left) carry = 0;
+    arm.cpsr_c = carry;
+    arm.cpsr_v = ADD_OVERFLOW(left, right, sum);
     return sum;
 }
 
