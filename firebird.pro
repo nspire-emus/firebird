@@ -93,46 +93,50 @@ ios {
 }
 
 # QMAKE_HOST can be e.g. armv7hl, but QT_ARCH would be arm in such cases
-QMAKE_TARGET.arch = $$QT_ARCH
+FB_ARCH = $$QT_ARCH
 
-equals(QMAKE_TARGET.arch, "arm64") {
-    QMAKE_TARGET.arch = aarch64
+equals(FB_ARCH, "arm64") {
+    FB_ARCH = aarch64
+}
+
+equals(FB_ARCH, "i386") {
+    FB_ARCH = x86
 }
 
 win32 {
     SOURCES += core/os/os-win32.c
     LIBS += -lwinmm -lws2_32
     # Somehow it's set to x86_64...
-    QMAKE_TARGET.arch = x86
+    FB_ARCH = x86
 }
 
 linux-g++-32 {
     QMAKE_CFLAGS += -m32
     QMAKE_CXXFLAGS += -m32
-    QMAKE_TARGET.arch = x86
+    FB_ARCH = x86
 }
 
 # A platform-independant implementation of lowlevel access as default
 ASMCODE_IMPL = core/asmcode.c
 
 equals(TRANSLATION_ENABLED, true) {
-    TRANSLATE = $$join(QMAKE_TARGET.arch, "", "core/translate_", ".c")
+    TRANSLATE = $$join(FB_ARCH, "", "core/translate_", ".c")
     exists($$TRANSLATE) {
         SOURCES += $$TRANSLATE
     }
 
-    TRANSLATE2 = $$join(QMAKE_TARGET.arch, "", "core/translate_", ".cpp")
+    TRANSLATE2 = $$join(FB_ARCH, "", "core/translate_", ".cpp")
     exists($$TRANSLATE2) {
         SOURCES += $$TRANSLATE2
     }
 
-    ASMCODE = $$join(QMAKE_TARGET.arch, "", "core/asmcode_", ".S")
+    ASMCODE = $$join(FB_ARCH, "", "core/asmcode_", ".S")
     exists($$ASMCODE): ASMCODE_IMPL = $$ASMCODE
 }
 else: DEFINES += NO_TRANSLATION
 
 # Only the asmcode_x86.S functions can be called from outside the JIT
-!equals(QMAKE_TARGET.arch, "x86") {
+!equals(FB_ARCH, "x86") {
     !contains(ASMCODE_IMPL, "core/asmcode.c") {
         SOURCES += core/asmcode.c
     }
@@ -143,7 +147,7 @@ equals(SUPPORT_LINUX, true) {
 }
 
 # Default to armv7 on ARM for movw/movt. If your CPU doesn't support it, comment this out.
-contains(QMAKE_TARGET.arch, "arm") {
+contains(FB_ARCH, "arm") {
     QMAKE_CFLAGS += -march=armv7-a -marm
     QMAKE_CXXFLAGS += -march=armv7-a -marm
     QMAKE_LFLAGS += -march=armv7-a -marm # We're using LTO, so the linker has to get the same flags
@@ -273,6 +277,7 @@ SOURCES += core/asmcode_arm.S \
     core/asmcode_aarch64.S \
     core/asmcode_x86.S \
     core/asmcode_x86_64.S \
+    core/asmcode.c \
     core/os/os-emscripten.c \
     core/translate_arm.cpp \
     core/translate_aarch64.cpp \
