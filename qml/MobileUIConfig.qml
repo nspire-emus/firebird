@@ -47,7 +47,7 @@ Item {
             model: tabView.model
 
             Tab {
-                title: rep.model.get(index).title
+                title: qsTranslate("ConfigPagesModel", rep.model.get(index).title)
 
                 Loader {
                     source: file
