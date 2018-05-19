@@ -441,9 +441,6 @@
      <property name="title">
       <string>Language</string>
      </property>
-     <addaction name="actionDeutsch"/>
-     <addaction name="actionEnglish"/>
-     <addaction name="actionFran_ais"/>
     </widget>
     <addaction name="actionScreenshot"/>
     <addaction name="actionRecord_GIF"/>
@@ -663,21 +660,6 @@
    </property>
    <property name="text">
     <string>Switch to Mobile UI</string>
-   </property>
-  </action>
-  <action name="actionEnglish">
-   <property name="text">
-    <string>English</string>
-   </property>
-  </action>
-  <action name="actionFran_ais">
-   <property name="text">
-    <string>Français</string>
-   </property>
-  </action>
-  <action name="actionDeutsch">
-   <property name="text">
-    <string>Deutsch</string>
    </property>
   </action>
  </widget>

@@ -111,9 +111,16 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->actionAbout_Qt, SIGNAL(triggered(bool)), qApp, SLOT(aboutQt()));
 
     // Lang switch
-    connect(ui->actionEnglish,  &QAction::triggered, this, [this]{ switchTranslator(QStringLiteral("en_EN")); });
-    connect(ui->actionFran_ais, &QAction::triggered, this, [this]{ switchTranslator(QStringLiteral("fr_FR")); });
-    connect(ui->actionDeutsch,  &QAction::triggered, this, [this]{ switchTranslator(QStringLiteral("de_DE")); });
+    QStringList translations = QDir(QStringLiteral(":/i18n/i18n/")).entryList();
+    translations << QStringLiteral("en_EN.qm");
+    for(auto &languageCode : translations)
+    {
+        languageCode.chop(3); // Chop off file extension
+        QLocale locale(languageCode);
+        QAction *action = new QAction(locale.nativeLanguageName(), ui->menuLanguage);
+        connect(action, &QAction::triggered, this, [this,languageCode] { this->switchTranslator(languageCode); });
+        ui->menuLanguage->addAction(action);
+    }
 
     //Debugging
     connect(ui->lineEdit, SIGNAL(returnPressed()), this, SLOT(debugCommand()));
