@@ -73,8 +73,14 @@ int main(int argc, char **argv)
 
     #ifdef MOBILE_UI
         QGuiApplication app(argc, argv);
+
+        QTranslator appTranslator;
+        appTranslator.load(QLocale::system().name(), QStringLiteral(":/i18n/i18n/"));
+        app.installTranslator(&appTranslator);
     #else
         QApplication app(argc, argv);
+
+        // Translator installed in MainWindow constructor
     #endif
 
     /* On iOS, sometimes garbage text gets rendered:
@@ -83,10 +89,6 @@ int main(int argc, char **argv)
     #ifdef IS_IOS_BUILD
         app.setFont(QFont(QStringLiteral("Helvetica Neue")));
     #endif
-
-    QTranslator appTranslator;
-    appTranslator.load(QLocale::system().name(), QStringLiteral(":/i18n/i18n/"));
-    app.installTranslator(&appTranslator);
 
     QCoreApplication::setOrganizationDomain(QStringLiteral("firebird-emus.org"));
     QCoreApplication::setOrganizationName(QStringLiteral("Firebird Emus"));

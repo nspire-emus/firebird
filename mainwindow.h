@@ -134,7 +134,7 @@ private:
 
     // This changes the current GUI language to the one given in parameter, if available.
     // The change is persistent (saved in settings) if it was successful.
-    void switchTranslator(const QString& lang);
+    void switchTranslator(const QLocale &locale);
 
     // QMLBridge is used as settings storage,
     // so the settings have to be read from there

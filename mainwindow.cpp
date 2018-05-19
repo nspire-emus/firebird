@@ -112,7 +112,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     // Lang switch
     QStringList translations = QDir(QStringLiteral(":/i18n/i18n/")).entryList();
-    translations << QStringLiteral("en_EN.qm");
+    translations << QStringLiteral("en_US.qm"); // Equal to no translation
     for(auto &languageCode : translations)
     {
         languageCode.chop(3); // Chop off file extension
@@ -153,6 +153,12 @@ MainWindow::MainWindow(QWidget *parent) :
 #else
     settings = new QSettings();
 #endif
+
+    QString prefLang = settings->value(QStringLiteral("preferred_lang"), QStringLiteral("none")).toString();
+    if(prefLang != QStringLiteral("none"))
+        switchTranslator(QLocale(prefLang));
+    else if(appTranslator.load(QLocale::system(), QStringLiteral(":/i18n/i18n/")))
+        qApp->installTranslator(&appTranslator);
 
     updateUIActionState(false);
 
@@ -214,11 +220,6 @@ MainWindow::MainWindow(QWidget *parent) :
                 showStatusMsg(tr("Start the emulation via Emulation->Start."));
         }
     }
-
-    QString prefLang = settings->value(QStringLiteral("preferred_lang"), QStringLiteral("none")).toString();
-    if (prefLang != QStringLiteral("none")) {
-        switchTranslator(prefLang);
-    }
 }
 
 MainWindow::~MainWindow()
@@ -241,17 +242,17 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
-void MainWindow::switchTranslator(const QString& lang)
+void MainWindow::switchTranslator(const QLocale& locale)
 {
     qApp->removeTranslator(&appTranslator);
     // For English, nothing to load after removing the translator.
-    if (lang == QStringLiteral("en_EN") || (appTranslator.load(lang, QStringLiteral(":/i18n/i18n/"))
-                                            && qApp->installTranslator(&appTranslator)))
+    if (locale.name() == QStringLiteral("en_US")
+        || (appTranslator.load(locale, QStringLiteral(":/i18n/i18n/")) && qApp->installTranslator(&appTranslator)))
     {
-        settings->setValue(QStringLiteral("preferred_lang"), lang);
-    } else {
-        QMessageBox::warning(this, tr("Language change"), tr("No translation available for this language :("));
+		settings->setValue(QStringLiteral("preferred_lang"), locale.name());
     }
+    else
+        QMessageBox::warning(this, tr("Language change"), tr("No translation available for this language :("));
 }
 
 void MainWindow::changeEvent(QEvent* event)
@@ -260,7 +261,7 @@ void MainWindow::changeEvent(QEvent* event)
     if (eventType == QEvent::LanguageChange)
         ui->retranslateUi(this);
     else if (eventType == QEvent::LocaleChange)
-        switchTranslator(QLocale::system().name());
+        switchTranslator(QLocale::system());
 
     QMainWindow::changeEvent(event);
 }
