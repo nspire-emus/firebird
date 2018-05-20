@@ -580,6 +580,7 @@ static void preload(uint8_t *nand_data, struct nand_metrics nand_metrics, Partit
 
     if (emulate_casplus && strcmp(name, "IMAGE") == 0) {
         assert(false); // load_zip_entry doesn't have "offset" anymore
+        __builtin_unreachable();
         /*FILE *f = fopen(filename, "rb");
         if (!f) {
             gui_perror(filename);
