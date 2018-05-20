@@ -15,7 +15,7 @@ RowLayout {
         sourceComponent: FileDialog {
             folder: Emu.dir(filePath)
             selectExisting: root.selectExisting
-            onAccepted: filePath = Emu.toLocalFile(dialog.fileUrl)
+            onAccepted: filePath = Emu.toLocalFile(fileUrl)
         }
     }
 
