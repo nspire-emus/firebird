@@ -22,7 +22,6 @@ Rectangle {
 
         NBigButton {
             id: nButton1
-            anchors.horizontalCenter: parent.horizontalCenter
             text: "esc"
             Layout.fillWidth: true
             keymap_id: 73
@@ -30,7 +29,6 @@ Rectangle {
 
         NBigButton {
             id: nButton2
-            anchors.horizontalCenter: parent.horizontalCenter
             text: "pad"
             Layout.fillWidth: true
             keymap_id: 65
@@ -54,7 +52,6 @@ Rectangle {
 
         NBigButton {
             id: nButton3
-            anchors.horizontalCenter: parent.horizontalCenter
             text: "tab"
             Layout.fillWidth: true
             keymap_id: 75
@@ -74,7 +71,6 @@ Rectangle {
         anchors.rightMargin: 5
         NBigButton {
             id: nButton4
-            anchors.horizontalCenter: parent.horizontalCenter
             text: "⌂on"
             Layout.fillWidth: true
             keymap_id: 9
@@ -94,7 +90,6 @@ Rectangle {
 
         NBigButton {
             id: nButton5
-            anchors.horizontalCenter: parent.horizontalCenter
             text: "doc"
             Layout.fillWidth: true
             keymap_id: 69
@@ -119,7 +114,6 @@ Rectangle {
         NBigButton {
             id: nButton6
             width: 30
-            anchors.horizontalCenter: parent.horizontalCenter
             text: "menu"
             Layout.fillWidth: true
             keymap_id: 71
@@ -434,11 +428,9 @@ Rectangle {
 
         NAlphaButton {
             text: "space"
+            Layout.fillWidth: true
             keymap_id: 4
-            anchors.right: nAlphaButtonU.right
-            anchors.rightMargin: 0
-            anchors.left: nAlphaButtonT.left
-            anchors.leftMargin: 0
+            Layout.columnSpan: 2
         }
     }
 

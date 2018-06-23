@@ -20,9 +20,10 @@ Rectangle {
             id: logo
             source: "qrc:/icons/resources/org.firebird-emus.firebird-emu.png"
 
+            Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
+            Layout.fillWidth: true
             Layout.maximumWidth: parent.width * 0.5
             Layout.maximumHeight: parent.width * 0.5
-            anchors.horizontalCenter: parent.horizontalCenter
             fillMode: Image.PreserveAspectFit
             antialiasing: true
             smooth: true

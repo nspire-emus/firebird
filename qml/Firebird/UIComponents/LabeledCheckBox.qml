@@ -7,8 +7,8 @@ Item {
     property alias text: label.text
     property int maxWidth: width
 
-    implicitWidth: row.width
-    implicitHeight: row.height
+    implicitWidth: checkBox.implicitWidth + label.implicitWidth
+    implicitHeight: row.implicitHeight
 
     MouseArea {
         anchors.fill: parent
@@ -17,7 +17,7 @@ Item {
 
     RowLayout {
         id: row
-        spacing: 0
+        spacing: Qt.platform.os === "windows" ? -5 : 0
 
         CheckBox {
             id: checkBox
@@ -25,10 +25,6 @@ Item {
 
         FBLabel {
             id: label
-            anchors {
-                left: checkBox.right
-                leftMargin: Qt.platform.os === "windows" ? -5 : 0;
-            }
 
             Layout.fillWidth: true
             Layout.maximumWidth: parent.parent.maxWidth - checkBox.width

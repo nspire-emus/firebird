@@ -26,10 +26,11 @@ Item {
         Image {
             id: icon
 
+            Layout.alignment: Qt.AlignHCenter| Qt.AlignVCenter
             Layout.maximumWidth: parent.width
             Layout.maximumHeight: parent.height
             Layout.fillHeight: true
-            anchors.horizontalCenter: parent.horizontalCenter
+            Layout.fillWidth: true
 
             fillMode: Image.PreserveAspectFit
             antialiasing: true
@@ -38,8 +39,10 @@ Item {
 
         FBLabel {
             id: label
-            anchors.horizontalCenter: parent.horizontalCenter
+            Layout.fillWidth: true
             text: "Text"
+            horizontalAlignment: Text.AlignHCenter
+            Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
             font.pixelSize: TextMetrics.normalSize
         }
     }
