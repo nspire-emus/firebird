@@ -6,6 +6,7 @@
 #endif
 #include <QTranslator>
 
+#include <QWindow>
 #include <QQmlApplicationEngine>
 
 #include "qtframebuffer.h"
