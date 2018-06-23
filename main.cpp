@@ -116,7 +116,14 @@ int main(int argc, char **argv)
         mobile_ui.show();*/
     #endif
 
-    app.connect(&app, &QGuiApplication::lastWindowClosed, [&] { emu_thread.stop(); });
+    app.connect(&app, &QGuiApplication::lastWindowClosed, [&] {
+        // Apparently QML ApplicationWindow does not count - although
+        // it's visible this signal gets emitted. So recheck ourselves...
+        for(auto win : app.topLevelWindows())
+            if(win->isVisible()) return;
+
+        emu_thread.stop();
+    });
 
     return app.exec();
 }
