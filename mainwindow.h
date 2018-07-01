@@ -46,6 +46,7 @@ public:
 
 public slots:
     //Miscellaneous
+    void changeEvent(QEvent* event) override;
     void closeEvent(QCloseEvent *) override;
     void showStatusMsg(QString str);
     void kitDataChanged(QModelIndex, QModelIndex, QVector<int> roles);
@@ -131,12 +132,18 @@ private:
 
     void refillKitMenus();
 
+    // This changes the current GUI language to the one given in parameter, if available.
+    // The change is persistent (saved in settings) if it was successful.
+    void switchTranslator(const QLocale &locale);
+
     // QMLBridge is used as settings storage,
     // so the settings have to be read from there
     // and emu_thread configured appropriately.
     void applyQMLBridgeSettings();
 
     Ui::MainWindow *ui = nullptr;
+
+    QTranslator appTranslator;
 
     // Used to show a status message permanently
     QLabel status_label;

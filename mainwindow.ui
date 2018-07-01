@@ -437,6 +437,11 @@
     <property name="title">
      <string>&amp;Tools</string>
     </property>
+    <widget class="QMenu" name="menuLanguage">
+     <property name="title">
+      <string>Language</string>
+     </property>
+    </widget>
     <addaction name="actionScreenshot"/>
     <addaction name="actionRecord_GIF"/>
     <addaction name="actionConnect"/>
@@ -447,6 +452,8 @@
     <addaction name="separator"/>
     <addaction name="actionXModem"/>
     <addaction name="actionSwitch_to_Mobile_UI"/>
+    <addaction name="separator"/>
+    <addaction name="menuLanguage"/>
    </widget>
    <widget class="QMenu" name="menuState">
     <property name="title">

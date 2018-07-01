@@ -40,7 +40,7 @@ Item {
 
                     FBLabel {
                         id: titleLabel
-                        text: title
+                        text: qsTranslate("ConfigPagesModel", title)
                         font.bold: true
                         font.pixelSize: 20
                     }

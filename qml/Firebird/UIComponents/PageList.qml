@@ -32,7 +32,7 @@ Rectangle {
             }
 
             delegate: PageDelegate {
-                text: title
+                text: qsTranslate("ConfigPagesModel", title)
                 iconSource: icon
             }
         }
