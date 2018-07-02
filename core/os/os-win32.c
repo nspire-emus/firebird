@@ -1,6 +1,7 @@
 #include "os.h"
 
 #define WIN32_LEAN_AND_MEAN
+#include <assert.h>
 #include <conio.h>
 #include <windows.h>
 #include <stdio.h>
@@ -117,14 +118,6 @@ void addr_cache_init() {
 
     addr_cache = VirtualAlloc(NULL, AC_NUM_ENTRIES * sizeof(ac_entry), flags, PAGE_READWRITE);
 
-    typedef struct { void *prev, *function; } os_exception_frame_t;
-
-    static os_exception_frame_t frame;
-
-    frame.function = (void *)addr_cache_exception;
-    asm ("movl %%fs:(%1), %0" : "=r" (frame.prev) : "r" (0));
-    asm ("movl %0, %%fs:(%1)" : : "r" (&frame), "r" (0));
-
 #ifndef NDEBUG
     // Without segfaults we have to invalidate everything here
     unsigned int i;
@@ -143,6 +136,23 @@ void addr_cache_init() {
         **reloc += (DWORD)addr_cache;
         VirtualProtect(*reloc, 4, prot, &prot);
     }
+}
+
+void os_faulthandler_arm(os_exception_frame_t *frame)
+{
+    assert(frame->prev == NULL);
+
+    frame->function = (void *)addr_cache_exception;
+    asm ("movl %%fs:(%1), %0" : "=r" (frame->prev) : "r" (0));
+    asm ("movl %0, %%fs:(%1)" : : "r" (frame), "r" (0));
+}
+
+void os_faulthandler_unarm(os_exception_frame_t *frame)
+{
+    assert(frame->prev != NULL);
+
+    asm ("movl %0, %%fs:(%1)" : : "r" (frame->prev), "r" (0));
+    frame->prev = NULL;
 }
 
 void addr_cache_deinit() {

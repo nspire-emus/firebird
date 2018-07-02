@@ -27,6 +27,14 @@ void *os_alloc_executable(size_t size);
 void os_free(void *ptr, size_t size);
 
 #if OS_HAS_PAGEFAULT_HANDLER
+// The Win32 mechanism to handle pagefaults uses SEH, which requires a linked
+// list of handlers on the stack. The frame has to stay alive on the stack and
+// armed during all addr_cache accesses.
+
+typedef struct { void *prev, *function; } os_exception_frame_t;
+void os_faulthandler_arm(os_exception_frame_t *frame);
+void os_faulthandler_unarm(os_exception_frame_t *frame);
+
 void *os_commit(void *addr, size_t size);
 void *os_sparse_commit(void *page, size_t size);
 void os_sparse_decommit(void *page, size_t size);

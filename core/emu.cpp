@@ -295,6 +295,11 @@ bool emu_start(unsigned int port_gdb, unsigned int port_rdbg, const char *snapsh
 
 void emu_loop(bool reset)
 {
+    #if OS_HAS_PAGEFAULT_HANDLER
+        os_exception_frame_t seh_frame = { NULL, NULL };
+        os_faulthandler_arm(&seh_frame);
+    #endif
+
     if(reset)
     {
         reset:
@@ -345,6 +350,10 @@ void emu_loop(bool reset)
                 cpu_arm_loop();
         }
     }
+
+    #if OS_HAS_PAGEFAULT_HANDLER
+        os_faulthandler_unarm(&seh_frame);
+    #endif
 }
 
 bool emu_suspend(const char *file)
