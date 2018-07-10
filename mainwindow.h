@@ -131,6 +131,7 @@ private:
     void raiseDebugger();
 
     void refillKitMenus();
+    void updateWindowTitle();
 
     // This changes the current GUI language to the one given in parameter, if available.
     // The change is persistent (saved in settings) if it was successful.

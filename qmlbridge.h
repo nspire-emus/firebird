@@ -99,6 +99,7 @@ public:
 
     Q_INVOKABLE bool setCurrentKit(unsigned int id);
     Q_INVOKABLE int getCurrentKitId();
+    Q_INVOKABLE const Kit *useKit(unsigned int id);
     Q_INVOKABLE bool useDefaultKit();
 
     Q_INVOKABLE bool restart();

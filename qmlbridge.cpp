@@ -497,17 +497,12 @@ bool QMLBridge::useDefaultKit()
 
 bool QMLBridge::setCurrentKit(unsigned int id)
 {
-    int kitIndex = kitIndexForID(id);
-    if(kitIndex < 0)
-        return false;
+    const Kit *kit = useKit(id);
+    if(!kit)
+         return false;
 
-    auto &&kit = kit_model.getKits()[kitIndex];
-    current_kit_id = kit.id;
-    emu_thread.boot1 = kit.boot1;
-    emu_thread.flash = kit.flash;
-    fallback_snapshot_path = kit.snapshot;
-
-    emit currentKitChanged(kit);
+    current_kit_id = id;
+    emit currentKitChanged(*kit);
 
     return true;
 }
@@ -515,6 +510,20 @@ bool QMLBridge::setCurrentKit(unsigned int id)
 int QMLBridge::getCurrentKitId()
 {
     return current_kit_id;
+}
+
+const Kit *QMLBridge::useKit(unsigned int id)
+{
+    int kitIndex = kitIndexForID(id);
+    if(kitIndex < 0)
+        return nullptr;
+
+    auto &&kit = kit_model.getKits()[kitIndex];
+    emu_thread.boot1 = kit.boot1;
+    emu_thread.flash = kit.flash;
+    fallback_snapshot_path = kit.snapshot;
+
+    return &kit;
 }
 
 bool QMLBridge::stop()

@@ -249,7 +249,7 @@ void MainWindow::switchTranslator(const QLocale& locale)
     if (locale.name() == QStringLiteral("en_US")
         || (appTranslator.load(locale, QStringLiteral(":/i18n/i18n/")) && qApp->installTranslator(&appTranslator)))
     {
-		settings->setValue(QStringLiteral("preferred_lang"), locale.name());
+        settings->setValue(QStringLiteral("preferred_lang"), locale.name());
     }
     else
         QMessageBox::warning(this, tr("Language change"), tr("No translation available for this language :("));
@@ -259,7 +259,10 @@ void MainWindow::changeEvent(QEvent* event)
 {
     const auto eventType = event->type();
     if (eventType == QEvent::LanguageChange)
+    {
         ui->retranslateUi(this);
+        updateWindowTitle();
+    }
     else if (eventType == QEvent::LocaleChange)
         switchTranslator(QLocale::system());
 
@@ -624,6 +627,10 @@ void MainWindow::setExtLCD(bool state)
 
 bool MainWindow::resume()
 {
+    /* If there's no kit set, use the default kit */
+    if(the_qml_bridge->getCurrentKitId() == -1)
+        the_qml_bridge->useDefaultKit();
+
     applyQMLBridgeSettings();
 
     auto snapshot_path = the_qml_bridge->getSnapshotPath();
@@ -767,12 +774,7 @@ void MainWindow::kitDataChanged(QModelIndex, QModelIndex, QVector<int> roles)
         refillKitMenus();
 
         // Need to update window title if kit is active
-        int kitIndex = the_qml_bridge->kitIndexForID(the_qml_bridge->getCurrentKitId());
-        if(kitIndex >= 0)
-        {
-            auto name = the_qml_bridge->getKitModel()->getKits()[kitIndex].name;
-            setWindowTitle(QStringLiteral("Firebird Emu - %1").arg(name));
-        }
+        updateWindowTitle();
     }
 }
 
@@ -784,7 +786,8 @@ void MainWindow::kitAnythingChanged()
 
 void MainWindow::currentKitChanged(const Kit &kit)
 {
-    setWindowTitle(QStringLiteral("Firebird Emu - %1").arg(kit.name));
+    (void) kit;
+    updateWindowTitle();
 }
 
 void MainWindow::refillKitMenus()
@@ -802,11 +805,27 @@ void MainWindow::refillKitMenus()
         action = ui->menuBoot_Diags_with_Kit->addAction(kit.name);
         action->setData(kit.id);
         connect(action, SIGNAL(triggered()), this, SLOT(startKitDiags()));
+	}
+}
+
+void MainWindow::updateWindowTitle()
+{
+    // Need to update window title if kit is active
+    int kitIndex = the_qml_bridge->kitIndexForID(the_qml_bridge->getCurrentKitId());
+    if(kitIndex >= 0)
+    {
+        auto name = the_qml_bridge->getKitModel()->getKits()[kitIndex].name;
+        setWindowTitle(tr("Firebird Emu - %1").arg(name));
     }
+    else
+        setWindowTitle(tr("Firebird Emu"));
 }
 
 void MainWindow::applyQMLBridgeSettings()
 {
+    // Reload the current kit
+    the_qml_bridge->useKit(the_qml_bridge->getCurrentKitId());
+
     emu_thread.port_gdb = the_qml_bridge->getGDBEnabled() ? the_qml_bridge->getGDBPort() : 0;
     emu_thread.port_rdbg = the_qml_bridge->getRDBEnabled() ? the_qml_bridge->getRDBPort() : 0;
 }
@@ -816,6 +835,8 @@ void MainWindow::restart()
     /* If there's no kit set, use the default kit */
     if(the_qml_bridge->getCurrentKitId() == -1)
         the_qml_bridge->useDefaultKit();
+
+    applyQMLBridgeSettings();
 
     if(emu_thread.boot1.isEmpty())
     {
@@ -829,8 +850,6 @@ void MainWindow::restart()
                                                                             "You can create one via Flash->Create Flash in the menu."));
         return;
     }
-
-    applyQMLBridgeSettings();
 
     if(emu_thread.stop())
         emu_thread.start();
