@@ -7,6 +7,8 @@
 LCDWidget::LCDWidget(QWidget *parent, Qt::WindowFlags f)
     : QWidget(parent, f)
 {
+    setMinimumSize(320, 240);
+
     connect(&refresh_timer, SIGNAL(timeout()), this, SLOT(update()));
 
     refresh_timer.setInterval(1000 / 30); // 30 fps
