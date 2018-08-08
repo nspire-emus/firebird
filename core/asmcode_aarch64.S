@@ -9,6 +9,7 @@
 .endm
 
 .data
+.align 3
 
 .global arm
 .global cycle_count_delta
@@ -19,6 +20,7 @@ translation_sp: .global translation_sp
 	.xword 0
 
 .text
+.align 2
 
 .global data_abort
 
