@@ -195,7 +195,8 @@ SOURCES += $$ASMCODE_IMPL \
     usblinktreewidget.cpp \
     kitmodel.cpp \
     fbaboutdialog.cpp \
-    dockwidget.cpp
+    dockwidget.cpp \
+    consolelineedit.cpp
 
 FORMS += \
     mainwindow.ui \
@@ -241,7 +242,8 @@ HEADERS += \
     usblinktreewidget.h \
     kitmodel.h \
     fbaboutdialog.h \
-    dockwidget.h
+    dockwidget.h \
+    consolelineedit.h
 
 # For localization
 lupdate_only {
