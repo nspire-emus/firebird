@@ -239,7 +239,7 @@
          </widget>
         </item>
         <item>
-         <widget class="QLineEdit" name="lineEdit">
+         <widget class="ConsoleLineEdit" name="lineEdit">
           <property name="enabled">
            <bool>false</bool>
           </property>
@@ -679,6 +679,11 @@
    <class>USBLinkTreeWidget</class>
    <extends>QTreeWidget</extends>
    <header>usblinktreewidget.h</header>
+  </customwidget>
+  <customwidget>
+   <class>ConsoleLineEdit</class>
+   <extends>QLineEdit</extends>
+   <header>consolelineedit.h</header>
   </customwidget>
  </customwidgets>
  <resources>
