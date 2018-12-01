@@ -95,7 +95,6 @@ public:
     Q_INVOKABLE QUrl dir(QString path);
     Q_INVOKABLE QString toLocalFile(QUrl url);
     Q_INVOKABLE bool fileExists(QString path);
-    Q_INVOKABLE int kitIndexForID(unsigned int id);
 
     Q_INVOKABLE bool setCurrentKit(unsigned int id);
     Q_INVOKABLE int getCurrentKitId();
@@ -119,7 +118,7 @@ public:
     Q_INVOKABLE void toastMessage(QString msg);
 
     #ifndef MOBILE_UI
-        Q_INVOKABLE void createFlash(unsigned int kitIndex);
+        Q_INVOKABLE void createFlash(const QModelIndex &kitIndex);
         Q_INVOKABLE void switchUIMode(bool mobile_ui);
     #endif
 

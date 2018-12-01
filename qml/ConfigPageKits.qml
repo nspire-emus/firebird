@@ -30,7 +30,6 @@ ColumnLayout {
         Layout.bottomMargin: -1
         title: qsTr("Kit Properties")
 
-
         GridLayout {
             anchors.fill: parent
             columns: (width < 550 || Qt.platform.os === "android") ? 2 : 4
@@ -55,7 +54,7 @@ ColumnLayout {
                 text: kitList.currentItem.myData.name
                 onTextChanged: {
                     if(text !== kitList.currentItem.myData.name)
-                        kitModel.setDataRow(kitList.currentIndex, text, KitModel.NameRole);
+                        kitList.currentItem.myData.name = text;
                     text = Qt.binding(function() { return kitList.currentItem.myData.name; });
                 }
             }
@@ -71,7 +70,7 @@ ColumnLayout {
                 filePath: kitList.currentItem.myData.boot1
                 onFilePathChanged: {
                     if(filePath !== kitList.currentItem.myData.boot1)
-                        kitModel.setDataRow(kitList.currentIndex, filePath, KitModel.Boot1Role);
+                        kitList.currentItem.myData.boot1 = filePath;
                     filePath = Qt.binding(function() { return kitList.currentItem.myData.boot1; });
                 }
             }
@@ -90,7 +89,7 @@ ColumnLayout {
                     filePath: kitList.currentItem.myData.flash
                     onFilePathChanged: {
                         if(filePath !== kitList.currentItem.myData.flash)
-                            kitModel.setDataRow(kitList.currentIndex, filePath, KitModel.FlashRole);
+                            kitList.currentItem.myData.flash = filePath;
                         filePath = Qt.binding(function() { return kitList.currentItem.myData.flash; });
                     }
                 }
@@ -99,7 +98,7 @@ ColumnLayout {
                     text: qsTr("Create")
                     visible: !Emu.isMobile()
                     onClicked: {
-                        Emu.createFlash(kitList.currentIndex)
+                        Emu.createFlash(kitModel.index(kitList.currentIndex, 0, null))
                         flashEdit.filePath = kitList.currentItem.myData.flash
                     }
                 }
@@ -117,7 +116,7 @@ ColumnLayout {
                 filePath: kitList.currentItem.myData.snapshot
                 onFilePathChanged: {
                     if(filePath !== kitList.currentItem.myData.snapshot)
-                        kitModel.setDataRow(kitList.currentIndex, filePath, KitModel.SnapshotRole);
+                        kitList.currentItem.myData.snapshot = filePath;
                     filePath = Qt.binding(function() { return kitList.currentItem.myData.snapshot; });
                 }
             }
