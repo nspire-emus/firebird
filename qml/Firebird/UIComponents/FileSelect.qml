@@ -19,6 +19,10 @@ RowLayout {
         }
     }
 
+    SystemPalette {
+        id: paletteActive
+    }
+
     FBLabel {
         id: filenameLabel
         elide: "ElideRight"
@@ -27,7 +31,7 @@ RowLayout {
 
         font.italic: filePath === ""
         text: filePath === "" ? qsTr("(none)") : Emu.basename(filePath)
-        color: (!selectExisting || filePath === "" || Emu.fileExists(filePath)) ? "" : "red"
+        color: (!selectExisting || filePath === "" || Emu.fileExists(filePath)) ? paletteActive.text : "red"
     }
 
     Button {

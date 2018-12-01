@@ -7,9 +7,13 @@ Rectangle {
     property alias currentIndex: listView.currentIndex
     property alias kitModel: listView.model
 
-    color: "white"
+    SystemPalette {
+        id: paletteActive
+    }
+
+    color: paletteActive.base
     border {
-        color: "darkgrey"
+        color: paletteActive.alternateBase
         width: 1
     }
 
@@ -27,7 +31,7 @@ Rectangle {
             highlightResizeDuration: 0
 
             highlight: Rectangle {
-                color: "#40b3d5"
+                color: paletteActive.highlight
                 anchors.horizontalCenter: parent ? parent.horizontalCenter : undefined
             }
 
@@ -53,7 +57,7 @@ Rectangle {
                         bottom: parent.bottom
                     }
 
-                    color: "grey"
+                    color: paletteActive.shadow
                     height: 1
                 }
 
@@ -104,7 +108,7 @@ Rectangle {
             section.criteria: ViewSection.FullString
             section.delegate: Rectangle {
                 anchors.horizontalCenter: parent.horizontalCenter
-                color: "#b0dede"
+                color: paletteActive.window
                 height: label.implicitHeight + 4
                 width: listView.width - listView.anchors.margins
 
@@ -124,7 +128,7 @@ Rectangle {
                         bottom: parent.bottom
                     }
 
-                    color: "grey"
+                    color: paletteActive.shadow
                     height: 1
                 }
             }
