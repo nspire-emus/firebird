@@ -81,12 +81,8 @@ QHash<int, QByteArray> KitModel::roleNames() const
 
 QVariant KitModel::data(const QModelIndex &index, int role) const
 {
-    return getDataRow(index.row(), role);
-}
-
-QVariant KitModel::getDataRow(const int row, int role) const
-{
-    if(row < 0 || row >= kits.count())
+    int row = index.row();
+    if(!index.isValid() || row < 0 || row >= kits.count())
         return QVariant();
 
     switch(role)
@@ -108,9 +104,10 @@ QVariant KitModel::getDataRow(const int row, int role) const
     }
 }
 
-bool KitModel::setDataRow(const int row, const QVariant &value, int role)
+bool KitModel::setData(const QModelIndex &index, const QVariant &value, int role)
 {
-    if(row < 0 || row >= kits.count())
+    int row = index.row();
+    if(!index.isValid() || row < 0 || row >= kits.count())
         return false;
 
     switch(role)
@@ -142,10 +139,10 @@ bool KitModel::setDataRow(const int row, const QVariant &value, int role)
     {
         // Refresh type as well
         kits[row].type = typeForFlash(value.toString());
-        emit dataChanged(index(row), index(row), QVector<int>({FlashRole, TypeRole}));
+        emit dataChanged(index, index, QVector<int>({FlashRole, TypeRole}));
     }
     else
-        emit dataChanged(index(row), index(row), QVector<int>({role}));
+        emit dataChanged(index, index, QVector<int>({role}));
 
     emit anythingChanged();
     return true;
@@ -194,11 +191,11 @@ void KitModel::addKit(QString name, QString boot1, QString flash, QString snapsh
     emit anythingChanged();
 }
 
-int KitModel::indexForID(const unsigned int id)
+QModelIndex KitModel::indexForID(const unsigned int id) const
 {
     auto it = std::find_if(kits.begin(), kits.end(),
                            [&] (const Kit &kit) { return kit.id == id; });
-    return it == kits.end() ? -1 : (it - kits.begin());
+    return it == kits.end() ? QModelIndex() : index(it - kits.begin());
 }
 
 bool KitModel::allKitsEmpty() const

@@ -30,12 +30,11 @@ public:
     Q_INVOKABLE virtual int rowCount(const QModelIndex &parent = QModelIndex()) const override;
     Q_INVOKABLE virtual QHash<int, QByteArray> roleNames() const override;
     Q_INVOKABLE virtual QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
-    Q_INVOKABLE QVariant getDataRow(const int row, int role = Qt::DisplayRole) const;
-    Q_INVOKABLE bool setDataRow(const int row, const QVariant &value, int role = Qt::EditRole);
+    Q_INVOKABLE bool setData(const QModelIndex &index, const QVariant &value, int role = Qt::EditRole) override;
     Q_INVOKABLE bool copy(const int row);
     Q_INVOKABLE bool remove(const int row);
     Q_INVOKABLE void addKit(QString name, QString boot1, QString flash, QString snapshot_path);
-    Q_INVOKABLE int indexForID(const unsigned int id);
+    Q_INVOKABLE QModelIndex indexForID(const unsigned int id) const;
     Q_INVOKABLE bool allKitsEmpty() const;
 
     QString typeForFlash(QString flash);

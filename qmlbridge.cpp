@@ -317,11 +317,6 @@ bool QMLBridge::fileExists(QString path)
     return QFile::exists(path);
 }
 
-int QMLBridge::kitIndexForID(unsigned int id)
-{
-    return kit_model.indexForID(id);
-}
-
 #ifndef MOBILE_UI
 void QMLBridge::switchUIMode(bool mobile_ui)
 {
@@ -586,11 +581,11 @@ int QMLBridge::getCurrentKitId()
 
 const Kit *QMLBridge::useKit(unsigned int id)
 {
-    int kitIndex = kitIndexForID(id);
-    if(kitIndex < 0)
+    const QModelIndex kitIndex = kit_model.indexForID(id);
+    if(!kitIndex.isValid())
         return nullptr;
 
-    auto &&kit = kit_model.getKits()[kitIndex];
+    auto &&kit = kit_model.getKits()[kitIndex.row()];
     emu_thread.boot1 = kit.boot1;
     emu_thread.flash = kit.flash;
     fallback_snapshot_path = kit.snapshot;
@@ -620,9 +615,9 @@ QString QMLBridge::getFlashPath()
 
 QString QMLBridge::getSnapshotPath()
 {
-    int kitIndex = kitIndexForID(current_kit_id);
-    if(kitIndex >= 0)
-        return kit_model.getKits()[kitIndex].snapshot;
+    const QModelIndex kitIndex = kit_model.indexForID(current_kit_id);
+    if(kitIndex.isValid())
+        return kit_model.getKits()[kitIndex.row()].snapshot;
     else
         return fallback_snapshot_path;
 }

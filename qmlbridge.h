@@ -92,7 +92,6 @@ public:
     Q_INVOKABLE QUrl dir(QString path);
     Q_INVOKABLE QString toLocalFile(QUrl url);
     Q_INVOKABLE bool fileExists(QString path);
-    Q_INVOKABLE int kitIndexForID(unsigned int id);
 
     Q_INVOKABLE bool setCurrentKit(unsigned int id);
     Q_INVOKABLE int getCurrentKitId();

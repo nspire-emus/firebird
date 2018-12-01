@@ -821,16 +821,16 @@ void MainWindow::refillKitMenus()
         action = ui->menuBoot_Diags_with_Kit->addAction(kit.name);
         action->setData(kit.id);
         connect(action, SIGNAL(triggered()), this, SLOT(startKitDiags()));
-	}
+    }
 }
 
 void MainWindow::updateWindowTitle()
 {
     // Need to update window title if kit is active
-    int kitIndex = the_qml_bridge->kitIndexForID(the_qml_bridge->getCurrentKitId());
-    if(kitIndex >= 0)
+    const QModelIndex kitIndex = the_qml_bridge->getKitModel()->indexForID(the_qml_bridge->getCurrentKitId());
+    if(kitIndex.isValid())
     {
-        auto name = the_qml_bridge->getKitModel()->getKits()[kitIndex].name;
+        auto name = the_qml_bridge->getKitModel()->data(kitIndex, KitModel::NameRole).toString();
         setWindowTitle(tr("Firebird Emu - %1").arg(name));
     }
     else
