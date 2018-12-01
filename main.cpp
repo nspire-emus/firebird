@@ -55,13 +55,13 @@ static void migrateSettings()
             for (auto it = old.begin(); it != old.end(); ++it)
                 current.setValue(it.key(), it.value());
 
-            current.setValue(QStringLiteral("version"), 1);
-            current.sync();
-
             qDebug("Settings imported");
         }
         else
             qDebug("No previous settings found");
+
+        current.setValue(QStringLiteral("version"), 1);
+        current.sync();
     }
 }
 
