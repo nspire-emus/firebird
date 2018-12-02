@@ -13,69 +13,43 @@ public:
     explicit QMLBridge(QObject *parent = 0);
     ~QMLBridge();
 
-    Q_PROPERTY(unsigned int gdbPort READ getGDBPort WRITE setGDBPort NOTIFY gdbPortChanged)
-    Q_PROPERTY(bool gdbEnabled READ getGDBEnabled WRITE setGDBEnabled NOTIFY gdbEnabledChanged)
-    Q_PROPERTY(unsigned int rdbPort READ getRDBPort WRITE setRDBPort NOTIFY rdbPortChanged)
-    Q_PROPERTY(bool rdbEnabled READ getRDBEnabled WRITE setRDBEnabled NOTIFY rdbEnabledChanged)
-    Q_PROPERTY(bool debugOnStart READ getDebugOnStart WRITE setDebugOnStart NOTIFY debugOnStartChanged)
-    Q_PROPERTY(bool debugOnWarn READ getDebugOnWarn WRITE setDebugOnWarn NOTIFY debugOnWarnChanged)
-    Q_PROPERTY(bool printOnWarn READ getPrintOnWarn WRITE setPrintOnWarn NOTIFY printOnWarnChanged)
-    Q_PROPERTY(bool autostart READ getAutostart WRITE setAutostart NOTIFY autostartChanged)
-    Q_PROPERTY(unsigned int defaultKit READ getDefaultKit WRITE setDefaultKit NOTIFY defaultKitChanged)
-    Q_PROPERTY(bool leftHanded READ getLeftHanded WRITE setLeftHanded NOTIFY leftHandedChanged)
-    Q_PROPERTY(bool suspendOnClose READ getSuspendOnClose WRITE setSuspendOnClose NOTIFY suspendOnCloseChanged)
-    Q_PROPERTY(QString usbdir READ getUSBDir WRITE setUSBDir NOTIFY usbDirChanged)
-    Q_PROPERTY(QString version READ getVersion CONSTANT)
-    Q_PROPERTY(bool isRunning READ getIsRunning NOTIFY isRunningChanged)
-    Q_PROPERTY(KitModel* kits READ getKitModel CONSTANT)
+    // Settings
+    Q_PROPERTY(unsigned int gdbPort MEMBER gdb_port NOTIFY gdbPortChanged)
+    Q_PROPERTY(bool gdbEnabled MEMBER gdb_enabled NOTIFY gdbEnabledChanged)
+    Q_PROPERTY(unsigned int rdbPort MEMBER rdb_port NOTIFY rdbPortChanged)
+    Q_PROPERTY(bool rdbEnabled MEMBER rdb_enabled NOTIFY rdbEnabledChanged)
+    Q_PROPERTY(bool debugOnStart MEMBER debug_on_start NOTIFY debugOnStartChanged)
+    Q_PROPERTY(bool debugOnWarn MEMBER debug_on_warn NOTIFY debugOnWarnChanged)
+    Q_PROPERTY(bool printOnWarn MEMBER print_on_warn NOTIFY printOnWarnChanged)
+    Q_PROPERTY(bool autostart MEMBER autostart NOTIFY autostartChanged)
+    Q_PROPERTY(unsigned int defaultKit MEMBER default_kit_id NOTIFY defaultKitChanged)
+    Q_PROPERTY(bool leftHanded MEMBER left_handed NOTIFY leftHandedChanged)
+    Q_PROPERTY(bool suspendOnClose MEMBER suspend_on_close NOTIFY suspendOnCloseChanged)
+    Q_PROPERTY(QString usbdir MEMBER usb_dir NOTIFY usbDirChanged)
+    Q_PROPERTY(int mobileX MEMBER mobile_x NOTIFY mobileXChanged)
+    Q_PROPERTY(int mobileY MEMBER mobile_y NOTIFY mobileYChanged)
+    Q_PROPERTY(int mobileWidth MEMBER mobile_w NOTIFY mobileWChanged)
+    Q_PROPERTY(int mobileHeight MEMBER mobile_h NOTIFY mobileHChanged)
 
+    Q_PROPERTY(bool isRunning READ getIsRunning NOTIFY isRunningChanged)
+    Q_PROPERTY(QString version READ getVersion CONSTANT)
+    Q_PROPERTY(KitModel* kits READ getKitModel CONSTANT)
     Q_PROPERTY(double speed READ getSpeed NOTIFY speedChanged)
     Q_PROPERTY(bool turboMode READ getTurboMode WRITE setTurboMode NOTIFY turboModeChanged)
 
-    Q_PROPERTY(int mobileX READ getMobileX WRITE setMobileX NOTIFY neverEmitted)
-    Q_PROPERTY(int mobileY READ getMobileY WRITE setMobileY NOTIFY neverEmitted)
-    Q_PROPERTY(int mobileWidth READ getMobileWidth WRITE setMobileWidth NOTIFY neverEmitted)
-    Q_PROPERTY(int mobileHeight READ getMobileHeight WRITE setMobileHeight NOTIFY neverEmitted)
+    unsigned int getGDBPort() { return gdb_port; }
+    bool getGDBEnabled() { return gdb_enabled; }
+    unsigned int getRDBPort() { return rdb_port; }
+    bool getRDBEnabled() { return rdb_enabled; }
+    bool getAutostart() { return autostart; }
+    QString getUSBDir() { return usb_dir; }
 
-    unsigned int getGDBPort();
-    void setGDBPort(unsigned int port);
-    void setGDBEnabled(bool e);
-    bool getGDBEnabled();
-    unsigned int getRDBPort();
-    void setRDBPort(unsigned int port);
-    void setRDBEnabled(bool e);
-    bool getRDBEnabled();
-    void setDebugOnWarn(bool e);
-    bool getDebugOnWarn();
-    void setDebugOnStart(bool e);
-    bool getDebugOnStart();
-    void setPrintOnWarn(bool p);
-    bool getPrintOnWarn();
-    void setAutostart(bool e);
-    bool getAutostart();
-    unsigned int getDefaultKit();
-    void setDefaultKit(unsigned int id);
-    bool getLeftHanded();
-    void setLeftHanded(bool e);
-    bool getSuspendOnClose();
-    void setSuspendOnClose(bool e);
-    QString getUSBDir();
-    void setUSBDir(QString dir);
     bool getIsRunning();
     QString getVersion();
 
     double getSpeed();
     bool getTurboMode();
     void setTurboMode(bool e);
-
-    int getMobileX();
-    void setMobileX(int x);
-    int getMobileY();
-    void setMobileY(int y);
-    int getMobileWidth();
-    void setMobileWidth(int w);
-    int getMobileHeight();
-    void setMobileHeight(int h);
 
     KitModel *getKitModel() { return &kit_model; }
     Q_INVOKABLE void setButtonState(int id, bool state);
@@ -135,6 +109,7 @@ public slots:
     void suspended(bool success);
 
 signals:
+    // Settings
     void gdbPortChanged();
     void gdbEnabledChanged();
     void rdbPortChanged();
@@ -147,6 +122,11 @@ signals:
     void leftHandedChanged();
     void suspendOnCloseChanged();
     void usbDirChanged();
+    void mobileXChanged();
+    void mobileYChanged();
+    void mobileWChanged();
+    void mobileHChanged();
+
     void isRunningChanged();
     void speedChanged();
     void turboModeChanged();
@@ -175,7 +155,13 @@ private:
     KitModel kit_model;
     QSettings settings;
     bool is_active = false;
-};
+
+    // Settings
+    int mobile_x, mobile_y, mobile_w, mobile_h;
+    unsigned int gdb_port, rdb_port, default_kit_id;
+    bool gdb_enabled, rdb_enabled, debug_on_warn, debug_on_start,
+         print_on_warn, autostart, suspend_on_close, left_handed;
+    QString usb_dir;};
 
 extern QMLBridge *the_qml_bridge;
 
