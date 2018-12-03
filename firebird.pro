@@ -41,8 +41,8 @@ QMAKE_CXXFLAGS = -g -std=c++11 -Wall -Wextra -D QT_NO_CAST_FROM_ASCII
 LIBS += -lz
 
 # Override bad default options to enable better optimizations
-QMAKE_CFLAGS_RELEASE = -O3 -flto -DNDEBUG
-QMAKE_CXXFLAGS_RELEASE = -O3 -flto -DNDEBUG
+QMAKE_CFLAGS_RELEASE = -O3 -flto -fno-fat-lto-objects -DNDEBUG
+QMAKE_CXXFLAGS_RELEASE = -O3 -flto -fno-fat-lto-objects -DNDEBUG
 QMAKE_LFLAGS_RELEASE = -Wl,-O3 -flto
 QMAKE_LFLAGS += -fno-pie
 
@@ -153,11 +153,20 @@ contains(FB_ARCH, "arm") {
     QMAKE_LFLAGS += -march=armv7-a -marm # We're using LTO, so the linker has to get the same flags
 }
 
+# QObject is incompatible with LTO, so don't use it for building the UI
+nolto.name = nolto
+nolto.input = SOURCES_UI
+nolto.dependency_type = TYPE_C
+nolto.variable_out = OBJECTS
+nolto.output = ${QMAKE_VAR_OBJECTS_DIR}${QMAKE_FILE_IN_BASE}$${first(QMAKE_EXT_OBJ)}
+nolto.commands = $${QMAKE_CXX} $(CXXFLAGS) -fno-lto $(INCPATH) -c ${QMAKE_FILE_IN} -o ${QMAKE_FILE_OUT}
+QMAKE_EXTRA_COMPILERS += nolto
+
 ANDROID_PACKAGE_SOURCE_DIR = $$PWD/android
 
 QML_IMPORT_PATH += $$PWD/qml
 
-SOURCES += $$ASMCODE_IMPL \
+SOURCES_UI = \
     lcdwidget.cpp \
     mainwindow.cpp \
     main.cpp \
@@ -165,6 +174,14 @@ SOURCES += $$ASMCODE_IMPL \
     emuthread.cpp \
     qmlbridge.cpp \
     qtkeypadbridge.cpp \
+    qtframebuffer.cpp \
+    usblinktreewidget.cpp \
+    kitmodel.cpp \
+    fbaboutdialog.cpp \
+    dockwidget.cpp \
+    consolelineedit.cpp
+
+SOURCES += $$ASMCODE_IMPL \
     core/arm_interpreter.cpp \
     core/coproc.cpp \
     core/cpu.cpp \
@@ -188,15 +205,9 @@ SOURCES += $$ASMCODE_IMPL \
     core/sha256.c \
     core/usb.c \
     core/usblink.c \
-    qtframebuffer.cpp \
     core/debug.cpp \
     core/flash.cpp \
     core/emu.cpp \
-    usblinktreewidget.cpp \
-    kitmodel.cpp \
-    fbaboutdialog.cpp \
-    dockwidget.cpp \
-    consolelineedit.cpp
 
 FORMS += \
     mainwindow.ui \
