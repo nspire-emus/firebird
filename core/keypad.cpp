@@ -13,9 +13,10 @@
 /* 900E0000: Keypad controller */
 keypad_state keypad;
 
-static std::mutex keypad_mut;
+static std::recursive_mutex keypad_mut;
 
 void keypad_int_check() {
+    std::lock_guard<std::recursive_mutex> lg(keypad_mut);
     if(keypad.touchpad_contact != keypad.touchpad_last_contact)
         keypad.touchpad_irq_state |= 0x4;
     if(keypad.touchpad_down != keypad.touchpad_last_down)
@@ -34,7 +35,7 @@ void keypad_on_pressed() {
 }
 
 uint32_t keypad_read(uint32_t addr) {
-    std::lock_guard<std::mutex> lg(keypad_mut);
+    std::lock_guard<std::recursive_mutex> lg(keypad_mut);
 
     switch (addr & 0x7F) {
         case 0x00:
@@ -57,7 +58,7 @@ uint32_t keypad_read(uint32_t addr) {
     return bad_read_word(addr);
 }
 void keypad_write(uint32_t addr, uint32_t value) {
-    std::lock_guard<std::mutex> lg(keypad_mut);
+    std::lock_guard<std::recursive_mutex> lg(keypad_mut);
     switch (addr & 0x7F) {
         case 0x00:
             keypad.kpc.control = value;
@@ -84,7 +85,7 @@ void keypad_write(uint32_t addr, uint32_t value) {
 }
 // Scan next row of keypad, if scanning is enabled
 static void keypad_scan_event(int index) {
-    std::lock_guard<std::mutex> lg(keypad_mut);
+    std::lock_guard<std::recursive_mutex> lg(keypad_mut);
     if (keypad.kpc.current_row >= 16)
         error("too many keypad rows");
 
@@ -115,7 +116,7 @@ static void keypad_scan_event(int index) {
     keypad_int_check();
 }
 void keypad_reset() {
-    std::lock_guard<std::mutex> lg(keypad_mut);
+    std::lock_guard<std::recursive_mutex> lg(keypad_mut);
     memset(&keypad.kpc, 0, sizeof keypad.kpc);
     keypad.touchpad_page = 0x04;
     sched.items[SCHED_KEYPAD].clock = CLOCK_APB;
@@ -123,12 +124,12 @@ void keypad_reset() {
     sched.items[SCHED_KEYPAD].proc = keypad_scan_event;
 }
 
-void touchpad_write(uint8_t addr, uint8_t value) {
+static void touchpad_write(uint8_t addr, uint8_t value) {
     //printf("touchpad write: %02x %02x %02x\n", keypad.touchpad_page, addr, value);
     if (addr == 0xFF)
         keypad.touchpad_page = value;
 }
-uint8_t touchpad_read(uint8_t addr) {
+static uint8_t touchpad_read(uint8_t addr) {
     //printf("touchpad read:  %02x\n", addr);
     if (addr == 0xFF)
         return keypad.touchpad_page;
@@ -274,11 +275,11 @@ read_again:
 
 /* 90050000 */
 void touchpad_cx_reset(void) {
-    std::lock_guard<std::mutex> lg(keypad_mut);
+    std::lock_guard<std::recursive_mutex> lg(keypad_mut);
     keypad.touchpad_cx.state = 0;
 }
 uint32_t touchpad_cx_read(uint32_t addr) {
-    std::lock_guard<std::mutex> lg(keypad_mut);
+    std::lock_guard<std::recursive_mutex> lg(keypad_mut);
     switch (addr & 0xFFFF) {
         case 0x0010:
             if (!keypad.touchpad_cx.reading)
@@ -295,7 +296,7 @@ uint32_t touchpad_cx_read(uint32_t addr) {
     return bad_read_word(addr);
 }
 void touchpad_cx_write(uint32_t addr, uint32_t value) {
-    std::lock_guard<std::mutex> lg(keypad_mut);
+    std::lock_guard<std::recursive_mutex> lg(keypad_mut);
     switch (addr & 0xFFFF) {
         case 0x0010:
             if (keypad.touchpad_cx.state == 0) {
@@ -331,7 +332,7 @@ bool keypad_resume(const emu_snapshot *snapshot)
 
 void keypad_set_key(int row, int col, bool state)
 {
-    std::lock_guard<std::mutex> lg(keypad_mut);
+    std::lock_guard<std::recursive_mutex> lg(keypad_mut);
 
     assert(row < KEYPAD_ROWS);
     assert(col < KEYPAD_COLS);
@@ -347,7 +348,7 @@ void keypad_set_key(int row, int col, bool state)
 
 void touchpad_set_state(float x, float y, bool contact, bool down)
 {
-    std::lock_guard<std::mutex> lg(keypad_mut);
+    std::lock_guard<std::recursive_mutex> lg(keypad_mut);
     if(contact || down)
     {
         int new_x = x * TOUCHPAD_X_MAX,
@@ -363,7 +364,7 @@ void touchpad_set_state(float x, float y, bool contact, bool down)
         if(new_y > TOUCHPAD_Y_MAX)
             new_y = TOUCHPAD_Y_MAX;
 
-        /* On a move, update the r el registers */
+        /* On a move, update the rel registers */
         if(keypad.touchpad_contact)
         {
             int vel_x = new_x - keypad.touchpad_x;
