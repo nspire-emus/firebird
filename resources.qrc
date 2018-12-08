@@ -40,7 +40,6 @@
         <file>qml/FBConfigDialog.qml</file>
         <file>qml/ConfigPageDebug.qml</file>
         <file>qml/Firebird/UIComponents/ConfigPages.qml</file>
-        <file>qml/Firebird/UIComponents/LabeledCheckBox.qml</file>
         <file>qml/ConfigPageKits.qml</file>
         <file>qml/Firebird/UIComponents/KitItem.qml</file>
         <file>qml/Firebird/UIComponents/KitList.qml</file>

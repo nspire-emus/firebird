@@ -269,8 +269,7 @@ SOURCES += qml/Keypad.qml \
     qml/Firebird/UIComponents/FileSelect.qml \
     qml/Firebird/UIComponents/PageDelegate.qml \
     qml/Firebird/UIComponents/PageList.qml \
-    qml/Firebird/UIComponents/ConfigPages.qml \
-    qml/Firebird/UIComponents/LabeledCheckBox.qml
+    qml/Firebird/UIComponents/ConfigPages.qml
 }
 
 # This doesn't exist, but Qt Creator ignores that

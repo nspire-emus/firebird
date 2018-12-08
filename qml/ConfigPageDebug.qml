@@ -27,7 +27,7 @@ ColumnLayout {
         width: parent.width
         Layout.fillWidth: true
 
-        LabeledCheckBox {
+        CheckBox {
             Layout.maximumWidth: parent.parent.width - gdbPort.width
             id: gdbCheckBox
             text: qsTr("Enable GDB stub on Port")
@@ -74,7 +74,7 @@ ColumnLayout {
         width: parent.width
         Layout.fillWidth: true
 
-        LabeledCheckBox {
+        CheckBox {
             Layout.maximumWidth: parent.parent.width - rdbPort.width
             id: rgbCheckBox
             text: qsTr("Enable internal debugger on Port")
@@ -115,7 +115,7 @@ ColumnLayout {
         font.pixelSize: TextMetrics.normalSize
     }
 
-    LabeledCheckBox {
+    CheckBox {
         Layout.maximumWidth: parent.width
         text: qsTr("Enter Debugger on Startup")
 
@@ -126,7 +126,7 @@ ColumnLayout {
         }
     }
 
-    LabeledCheckBox {
+    CheckBox {
         Layout.maximumWidth: parent.width
         text: qsTr("Enter Debugger on Warnings and Errors")
 
@@ -137,7 +137,7 @@ ColumnLayout {
         }
     }
 
-    LabeledCheckBox {
+    CheckBox {
         Layout.maximumWidth: parent.width
         text: qsTr("Print a message on Warnings")
 

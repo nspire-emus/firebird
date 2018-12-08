@@ -34,7 +34,7 @@ ColumnLayout {
         width: parent.width
         Layout.fillWidth: true
 
-        LabeledCheckBox {
+        CheckBox {
             Layout.maximumWidth: parent.parent.width - startupKit.width
             text: qsTr("On Startup, run Kit")
 
@@ -76,7 +76,7 @@ ColumnLayout {
         visible: Qt.platform.os !== "ios"
     }
 
-    LabeledCheckBox {
+    CheckBox {
         text: qsTr("Save snapshot on shutdown")
 
         checked: Emu.suspendOnClose
@@ -103,7 +103,7 @@ ColumnLayout {
         visible: Emu.isMobile()
     }
 
-    LabeledCheckBox {
+    CheckBox {
         text: qsTr("Left-handed mode")
 
         checked: Emu.leftHanded

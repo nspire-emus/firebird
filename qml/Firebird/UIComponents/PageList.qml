@@ -5,9 +5,13 @@ Rectangle {
     property alias currentIndex: listView.currentIndex
     property alias model: listView.model
 
-    color: "white"
+    SystemPalette {
+        id: paletteActive
+    }
+
+    color: paletteActive.base
     border {
-        color: "darkgrey"
+        color: paletteActive.alternateBase
         width: 1
     }
 
@@ -27,7 +31,7 @@ Rectangle {
             highlightMoveDuration: 150
 
             highlight: Rectangle {
-                color: "#40b3d5"
+                color: paletteActive.highlight
                 anchors.horizontalCenter: parent.horizontalCenter
             }
 
