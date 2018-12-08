@@ -163,17 +163,18 @@ bool KitModel::copy(const int row)
     return true;
 }
 
-bool KitModel::remove(const int row)
+bool KitModel::removeRows(int row, int count, const QModelIndex &)
 {
-    if(row < 0 || row >= kits.count())
+	if(row < 0 || row + count - 1 >= kits.count() || count < 1)
         return false;
 
     // Do not remove the last remaining kit
-    if(kits.count() == 1)
+	if(kits.count() == count)
         return false;
 
-    beginRemoveRows({}, row, row);
-    kits.removeAt(row);
+	beginRemoveRows({}, row, row + count - 1);
+	while(count--)
+		kits.removeAt(row);
     endRemoveRows();
 
     emit anythingChanged();

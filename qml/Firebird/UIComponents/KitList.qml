@@ -5,7 +5,7 @@ import Firebird.Emu 1.0
 Rectangle {
     property alias currentItem: listView.currentItem
     property alias currentIndex: listView.currentIndex
-    property alias kitModel: listView.model
+    property alias kitModel: sortedModel.sourceModel
 
     SystemPalette {
         id: paletteActive
@@ -15,6 +15,11 @@ Rectangle {
     border {
         color: paletteActive.alternateBase
         width: 1
+    }
+
+    QSortFilterProxyModel {
+        id: sortedModel
+        sortRole: KitModel.TypeRole
     }
 
     ScrollView {
@@ -31,6 +36,8 @@ Rectangle {
             focus: true
             highlightMoveDuration: 50
             highlightResizeDuration: 0
+
+            model: sortedModel
 
             highlight: Rectangle {
                 color: paletteActive.highlight
@@ -83,7 +90,7 @@ Rectangle {
                     text: qsTr("Remove")
                     visible: parent.ListView.view.currentIndex === index && parent.ListView.view.count > 1
                     onClicked: {
-                        kitModel.remove(index)
+                        kitModel.removeRows(index, 1)
                     }
                 }
 
