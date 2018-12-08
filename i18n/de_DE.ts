@@ -784,7 +784,7 @@ werden sie an das angegebene Verzeichnis gesendet.</translation>
     <message>
         <location filename="../mainwindow.ui" line="684"/>
         <source>&amp;Configuration</source>
-        <translation>&amp;Konfiguration</translation>
+        <translation>K&amp;onfiguration</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="693"/>
