@@ -36,8 +36,8 @@ linux: !android {
     INSTALLS += target desktop icon sendtool
 }
 
-QMAKE_CFLAGS = -g -std=gnu11 -Wall -Wextra
-QMAKE_CXXFLAGS = -g -std=c++11 -Wall -Wextra -D QT_NO_CAST_FROM_ASCII
+QMAKE_CFLAGS += -g -std=gnu11 -Wall -Wextra
+QMAKE_CXXFLAGS += -g -std=c++11 -Wall -Wextra -D QT_NO_CAST_FROM_ASCII
 LIBS += -lz
 
 # Override bad default options to enable better optimizations
@@ -54,8 +54,8 @@ macx: QMAKE_LFLAGS_RELEASE -= -Wl,-O3
 # This became needed, somehow.
 macx|ios: QMAKE_CXXFLAGS += -stdlib=libc++
 
-# ios: The linker can't deal with LLVM bitcode directly (missing plugin?)
-ios {
+# On non-macOS the linker can't deal with LLVM bitcode directly (missing plugin?)
+clang:!macx {
     QMAKE_LFLAGS -= -fno-pie
     QMAKE_CFLAGS_RELEASE -= -flto
     QMAKE_CXXFLAGS_RELEASE -= -flto
@@ -147,7 +147,7 @@ equals(SUPPORT_LINUX, true) {
 }
 
 # Default to armv7 on ARM for movw/movt. If your CPU doesn't support it, comment this out.
-contains(FB_ARCH, "arm") {
+!defined(ANDROID_TARGET_ARCH):contains(FB_ARCH, "arm") {
     QMAKE_CFLAGS += -march=armv7-a -marm
     QMAKE_CXXFLAGS += -march=armv7-a -marm
     QMAKE_LFLAGS += -march=armv7-a -marm # We're using LTO, so the linker has to get the same flags
