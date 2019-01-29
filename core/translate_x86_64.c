@@ -59,6 +59,9 @@ static inline void emit_call_nosave(uintptr_t target) {
 static inline void emit_call(uintptr_t target) {
     //If you change the stack layout, change the usage of in_translation_rsp in translate_fix_pc below as well!
 
+    //The call instruction pushes 8 bytes on the stack, which would violate
+    //the 16 bytes stack alignment. Push an uneven count of regs to counter it.
+
     //TODO: Verify that %rdi isn't that important to save (it's the first arg)
     //emit_byte(0x57); // push %rdi
     emit_byte(0x56); // push %rsi

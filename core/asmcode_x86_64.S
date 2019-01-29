@@ -51,7 +51,9 @@ translation_next: .global translation_next
     jnz     return
 
     mov     ARM_PC(%rbx), %edi
+    push    %rdi // For 16 byte stack alignment (call pushes 8 itself)
     call    read_instruction
+    pop     %rdi
     cmp     $0, %rax
     jz      return
 
