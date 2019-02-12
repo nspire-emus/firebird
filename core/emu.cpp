@@ -132,23 +132,23 @@ void throttle_interval_event(int index)
     gui_do_stuff(true);
 
     if (!turbo_mode)
-		throttle_timer_wait();
+        throttle_timer_wait();
 }
 
 size_t gzip_filesize(const char *path)
 {
     #if __BYTE_ORDER == __LITTLE_ENDIAN
-        int fp = open(path, O_RDONLY);
-        if(fp == -1)
+        FILE *fp = fopen_utf8(path, "rb");
+        if(!fp)
             return false;
 
         // The last four bytes of a gzip file are the uncompressed size (% 2^32)
-        lseek(fp, -4, SEEK_END);
-        size_t ret = 0;
-        if(read(fp, &ret, 4) != 4)
+        fseek(fp, -4, SEEK_END);
+        uint32_t ret = 0;
+        if(fread(&ret, 4, 1, fp) != 1)
             ret = 0;
 
-        close(fp);
+        fclose(fp);
         return ret;
     #else
         #error "Not implemented"
@@ -187,9 +187,21 @@ bool emu_start(unsigned int port_gdb, unsigned int port_rdbg, const char *snapsh
         if(snapshot_size < sizeof(emu_snapshot))
             return false;
 
-        gzFile gzf = gzopen(snapshot_file, "r");
-        if(!gzf)
+        FILE *fp = fopen_utf8(snapshot_file, "rb");
+        if(!fp)
             return false;
+
+        int dupfd = dup(fileno(fp));
+        fclose(fp);
+        fp = nullptr;
+
+        // gzdopen takes ownership of the fd
+        gzFile gzf = gzdopen(dupfd, "r");
+        if(!gzf)
+        {
+            close(dupfd);
+            return false;
+        }
 
         auto snapshot = (struct emu_snapshot *) malloc(snapshot_size);
         if(!snapshot)
@@ -360,7 +372,21 @@ bool emu_suspend(const char *file)
 {
     gui_busy_raii gui_busy;
 
-    gzFile gzf = gzopen(file, "wb");
+    FILE *fp = fopen_utf8(file, "wb");
+    if(!fp)
+        return false;
+
+    int dupfd = dup(fileno(fp));
+    fclose(fp);
+    fp = nullptr;
+
+    // gzdopen takes ownership of the fd
+    gzFile gzf = gzdopen(dupfd, "wb");
+    if(!gzf)
+    {
+        close(dupfd);
+        return false;
+    }
 
     size_t size = sizeof(emu_snapshot) + flash_suspend_flexsize();
     auto snapshot = (struct emu_snapshot *) malloc(size);
