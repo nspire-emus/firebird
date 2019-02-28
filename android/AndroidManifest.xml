@@ -37,7 +37,7 @@
                           "applicationStateChanged(Qt::ApplicationSuspended)"
                           signal is sent! -->
             <meta-data android:name="android.app.background_running" android:value="false"/>
-            <!-- Background running -->
+            <meta-data android:name="android.max_aspect" android:value="2.5"/>
         </activity>
     </application>
     <uses-sdk android:minSdkVersion="16" android:targetSdkVersion="16"/>
