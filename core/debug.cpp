@@ -260,7 +260,7 @@ int process_debug_cmd(char *cmdline) {
             } else {
                 int regi = atoi(reg);
                 int valuei = parse_expr(value);
-                if (regi >= 0 && regi < 15)
+                if (regi >= 0 && regi <= 15)
                     arm.reg[regi] = valuei;
                 else
                     gui_debug_printf("Invalid register.\n");
