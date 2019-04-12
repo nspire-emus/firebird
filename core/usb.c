@@ -276,3 +276,66 @@ bool usb_resume(const emu_snapshot *snapshot)
     usb = snapshot->mem.usb;
     return true;
 }
+
+uint32_t usb_cx2_read_word(uint32_t addr)
+{
+    gui_debug_printf("RW %x\n", addr);
+    switch(addr & 0xFFF)
+    {
+    case 0x010: // USBCMD
+    case 0x014: // USBSTS
+    case 0x018: // USBINTR
+    case 0x01C: // FRINDEX
+    case 0x020: // CTRLDSSEGMENT
+    case 0x024: // PERIODICLISTBASE
+    case 0x028: // ASYNCLISTADDR
+        return usb_read_word(addr - 0x10 + 0x140); // Same as CX, just moved
+    case 0x030: // PORTSC (earlier than the spec...)
+        return usb_read_word(addr - 0x030 + 0x184);
+    case 0x080: // OTGCS
+        return usb_read_word(addr - 0x080 + 0x1A4);
+    default:
+        gui_debug_printf("RW %x\n", addr);
+        return 0;
+    }
+}
+
+void usb_cx2_write_word(uint32_t addr, uint32_t value)
+{
+    gui_debug_printf("WW %x %x\n", addr, value);
+    switch(addr & 0xFFF)
+    {
+    case 0x010: // USBCMD
+    case 0x014: // USBSTS
+    case 0x018: // USBINTR
+    case 0x01C: // FRINDEX
+    case 0x020: // CTRLDSSEGMENT
+    case 0x024: // PERIODICLISTBASE
+    case 0x028: // ASYNCLISTADDR
+        return usb_write_word(addr - 0x10 + 0x140, value); // Same as CX, just moved
+    case 0x030: // PORTSC (earlier than the spec...)
+        return usb_write_word(addr - 0x030 + 0x184, value);
+    default:
+        gui_debug_printf("WW %x %x\n", addr, value);
+    }
+}
+
+uint8_t usb_cx2_read_byte(uint32_t addr)
+{
+    switch(addr & 0xFFF)
+    {
+    case 0x00: // CAPLENGTH
+        return 0x10;
+    }
+    return bad_read_byte(addr);
+}
+
+uint16_t usb_cx2_read_half(uint32_t addr)
+{
+    switch(addr & 0xFFF)
+    {
+    case 0x02: // HCIVERSION
+        return 0x100;
+    }
+    return bad_read_half(addr);
+}
