@@ -327,18 +327,34 @@ bool memory_initialize(uint32_t sdram_size)
     write_half_map[0xAC >> 2] = sdio_write_half;
     write_word_map[0xAC >> 2] = sdio_write_word;
 
-    read_byte_map[0xB0 >> 2] = usb_read_byte;
-    read_half_map[0xB0 >> 2] = usb_read_half;
-    read_word_map[0xB0 >> 2] = usb_read_word;
-    write_word_map[0xB0 >> 2] = usb_write_word;
+    if(!emulate_cx2)
+    {
+        read_byte_map[0xB0 >> 2] = usb_read_byte;
+        read_half_map[0xB0 >> 2] = usb_read_half;
+        read_word_map[0xB0 >> 2] = usb_read_word;
+        write_word_map[0xB0 >> 2] = usb_write_word;
+
+        //TODO: It's a different controller, but for now we use the same state
+        read_byte_map[0xB4 >> 2] = usb_read_byte;
+        read_half_map[0xB4 >> 2] = usb_read_half;
+        read_word_map[0xB4 >> 2] = usb_read_word;
+        write_word_map[0xB4 >> 2] = usb_write_word;
+    }
+    else
+    {
+        read_byte_map[0xB0 >> 2] = usb_cx2_read_byte;
+        read_half_map[0xB0 >> 2] = usb_cx2_read_half;
+        read_word_map[0xB0 >> 2] = usb_cx2_read_word;
+        write_word_map[0xB0 >> 2] = usb_cx2_write_word;
+
+        //TODO: It's a different controller, but for now we use the same state
+        read_byte_map[0xB4 >> 2] = usb_cx2_read_byte;
+        read_half_map[0xB4 >> 2] = usb_cx2_read_half;
+        read_word_map[0xB4 >> 2] = usb_cx2_read_word;
+        write_word_map[0xB4 >> 2] = usb_cx2_write_word;
+    }
     add_reset_proc(usb_reset);
     add_reset_proc(usblink_reset);
-
-    //TODO: It's a different controller, but for now we use the same state
-    read_byte_map[0xB4 >> 2] = usb_read_byte;
-    read_half_map[0xB4 >> 2] = usb_read_half;
-    read_word_map[0xB4 >> 2] = usb_read_word;
-    write_word_map[0xB4 >> 2] = usb_write_word;
 
     read_word_map[0xBC >> 2] = unknown_BC_read_word;
     write_word_map[0xBC >> 2] = unknown_BC_write_word;
