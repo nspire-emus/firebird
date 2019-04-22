@@ -348,8 +348,6 @@ void MainWindow::debugStr(QString str)
 {
     ui->debugConsole->moveCursor(QTextCursor::End);
     ui->debugConsole->insertPlainText(str);
-
-    raiseDebugger();
 }
 
 void MainWindow::debugCommand()
