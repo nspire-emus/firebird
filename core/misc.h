@@ -127,6 +127,7 @@ void watchdog_reset();
 uint32_t watchdog_read(uint32_t addr);
 void watchdog_write(uint32_t addr, uint32_t value);
 
+uint32_t unknown_9008_read(uint32_t addr);
 void unknown_9008_write(uint32_t addr, uint32_t value);
 
 uint32_t rtc_read(uint32_t addr);
@@ -199,7 +200,12 @@ void sdio_write_word(uint32_t addr, uint32_t value);
 uint32_t sramctl_read_word(uint32_t addr);
 void sramctl_write_word(uint32_t addr, uint32_t value);
 
+typedef struct dma_state {
+	uint32_t control;
+} dma_state;
+
 uint32_t unknown_BC_read_word(uint32_t addr);
+void unknown_BC_write_word(uint32_t addr, uint32_t value);
 
 struct adc_channel {
     uint32_t unknown;
@@ -220,6 +226,10 @@ bool adc_resume(const emu_snapshot *snapshot);
 void adc_reset();
 uint32_t adc_read_word(uint32_t addr);
 void adc_write_word(uint32_t addr, uint32_t value);
+
+// CX2: 0x900B0000
+uint32_t adc_cx2_read_word(uint32_t addr);
+void adc_cx2_write_word(uint32_t addr, uint32_t value);
 
 #ifdef __cplusplus
 }

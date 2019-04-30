@@ -26,7 +26,7 @@ struct mem_area_desc {
     uint32_t base, size;
     uint8_t *ptr;
 };
-extern struct mem_area_desc mem_areas[4];
+extern struct mem_area_desc mem_areas[5];
 void *phys_mem_ptr(uint32_t addr, uint32_t size);
 uint32_t phys_mem_addr(void *ptr);
 

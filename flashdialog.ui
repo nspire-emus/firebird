@@ -296,6 +296,11 @@
          <string notr="true">CX CAS</string>
         </property>
        </item>
+       <item>
+        <property name="text">
+         <string notr="true">CX II CAS</string>
+        </property>
+       </item>
       </widget>
      </item>
      <item>

@@ -27,6 +27,8 @@ void cpu_arm_loop()
     {
         arm.reg[15] &= ~0x3; // Align PC
         Instruction *p = static_cast<Instruction*>(read_instruction(arm.reg[15]));
+        if(!p)
+            error("Jumped out of memory\n");
 
         #ifdef BENCHMARK
             static clock_t start = 0;

@@ -52,7 +52,9 @@ extern uint32_t product, features, asic_user_flags;
 #define emulate_casplus (product == 0x0C0)
 // 0C-0E (CAS, lab cradle, plain Nspire) use old ASIC
 // 0F-12 (CX CAS, CX, CM CAS, CM) use new ASIC
+// 1C-1E (CX II CAS, CX II, CX II T) use an even newer ASIC
 #define emulate_cx (product >= 0x0F0)
+#define emulate_cx2 (product >= 0x1C0)
 extern bool turbo_mode;
 
 enum { LOG_CPU, LOG_IO, LOG_FLASH, LOG_INTS, LOG_ICOUNT, LOG_USB, LOG_GDB, MAX_LOG };
