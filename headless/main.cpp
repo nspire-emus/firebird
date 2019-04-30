@@ -65,6 +65,7 @@ void throttle_timer_wait() {}
 int main(int argc, char *argv[])
 {
 	const char *boot1 = nullptr, *flash = nullptr, *snapshot = nullptr, *rampayload = nullptr;
+	uint32_t rampayload_base = 0x10000000;
 
 	for(int argi = 1; argi < argc; ++argi)
 	{
@@ -76,6 +77,8 @@ int main(int argc, char *argv[])
 			snapshot = argv[++argi];
 		else if(strcmp(argv[argi], "--rampayload") == 0)
 			rampayload = argv[++argi];
+		else if(strcmp(argv[argi], "--rampayload-address") == 0)
+			rampayload_base = strtol(argv[++argi], nullptr, 0);
 		else if(strcmp(argv[argi], "--debug-on-start") == 0)
 			debug_on_start = true;
 		else if(strcmp(argv[argi], "--debug-on-warn") == 0)
@@ -110,7 +113,18 @@ int main(int argc, char *argv[])
 			return 3;
 		}
 
-		if(fread(mem_areas[1].ptr, 1, mem_areas[1].size, f) < 0)
+		fseek(f, 0, SEEK_END);
+		size_t size = ftell(f);
+		rewind(f);
+
+		void *target = phys_mem_ptr(rampayload_base, size);
+		if(!target)
+		{
+			fprintf(stderr, "RAM payload too big");
+			return 5;
+		}
+
+		if(fread(target, size, 1, f) != 1)
 		{
 			perror("Could not read RAM payload");
 			return 4;
@@ -119,7 +133,7 @@ int main(int argc, char *argv[])
 		fclose(f);
 
 		// Jump to payload
-		arm.reg[15] = mem_areas[1].base;
+		arm.reg[15] = rampayload_base;
 	}
 
 	turbo_mode = true;
