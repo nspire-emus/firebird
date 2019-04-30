@@ -134,6 +134,9 @@ void lcd_cx_draw_frame(uint16_t *buffer) {
     else
         bpp = 16;
 
+    if(lcd.cursor_control & 1)
+        warn("LCD cursor not implemented yet");
+
     // HW-W features a new 240x320 LCD instead of the usual 320x240px one
     if((features & FEATURE_HWW) == FEATURE_HWW)
         lcd_cx_w_draw_frame(buffer);
@@ -267,6 +270,18 @@ uint32_t lcd_read_word(uint32_t addr) {
         }
     } else if (offset < 0x400) {
         return *(uint32_t *)((uint8_t *)lcd.palette + offset - 0x200);
+    } else if ((emulate_cx || emulate_cx2) && offset < 0xC30) {
+        switch (offset) {
+        case 0xC00: return lcd.cursor_control;
+        case 0xC04: return lcd.cursor_config;
+        case 0xC08: return lcd.cursor_palette[0];
+        case 0xC0C: return lcd.cursor_palette[1];
+        case 0xC10: return lcd.cursor_xy;
+        case 0xC14: return lcd.cursor_clip;
+        case 0xC20: return lcd.cursor_int_mask;
+        case 0xC28: return lcd.cursor_int_status;
+        case 0xC2C: return lcd.cursor_int_status & lcd.cursor_int_mask;
+        }
     } else if (offset >= 0xFE0) {
         static const uint8_t id[2][8] = {
             /* ARM PrimeCell Color LCD Controller (PL110), Revision 2 */
@@ -313,6 +328,17 @@ write_control:
     } else if (offset < 0x400) {
         *(uint32_t *)((uint8_t *)lcd.palette + offset - 0x200) = value;
         return;
+    } else if ((emulate_cx || emulate_cx2) && offset < 0xC30) {
+        switch (offset) {
+        case 0xC00: lcd.cursor_control = value; return;
+        case 0xC04: lcd.cursor_config = value; return;
+        case 0xC08: lcd.cursor_palette[0] = value; return;
+        case 0xC0C: lcd.cursor_palette[1] = value; return;
+        case 0xC10: lcd.cursor_xy = value; return;
+        case 0xC14: lcd.cursor_clip = value; return;
+        case 0xC20: lcd.cursor_int_mask = value; return;
+        case 0xC24: lcd.cursor_int_status &= ~value; return;
+        }
     }
     bad_write_word(addr, value);
     return;

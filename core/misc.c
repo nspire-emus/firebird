@@ -405,11 +405,24 @@ void watchdog_write(uint32_t addr, uint32_t value) {
     bad_write_word(addr, value);
 }
 
-/* 90080000 */
+/* 90080000: also an FTSSP010 */
+uint32_t unknown_9008_read(uint32_t addr) {
+    switch (addr & 0xFFFF) {
+        case 0x00: return 0;
+        case 0x08: return 0;
+        case 0x10: return 0;
+        case 0x1C: return 0;
+        case 0x60: return 0;
+        case 0x64: return 0;
+    }
+    return bad_read_word(addr);
+}
+
 void unknown_9008_write(uint32_t addr, uint32_t value) {
     switch (addr & 0xFFFF) {
-        case 0x8: return;
-        case 0xC: return;
+        case 0x00: return;
+        case 0x08: return;
+        case 0x0C: return;
         case 0x10: return;
         case 0x14: return;
         case 0x18: return;
@@ -467,7 +480,14 @@ uint32_t misc_read(uint32_t addr) {
     { 0x8C000000, 0x00000002 },
 };
     switch (addr & 0x0FFF) {
-        case 0x00: return emulate_cx ? 0x101 : 0x01000010;
+        case 0x00: {
+            if(emulate_cx2)
+                return 0x202;
+            else if(emulate_cx)
+                return 0x101;
+
+            return 0x01000010;
+        }
         case 0x04: return 0;
         case 0x0C: return 0;
         case 0x10: case 0x18: case 0x20:
@@ -865,13 +885,24 @@ void sramctl_write_word(uint32_t addr, uint32_t value) {
     return;
 }
 
-/* BC000000 */
+/* BC000000: Likely an FTDMAC020 */
+static dma_state dma;
+
 uint32_t unknown_BC_read_word(uint32_t addr) {
     switch (addr & 0x3FFFFFF) {
         case 0xC: return 0;
         case 0x1C: return 0;
+        case 0x24: return dma.control;
     }
     return bad_read_word(addr);
+}
+
+void unknown_BC_write_word(uint32_t addr, uint32_t value) {
+    switch (addr & 0x3FFFFFF) {
+        case 0x24: dma.control = value; return;
+    }
+
+    bad_write_word(addr, value);
 }
 
 /* C4000000: ADC (Analog-to-Digital Converter) */
@@ -963,4 +994,19 @@ void adc_write_word(uint32_t addr, uint32_t value) {
     }
     bad_write_word(addr, value);
     return;
+}
+
+// Not really implemented
+uint32_t adc_cx2_read_word(uint32_t addr)
+{
+    (void) addr;
+    return 0x6969;
+}
+
+void adc_cx2_write_word(uint32_t addr, uint32_t value)
+{
+    (void) addr;
+    (void) value;
+    // It expects an IRQ on writing something
+    int_set(INT_ADC, 1);
 }
