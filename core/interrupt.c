@@ -108,10 +108,32 @@ void int_write_word(uint32_t addr, uint32_t value) {
 }
 
 static void update_cx() {
-    if (intr.active & intr.mask[0] & ~intr.mask[1])
+    uint32_t active_irqs = intr.active & intr.mask[0] & ~intr.mask[1];
+    if (active_irqs != 0)
+    {
+        // Fallback first
+        intr.irq_handler_cur = intr.irq_handler_def;
+
+        // Vectored handling enabled?
+        for(unsigned int i = 0; i < sizeof(intr.irq_ctrl_vect)/sizeof(intr.irq_ctrl_vect[0]); ++i)
+        {
+            uint8_t ctrl = intr.irq_ctrl_vect[i];
+            if((ctrl & 0x20) == 0)
+                continue; // Disabled
+
+            if(active_irqs & (1 << (ctrl & 0x1F)))
+            {
+                // Vector enabled and active
+                intr.irq_handler_cur = intr.irq_addr_vect[i];
+                break;
+            }
+        }
+
         arm.interrupts |= 0x80;
+    }
     else
         arm.interrupts &= ~0x80;
+
     if (intr.active & intr.mask[0] & intr.mask[1])
         arm.interrupts |= 0x40;
     else
@@ -120,23 +142,39 @@ static void update_cx() {
 }
 
 uint32_t int_cx_read_word(uint32_t addr) {
-    switch (addr & 0x3FFFFFF) {
-        case 0x000: return intr.active & intr.mask[0] & ~intr.mask[1];
-        case 0x004: return intr.active & intr.mask[0] & intr.mask[1];
-        case 0x008: return intr.active;
-        case 0x00C: return intr.mask[1];
-        case 0x010: return intr.mask[0];
-        case 0x030: return 0x00; // Not used AFAIK
-        case 0xFE0: return 0x90;
-        case 0xFE4: return 0x11;
-        case 0xFE8: return 0x04;
-        case 0xFEC: return 0x00;
+    uint32_t offset = addr & 0x3FFFFFF;
+    if(offset < 0x100)
+    {
+        switch(offset)
+        {
+        case 0x00: return intr.active & intr.mask[0] & ~intr.mask[1];
+        case 0x04: return intr.active & intr.mask[0] & intr.mask[1];
+        case 0x08: return intr.active;
+        case 0x0C: return intr.mask[1];
+        case 0x10: return intr.mask[0];
+        case 0x30: return intr.irq_handler_cur;
+        case 0x34: return intr.irq_handler_def;
+        }
     }
+    else if(offset < 0x300)
+    {
+        uint8_t entry = (offset & 0xFF) >> 2;
+        if(entry < 16)
+        {
+            if(offset < 0x200)
+                return intr.irq_addr_vect[entry];
+            else
+                return intr.irq_ctrl_vect[entry];
+        }
+    }
+    else if(offset >= 0xFE0 && offset < 0x1000) // ID regs
+        return (uint32_t[]){0x90, 0x11, 0x04, 0x00, 0x0D, 0xF0, 0x05, 0x81}[(offset - 0xFE0) >> 2];
+
     return bad_read_word(addr);
 }
 void int_cx_write_word(uint32_t addr, uint32_t value) {
     uint32_t offset = addr & 0x3FFFFFF;
-    if(offset < 0x200)
+    if(offset < 0x100)
     {
         switch(offset)
         {
@@ -145,13 +183,25 @@ void int_cx_write_word(uint32_t addr, uint32_t value) {
         case 0x010: intr.mask[0] |= value; update_cx(); return;
         case 0x014: intr.mask[0] &= ~value; update_cx(); return;
         case 0x01C: return;
-        case 0x030: return;
-        case 0x034: return; // Not used AFAIK
-        case 0x10C: return;
+        case 0x030: /* An ack, but ignored here. */ return;
+        case 0x034: intr.irq_handler_def = value; return;
         }
     }
-    else if(offset <= 0x300)
-        return; // Not used AFAIK
+    else if(offset < 0x300)
+    {
+        uint8_t entry = (offset & 0xFF) >> 2;
+        if(entry < 16)
+        {
+            if(offset < 0x200)
+                intr.irq_addr_vect[entry] = value;
+            else
+                intr.irq_ctrl_vect[entry] = value;
+
+            return;
+        }
+    }
+    else if(offset == 0x34c)
+        return; // No idea. Bug?
 
     bad_write_word(addr, value);
     return;

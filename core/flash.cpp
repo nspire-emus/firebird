@@ -744,6 +744,16 @@ bool flash_read_settings(uint32_t *sdram_size, uint32_t *product, uint32_t *feat
         return true;
     }
 
+    if((*(uint16_t *)&nand_data[0] & 0xF0FF) == 0x0050) {
+        // TODO: Parse new manuf
+        // CX II CAS
+        *sdram_size = 64 * 1024 * 1024;
+        *features = 0;
+        *asic_user_flags = 0;
+        *product = 0x1C0;
+        return true;
+    }
+
     struct manuf_data_804 *manuf = (struct manuf_data_804 *)&nand_data[0x844];
     *product = manuf->product << 4 | manuf->revision;
 
@@ -774,6 +784,9 @@ std::string flash_read_type(FILE *flash)
 
     if(i == 0xFFFFFFFF)
         return "CAS+";
+
+    if((i & 0xF0FF) == 0x0050)
+        return "CX II something"; // TODO: Parse new manuf
 
     if((fseek(flash, 0x844 - sizeof(i), SEEK_CUR) != 0)
     || (fread(&manuf, sizeof(manuf), 1, flash) != 1))
@@ -912,6 +925,10 @@ void flash_set_bootorder(BootOrder order)
     if(order == ORDER_DEFAULT)
         return;
 
+    // CX II
+    if((*(uint16_t *)&nand_data[0] & 0xF0FF) == 0x0050)
+        return;
+
     size_t bootdata_offset = flash_partition_offset(PartitionBootdata, &nand.metrics, nand_data);
 
     if(*(uint32_t*)(nand_data + bootdata_offset) != 0x928cc6aa)
@@ -931,4 +948,458 @@ void flash_set_bootorder(BootOrder order)
         ecc_fix(nand_data, nand.metrics, page);
         bootdata_offset += nand.metrics.page_size;
     }
+}
+
+enum class FlashSPICmd : uint8_t {
+    GET_FEATURES        = 0x0F,
+    SET_FEATURES        = 0x1F,
+    READ_FROM_CACHE     = 0x0B,
+    READ_FROM_CACHE_x4  = 0x6B,
+    PROGRAM_EXECUTE     = 0x10,
+    READ_PAGE           = 0x13,
+    BLOCK_ERASE         = 0xD8,
+    PROGRAM_LOAD        = 0x02,
+    PROGRAM_LOAD_x4     = 0x32,
+    PROGRAM_LOAD_RANDOM_DATA = 0x84,
+    PROGRAM_LOAD_RANDOM_DATA_x4 = 0x34,
+    WRITE_DISABLE       = 0x04,
+    WRITE_ENABLE        = 0x06,
+};
+
+struct flash_param_page_struct {
+    char        signature[4];
+    uint16_t    revision;
+    uint16_t    features;
+    uint16_t    optional_commands;
+    char        reserved0[22];
+    char        manufacturer[12];
+    char        model[20];
+    uint8_t     manuf_id;
+    uint16_t    date_code;
+    uint8_t     reserved1[13];
+    uint32_t    page_data_size;
+    uint16_t    page_spare_size;
+    uint32_t    partial_page_data_size;
+    uint16_t    partial_page_spare_size;
+    uint32_t    pages_per_block;
+    uint32_t    blocks_per_unit;
+    uint8_t     count_logical_units;
+    uint8_t     address_cycles;
+    uint8_t     bits_per_cell;
+    uint16_t    bad_blocks_per_unit_max;
+    uint16_t    block_endurance;
+    uint8_t     guaranteed_valid_blocks;
+    uint8_t     programs_per_page;
+    uint8_t     toolazytotype[17];
+    uint8_t     pin_capacitance;
+    uint16_t    timing[2];
+    uint16_t    time_max_prog;
+    uint16_t    time_max_erase;
+    uint16_t    time_max_read;
+    uint8_t     toolazy[27];
+    uint16_t    rev_vendor;
+    uint8_t     vendor_data[88];
+    uint16_t    crc;
+} __attribute__((packed));
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wmissing-field-initializers"
+static const flash_param_page_struct param_page_micron = {
+    .signature = {'O', 'N', 'F', 'I'},
+    .optional_commands = 6,
+    .manufacturer = {'M','I','C','R','O','N',' ',' ',' ',' ',' ',' '},
+    .model = {'M','T','2','9','F','1','G','0','1','A','A','A','D','D','H','4',' ',' ',' ',' '},
+    .manuf_id = 0x2C,
+    .page_data_size = 2048,
+    .page_spare_size = 64,
+    .partial_page_data_size = 512,
+    .partial_page_spare_size = 16,
+    .pages_per_block = 64,
+    .blocks_per_unit = 1024,
+    .count_logical_units = 1,
+    .bits_per_cell = 1,
+    .bad_blocks_per_unit_max = 20,
+    .block_endurance = 0x501,
+    .programs_per_page = 4,
+    .pin_capacitance = 10,
+    .time_max_prog = 900,
+    .time_max_erase = 10000,
+    .time_max_read = 100,
+    .rev_vendor = 1
+};
+#pragma GCC diagnostic pop
+
+void flash_spi_reset()
+{
+    memset(&nand.spi, 0, sizeof(nand.spi));
+    memset(nand.nand_buffer, 0xFF, sizeof(nand.nand_buffer));
+    assert(sizeof(param_page_micron) == 256);
+}
+
+static uint8_t flash_spi_transceive(uint8_t data = 0x00)
+{
+    uint8_t ret = 0;
+    switch(nand.state)
+    {
+    case SPI_COMMAND: // Command cycle
+        nand.spi.command = data;
+
+        nand.spi.address = 0;
+        nand.nand_addr_state = 0;
+        nand.spi.address_cycles_total = 0;
+        nand.spi.dummy_cycles_remaining = 0;
+
+        switch(FlashSPICmd(nand.spi.command))
+        {
+        case FlashSPICmd::GET_FEATURES:
+        case FlashSPICmd::SET_FEATURES:
+            nand.spi.address_cycles_total = 1;
+            break;
+        case FlashSPICmd::READ_FROM_CACHE:
+        case FlashSPICmd::READ_FROM_CACHE_x4:
+            nand.spi.address_cycles_total = 2;
+            nand.spi.dummy_cycles_remaining = 1;
+            break;
+        case FlashSPICmd::PROGRAM_EXECUTE:
+        case FlashSPICmd::READ_PAGE:
+        case FlashSPICmd::BLOCK_ERASE:
+            nand.spi.address_cycles_total = 3;
+            break;
+        case FlashSPICmd::PROGRAM_LOAD:
+        case FlashSPICmd::PROGRAM_LOAD_x4:
+            memset(nand.nand_buffer, 0xFF, sizeof(nand.nand_buffer));
+            /* fallthrough */
+        case FlashSPICmd::PROGRAM_LOAD_RANDOM_DATA:
+        case FlashSPICmd::PROGRAM_LOAD_RANDOM_DATA_x4:
+            nand.spi.address_cycles_total = 2;
+            break;
+        case FlashSPICmd::WRITE_DISABLE:
+            nand.nand_writable = false;
+            break;
+        case FlashSPICmd::WRITE_ENABLE:
+            nand.nand_writable = true;
+            break;
+        default:
+            warn("Unknown flash SPI command %x", data);
+        }
+
+        nand.state = SPI_ADDRESS;
+        break;
+    case SPI_ADDRESS: // Address cycles
+        nand.spi.address |= data << (nand.nand_addr_state * 8);
+        nand.nand_addr_state += 1;
+
+        if(nand.nand_addr_state == nand.spi.address_cycles_total)
+        {
+            nand.state = nand.spi.dummy_cycles_remaining ? SPI_DUMMY : SPI_DATA;
+            switch(FlashSPICmd(nand.spi.command))
+            {
+            case FlashSPICmd::READ_PAGE:
+            {
+                auto page_size = param_page_micron.page_data_size + param_page_micron.page_spare_size;
+                memcpy(nand.nand_buffer, &nand_data[nand.spi.address * page_size], page_size);
+                break;
+            }
+            case FlashSPICmd::BLOCK_ERASE:
+            {
+                if(!nand.nand_writable)
+                    break;
+
+                auto page_size = param_page_micron.page_data_size + param_page_micron.page_spare_size;
+                auto block_size = param_page_micron.pages_per_block * page_size;
+                auto block_number = nand.spi.address / param_page_micron.pages_per_block;
+                memset(nand_data + (block_number * block_size), 0xFF, block_size);
+                nand.nand_block_modified[block_number] = true;
+                break;
+            }
+            case FlashSPICmd::PROGRAM_EXECUTE:
+            {
+                if(!nand.nand_writable)
+                    break;
+
+                auto page_size = param_page_micron.page_data_size + param_page_micron.page_spare_size;
+                auto page_pointer = &nand_data[page_size * nand.spi.address];
+                for(size_t i = 0; i < page_size; ++i)
+                    page_pointer[i] &= nand.nand_buffer[i];
+
+                nand.nand_block_modified[nand.spi.address / param_page_micron.pages_per_block] = true;
+                break;
+            }
+            case FlashSPICmd::READ_FROM_CACHE:
+            case FlashSPICmd::READ_FROM_CACHE_x4:
+            case FlashSPICmd::PROGRAM_LOAD:
+            case FlashSPICmd::PROGRAM_LOAD_x4:
+            case FlashSPICmd::PROGRAM_LOAD_RANDOM_DATA:
+            case FlashSPICmd::PROGRAM_LOAD_RANDOM_DATA_x4:
+                nand.spi.address &= ~0x1000; // Ignore the plane bit
+                break;
+            case FlashSPICmd::GET_FEATURES:
+            case FlashSPICmd::SET_FEATURES:
+                break;
+            default:
+                warn("Unhandled?");
+            }
+        }
+
+        break;
+    case SPI_DUMMY: // Dummy cycles
+        if(--nand.spi.dummy_cycles_remaining == 0)
+            nand.state = SPI_DATA;
+        break;
+    case SPI_DATA: // Data cycles
+        switch(FlashSPICmd(nand.spi.command))
+        {
+        case FlashSPICmd::PROGRAM_LOAD:
+        case FlashSPICmd::PROGRAM_LOAD_x4:
+        case FlashSPICmd::PROGRAM_LOAD_RANDOM_DATA:
+        case FlashSPICmd::PROGRAM_LOAD_RANDOM_DATA_x4:
+            if(nand.spi.address < sizeof(nand.nand_buffer))
+                nand.nand_buffer[nand.spi.address] = data;
+            /* The OS does that all the time - writing 128 bytes into a 64 OOB area :-/
+             * They are never read back though, so ignoring should be fine.
+             * else
+             *  warn("Write past end of page\n");
+             */
+
+            break;
+        case FlashSPICmd::GET_FEATURES:
+            switch(nand.spi.address)
+            {
+            case 0xA0: // Block lock
+            case 0xB0: // OTP
+                ret = 0;
+                break;
+            case 0xC0: // Status
+                ret = nand.nand_writable << 1;
+                break;
+            default:
+                warn("Unknown status register %x\n", nand.spi.address);
+            }
+            break;
+        case FlashSPICmd::READ_FROM_CACHE:
+        case FlashSPICmd::READ_FROM_CACHE_x4:
+            if(nand.spi.param_page_active)
+            {
+                auto param_page_raw = reinterpret_cast<const uint8_t*>(&param_page_micron);
+                ret = param_page_raw[nand.spi.address & 0xFF];
+            }
+            else
+            {
+                if(nand.spi.address < sizeof(nand.nand_buffer))
+                    ret = nand.nand_buffer[nand.spi.address];
+                else
+                    warn("Read past end of page\n");
+            }
+            break;
+        case FlashSPICmd::SET_FEATURES:
+            if(nand.spi.address == 0xb0 && data == 0x0)
+                nand.spi.param_page_active = false;
+            else if(nand.spi.address == 0xb0 && data == 0x40)
+                nand.spi.param_page_active = true;
+            else
+                warn("Unknown SET FEATURE request %x at %x", data, nand.spi.address);
+            break;
+        default:
+            warn("Data cycle with unknown command");
+            break;
+        }
+
+        nand.spi.address += 1;
+        break;
+    }
+
+    return ret;
+}
+
+static void flash_spi_cs(bool enabled)
+{
+    if(enabled)
+        return;
+
+    if(nand.nand_addr_state < nand.spi.address_cycles_total
+       || nand.spi.dummy_cycles_remaining)
+        warn("CS disabled before command complete");
+
+    nand.state = SPI_COMMAND;
+}
+
+struct nand_cx2_state nand_cx2_state;
+
+/* SPI multiplexing - depending on the currently active chip select line,
+ * the SPI transmissions end up in different places. */
+static uint8_t spinand_cx2_transceive(uint8_t data=0x00)
+{
+    switch(nand_cx2_state.active_cs)
+    {
+    case 1: // NAND
+        return flash_spi_transceive(data);
+    case 0: // Not connected
+    case 2:
+    case 3:
+        return 0;
+    default:
+        warn("Unknown chip select %d\n", nand_cx2_state.active_cs);
+        return 0;
+    case 0xFF:
+        warn("Transmission without chip select active\n");
+        return 0;
+    }
+}
+
+static void spinand_cx2_set_cs(uint8_t cs, bool state)
+{
+    nand_cx2_state.active_cs = state ? cs : 0xFF;
+
+    switch(cs)
+    {
+    case 1: // NAND
+        return flash_spi_cs(state);
+    case 0: // Not connected
+    case 2:
+    case 3:
+        return;
+    default:
+        warn("Unknown chip select %d\n", cs);
+        return;
+    }
+}
+
+uint32_t spinand_cx2_read_word(uint32_t addr)
+{
+	switch(addr & 0xFFFF)
+	{
+    case 0x000: // REG_CMD0: Address
+        return nand_cx2_state.addr;
+    case 0x004: // REG_CMD1: No. of cmd, addr and dummy cycles
+        return nand_cx2_state.cycl;
+    case 0x008: // REG_CMD2: No. of data bytes
+        return nand_cx2_state.len;
+    case 0x00c: // REG_CMD3: Command
+        return nand_cx2_state.cmd;
+    case 0x010: // REG_CTRL: Control
+        return nand_cx2_state.ctrl;
+    case 0x018: // REG_STR: Status
+        return 0b11; // Data available, FIFO not full
+    case 0x020: // REG_ICR: Interrupt control
+        return nand_cx2_state.icr;
+    case 0x024: // REG_ISR: Interrupt status
+        return nand_cx2_state.isr;
+    case 0x028: // REG_RDST: Status register
+        return nand_cx2_state.rdsr;
+    case 0x054: // REG_FEA: Features
+        return 0x02022020;
+    case 0x100: // REG_DATA: Data words
+    {
+        if(nand_cx2_state.cmd & 0x2)
+            return 0; // Write only command
+
+        uint32_t data = 0;
+        for(int i = 0; i < 4 && nand_cx2_state.len_cur; i++, nand_cx2_state.len_cur--)
+            data |= spinand_cx2_transceive(0) << (i << 3);
+
+        if(!nand_cx2_state.len_cur)
+        {
+            spinand_cx2_set_cs(nand_cx2_state.active_cs, false);
+            nand_cx2_state.isr |= 1;
+            //int_set(INT_SPINAND, nand_cx2_state.isr & nand_cx2_state.icr);
+        }
+        return data;
+    }
+	}
+
+    return bad_read_word(addr);
+}
+
+uint8_t spinand_cx2_read_byte(uint32_t addr)
+{
+    return spinand_cx2_read_word(addr);
+}
+
+void spinand_cx2_write_word(uint32_t addr, uint32_t value)
+{
+    switch(addr & 0xFFFF)
+    {
+    case 0x000: // REG_CMD0: Address
+        nand_cx2_state.addr = value;
+        return;
+    case 0x004: // REG_CMD1: No. of cmd, addr and dummy cycles
+        nand_cx2_state.cycl = value;
+        return;
+    case 0x008: // REG_CMD2: No. of data bytes
+        nand_cx2_state.len_cur = nand_cx2_state.len = value;
+        return;
+    case 0x00c: // REG_CMD3: Command
+    {
+        nand_cx2_state.cmd = value;
+        uint8_t cs = (nand_cx2_state.cmd >> 8) & 0x3;
+
+        // Toggle CS
+        spinand_cx2_set_cs(cs, false);
+        spinand_cx2_set_cs(cs, true);
+
+        uint8_t cmd = nand_cx2_state.cmd >> 24;
+
+        unsigned int cycl;
+        for(cycl = 0; cycl < std::min((nand_cx2_state.cycl >> 24) & 3, 2u); cycl++)
+            spinand_cx2_transceive(cmd); // Command cycle
+
+        for(cycl = 0; cycl < std::min(nand_cx2_state.cycl & 7, 4u); cycl++)
+            spinand_cx2_transceive(nand_cx2_state.addr >> (cycl << 3)); // Address cycle
+
+        for(cycl = 0; cycl < ((nand_cx2_state.cycl >> 19) & 0x1F); cycl++)
+            spinand_cx2_transceive(0); // Dummy cycle
+
+        if((nand_cx2_state.cmd & 0x6) == 0x4)
+        {
+            // Read status into rdsr
+            do {
+                nand_cx2_state.rdsr = spinand_cx2_transceive();
+                if(nand_cx2_state.cmd & 0x8)
+                    break; // Only once
+            }
+            while(nand_cx2_state.rdsr & (1 << nand_cx2_state.wip));
+        }
+
+        if(nand_cx2_state.len_cur == 0)
+            spinand_cx2_set_cs(cs, false);
+
+        //if(cmd & 0x1)
+            nand_cx2_state.isr |= 1;
+
+        //int_set(INT_SPINAND, nand_cx2_state.isr & nand_cx2_state.icr);
+        return;
+    }
+    case 0x010: // REG_CTRL: Control
+        nand_cx2_state.ctrl = value & 0x70013;
+        nand_cx2_state.wip = (value >> 16) & 0x7;
+        return;
+    case 0x020: //  REG_ICR: Interrupt control
+        nand_cx2_state.icr = value;
+        return;
+    case 0x024: //  REG_ISR: Interrupt status
+        nand_cx2_state.isr &= ~value; // Clear bits
+        return;
+    case 0x100: // REG_DATA: Data words
+        if((nand_cx2_state.cmd & 0x2) == 0)
+            return; // Read only command
+
+        for(int i = 0; i < 4 && nand_cx2_state.len_cur > 0; i++, nand_cx2_state.len_cur--)
+            spinand_cx2_transceive(value >> (i << 3));
+
+        if(nand_cx2_state.len_cur == 0)
+        {
+            spinand_cx2_set_cs(nand_cx2_state.active_cs, false);
+            nand_cx2_state.isr |= 1;
+            //int_set(INT_SPINAND, nand_cx2_state.isr & nand_cx2_state.icr);
+        }
+
+        return;
+    }
+
+    return bad_write_word(addr, value);
+}
+
+void spinand_cx2_write_byte(uint32_t addr, uint8_t value)
+{
+    return spinand_cx2_write_word(addr, value);
 }

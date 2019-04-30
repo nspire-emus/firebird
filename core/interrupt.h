@@ -31,6 +31,12 @@ typedef struct interrupt_state {
 	uint32_t noninverted;        // +200: which interrupts not to invert in .raw_status
 	uint32_t sticky;             // +204: which interrupts to use .sticky_status
 	uint8_t  priority[32];       // +3xx: priority per interrupt (0=max, 7=min)
+
+	// CX, PL190 vectored interrupt handling
+	uint32_t irq_handler_cur;    // +x30: address of the current IRQ handler
+	uint32_t irq_handler_def;    // +x34: address of the default IRQ handler
+	uint32_t irq_addr_vect[16];  // +100: address of the vectored IRQ handler
+	uint8_t  irq_ctrl_vect[16];  // +200: configuration for the vector
 } interrupt_state;
 
 extern interrupt_state intr;
