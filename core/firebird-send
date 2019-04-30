@@ -46,7 +46,8 @@ if [ $# -ge 2 ]; then
 fi
 
 NC_ARGS=
-nc -N 2>&1 | grep -q "invalid option" || NC_ARGS=-N
+nc -c 2>&1 | grep -q "missing hostname" && NC_ARGS="-c"
+nc -q 0 2>&1 | grep -q "invalid option" || NC_ARGS="-q 0"
 nc ${NC_ARGS} localhost "$rdebug_port" <<EOT
 $st_cmd
 ln s ${abs_tns_path}
