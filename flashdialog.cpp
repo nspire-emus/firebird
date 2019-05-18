@@ -44,7 +44,7 @@ QString FlashDialog::readVersion(QString path)
 
 void FlashDialog::selectBoot2()
 {
-    QString path = QFileDialog::getOpenFileName(this, trUtf8("Select Boot2"));
+    QString path = QFileDialog::getOpenFileName(this, tr("Select Boot2"));
     if(path.isEmpty() || !QFile(path).exists())
     {
         boot2_path = QString();
@@ -58,7 +58,7 @@ void FlashDialog::selectBoot2()
 
 void FlashDialog::selectManuf()
 {
-    QString path = QFileDialog::getOpenFileName(this, trUtf8("Select Manuf"));
+    QString path = QFileDialog::getOpenFileName(this, tr("Select Manuf"));
     if(path.isEmpty() || !QFile(path).exists())
     {
         manuf_path = QString();
@@ -76,7 +76,7 @@ const QString os_ext[] = { QStringLiteral("*.tno"), QStringLiteral("*.tnc"), QSt
 
 void FlashDialog::selectOS()
 {
-    QString path = QFileDialog::getOpenFileName(this, trUtf8("Select OS file"), QString(), os_ext[ui->selectModel->currentIndex()]);
+    QString path = QFileDialog::getOpenFileName(this, tr("Select OS file"), QString(), os_ext[ui->selectModel->currentIndex()]);
     if(path.isEmpty() || !QFile(path).exists())
     {
         os_path = QString();
@@ -110,7 +110,7 @@ void FlashDialog::selectOS()
 
 void FlashDialog::selectDiags()
 {
-    QString path = QFileDialog::getOpenFileName(this, trUtf8("Select Diags"));
+    QString path = QFileDialog::getOpenFileName(this, tr("Select Diags"));
     if(path.isEmpty() || !QFile(path).exists())
     {
         diags_path = QString();
@@ -136,7 +136,7 @@ const unsigned int feature_values[] = { FEATURE_CX, FEATURE_HWJ, FEATURE_HWW };
 
 void FlashDialog::saveAs()
 {
-    QString path = QFileDialog::getSaveFileName(this, trUtf8("Save flash image"));
+    QString path = QFileDialog::getSaveFileName(this, tr("Save flash image"));
     if(path.isEmpty())
         return;
 

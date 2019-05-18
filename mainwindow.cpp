@@ -838,13 +838,13 @@ void MainWindow::restart()
 
     if(emu_thread.boot1.isEmpty())
     {
-        QMessageBox::critical(this, trUtf8("No boot1 set"), trUtf8("Before you can start the emulation, you have to select a proper boot1 file."));
+        QMessageBox::critical(this, tr("No boot1 set"), tr("Before you can start the emulation, you have to select a proper boot1 file."));
         return;
     }
 
     if(emu_thread.flash.isEmpty())
     {
-        QMessageBox::critical(this, trUtf8("No flash image loaded"), trUtf8("Before you can start the emulation, you have to load a proper flash file.\n"
+        QMessageBox::critical(this, tr("No flash image loaded"), tr("Before you can start the emulation, you have to load a proper flash file.\n"
                                                                             "You can create one via Flash->Create Flash in the menu."));
         return;
     }
@@ -852,7 +852,7 @@ void MainWindow::restart()
     if(emu_thread.stop())
         emu_thread.start();
     else
-        QMessageBox::warning(this, trUtf8("Restart needed"), trUtf8("Failed to restart emulator. Close and reopen this app.\n"));
+        QMessageBox::warning(this, tr("Restart needed"), tr("Failed to restart emulator. Close and reopen this app.\n"));
 }
 
 void MainWindow::openConfiguration()
