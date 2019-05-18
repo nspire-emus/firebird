@@ -4,9 +4,10 @@
 * Better debugger integration
 * Don't use a 60Hz timer for LCD redrawing, hook lcd_event instead
 * Less global vars (emu.h), move into structs
+* Support content:/ URLs returned by the native file dialog on Android with Qt 5.13
+* Use streams for reading/writing snapshots instead of struct emu_snapshot 
 
 ##Wishlist:
-* Language selection at runtime?
 * Skin loader/switcher
 * Scripting support, somehow
 * Expose the calc as a fake USB one
