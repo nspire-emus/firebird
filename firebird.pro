@@ -1,4 +1,4 @@
-!macx: !ios: load(configure)
+!clang: load(configure)
 
 lessThan(QT_MAJOR_VERSION, 5): error("You need at least Qt 5.6 to build firebird!")
 equals(QT_MAJOR_VERSION, 5):lessThan(QT_MINOR_VERSION, 6): error("You need at least Qt 5.6 to build firebird!")
@@ -44,9 +44,12 @@ LIBS += -lz
 QMAKE_CFLAGS_RELEASE = -O3 -flto -DNDEBUG
 QMAKE_CXXFLAGS_RELEASE = -O3 -flto -DNDEBUG
 QMAKE_LFLAGS_RELEASE = -Wl,-O3 -flto
-QMAKE_LFLAGS += -fno-pie
 
-*-g++*: qtCompileTest(-no-pie): QMAKE_LFLAGS += -no-pie
+# Don't build a position independent executable, not compatible with the JIT
+equals(TRANSLATION_ENABLED, true) {
+    clang: QMAKE_LFLAGS += -nopie
+    else: qtCompileTest(-no-pie): QMAKE_LFLAGS += -no-pie
+}
 
 # Apple's clang doesn't know about this one
 macx: QMAKE_LFLAGS_RELEASE -= -Wl,-O3
@@ -56,7 +59,6 @@ macx|ios: QMAKE_CXXFLAGS += -stdlib=libc++
 
 # On non-macOS the linker can't deal with LLVM bitcode directly (missing plugin?)
 clang:!macx {
-    QMAKE_LFLAGS -= -fno-pie
     QMAKE_CFLAGS_RELEASE -= -flto
     QMAKE_CXXFLAGS_RELEASE -= -flto
     QMAKE_LFLAGS_RELEASE -= -Wl,-O3 -flto
