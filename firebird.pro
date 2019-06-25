@@ -16,6 +16,7 @@ ios|android: SUPPORT_LINUX = false
 TRANSLATIONS += i18n/de_DE.ts i18n/fr_FR.ts
 
 QT += core gui widgets quickwidgets
+android: QT += androidextras
 CONFIG += c++11
 
 TEMPLATE = app
@@ -58,20 +59,17 @@ QMAKE_CXXFLAGS_RELEASE = -O3 -DNDEBUG
     QMAKE_CFLAGS += -Wa,--noexecstack
 }
 
-android {
-    # Fix up all relocations for known symbols, makes it faster and gets rid of some .text relocations
-    # if disabled in asmcode_arm.S.
-    QMAKE_LFLAGS += -Wl,-Bsymbolic
-}
-
 macx: ICON = resources/logo.icns
 
 # This does also apply to android
 linux|macx|ios: SOURCES += core/os/os-linux.c
 
-lessThan(QT_MINOR_VERSION, 6) {
-    # This should not be required. But somehow, it is...
-    android: DEFINES += Q_OS_ANDROID
+android {
+    # Special implementation of fopen_utf8
+    SOURCES += core/os/os-android.cpp
+    # Fix up all relocations for known symbols, makes it faster and gets rid of some .text relocations
+    # if disabled in asmcode_arm.S.
+    QMAKE_LFLAGS += -Wl,-Bsymbolic
 }
 
 ios|android: DEFINES += MOBILE_UI

@@ -14,7 +14,8 @@ RowLayout {
         active: false
         sourceComponent: FileDialog {
             folder: Emu.dir(filePath)
-            selectExisting: root.selectExisting
+            // If save dialogs are not supported, force an open dialog
+            selectExisting: root.selectExisting || !Emu.saveDialogSupported()
             onAccepted: filePath = Emu.toLocalFile(fileUrl)
         }
     }

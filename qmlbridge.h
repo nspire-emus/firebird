@@ -123,6 +123,8 @@ public:
         Q_INVOKABLE void switchUIMode(bool mobile_ui);
     #endif
 
+    Q_INVOKABLE bool saveDialogSupported();
+
     void setActive(bool b);
 
 public slots:
