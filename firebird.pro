@@ -45,12 +45,6 @@ QMAKE_CFLAGS_RELEASE = -O3 -flto -DNDEBUG
 QMAKE_CXXFLAGS_RELEASE = -O3 -flto -DNDEBUG
 QMAKE_LFLAGS_RELEASE = -Wl,-O3 -flto
 
-# Don't build a position independent executable, not compatible with the JIT
-equals(TRANSLATION_ENABLED, true) {
-    clang: QMAKE_LFLAGS += -nopie
-    else: qtCompileTest(-no-pie): QMAKE_LFLAGS += -no-pie
-}
-
 # Apple's clang doesn't know about this one
 macx: QMAKE_LFLAGS_RELEASE -= -Wl,-O3
 
@@ -134,6 +128,12 @@ equals(TRANSLATION_ENABLED, true) {
 
     ASMCODE = $$join(FB_ARCH, "", "core/asmcode_", ".S")
     exists($$ASMCODE): ASMCODE_IMPL = $$ASMCODE
+
+    # Don't build a position independent executable, not compatible with the x86 and x86_64 JITs.
+    equals(FB_ARCH, "x86") | equals(FB_ARCH, "x86_64")  {
+        clang: QMAKE_LFLAGS += -nopie
+        else: qtCompileTest(-no-pie): QMAKE_LFLAGS += -no-pie
+    }
 }
 else: DEFINES += NO_TRANSLATION
 
