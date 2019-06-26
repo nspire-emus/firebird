@@ -46,16 +46,10 @@ QMAKE_CXXFLAGS_RELEASE = -O3 -DNDEBUG
 
 # Don't enable LTO with clang on Linux, incompatible with Qt (QTBUG-43556).
 !clang | !linux: {
-    # With the iOS toolchain, LTO appears to be broken due to a missing linker plugin.
-    !ios {
-        QMAKE_CFLAGS_RELEASE += -flto
-        QMAKE_CXXFLAGS_RELEASE += -flto
-        QMAKE_LFLAGS_RELEASE += -flto
-    }
+    QMAKE_CFLAGS_RELEASE += -flto
+    QMAKE_CXXFLAGS_RELEASE += -flto
+    QMAKE_LFLAGS_RELEASE += -flto
 }
-
-# This became needed, somehow.
-macx|ios: QMAKE_CXXFLAGS += -stdlib=libc++
 
 # noexecstack is not supported by MinGW's as
 !win32 {
