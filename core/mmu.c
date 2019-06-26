@@ -262,15 +262,6 @@ void *addr_cache_miss(uint32_t virt, bool writing, fault_proc *fault) {
 }
 
 void addr_cache_flush() {
-    #ifndef SUPPORT_LINUX
-        /* The OS does something incredibly stupid: For every access to the flash,
-         * it disables the MMU and flushes all buffers and caches. Argh.
-         * This causes us to drop all translations, so work around this by ignoring
-         * flushes triggered by the flash access code, which is run in SRAM. */
-         if (arm.reg[15] >> 24 == 0xa4)
-             return;
-    #endif
-
     if (arm.control & 1) {
         void *table = phys_mem_ptr(arm.translation_table_base, 0x4000);
         if (!table)
