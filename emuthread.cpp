@@ -9,6 +9,8 @@
 #include <QEventLoop>
 #include <QTimer>
 
+#include <QGuiApplication>
+
 #include "core/debug.h"
 #include "core/emu.h"
 #include "core/usblink_queue.h"
