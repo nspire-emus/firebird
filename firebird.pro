@@ -41,21 +41,14 @@ QMAKE_CXXFLAGS += -g -std=c++11 -Wall -Wextra -D QT_NO_CAST_FROM_ASCII
 LIBS += -lz
 
 # Override bad default options to enable better optimizations
-QMAKE_CFLAGS_RELEASE = -O3 -flto -DNDEBUG
-QMAKE_CXXFLAGS_RELEASE = -O3 -flto -DNDEBUG
-QMAKE_LFLAGS_RELEASE = -Wl,-O3 -flto
+QMAKE_CFLAGS_RELEASE = -O3 -DNDEBUG
+QMAKE_CXXFLAGS_RELEASE = -O3 -DNDEBUG
 
-# Apple's clang doesn't know about this one
-macx: QMAKE_LFLAGS_RELEASE -= -Wl,-O3
-
-# This became needed, somehow.
-macx|ios: QMAKE_CXXFLAGS += -stdlib=libc++
-
-# On non-macOS the linker can't deal with LLVM bitcode directly (missing plugin?)
-clang:!macx {
-    QMAKE_CFLAGS_RELEASE -= -flto
-    QMAKE_CXXFLAGS_RELEASE -= -flto
-    QMAKE_LFLAGS_RELEASE -= -Wl,-O3 -flto
+# Don't enable LTO with clang on Linux, incompatible with Qt (QTBUG-43556).
+!clang | !linux: {
+    QMAKE_CFLAGS_RELEASE += -flto
+    QMAKE_CXXFLAGS_RELEASE += -flto
+    QMAKE_LFLAGS_RELEASE += -flto
 }
 
 # noexecstack is not supported by MinGW's as
