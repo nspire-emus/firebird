@@ -60,6 +60,20 @@ void do_cp15_mrc(uint32_t insn)
         arm.reg[insn >> 12 & 15] = value;
 }
 
+static void cp15_addr_cache_flush()
+{
+    #ifndef SUPPORT_LINUX
+        /* The OS does something incredibly stupid: For every access to the flash,
+         * it disables the MMU and flushes all buffers and caches. Argh.
+         * This causes us to drop all translations, so work around this by ignoring
+         * flushes triggered by the flash access code, which is run in SRAM. */
+         if (arm.reg[15] >> 24 == 0xa4)
+             return;
+    #endif
+
+   addr_cache_flush();
+}
+
 void do_cp15_mcr(uint32_t insn)
 {
     uint32_t value = reg(insn >> 12 & 15);
@@ -70,16 +84,16 @@ void do_cp15_mcr(uint32_t insn)
                 error("Bad or unimplemented control register value: %x (unsupported: %x)\n", value, (value & 0xFFFF8CF8) ^ 0x00050078);
             arm.control = value;
             if (change & 1) // MMU is being turned on or off
-                addr_cache_flush();
+                cp15_addr_cache_flush();
             break;
         }
         case 0x020000: /* MCR p15, 0, <Rd>, c2, c0, 0: Translation Table Base Register */
             arm.translation_table_base = value & ~0x3FFF;
-            addr_cache_flush();
+            cp15_addr_cache_flush();
             break;
         case 0x030000: /* MCR p15, 0, <Rd>, c3, c0, 0: Domain Access Control Register */
             arm.domain_access_control = value;
-            addr_cache_flush();
+            cp15_addr_cache_flush();
             break;
         case 0x050000: /* MCR p15, 0, <Rd>, c5, c0, 0: Data Fault Status Register */
             arm.data_fault_status = value;
@@ -104,7 +118,7 @@ void do_cp15_mcr(uint32_t insn)
         case 0x070005: /* MCR p15, 0, <Rd>, c7, c5, 0: Invalidate ICache */
         case 0x070025: /* MCR p15, 0, <Rd>, c7, c5, 1: Invalidate ICache line */
         case 0x070007: /* MCR p15, 0, <Rd>, c7, c7, 0: Invalidate ICache and DCache */
-            addr_cache_flush();
+            cp15_addr_cache_flush();
             break;
 
         case 0x080006: /* MCR p15, 0, <Rd>, c8, c6, 0: Invalidate data TLB */
@@ -116,7 +130,7 @@ void do_cp15_mcr(uint32_t insn)
         case 0x0F0000: /* MCR p15, 0, <Rd>, c15, c0, 0: Debug Override Register */
             #ifdef SUPPORT_LINUX
                 // Normally ignored, but somehow needed for linux to boot correctly
-                addr_cache_flush();
+                cp15_addr_cache_flush();
             #endif
             break;
         default:
