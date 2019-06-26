@@ -10,6 +10,7 @@
 #include <QTimer>
 
 #include <QGuiApplication>
+#include <QWindow>
 
 #include "core/debug.h"
 #include "core/emu.h"
