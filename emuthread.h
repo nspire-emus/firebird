@@ -43,6 +43,7 @@ public slots:
 
     // State
     void setPaused(bool is_paused);
+    bool lastWindowClosed();
     bool stop();
     void reset();
     bool resume(QString path);

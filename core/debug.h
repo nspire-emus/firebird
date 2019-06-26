@@ -15,8 +15,6 @@ extern std::string ln_target_folder;
 extern "C" {
 #endif
 
-extern FILE *debugger_input;
-
 extern bool gdb_connected;
 extern bool in_debugger;
 extern int rdbg_port;

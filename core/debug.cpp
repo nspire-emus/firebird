@@ -181,7 +181,6 @@ static void set_debug_next(uint32_t *next) {
 }
 
 bool gdb_connected = false;
-FILE *debugger_input = NULL;
 
 // return 1: break (should stop being feed with debugger commands), 0: continue (can be feed with other debugger commands)
 int process_debug_cmd(char *cmdline) {
@@ -563,7 +562,6 @@ int process_debug_cmd(char *cmdline) {
 #define MAX_CMD_LEN 300
 
 static void native_debugger(void) {
-    char line[MAX_CMD_LEN];
     uint32_t *cur_insn = (uint32_t*) virt_mem_ptr(arm.reg[15] & ~3, 4);
 
     // Did we hit the "next" breakpoint?
@@ -579,56 +577,35 @@ static void native_debugger(void) {
 
     throttle_timer_off();
     while (1) {
-        if(debugger_input == NULL)
+        debug_input_cur = nullptr;
+
+        std::unique_lock<std::mutex> lk(debug_input_m);
+
+        gui_debugger_request_input(debug_input_callback);
+
+        while(!debug_input_cur)
         {
-            debug_input_cur = nullptr;
-
-            std::unique_lock<std::mutex> lk(debug_input_m);
-
-            gui_debugger_request_input(debug_input_callback);
-
-            while(!debug_input_cur)
-            {
-                debug_input_cv.wait_for(lk, std::chrono::milliseconds(100), []{return debug_input_cur;});
-                if(debug_input_cur || exiting)
-                    break;
-
-                gui_do_stuff(false);
-            }
-
-            gui_debugger_request_input(nullptr);
-
-            if(exiting)
-                return;
-
-            char *copy = strdup(debug_input_cur);
-            if(!copy)
-                return;
-
-            int ret = process_debug_cmd(copy);
-
-            free(copy);
-
-            if(ret)
+            debug_input_cv.wait_for(lk, std::chrono::milliseconds(100), []{return debug_input_cur;});
+            if(debug_input_cur || exiting)
                 break;
-            else
-                continue;
-        }
-        fflush(stdout);
-        fflush(stderr);
-        // TODO: This while looks weird.
-        while (!fgets(line, sizeof line, debugger_input)) {
-            // switch to GUI
-            fclose(debugger_input);
-            debugger_input = NULL;
-            break;
-        }
-        if(!debugger_input)
-            continue;
 
-        gui_debug_printf("Remote debug cmd: %s", line);
+            gui_do_stuff(false);
+        }
 
-        if (process_debug_cmd(line))
+        gui_debugger_request_input(nullptr);
+
+        if(exiting)
+            return;
+
+        char *copy = strdup(debug_input_cur);
+        if(!copy)
+            return;
+
+        int ret = process_debug_cmd(copy);
+
+        free(copy);
+
+        if(ret)
             break;
         else
             continue;

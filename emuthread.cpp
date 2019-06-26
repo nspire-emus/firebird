@@ -206,6 +206,20 @@ void EmuThread::setPaused(bool paused)
     emit this->paused(paused);
 }
 
+bool EmuThread::lastWindowClosed()
+{
+    QGuiApplication *theApp = qobject_cast<QGuiApplication*>(sender());
+    if (theApp)
+    {
+        for(auto win : theApp->topLevelWindows())
+            if(win->isVisible()) return false;
+
+        return emu_thread.stop();
+    }
+
+    return false;
+}
+
 bool EmuThread::stop()
 {
     if(!isRunning())
