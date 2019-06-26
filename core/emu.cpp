@@ -426,9 +426,6 @@ void emu_cleanup()
 {
     exiting = true;
 
-    if(debugger_input)
-        fclose(debugger_input);
-
     // addr_cache_init is rather expensive and needs to be called once only
     //addr_cache_deinit();
 
