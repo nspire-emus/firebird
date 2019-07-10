@@ -95,7 +95,7 @@ static void emit_mov_imm(const PReg xd, uint64_t imm)
 		if(imm > 0xFFFFFFFFul)
 			emit(0x58000000 | xd); // ldr xd, [pc, #<offset>]
 		else
-			emit(0x18000000 | xd); // ldr xd, [pc, #<offset>]
+			emit(0x18000000 | xd); // ldr wd, [pc, #<offset>]
 		return;
 	}
 
