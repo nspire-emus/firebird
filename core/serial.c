@@ -201,7 +201,7 @@ uint32_t serial_cx_read(uint32_t addr) {
         case 0x038: return 0;
         case 0xFE0: return 0x11;
         case 0xFE4: return 0x10;
-        case 0xFE8: return 0x14;
+        case 0xFE8: return 0x34;
         case 0xFEC: return 0x00;
         case 0xFF0: return 0x0d;
         case 0xFF4: return 0xf0;
