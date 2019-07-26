@@ -10,7 +10,14 @@ void aladdin_pmu_reset(void) {
 	memset(&aladdin_pmu, 0, sizeof(aladdin_pmu));
 	aladdin_pmu.clocks = 0x21010001;
 	aladdin_pmu.disable[0] = 1 << 20;
-	aladdin_pmu.noidea[4] = 0x10;
+	aladdin_pmu.noidea[0] = 0x1A,
+	aladdin_pmu.noidea[1] = 0x101,
+	aladdin_pmu.noidea[2] = 0x0021DB19;
+	aladdin_pmu.noidea[3] = 0x00100000;
+	aladdin_pmu.noidea[4] = 0x111;
+	aladdin_pmu.noidea[5] = 0x1;
+	aladdin_pmu.noidea[6] = 0x100;
+	aladdin_pmu.noidea[7] = 0x10;
 
 	uint32_t cpu = 396000000;
 	sched.clock_rates[CLOCK_CPU] = cpu;
