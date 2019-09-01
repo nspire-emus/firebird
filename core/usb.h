@@ -32,11 +32,6 @@ uint16_t usb_read_half(uint32_t addr);
 uint32_t usb_read_word(uint32_t addr);
 void usb_write_word(uint32_t addr, uint32_t value);
 
-uint8_t usb_cx2_read_byte(uint32_t addr);
-uint16_t usb_cx2_read_half(uint32_t addr);
-uint32_t usb_cx2_read_word(uint32_t addr);
-void usb_cx2_write_word(uint32_t addr, uint32_t value);
-
 #ifdef __cplusplus
 }
 #endif
