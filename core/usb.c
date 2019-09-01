@@ -34,29 +34,43 @@ static void usb_int_check() {
     int_set(INT_USB, (usb.usbsts & usb.usbintr) | ((usb.otgsc >> 24) & (usb.otgsc >> 16)));
 }
 
+void usb_cx2_reset();
+void usb_cx2_bus_reset_on();
+void usb_cx2_bus_reset_off();
+void usb_cx2_receive_setup_packet(const void *packet);
+
 void usb_reset() {
+    if(emulate_cx2)
+        return usb_cx2_reset();
     memset(&usb, 0, sizeof usb);
     usb.usbcmd = 0x80000;
     usb.portsc = 0xEC000004;
     usb.otgsc = 0x0F20; // 1120 if nothing plugged in
     usb_int_check();
     usblink_reset();
+    gui_debug_printf("usb_reset\n");
 }
 
 void usb_bus_reset_on() {
+    if(emulate_cx2)
+        return usb_cx2_bus_reset_on();
     usb.portsc &= ~1;
     usb.portsc |= 0x0C000100;
     usb.deviceaddr = 0;
     usb.usbsts |= 0x40;
     usb.epsr = 0;
     usb_int_check();
+    gui_debug_printf("usb reset on\n");
 }
 
 void usb_bus_reset_off() {
+    if(emulate_cx2)
+        return usb_cx2_bus_reset_off();
     usb.portsc &= ~0x0C000100;
     usb.portsc |= 1;
     usb.usbsts |= 4;
     usb_int_check();
+    gui_debug_printf("usb reset off\n");
 }
 
 static void usb_prime(struct usb_qh *qh, uint32_t epbit) {
@@ -91,6 +105,9 @@ static void usb_complete(struct usb_qh *qh, uint32_t epbit, uint32_t size) {
 }
 
 void usb_receive_setup_packet(int endpoint, const void *packet) {
+    if(emulate_cx2)
+        return usb_cx2_receive_setup_packet(packet);
+
     struct usb_qh *qh = (struct usb_qh *)(intptr_t)phys_mem_ptr(usb.eplistaddr + (endpoint * 0x80), 0x30);
     if (!qh)
         error("USB: bad QH");
@@ -275,67 +292,4 @@ bool usb_resume(const emu_snapshot *snapshot)
 {
     usb = snapshot->mem.usb;
     return true;
-}
-
-uint32_t usb_cx2_read_word(uint32_t addr)
-{
-    gui_debug_printf("RW %x\n", addr);
-    switch(addr & 0xFFF)
-    {
-    case 0x010: // USBCMD
-    case 0x014: // USBSTS
-    case 0x018: // USBINTR
-    case 0x01C: // FRINDEX
-    case 0x020: // CTRLDSSEGMENT
-    case 0x024: // PERIODICLISTBASE
-    case 0x028: // ASYNCLISTADDR
-        return usb_read_word(addr - 0x10 + 0x140); // Same as CX, just moved
-    case 0x030: // PORTSC (earlier than the spec...)
-        return usb_read_word(addr - 0x030 + 0x184);
-    case 0x080: // OTGCS
-        return usb_read_word(addr - 0x080 + 0x1A4);
-    default:
-        gui_debug_printf("RW %x\n", addr);
-        return 0;
-    }
-}
-
-void usb_cx2_write_word(uint32_t addr, uint32_t value)
-{
-    gui_debug_printf("WW %x %x\n", addr, value);
-    switch(addr & 0xFFF)
-    {
-    case 0x010: // USBCMD
-    case 0x014: // USBSTS
-    case 0x018: // USBINTR
-    case 0x01C: // FRINDEX
-    case 0x020: // CTRLDSSEGMENT
-    case 0x024: // PERIODICLISTBASE
-    case 0x028: // ASYNCLISTADDR
-        return usb_write_word(addr - 0x10 + 0x140, value); // Same as CX, just moved
-    case 0x030: // PORTSC (earlier than the spec...)
-        return usb_write_word(addr - 0x030 + 0x184, value);
-    default:
-        gui_debug_printf("WW %x %x\n", addr, value);
-    }
-}
-
-uint8_t usb_cx2_read_byte(uint32_t addr)
-{
-    switch(addr & 0xFFF)
-    {
-    case 0x00: // CAPLENGTH
-        return 0x10;
-    }
-    return bad_read_byte(addr);
-}
-
-uint16_t usb_cx2_read_half(uint32_t addr)
-{
-    switch(addr & 0xFFF)
-    {
-    case 0x02: // HCIVERSION
-        return 0x100;
-    }
-    return bad_read_half(addr);
 }

@@ -19,6 +19,7 @@
 #include "mem.h"
 #include "debug.h"
 #include "translate.h"
+#include "usb_cx2.h"
 #include "cx2.h"
 
 uint8_t   (*read_byte_map[64])(uint32_t addr);
@@ -185,6 +186,22 @@ void FASTCALL mmio_write_word(uint32_t addr, uint32_t value) {
     write_word_map[addr >> 26](addr, value);
 }
 
+uint8_t FASTCALL nope_read_byte(uint32_t addr) {
+    return 0;
+}
+uint16_t FASTCALL nope_read_half(uint32_t addr) {
+    return 0;
+}
+uint32_t FASTCALL nope_read_word(uint32_t addr) {
+    return 0;
+}
+void FASTCALL nope_write_byte(uint32_t addr, uint8_t value) {
+}
+void FASTCALL nope_write_half(uint32_t addr, uint16_t value) {
+}
+void FASTCALL nope_write_word(uint32_t addr, uint32_t value) {
+}
+
 void (*reset_procs[20])(void);
 unsigned int reset_proc_count;
 
@@ -347,11 +364,10 @@ bool memory_initialize(uint32_t sdram_size)
         read_word_map[0xB0 >> 2] = usb_cx2_read_word;
         write_word_map[0xB0 >> 2] = usb_cx2_write_word;
 
-        //TODO: It's a different controller, but for now we use the same state
-        read_byte_map[0xB4 >> 2] = usb_cx2_read_byte;
-        read_half_map[0xB4 >> 2] = usb_cx2_read_half;
-        read_word_map[0xB4 >> 2] = usb_cx2_read_word;
-        write_word_map[0xB4 >> 2] = usb_cx2_write_word;
+        read_byte_map[0xB4 >> 2] = nope_read_byte;
+        read_half_map[0xB4 >> 2] = nope_read_half;
+        read_word_map[0xB4 >> 2] = nope_read_word;
+        write_word_map[0xB4 >> 2] = nope_write_word;
     }
     add_reset_proc(usb_reset);
     add_reset_proc(usblink_reset);
