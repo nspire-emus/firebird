@@ -136,9 +136,10 @@ void gpio_reset() {
     gpio.direction.w = 0xFFFFFFFFFFFFFFFF;
     gpio.output.w    = 0x0000000000000000;
 
-    gpio.input.w     = 0x00001000070F001F;
+    gpio.input.w     = 0x00001000071F001F;
     touchpad_gpio_reset();
 }
+#include "debug.h"
 uint32_t gpio_read(uint32_t addr) {
     int port = addr >> 6 & 7;
     switch (addr & 0x3F) {
@@ -672,6 +673,8 @@ uint32_t timer_cx_read(uint32_t addr) {
 void timer_cx_write(uint32_t addr, uint32_t value) {
     int which = (addr >> 16) % 5;
     struct cx_timer *t = &timer_cx.timer[which][addr >> 5 & 1];
+    if(which == 0)
+        error("Fast timer not implemented");
     switch (addr & 0xFFFF) {
         case 0x0000: case 0x0020: t->reload = 1; /* fallthrough */
         case 0x0018: case 0x0038: t->load = value; return;
