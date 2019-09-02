@@ -90,9 +90,11 @@ uint32_t memc_ddr_read(uint32_t addr)
 	switch(addr & 0xFFFF)
 	{
 	case 0x04:
-		return 4;
+		return 0x102;
 	case 0x10:
-		return 3;
+		return 3; // Size
+	case 0x74:
+		return 0;
 	}
 	return bad_read_word(addr);
 }
