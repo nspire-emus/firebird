@@ -700,6 +700,13 @@ void usblink_reset() {
     gui_usblink_changed(usblink_connected);
     usblink_state = 0;
     usblink_sending = false;
+
+    // TODO: HACK!
+    usb_bus_reset_off();
+    //printf("Sending SET_ADDRESS\n");
+    struct usb_setup packet = { 0, 5, 1, 0, 0 };
+    usb_receive_setup_packet(0, &packet);
+    usblink_state++;
 }
 
 void usblink_connect() {
