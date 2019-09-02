@@ -3,6 +3,15 @@
 #include "usb_cx2.h"
 #include "usblink.h"
 
+// TODO: Move into a separate header for usb stuff and add packed attrib
+struct usb_setup {
+    uint8_t bmRequestType;
+    uint8_t bRequest;
+    uint16_t wValue;
+    uint16_t wIndex;
+    uint16_t wLength;
+};
+
 usb_cx2_state usb_cx2;
 
 static void usb_cx2_int_check()
@@ -87,7 +96,9 @@ void usb_cx2_receive_setup_packet(const void *packet)
     // Copy data into DMA buffer
     usb_cx2.dma_size = 8;
     memcpy(usb_cx2.dma_data, packet, 8);
-gui_debug_printf("RECEIVE SETUP PACKET\n");
+
+    gui_debug_printf("RECEIVE SETUP PACKET\n");
+
     // EP0 Setup packet
     usb_cx2.gisr[0] |= 1;
 
@@ -245,19 +256,31 @@ void usb_cx2_write_word(uint32_t addr, uint32_t value)
         usb_cx2_int_check();
         return;
     case 0x104:
+    {
         usb_cx2.devaddr = value;
+
+        // Address set, send SET_CONFIGURATION
+        struct usb_setup packet = { 0, 9, 1, 0, 0 };
+        usb_cx2_receive_setup_packet(&packet);
         return;
+    }
     case 0x120:
     {
         uint32_t bits = value ^ usb_cx2.cxfifo;
         if(bits & 0b1000) // Clear FIFO
         {
+            bits &= ~0b1000;
             usb_cx2.dma_size = 0;
-            bits &= ~(1 << 3);
         }
 
         if(bits & 1) // Transfer done
+        {
             bits &= ~1;
+
+            // Clear EP0 OUT/IN/SETUP packet IRQ
+            usb_cx2.gisr[0] &= ~0b111;
+            usb_cx2_int_check();
+        }
 
         if(bits != 0)
             error("Not implemented");
@@ -269,7 +292,9 @@ void usb_cx2_write_word(uint32_t addr, uint32_t value)
         usb_cx2.dmafifo = value;
         if(value != 0 && value != 0x10)
             error("Not implemented");
-gui_debug_printf("DMAFIFO SET 0x%x\n", value);
+
+        gui_debug_printf("DMAFIFO SET 0x%x\n", value);
+
         usb_cx2_cxfifo_update();
         return;
     case 0x1c8:
