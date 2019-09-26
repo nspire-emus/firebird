@@ -714,15 +714,9 @@ void usblink_reset() {
     }
     usblink_connected = false;
     gui_usblink_changed(usblink_connected);
-    usblink_state = 0;
+    // HACK: Connect ASAP
+    usblink_state = 1;
     usblink_sending = false;
-
-    // TODO: HACK!
-    usb_bus_reset_off();
-    //printf("Sending SET_ADDRESS\n");
-    struct usb_setup packet = { 0, 5, 1, 0, 0 };
-    usb_receive_setup_packet(0, &packet);
-    usblink_state++;
 }
 
 void usblink_connect() {
@@ -741,13 +735,22 @@ void usblink_timer() {
             usb_bus_reset_on();
             usblink_state++;
             break;
-        case 2:
+        case 2: {
             usb_bus_reset_off();
             //printf("Sending SET_ADDRESS\n");
             struct usb_setup packet = { 0, 5, 1, 0, 0 };
             usb_receive_setup_packet(0, &packet);
             usblink_state++;
             break;
+        }
+        // HACK: Used by usb_cx2
+        case 5: {
+            gui_debug_printf("Sending SET_CONFIGURATION TIMER\n");
+            struct usb_setup packet = { 0, 9, 1, 0, 0 };
+            usb_receive_setup_packet(0, &packet);
+            usblink_state++;
+            break;
+        }
     }
 }
 
