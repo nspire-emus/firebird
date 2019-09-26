@@ -60,6 +60,7 @@ void aladdin_pmu_write(uint32_t addr, uint32_t value)
 		switch (offset & 0xFF)
 		{
 		case 0x00: return;
+		case 0x04: return; // No idea
 		case 0x08: return;
 		case 0x20: aladdin_pmu.disable[0] = value; return;
 		case 0x24:
@@ -73,6 +74,7 @@ void aladdin_pmu_write(uint32_t addr, uint32_t value)
 			return;
 		case 0x50: aladdin_pmu.disable[1] = value; return;
 		case 0x60: aladdin_pmu.disable[2] = value; return;
+		case 0xC4: return;
 		}
 	}
 	else if(offset >= 0x800 && offset < 0x900)
