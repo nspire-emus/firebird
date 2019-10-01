@@ -3,6 +3,8 @@
 #include "usb_cx2.h"
 #include "usblink.h"
 
+#include <cassert>
+
 // TODO: Move into a separate header for usb stuff and add packed attrib
 struct usb_setup {
     uint8_t bmRequestType;
@@ -58,7 +60,7 @@ bool usb_cx2_packet_to_calc(uint8_t ep, uint8_t *packet, size_t size)
     memcpy(usb_cx2.dma_data, packet, size);
 
     // Send packet to EP 0x1
-    uint8_t fifo = (usb_cx2.epmap14 >> (8 * ep + 4)) & 3;
+    uint8_t fifo = (usb_cx2.epmap14 >> (8 * (ep - 1) + 4)) & 3;
     usb_cx2.dma_size = size;
     usb_cx2.gisr[1] |= 1 << (fifo * 2); // FIFO OUT IRQ
     usb_cx2_int_check();
@@ -130,8 +132,15 @@ void usb_cx2_bus_reset_off()
 void usb_cx2_receive_setup_packet(const void *packet)
 {
     // Copy data into DMA buffer
-    usb_cx2.dma_size = 8;
-    memcpy(usb_cx2.dma_data, packet, 8);
+    const uint8_t *data = reinterpret_cast<const uint8_t *>(packet);
+    usb_cx2.setup_packet[0] = data[0]
+        | data[1] << 8
+        | data[2] << 16
+        | data[3] << 24;
+    usb_cx2.setup_packet[1] = data[4]
+        | data[5] << 8
+        | data[6] << 16
+        | data[7] << 24;
 
     gui_debug_printf("RECEIVE SETUP PACKET\n");
 
@@ -196,13 +205,7 @@ void usb_cx2_dma2_update()
     uint8_t *ptr = (uint8_t*) phys_mem_ptr(usb_cx2.dma2addr, length);
     usb_cx2.dma_size = 0;
 
-    /* Why does this not work?
-    uint8_t ep = (usb_cx2.fifomap >> (2 * 8)) & 0xF;
-    gui_debug_printf("EP14map: %x\n", usb_cx2.epmap14);
-    gui_debug_printf("FIFOmap: %x\n", usb_cx2.fifomap);
-    gui_debug_printf("FIFOcfg: %x\n", usb_cx2.fifocfg);*/
-
-    uint8_t ep = 1;
+    uint8_t ep = (usb_cx2.fifomap >> ((2 - 1) * 8)) & 0xF;
     usb_cx2_packet_from_calc(ep, ptr, length);
 
     // Apparently what's down here is not sufficient :-/
@@ -281,6 +284,7 @@ uint32_t usb_cx2_read_word_real(uint32_t addr)
     case 0x1B0: // FIFO 0 status
     case 0x1B4: // FIFO 1 status
     case 0x1B8: // FIFO 2 status
+    case 0x1BC: // FIFO 3 status
         return 0;
     case 0x1C0:
         return usb_cx2.dmafifo;
@@ -288,17 +292,9 @@ uint32_t usb_cx2_read_word_real(uint32_t addr)
         return usb_cx2.dmactrl;
     case 0x1D0: // CX FIFO PIO register
     {
-        uint32_t ret = usb_cx2.dma_data[0]
-                | usb_cx2.dma_data[1] << 8
-                | usb_cx2.dma_data[2] << 16
-                | usb_cx2.dma_data[3] << 24;
-
-        if(usb_cx2.dma_size < 4)
-            usb_cx2.dma_size = 0;
-        else
-            usb_cx2.dma_size -= 4;
-
-        usb_cx2_cxfifo_update();
+        uint32_t ret = usb_cx2.setup_packet[0];
+        usb_cx2.setup_packet[0] = usb_cx2.setup_packet[1];
+        usb_cx2.setup_packet[1] = ret;
         return ret;
     }
     case 0x328:
@@ -336,7 +332,7 @@ void usb_cx2_write_word(uint32_t addr, uint32_t value)
         usb_cx2.usbcmd = value;
         return;
     case 0x014: // USBSTS
-        usb_cx2.usbsts &= ~value;
+        usb_cx2.usbsts &= ~(value & 0x3F);
         usb_cx2_int_check();
         return;
     case 0x018: // USBINTR
@@ -362,8 +358,12 @@ void usb_cx2_write_word(uint32_t addr, uint32_t value)
         usb_cx2.otgier = value;
         usb_cx2_int_check();
         return;
+    case 0x0C0:
+        usb_cx2.isr &= ~value;
+        usb_cx2_int_check();
+        return;
     case 0x0C4:
-        usb_cx2.imr = value;
+        usb_cx2.imr = value & 0b111;
         usb_cx2_int_check();
         return;
     case 0x100:
@@ -376,13 +376,9 @@ void usb_cx2_write_word(uint32_t addr, uint32_t value)
 
         if(value == 1) // Address set
         {
-            /* TODO: How did it work previously without a timer?
-            Sending SET_CONFIGURATION on all writes to 0x104 results in a 0x80, so an invalid address.
-
             struct usb_setup packet = { 0, 9, 1, 0, 0 };
             gui_debug_printf("Sending SET_CONFIGURATION\n");
-            usb_cx2_receive_setup_packet(&packet);*/
-            usblink_state = 5;
+            usb_cx2_receive_setup_packet(&packet);
         }
         else if(value == 0x81) // Configuration set
             gui_debug_printf("Completed SET_CONFIGURATION\n");
@@ -461,6 +457,7 @@ void usb_cx2_write_word(uint32_t addr, uint32_t value)
     case 0x1B0: // FIFO 0 status
     case 0x1B4: // FIFO 1 status
     case 0x1B8: // FIFO 2 status
+    case 0x1BC: // FIFO 3 status
         if(value & (1 << 12))
             usb_cx2.dma_size = 0;
         return;
