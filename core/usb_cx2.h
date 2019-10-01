@@ -48,6 +48,8 @@ struct usb_cx2_state {
 
     uint8_t dma_data[1024];
     uint16_t dma_size;
+
+    uint32_t setup_packet[2];
 };
 
 extern struct usb_cx2_state usb_cx2;
