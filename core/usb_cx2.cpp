@@ -16,11 +16,17 @@ struct usb_setup {
 
 usb_cx2_state usb_cx2;
 
+static int stage;
+
 static void usb_cx2_int_check()
 {
     // Update device controller group interrupt status
     usb_cx2.gisr_all = 0;
 
+    if (usb_cx2.rxzlp)
+        usb_cx2.gisr[2] |= 1 << 6;
+    if (usb_cx2.txzlp)
+        usb_cx2.gisr[2] |= 1 << 5;
     for(int i = 0; i < 3; ++i)
         if(usb_cx2.gisr[i] & ~usb_cx2.gimr[i])
             usb_cx2.gisr_all |= 1 << i;
@@ -52,17 +58,17 @@ static void usb_cx2_int_check()
 
 bool usb_cx2_packet_to_calc(uint8_t ep, uint8_t *packet, size_t size)
 {
-    assert(ep == 1);
 
-    if(size > sizeof(usb_cx2.dma_data))
+    uint8_t fifo = (((ep - 1) & 0b100 ? usb_cx2.epmap58 : usb_cx2.epmap14) >> (8 * ((ep - 1) & 0b11) + 4)) & 0b11;
+
+    if(size > sizeof(usb_cx2.fifo_data[fifo]) - usb_cx2.fifo_size[fifo])
         return false;
 
-    memcpy(usb_cx2.dma_data, packet, size);
-
-    // Send packet to EP 0x1
-    uint8_t fifo = (usb_cx2.epmap14 >> (8 * (ep - 1) + 4)) & 3;
-    usb_cx2.dma_size = size;
+    memcpy(&usb_cx2.fifo_data[fifo][usb_cx2.fifo_size[fifo]], packet, size);
+    usb_cx2.fifo_size[fifo] += size;
     usb_cx2.gisr[1] |= 1 << (fifo * 2); // FIFO OUT IRQ
+    if(size < (usb_cx2.epout[(ep - 1) & 7] & 0x7ff))
+        usb_cx2.gisr[1] |= 1 << ((fifo * 2) + 1); // FIFO SPK IRQ
     usb_cx2_int_check();
 
     return true;
@@ -70,19 +76,34 @@ bool usb_cx2_packet_to_calc(uint8_t ep, uint8_t *packet, size_t size)
 
 static void usb_cx2_packet_from_calc(uint8_t ep, uint8_t *packet, size_t size)
 {
-    gui_debug_printf("Got packet ep %d size %d (seq %d)!\n", ep, size, packet[9] | packet[8] << 8);
-
-    // TODO: Get receiving working first
-    return;
-
-    uint8_t pkt[13] = {};
-    pkt[1] = 1;
-    pkt[2] = 0xfe;
-    pkt[3] = 1;
-    pkt[7] = 0xD;
-    pkt[11] = 0xf0;
-    pkt[12] = 0x01;
-    usb_cx2_packet_to_calc(1, pkt, sizeof(pkt));
+    if (packet[1] == 1) // address request
+    {
+        uint8_t pkt[13] = {};
+        pkt[1] = 1;
+        pkt[2] = 0xfe;
+        pkt[3] = 1;
+        pkt[7] = 0xD;
+        pkt[11] = 0xf0;
+        pkt[12] = 0x01;
+        usb_cx2_packet_to_calc(1, pkt, sizeof(pkt));
+        stage = 1;
+    }
+    else if (packet[1] == 8) // unknown service
+    {
+        uint8_t pkt[12] = {};
+        pkt[1] = 0x88;
+        pkt[2] = 0xfe;
+        pkt[3] = 1;
+        pkt[7] = 0xc;
+        pkt[8] = 3;
+        pkt[9] = 0xea;
+        pkt[10] = 0xfd;
+        pkt[11] = 0x7f;
+        usb_cx2_packet_to_calc(1, pkt, sizeof(pkt));
+        stage = 2;
+    }
+    else
+        error("Unknown packet received");
 }
 
 extern "C" {
@@ -99,6 +120,7 @@ void usb_cx2_reset()
     // High speed, B-device, Acts as device
     usb_cx2.otgcs = (2 << 22) | (1 << 21) | (1 << 20);
     // Reset IRQ
+    usb_cx2.gisr[1] |= 0b1111 << 16;
     usb_cx2.gisr[2] |= 1;
 
     usb_cx2_int_check();
@@ -132,7 +154,7 @@ void usb_cx2_bus_reset_off()
 void usb_cx2_receive_setup_packet(const void *packet)
 {
     // Copy data into DMA buffer
-    const uint8_t *data = reinterpret_cast<const uint8_t *>(packet);
+    const uint8_t *data = (const uint8_t*) packet;
     usb_cx2.setup_packet[0] = data[0]
         | data[1] << 8
         | data[2] << 16
@@ -151,20 +173,6 @@ void usb_cx2_receive_setup_packet(const void *packet)
 }
 }
 
-void usb_cx2_cxfifo_update()
-{
-    if(usb_cx2.dmafifo != 0x10)
-    {
-        // Not enabled -> empty
-        usb_cx2.cxfifo = 1 << 5;
-        return;
-    }
-
-    usb_cx2.cxfifo = usb_cx2.dma_size << 8;
-    if(usb_cx2.dma_size == 0)
-        usb_cx2.cxfifo |= 1 << 5; // Empty
-}
-
 void usb_cx2_dma1_update()
 {
     if(!(usb_cx2.dma1ctrl & 1))
@@ -174,20 +182,60 @@ void usb_cx2_dma1_update()
     if(fromMemory)
         error("Not implemented");
 
+    int fifo = 0;
+
     size_t length = (usb_cx2.dma1ctrl >> 8) & 0x1ffff;
-    length = std::min(length, size_t(usb_cx2.dma_size));
+    length = std::min(length, size_t(usb_cx2.fifo_size[fifo]));
     uint8_t *ptr = (uint8_t*) phys_mem_ptr(usb_cx2.dma1addr, length);
-    memcpy(ptr, usb_cx2.dma_data, length);
+    memcpy(ptr, usb_cx2.fifo_data[fifo], length);
 
     // Set DMA done bit in dmasr
-    usb_cx2.dmasr |= 1 << (1 + 16);
+    usb_cx2.dmasr |= 1 << (fifo + 1);
 
     // Move the remaining data to the start
-    usb_cx2.dma_size -= length;
-    if(usb_cx2.dma_size)
-        memmove(usb_cx2.dma_data, usb_cx2.dma_data + length, usb_cx2.dma_size);
+    usb_cx2.fifo_size[fifo] -= length;
+    if(usb_cx2.fifo_size[fifo])
+        memmove(usb_cx2.fifo_data[fifo], usb_cx2.fifo_data[fifo] + length, usb_cx2.fifo_size[fifo]);
     else
-        usb_cx2.gisr[1] &= ~(1 << (0 * 2));
+    {
+        usb_cx2.gisr[1] &= ~(0b11 << (fifo * 2)); // FIFO0 OUT/SPK
+        //usb_cx2.gisr[2] |= 1 << 7; // DMA complete
+
+        switch(stage)
+        {
+        case 1:
+        {
+            uint8_t pkt[13] = {};
+            pkt[1] = 1;
+            pkt[2] = 0xfe;
+            pkt[3] = 1;
+            pkt[7] = 0xD;
+            pkt[9] = 1;
+            pkt[10] = 0x81;
+            pkt[11] = 0xee;
+            pkt[12] = 0x80;
+            usb_cx2_packet_to_calc(1, pkt, sizeof(pkt));
+            stage = 0;
+            break;
+        }
+        case 2:
+        {
+            uint8_t pkt[14] = {};
+            pkt[1] = 8;
+            pkt[2] = 0xfe;
+            pkt[3] = 1;
+            pkt[7] = 0xE;
+            pkt[9] = 2;
+            pkt[10] = 0x80;
+            pkt[11] = 0xe2;
+            pkt[12] = 0x81;
+            pkt[13] = 3;
+            usb_cx2_packet_to_calc(1, pkt, sizeof(pkt));
+            stage = 0;
+            break;
+        }
+        }
+    }
 
     usb_cx2_int_check();
 }
@@ -201,19 +249,22 @@ void usb_cx2_dma2_update()
     if(!fromMemory)
         error("Not implemented");
 
+    int fifo = 1;
+
     size_t length = (usb_cx2.dma2ctrl >> 8) & 0x1ffff;
     uint8_t *ptr = (uint8_t*) phys_mem_ptr(usb_cx2.dma2addr, length);
-    usb_cx2.dma_size = 0;
+    usb_cx2.fifo_size[fifo] = 0;
 
-    uint8_t ep = (usb_cx2.fifomap >> ((2 - 1) * 8)) & 0xF;
+    uint8_t ep = (usb_cx2.fifomap >> (fifo * 8)) & 0xF;
     usb_cx2_packet_from_calc(ep, ptr, length);
 
     // Apparently what's down here is not sufficient :-/
 
     // Set DMA done bit in dmasr
-    usb_cx2.dmasr |= 1 << 2;
+    usb_cx2.dmasr |= 1 << (fifo + 1);
 
-    usb_cx2.gisr[2] |= 1 << 7; // DMA complete
+    usb_cx2.gisr[1] |= 1 << (16 + fifo); // FIFO1 IN
+    //usb_cx2.gisr[2] |= 1 << 7; // DMA complete
 
     usb_cx2_int_check();
 }
@@ -258,7 +309,17 @@ uint32_t usb_cx2_read_word_real(uint32_t addr)
     case 0x114:
         return usb_cx2.phytest;
     case 0x120:
-        return usb_cx2.cxfifo;
+    {
+        uint32_t value = usb_cx2.cx_fifo_size << 24;
+        for (int fifo = 0; fifo != 4; fifo++)
+            if (!usb_cx2.fifo_size[fifo])
+                value |= 1 << (8 + fifo); // FIFOE
+        if (!usb_cx2.cx_fifo_size)
+            value |= 1 << 5; // CX FIFO empty
+        if (usb_cx2.cx_fifo_size == sizeof(usb_cx2.cx_fifo_data))
+            value |= 1 << 4; // CX FIFO full
+        return value;
+    }
     case 0x130:
         return usb_cx2.gimr_all;
     case 0x134: case 0x138:
@@ -269,6 +330,10 @@ uint32_t usb_cx2_read_word_real(uint32_t addr)
     case 0x144: case 0x148:
     case 0x14C:
         return usb_cx2.gisr[(offset - 0x144) >> 2];
+    case 0x150:
+        return usb_cx2.rxzlp;
+    case 0x154:
+        return usb_cx2.txzlp;
     case 0x160: case 0x164:
     case 0x168: case 0x16c:
         return usb_cx2.epin[(offset - 0x160) >> 2];
@@ -277,6 +342,8 @@ uint32_t usb_cx2_read_word_real(uint32_t addr)
         return usb_cx2.epout[(offset - 0x180) >> 2];
     case 0x1A0: // EP 1-4 map register
         return usb_cx2.epmap14;
+    case 0x1A4: // EP 5-8 map register
+        return usb_cx2.epmap58;
     case 0x1A8: // FIFO map register
         return usb_cx2.fifomap;
     case 0x1AC: // FIFO config register
@@ -285,7 +352,7 @@ uint32_t usb_cx2_read_word_real(uint32_t addr)
     case 0x1B4: // FIFO 1 status
     case 0x1B8: // FIFO 2 status
     case 0x1BC: // FIFO 3 status
-        return 0;
+        return usb_cx2.fifo_size[(offset - 0x1B0) >> 2];
     case 0x1C0:
         return usb_cx2.dmafifo;
     case 0x1C8:
@@ -298,7 +365,11 @@ uint32_t usb_cx2_read_word_real(uint32_t addr)
         return ret;
     }
     case 0x328:
-        return usb_cx2.dmasr;
+    {
+        uint32_t value = usb_cx2.dmasr;
+        usb_cx2.dmasr = 0;
+        return value;
+    }
     case 0x32C:
         return usb_cx2.dmamr;
     case 0x330:
@@ -395,32 +466,41 @@ void usb_cx2_write_word(uint32_t addr, uint32_t value)
         return;
     case 0x120:
     {
-        uint32_t bits = value ^ usb_cx2.cxfifo;
-        if(bits & 0b1000) // Clear FIFO
+        if (value & 0b1000) // Clear CX FIFO
         {
-            bits &= ~0b1000;
-            usb_cx2.dma_size = 0;
+            usb_cx2.cx_fifo_size = 0;
         }
 
-        if(bits & 1) // Transfer done
+        if (value & 0b100) // Stall CX FIFO
         {
-            bits &= ~1;
+            error("control endpoint stall");
+        }
 
+        if (value & 0b10) // Test transfer finished
+        {
+            error("test transfer finished");
+        }
+
+        if (value & 0b1) // Setup transfer finished
+        {
             // Clear EP0 OUT/IN/SETUP packet IRQ
             usb_cx2.gisr[0] &= ~0b111;
             usb_cx2_int_check();
+
+            if (usb_cx2.devaddr == 1)
+            {
+                struct usb_setup packet = { 0, 9, 1, 0, 0 };
+                gui_debug_printf("Sending SET_CONFIGURATION\n");
+                usb_cx2_receive_setup_packet(&packet);
+            }
         }
 
-        if(bits != 0)
-            error("Not implemented");
-
-        usb_cx2_cxfifo_update();
         return;
     }
     case 0x124: // IDLE counter
         return;
     case 0x130: // GIMR_ALL
-        // Should be read only?
+        usb_cx2.gimr_all = value & 0b111;
         return;
     case 0x134: case 0x138:
     case 0x13c:
@@ -433,9 +513,12 @@ void usb_cx2_write_word(uint32_t addr, uint32_t value)
         usb_cx2_int_check();
         return;
     case 0x150: // Rx zero length pkt
+        usb_cx2.rxzlp = value;
+        usb_cx2_int_check();
+        return;
     case 0x154: // Tx zero length pkt
-        if(value != 0)
-            error("Not implemented");
+        usb_cx2.txzlp = value;
+        usb_cx2_int_check();
         return;
     case 0x160: case 0x164:
     case 0x168: case 0x16c:
@@ -448,6 +531,9 @@ void usb_cx2_write_word(uint32_t addr, uint32_t value)
     case 0x1A0: // EP 1-4 map register
         usb_cx2.epmap14 = value;
         return;
+    case 0x1A4: // EP 5-8 map register
+        usb_cx2.epmap58 = value;
+        return;
     case 0x1A8: // FIFO map register
         usb_cx2.fifomap = value;
         return;
@@ -459,19 +545,28 @@ void usb_cx2_write_word(uint32_t addr, uint32_t value)
     case 0x1B8: // FIFO 2 status
     case 0x1BC: // FIFO 3 status
         if(value & (1 << 12))
-            usb_cx2.dma_size = 0;
+            //usb_cx2.fifo_size[(offset - 0x1B0) >> 2] = 0;
         return;
     case 0x1C0:
         usb_cx2.dmafifo = value;
         if(value != 0 && value != 0x10)
             error("Not implemented");
-
-        usb_cx2_cxfifo_update();
         return;
     case 0x1C8:
         usb_cx2.dmactrl = value;
         if(value != 0)
             error("Not implemented");
+        return;
+    case 0x300:
+    {
+        usb_cx2.dma0ctrl = value;
+
+        uint8_t *ptr = (uint8_t*) phys_mem_ptr(usb_cx2.dma0addr, usb_cx2.dma0ctrl >> 8);
+
+        return;
+    }
+    case 0x304:
+        usb_cx2.dma0addr = value;
         return;
     case 0x308:
         usb_cx2.dma1ctrl = value;
