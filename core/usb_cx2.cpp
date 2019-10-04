@@ -58,19 +58,18 @@ static void usb_cx2_int_check()
 
 bool usb_cx2_packet_to_calc(uint8_t ep, uint8_t *packet, size_t size)
 {
+    uint8_t fifo = (usb_cx2.epmap[ep > 4] >> (8 * ((ep - 1) & 0b11) + 4)) & 0b11;
 
-    uint8_t fifo = (((ep - 1) & 0b100 ? usb_cx2.epmap58 : usb_cx2.epmap14) >> (8 * ((ep - 1) & 0b11) + 4)) & 0b11;
-
-    if(size > sizeof(usb_cx2.fifo_data[fifo]) - usb_cx2.fifo_size[fifo])
+    if(size > sizeof(usb_cx2.fifo[fifo].data) - usb_cx2.fifo[fifo].size)
         return false;
 
-    memcpy(&usb_cx2.fifo_data[fifo][usb_cx2.fifo_size[fifo]], packet, size);
-    usb_cx2.fifo_size[fifo] += size;
+    memcpy(&usb_cx2.fifo[fifo].data[usb_cx2.fifo[fifo].size], packet, size);
+    usb_cx2.fifo[fifo].size += size;
     usb_cx2.gisr[1] |= 1 << (fifo * 2); // FIFO OUT IRQ
     if(size < (usb_cx2.epout[(ep - 1) & 7] & 0x7ff))
         usb_cx2.gisr[1] |= 1 << ((fifo * 2) + 1); // FIFO SPK IRQ
-    usb_cx2_int_check();
 
+    usb_cx2_int_check();
     return true;
 }
 
@@ -175,27 +174,27 @@ void usb_cx2_receive_setup_packet(const void *packet)
 
 void usb_cx2_dma1_update()
 {
-    if(!(usb_cx2.dma1ctrl & 1))
+    if(!(usb_cx2.fdma[1].ctrl & 1))
         return; // DMA disabled
 
-    bool fromMemory = usb_cx2.dma1ctrl & 0b10;
+    bool fromMemory = usb_cx2.fdma[1].ctrl & 0b10;
     if(fromMemory)
         error("Not implemented");
 
     int fifo = 0;
 
-    size_t length = (usb_cx2.dma1ctrl >> 8) & 0x1ffff;
-    length = std::min(length, size_t(usb_cx2.fifo_size[fifo]));
-    uint8_t *ptr = (uint8_t*) phys_mem_ptr(usb_cx2.dma1addr, length);
-    memcpy(ptr, usb_cx2.fifo_data[fifo], length);
+    size_t length = (usb_cx2.fdma[1].ctrl >> 8) & 0x1ffff;
+    length = std::min(length, size_t(usb_cx2.fifo[fifo].size));
+    uint8_t *ptr = (uint8_t*) phys_mem_ptr(usb_cx2.fdma[1].addr, length);
+    memcpy(ptr, usb_cx2.fifo[fifo].data, length);
 
     // Set DMA done bit in dmasr
     usb_cx2.dmasr |= 1 << (fifo + 1);
 
     // Move the remaining data to the start
-    usb_cx2.fifo_size[fifo] -= length;
-    if(usb_cx2.fifo_size[fifo])
-        memmove(usb_cx2.fifo_data[fifo], usb_cx2.fifo_data[fifo] + length, usb_cx2.fifo_size[fifo]);
+    usb_cx2.fifo[fifo].size -= length;
+    if(usb_cx2.fifo[fifo].size)
+        memmove(usb_cx2.fifo[fifo].data, usb_cx2.fifo[fifo].data + length, usb_cx2.fifo[fifo].size);
     else
     {
         usb_cx2.gisr[1] &= ~(0b11 << (fifo * 2)); // FIFO0 OUT/SPK
@@ -242,18 +241,18 @@ void usb_cx2_dma1_update()
 
 void usb_cx2_dma2_update()
 {
-    if(!(usb_cx2.dma2ctrl & 1))
+    if(!(usb_cx2.fdma[2].ctrl & 1))
         return; // DMA disabled
 
-    bool fromMemory = usb_cx2.dma2ctrl & 0b10;
+    bool fromMemory = usb_cx2.fdma[2].ctrl & 0b10;
     if(!fromMemory)
         error("Not implemented");
 
     int fifo = 1;
 
-    size_t length = (usb_cx2.dma2ctrl >> 8) & 0x1ffff;
-    uint8_t *ptr = (uint8_t*) phys_mem_ptr(usb_cx2.dma2addr, length);
-    usb_cx2.fifo_size[fifo] = 0;
+    size_t length = (usb_cx2.fdma[2].ctrl >> 8) & 0x1ffff;
+    uint8_t *ptr = (uint8_t*) phys_mem_ptr(usb_cx2.fdma[2].addr, length);
+    usb_cx2.fifo[fifo].size = 0;
 
     uint8_t ep = (usb_cx2.fifomap >> (fifo * 8)) & 0xF;
     usb_cx2_packet_from_calc(ep, ptr, length);
@@ -310,13 +309,13 @@ uint32_t usb_cx2_read_word_real(uint32_t addr)
         return usb_cx2.phytest;
     case 0x120:
     {
-        uint32_t value = usb_cx2.cx_fifo_size << 24;
-        for (int fifo = 0; fifo != 4; fifo++)
-            if (!usb_cx2.fifo_size[fifo])
+        uint32_t value = usb_cx2.cxfifo.size << 24;
+        for (int fifo = 0; fifo < 4; fifo++)
+            if (!usb_cx2.fifo[fifo].size)
                 value |= 1 << (8 + fifo); // FIFOE
-        if (!usb_cx2.cx_fifo_size)
+        if (!usb_cx2.cxfifo.size)
             value |= 1 << 5; // CX FIFO empty
-        if (usb_cx2.cx_fifo_size == sizeof(usb_cx2.cx_fifo_data))
+        if (usb_cx2.cxfifo.size == sizeof(usb_cx2.cxfifo.data))
             value |= 1 << 4; // CX FIFO full
         return value;
     }
@@ -341,9 +340,8 @@ uint32_t usb_cx2_read_word_real(uint32_t addr)
     case 0x188: case 0x18c:
         return usb_cx2.epout[(offset - 0x180) >> 2];
     case 0x1A0: // EP 1-4 map register
-        return usb_cx2.epmap14;
     case 0x1A4: // EP 5-8 map register
-        return usb_cx2.epmap58;
+        return usb_cx2.epmap[(offset - 0x1A0) >> 2];
     case 0x1A8: // FIFO map register
         return usb_cx2.fifomap;
     case 0x1AC: // FIFO config register
@@ -352,7 +350,7 @@ uint32_t usb_cx2_read_word_real(uint32_t addr)
     case 0x1B4: // FIFO 1 status
     case 0x1B8: // FIFO 2 status
     case 0x1BC: // FIFO 3 status
-        return usb_cx2.fifo_size[(offset - 0x1B0) >> 2];
+        return usb_cx2.fifo[(offset - 0x1B0) >> 2].size;
     case 0x1C0:
         return usb_cx2.dmafifo;
     case 0x1C8:
@@ -445,13 +443,13 @@ void usb_cx2_write_word(uint32_t addr, uint32_t value)
     {
         usb_cx2.devaddr = value;
 
-        if(value == 1) // Address set
+        /*if(value == 1) // Address set
         {
             struct usb_setup packet = { 0, 9, 1, 0, 0 };
             gui_debug_printf("Sending SET_CONFIGURATION\n");
             usb_cx2_receive_setup_packet(&packet);
         }
-        else if(value == 0x81) // Configuration set
+        else */if(value == 0x81) // Configuration set
             gui_debug_printf("Completed SET_CONFIGURATION\n");
 
         return;
@@ -467,19 +465,13 @@ void usb_cx2_write_word(uint32_t addr, uint32_t value)
     case 0x120:
     {
         if (value & 0b1000) // Clear CX FIFO
-        {
-            usb_cx2.cx_fifo_size = 0;
-        }
+            usb_cx2.cxfifo.size = 0;
 
         if (value & 0b100) // Stall CX FIFO
-        {
             error("control endpoint stall");
-        }
 
         if (value & 0b10) // Test transfer finished
-        {
             error("test transfer finished");
-        }
 
         if (value & 0b1) // Setup transfer finished
         {
@@ -529,10 +521,8 @@ void usb_cx2_write_word(uint32_t addr, uint32_t value)
         usb_cx2.epout[(offset - 0x180) >> 2] = value;
         return;
     case 0x1A0: // EP 1-4 map register
-        usb_cx2.epmap14 = value;
-        return;
     case 0x1A4: // EP 5-8 map register
-        usb_cx2.epmap58 = value;
+        usb_cx2.epmap[(offset - 0x1A0) >> 2] = value;
         return;
     case 0x1A8: // FIFO map register
         usb_cx2.fifomap = value;
@@ -557,7 +547,7 @@ void usb_cx2_write_word(uint32_t addr, uint32_t value)
         if(value != 0)
             error("Not implemented");
         return;
-    case 0x300:
+/*    case 0x300:
     {
         usb_cx2.dma0ctrl = value;
 
@@ -567,20 +557,20 @@ void usb_cx2_write_word(uint32_t addr, uint32_t value)
     }
     case 0x304:
         usb_cx2.dma0addr = value;
-        return;
+        return;*/
     case 0x308:
-        usb_cx2.dma1ctrl = value;
+        usb_cx2.fdma[1].ctrl = value;
         usb_cx2_dma1_update();
         return;
     case 0x30C:
-        usb_cx2.dma1addr = value;
+        usb_cx2.fdma[1].addr = value;
         return;
     case 0x310:
-        usb_cx2.dma2ctrl = value;
+        usb_cx2.fdma[2].ctrl = value;
         usb_cx2_dma2_update();
         return;
     case 0x314:
-        usb_cx2.dma2addr = value;
+        usb_cx2.fdma[2].addr = value;
         return;
     case 0x328:
         usb_cx2.dmasr &= ~value;
