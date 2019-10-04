@@ -150,18 +150,11 @@ void usb_cx2_bus_reset_off()
     gui_debug_printf("usb reset off\n");
 }
 
-void usb_cx2_receive_setup_packet(const void *packet)
+void usb_cx2_receive_setup_packet(const usb_setup *packet)
 {
     // Copy data into DMA buffer
-    const uint8_t *data = (const uint8_t*) packet;
-    usb_cx2.setup_packet[0] = data[0]
-        | data[1] << 8
-        | data[2] << 16
-        | data[3] << 24;
-    usb_cx2.setup_packet[1] = data[4]
-        | data[5] << 8
-        | data[6] << 16
-        | data[7] << 24;
+    static_assert(sizeof(*packet) == sizeof(usb_cx2.setup_packet), "");
+    memcpy(usb_cx2.setup_packet, packet, sizeof(usb_cx2.setup_packet));
 
     gui_debug_printf("RECEIVE SETUP PACKET\n");
 
@@ -359,7 +352,6 @@ uint32_t usb_cx2_read_word_real(uint32_t addr)
     {
         uint32_t ret = usb_cx2.setup_packet[0];
         usb_cx2.setup_packet[0] = usb_cx2.setup_packet[1];
-        usb_cx2.setup_packet[1] = ret;
         return ret;
     }
     case 0x328:
@@ -440,20 +432,12 @@ void usb_cx2_write_word(uint32_t addr, uint32_t value)
         usb_cx2_int_check();
         return;
     case 0x104:
-    {
         usb_cx2.devaddr = value;
 
-        /*if(value == 1) // Address set
-        {
-            struct usb_setup packet = { 0, 9, 1, 0, 0 };
-            gui_debug_printf("Sending SET_CONFIGURATION\n");
-            usb_cx2_receive_setup_packet(&packet);
-        }
-        else */if(value == 0x81) // Configuration set
+        if(value == 0x81) // Configuration set
             gui_debug_printf("Completed SET_CONFIGURATION\n");
 
         return;
-    }
     case 0x108:
         usb_cx2.devtest = value;
         return;
@@ -535,7 +519,7 @@ void usb_cx2_write_word(uint32_t addr, uint32_t value)
     case 0x1B8: // FIFO 2 status
     case 0x1BC: // FIFO 3 status
         if(value & (1 << 12))
-            //usb_cx2.fifo_size[(offset - 0x1B0) >> 2] = 0;
+            usb_cx2.fifo[(offset - 0x1B0) >> 2].size = 0;
         return;
     case 0x1C0:
         usb_cx2.dmafifo = value;
@@ -547,17 +531,6 @@ void usb_cx2_write_word(uint32_t addr, uint32_t value)
         if(value != 0)
             error("Not implemented");
         return;
-/*    case 0x300:
-    {
-        usb_cx2.dma0ctrl = value;
-
-        uint8_t *ptr = (uint8_t*) phys_mem_ptr(usb_cx2.dma0addr, usb_cx2.dma0ctrl >> 8);
-
-        return;
-    }
-    case 0x304:
-        usb_cx2.dma0addr = value;
-        return;*/
     case 0x308:
         usb_cx2.fdma[1].ctrl = value;
         usb_cx2_dma1_update();
