@@ -30,30 +30,32 @@ struct usb_cx2_state {
     uint8_t txzlp;      // 154
     uint32_t epin[4];   // 160-
     uint32_t epout[4];  // 180-
-    uint32_t epmap14;   // 1A0
-    uint32_t epmap58;   // 1A4
+    uint32_t epmap[2];  // 1A0, 1A4
     uint32_t fifomap;   // 1A8
     uint32_t fifocfg;   // 1AC
     uint32_t dmafifo;   // 1C0
     uint32_t dmactrl;   // 1C8
 
-    // There's also a dma0
-    uint32_t dma0ctrl;  // 300
-    uint32_t dma0addr;  // 304
-    uint32_t dma1ctrl;  // 308
-    uint32_t dma1addr;  // 30C
-    uint32_t dma2ctrl;  // 310
-    uint32_t dma2addr;  // 314
+    // For DMA directly to a FIFO
+    // There doesn't seem to be any public documentation
+    struct {
+        uint32_t ctrl;
+        uint32_t addr;
+    } fdma[3];
 
     // Not sure what they do, but one is a status
     // and the other a mask register related to DMA.
     uint32_t dmasr;     // 328
     uint32_t dmamr;     // 32C
 
-    uint8_t fifo_data[4][1024];
-    uint8_t cx_fifo_data[64];
-    uint16_t fifo_size[4];
-    uint8_t cx_fifo_size;
+    struct {
+        uint8_t data[1024];
+        uint16_t size;
+    } fifo[4];
+    struct {
+        uint8_t data[64];
+        uint8_t size;
+    } cxfifo;
 
     uint32_t setup_packet[2];
 };
