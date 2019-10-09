@@ -329,6 +329,8 @@ bool memory_initialize(uint32_t sdram_size)
     add_reset_proc(gpio_reset);
     apb_set_map(0x06, watchdog_read, watchdog_write);
     add_reset_proc(watchdog_reset);
+    apb_set_map(0x09, rtc_read, rtc_write);
+    add_reset_proc(rtc_reset);
     apb_set_map(0x0A, misc_read, misc_write);
     apb_set_map(0x0E, keypad_read, keypad_write);
     add_reset_proc(keypad_reset);
@@ -407,7 +409,6 @@ bool memory_initialize(uint32_t sdram_size)
         apb_set_map(0x02, serial_read, serial_write);
         add_reset_proc(serial_reset);
         apb_set_map(0x08, bad_read_word, unknown_9008_write);
-        apb_set_map(0x09, rtc_read, rtc_write);
         apb_set_map(0x10, ti84_io_link_read, ti84_io_link_write);
         add_reset_proc(ti84_io_link_reset);
 
@@ -431,7 +432,6 @@ bool memory_initialize(uint32_t sdram_size)
         apb_set_map(0x03, unknown_cx_read, unknown_cx_write);
         apb_set_map(0x05, touchpad_cx_read, touchpad_cx_write);
         add_reset_proc(touchpad_cx_reset);
-        apb_set_map(0x09, rtc_cx_read, rtc_cx_write);
 
         if(emulate_cx2)
         {
@@ -508,6 +508,7 @@ bool memory_suspend(emu_snapshot *snapshot)
     return gpio_suspend(snapshot)
             && unknown_cx_suspend(snapshot)
             && watchdog_suspend(snapshot)
+            && rtc_suspend(snapshot)
             && pmu_suspend(snapshot)
             && keypad_suspend(snapshot)
             && hdq1w_suspend(snapshot)
@@ -537,6 +538,7 @@ bool memory_resume(const emu_snapshot *snapshot)
     return gpio_resume(snapshot)
             && unknown_cx_resume(snapshot)
             && watchdog_resume(snapshot)
+            && rtc_resume(snapshot)
             && pmu_resume(snapshot)
             && keypad_resume(snapshot)
             && hdq1w_resume(snapshot)

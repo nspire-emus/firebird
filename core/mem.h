@@ -77,6 +77,7 @@ typedef struct mem_snapshot
     gpio_state gpio;
     unknown_cx_state unknown_cx;
     watchdog_state watchdog;
+    rtc_state rtc;
     pmu_state pmu;
     keypad_state keypad;
     hdq1w_state hdq1w;
