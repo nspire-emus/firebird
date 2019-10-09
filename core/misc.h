@@ -4,6 +4,7 @@
 #define _H_MISC
 
 #include <stdint.h>
+#include <time.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -130,10 +131,15 @@ void watchdog_write(uint32_t addr, uint32_t value);
 uint32_t unknown_9008_read(uint32_t addr);
 void unknown_9008_write(uint32_t addr, uint32_t value);
 
+typedef struct rtc_state {
+    time_t offset;
+} rtc_state;
+
+bool rtc_suspend(emu_snapshot *snapshot);
+bool rtc_resume(const emu_snapshot *snapshot);
+void rtc_reset();
 uint32_t rtc_read(uint32_t addr);
 void rtc_write(uint32_t addr, uint32_t value);
-uint32_t rtc_cx_read(uint32_t addr);
-void rtc_cx_write(uint32_t addr, uint32_t value);
 
 uint32_t misc_read(uint32_t addr);
 void misc_write(uint32_t addr, uint32_t value);
