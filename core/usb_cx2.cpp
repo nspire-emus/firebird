@@ -1,9 +1,10 @@
+#include <cassert>
+#include <queue>
+
 #include "emu.h"
 #include "mem.h"
 #include "usb_cx2.h"
-#include "usblink.h"
-
-#include <cassert>
+#include "usblink_cx2.h"
 
 // TODO: Move into a separate header for usb stuff and add packed attrib
 struct usb_setup {
@@ -15,8 +16,6 @@ struct usb_setup {
 };
 
 usb_cx2_state usb_cx2;
-
-static int stage;
 
 static void usb_cx2_int_check()
 {
@@ -42,9 +41,6 @@ static void usb_cx2_int_check()
         usb_cx2.isr |= 1 << 0; // Device interrupt
 
         gui_debug_printf("USB_INT!\n");
-        gui_debug_printf("Group 0: %x %x\n", usb_cx2.gisr[0], usb_cx2.gimr[0]);
-        gui_debug_printf("Group 1: %x %x\n", usb_cx2.gisr[1], usb_cx2.gimr[1]);
-        gui_debug_printf("Group 2: %x %x\n", usb_cx2.gisr[2], usb_cx2.gimr[2]);
     }
 
     if(usb_cx2.otgisr & usb_cx2.otgier)
@@ -56,7 +52,15 @@ static void usb_cx2_int_check()
     int_set(INT_USB, usb_cx2.isr & ~usb_cx2.imr);
 }
 
-bool usb_cx2_packet_to_calc(uint8_t ep, uint8_t *packet, size_t size)
+struct usb_packet {
+    usb_packet(uint16_t size) : size(size) {}
+    uint16_t size;
+    uint8_t data[1024];
+};
+
+std::queue<usb_packet> send_queue;
+
+static bool usb_cx2_real_packet_to_calc(uint8_t ep, const uint8_t *packet, size_t size)
 {
     uint8_t fifo = (usb_cx2.epmap[ep > 4] >> (8 * ((ep - 1) & 0b11) + 4)) & 0b11;
 
@@ -73,36 +77,30 @@ bool usb_cx2_packet_to_calc(uint8_t ep, uint8_t *packet, size_t size)
     return true;
 }
 
-static void usb_cx2_packet_from_calc(uint8_t ep, uint8_t *packet, size_t size)
+bool usb_cx2_packet_to_calc(uint8_t ep, const uint8_t *packet, size_t size)
 {
-    if (packet[1] == 1) // address request
+    if(size > sizeof(usb_cx2.fifo[0].data) || size > sizeof(usb_packet::data))
+        return false;
+
+    // If the FIFO is busy, queue it for sending later
+    uint8_t fifo = (usb_cx2.epmap[ep > 4] >> (8 * ((ep - 1) & 0b11) + 4)) & 0b11;
+    if(usb_cx2.fifo[fifo].size)
     {
-        uint8_t pkt[13] = {};
-        pkt[1] = 1;
-        pkt[2] = 0xfe;
-        pkt[3] = 1;
-        pkt[7] = 0xD;
-        pkt[11] = 0xf0;
-        pkt[12] = 0x01;
-        usb_cx2_packet_to_calc(1, pkt, sizeof(pkt));
-        stage = 1;
-    }
-    else if (packet[1] == 8) // unknown service
-    {
-        uint8_t pkt[12] = {};
-        pkt[1] = 0x88;
-        pkt[2] = 0xfe;
-        pkt[3] = 1;
-        pkt[7] = 0xc;
-        pkt[8] = 3;
-        pkt[9] = 0xea;
-        pkt[10] = 0xfd;
-        pkt[11] = 0x7f;
-        usb_cx2_packet_to_calc(1, pkt, sizeof(pkt));
-        stage = 2;
+        send_queue.emplace(size);
+        memcpy(send_queue.back().data, packet, size);
+        return true;
     }
     else
-        error("Unknown packet received");
+        return usb_cx2_real_packet_to_calc(ep, packet, size);
+}
+
+static void usb_cx2_packet_from_calc(uint8_t ep, uint8_t *packet, size_t size)
+{
+    if(ep != 1)
+        error("Got packet on unknown EP");
+
+    if(!usblink_cx2_handle_packet(packet, size))
+        gui_debug_printf("Packet not handled");
 }
 
 extern "C" {
@@ -118,12 +116,13 @@ void usb_cx2_reset()
 
     // High speed, B-device, Acts as device
     usb_cx2.otgcs = (2 << 22) | (1 << 21) | (1 << 20);
+
     // Reset IRQ
     usb_cx2.gisr[1] |= 0b1111 << 16;
     usb_cx2.gisr[2] |= 1;
 
     usb_cx2_int_check();
-    usblink_reset();
+    usblink_cx2_reset();
 }
 
 void usb_cx2_bus_reset_on()
@@ -191,41 +190,16 @@ void usb_cx2_dma1_update()
     else
     {
         usb_cx2.gisr[1] &= ~(0b11 << (fifo * 2)); // FIFO0 OUT/SPK
-        //usb_cx2.gisr[2] |= 1 << 7; // DMA complete
+        usb_cx2.gisr[2] |= 1 << 7; // DMA complete
 
-        switch(stage)
+        gui_debug_printf("Packet sent\n");
+
+        if(send_queue.size())
         {
-        case 1:
-        {
-            uint8_t pkt[13] = {};
-            pkt[1] = 1;
-            pkt[2] = 0xfe;
-            pkt[3] = 1;
-            pkt[7] = 0xD;
-            pkt[9] = 1;
-            pkt[10] = 0x81;
-            pkt[11] = 0xee;
-            pkt[12] = 0x80;
-            usb_cx2_packet_to_calc(1, pkt, sizeof(pkt));
-            stage = 0;
-            break;
-        }
-        case 2:
-        {
-            uint8_t pkt[14] = {};
-            pkt[1] = 8;
-            pkt[2] = 0xfe;
-            pkt[3] = 1;
-            pkt[7] = 0xE;
-            pkt[9] = 2;
-            pkt[10] = 0x80;
-            pkt[11] = 0xe2;
-            pkt[12] = 0x81;
-            pkt[13] = 3;
-            usb_cx2_packet_to_calc(1, pkt, sizeof(pkt));
-            stage = 0;
-            break;
-        }
+            if(usb_cx2_packet_to_calc(1, send_queue.front().data, send_queue.front().size))
+                gui_debug_printf("Sending next pkt\n");
+
+            send_queue.pop();
         }
     }
 

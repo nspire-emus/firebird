@@ -32,6 +32,8 @@ void usblink_new_dir(const char *path, usblink_progress_cb callback, void *user_
 void usblink_move(const char *old_path, const char *new_path, usblink_progress_cb callback, void *user_data);
 bool usblink_send_os(const char *filepath, usblink_progress_cb callback, void *user_data);
 
+void usblink_received_packet(const uint8_t *data, uint32_t size);
+
 void usblink_reset();
 void usblink_connect();
 

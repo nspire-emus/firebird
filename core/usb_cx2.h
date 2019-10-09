@@ -68,6 +68,8 @@ uint16_t usb_cx2_read_half(uint32_t addr);
 uint32_t usb_cx2_read_word(uint32_t addr);
 void usb_cx2_write_word(uint32_t addr, uint32_t value);
 
+bool usb_cx2_packet_to_calc(uint8_t ep, const uint8_t *packet, size_t size);
+
 #ifdef __cplusplus
 }
 #endif
