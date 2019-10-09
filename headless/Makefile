@@ -48,7 +48,7 @@ CSOURCES   += ../core/armsnippets_loader.c ../core/casplus.c ../core/des.c ../co
 
 CPPSOURCES += ../core/arm_interpreter.cpp ../core/coproc.cpp ../core/cpu.cpp ../core/debug.cpp ../core/emu.cpp \
               ../core/flash.cpp ../core/gif.cpp ../core/thumb_interpreter.cpp ../core/usblink_queue.cpp main.cpp \
-              ../core/keypad.cpp ../core/cx2.cpp ../core/usb_cx2.cpp
+              ../core/keypad.cpp ../core/cx2.cpp ../core/usb_cx2.cpp ../core/usblink_cx2.cpp
 
 OBJS = $(patsubst %.S, %.o, $(ASMSOURCES))
 OBJS += $(patsubst %.c, %.o, $(CSOURCES))
