@@ -446,27 +446,28 @@ void unknown_9008_write(uint32_t addr, uint32_t value) {
 }
 
 /* 90090000 */
-static time_t rtc_time_diff;
-uint32_t rtc_read(uint32_t addr) {
-    switch (addr & 0xFFFF) {
-        case 0x00: return time(NULL) - rtc_time_diff;
-        case 0x14: return 0;
-    }
-    return bad_read_word(addr);
-}
-void rtc_write(uint32_t addr, uint32_t value) {
-    switch (addr & 0xFFFF) {
-        case 0x04: return;
-        case 0x08: rtc_time_diff = time(NULL) - value; return;
-        case 0x0C: return;
-        case 0x10: return;
-    }
-    bad_write_word(addr, value);
+struct rtc_state rtc;
+
+bool rtc_resume(const emu_snapshot *snapshot)
+{
+    rtc = snapshot->mem.rtc;
+    return true;
 }
 
-uint32_t rtc_cx_read(uint32_t addr) {
+bool rtc_suspend(emu_snapshot *snapshot)
+{
+    snapshot->mem.rtc = rtc;
+    return true;
+}
+
+void rtc_reset() {
+    rtc.offset = 0;
+}
+
+uint32_t rtc_read(uint32_t addr) {
     switch (addr & 0xFFFF) {
-        case 0x000: return time(NULL);
+        case 0x00: return time(NULL) - rtc.offset;
+        case 0x14: return 0;
         case 0xFE0: return 0x31;
         case 0xFE4: return 0x10;
         case 0xFE8: return 0x04;
@@ -474,12 +475,13 @@ uint32_t rtc_cx_read(uint32_t addr) {
     }
     return bad_read_word(addr);
 }
-void rtc_cx_write(uint32_t addr, uint32_t value) {
+void rtc_write(uint32_t addr, uint32_t value) {
     switch (addr & 0xFFFF) {
-        case 0x004: return;
-        case 0x00C: return;
-        case 0x010: return;
-        case 0x01C: return;
+        case 0x04: return;
+        case 0x08: rtc.offset = time(NULL) - value; return;
+        case 0x0C: return;
+        case 0x10: return;
+        case 0x1C: return;
     }
     bad_write_word(addr, value);
 }
