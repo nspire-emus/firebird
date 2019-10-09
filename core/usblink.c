@@ -7,6 +7,7 @@
 #include "emu.h"
 #include "usb.h"
 #include "usblink.h"
+#include "usblink_cx2.h"
 #include "os/os.h"
 
 struct packet {
@@ -74,7 +75,7 @@ uint8_t usblink_header_checksum(struct packet *packet) {
     return check;
 }
 
-static void dump_packet(char *type, void *data, uint32_t size) {
+static void dump_packet(char *type, const void *data, uint32_t size) {
     if (log_enabled[LOG_USB])
     {
         uint32_t i;
@@ -398,7 +399,7 @@ void dirlist_next(struct packet *in)
     }
 }
 
-void usblink_received_packet(uint8_t *data, uint32_t size) {
+void usblink_received_packet(const uint8_t *data, uint32_t size) {
     dump_packet("recv", data, size);
 
     struct packet *in = (struct packet *)data;
@@ -698,8 +699,7 @@ void usblink_reset() {
     }
     usblink_connected = false;
     gui_usblink_changed(usblink_connected);
-    // HACK: Connect ASAP
-    usblink_state = 1;
+    usblink_state = 0;
     usblink_sending = false;
 }
 
@@ -721,16 +721,8 @@ void usblink_timer() {
             break;
         case 2: {
             usb_bus_reset_off();
-            //printf("Sending SET_ADDRESS\n");
+            printf("Sending SET_ADDRESS\n");
             struct usb_setup packet = { 0, 5, 1, 0, 0 };
-            usb_receive_setup_packet(0, &packet);
-            usblink_state++;
-            break;
-        }
-        // HACK: Used by usb_cx2
-        case 5: {
-            gui_debug_printf("Sending SET_CONFIGURATION TIMER\n");
-            struct usb_setup packet = { 0, 9, 1, 0, 0 };
             usb_receive_setup_packet(0, &packet);
             usblink_state++;
             break;
@@ -764,6 +756,13 @@ void usblink_complete_send(int ep) {
 }
 
 void usblink_start_send() {
+    if(emulate_cx2)
+    {
+        // Wrap it in NNSE
+        usblink_cx2_send_navnet((const uint8_t*) &usblink_send_buffer, 16 + usblink_send_buffer.data_size);
+        return;
+    }
+
     int ep;
     usblink_sending = true;
     // If there's already an endpoint waiting for data, just send immediately
