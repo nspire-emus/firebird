@@ -204,6 +204,13 @@ static void handlePacket(const NNSEMessage *message, const uint8_t **streamdata 
             printf("Failed to ack\n");
     }
 
+    if(message->reqAck & 8)
+    {
+        // There's no proper seqid tracking, but shouldn't be necessary
+        printf("Got packet with failed ack flag (seqid %d) - ignoring\n", message->seqno);
+        return;
+    }
+
     switch(message->service & ~AckFlag)
     {
     case AddrReqService:
@@ -348,21 +355,19 @@ bool usblink_cx2_handle_packet(const uint8_t *data, uint16_t size)
 
     const auto completeLength = ntohs(message->length);
 
-    if(size != completeLength)
+    // The nspire code has if(size & 0x3F == 0) ++size; for some reason
+    if(size != completeLength + (completeLength % 64 == 0))
     {
-        gui_debug_printf("Got too small or too big packet");
+        error("Got too small or too big packet");
         return false;
     }
-
-    if(completeLength < sizeof(NNSEMessage))
-        return false;
 
 #ifdef DEBUG
     printf("Got packet:\n");
     dumpPacket(message);
 #endif
 
-    if(compute_checksum(reinterpret_cast<const uint8_t*>(message), size) != 0xFFFF)
+    if(compute_checksum(reinterpret_cast<const uint8_t*>(message), completeLength) != 0xFFFF)
         return false;
 
     const uint8_t *streamdata = nullptr;
