@@ -43,8 +43,9 @@ struct usb_cx2_state {
         uint32_t addr;
     } fdma[3];
 
-    // Not sure what they do, but one is a status
-    // and the other a mask register related to DMA.
+    // Also known as gisr4/gimr4.
+    // Lower bits are DMA complete for the fdma,
+    // Higher bits (<< 16) are DMA error.
     uint32_t dmasr;     // 328
     uint32_t dmamr;     // 32C
 

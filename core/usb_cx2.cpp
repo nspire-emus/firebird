@@ -30,18 +30,14 @@ static void usb_cx2_int_check()
         if(usb_cx2.gisr[i] & ~usb_cx2.gimr[i])
             usb_cx2.gisr_all |= 1 << i;
 
-    //if(usb_cx2.dmasr & ~usb_cx2.dmamr)
-    //    usb_cx2.gisr_all |= 1 << 0; // Device DMA interrupt (?)
+    if(usb_cx2.dmasr & ~usb_cx2.dmamr)
+        usb_cx2.gisr_all |= 1 << 3; // Device DMA interrupt
 
     // Update controller interrupt status
     usb_cx2.isr = 0;
 
     if((usb_cx2.gisr_all & ~usb_cx2.gimr_all) && (usb_cx2.devctrl & 0b100))
-    {
         usb_cx2.isr |= 1 << 0; // Device interrupt
-
-        gui_debug_printf("USB_INT!\n");
-    }
 
     if(usb_cx2.otgisr & usb_cx2.otgier)
         usb_cx2.isr |= 1 << 1; // OTG interrupt
@@ -180,8 +176,7 @@ void usb_cx2_dma1_update()
     uint8_t *ptr = (uint8_t*) phys_mem_ptr(usb_cx2.fdma[1].addr, length);
     memcpy(ptr, usb_cx2.fifo[fifo].data, length);
 
-    // Set DMA done bit in dmasr
-    usb_cx2.dmasr |= 1 << (fifo + 1);
+    usb_cx2.dmasr |= 1 << (fifo + 1); // DMA done
 
     // Move the remaining data to the start
     usb_cx2.fifo[fifo].size -= length;
@@ -190,7 +185,6 @@ void usb_cx2_dma1_update()
     else
     {
         usb_cx2.gisr[1] &= ~(0b11 << (fifo * 2)); // FIFO0 OUT/SPK
-        usb_cx2.gisr[2] |= 1 << 7; // DMA complete
 
         gui_debug_printf("Packet sent\n");
 
@@ -224,13 +218,8 @@ void usb_cx2_dma2_update()
     uint8_t ep = (usb_cx2.fifomap >> (fifo * 8)) & 0xF;
     usb_cx2_packet_from_calc(ep, ptr, length);
 
-    // Apparently what's down here is not sufficient :-/
-
-    // Set DMA done bit in dmasr
-    usb_cx2.dmasr |= 1 << (fifo + 1);
-
-    usb_cx2.gisr[1] |= 1 << (16 + fifo); // FIFO1 IN
-    //usb_cx2.gisr[2] |= 1 << 7; // DMA complete
+    usb_cx2.dmasr |= 1 << (fifo + 1); // DMA done
+    //usb_cx2.gisr[1] |= 1 << (16 + fifo); // FIFO1 IN
 
     usb_cx2_int_check();
 }
@@ -329,11 +318,7 @@ uint32_t usb_cx2_read_word_real(uint32_t addr)
         return ret;
     }
     case 0x328:
-    {
-        uint32_t value = usb_cx2.dmasr;
-        usb_cx2.dmasr = 0;
-        return value;
-    }
+        return usb_cx2.dmasr;
     case 0x32C:
         return usb_cx2.dmamr;
     case 0x330:
@@ -351,7 +336,7 @@ uint32_t usb_cx2_read_word(uint32_t addr)
 
 void usb_cx2_write_word(uint32_t addr, uint32_t value)
 {
-    gui_debug_printf("WW %x = %x @ %x @ %x\n", addr, value, arm.reg[15], arm.reg[14]);
+    //gui_debug_printf("WW %x = %x @ %x @ %x\n", addr, value, arm.reg[15], arm.reg[14]);
     uint32_t offset = addr & 0xFFF;
     switch(offset)
     {
@@ -464,10 +449,14 @@ void usb_cx2_write_word(uint32_t addr, uint32_t value)
         return;
     case 0x150: // Rx zero length pkt
         usb_cx2.rxzlp = value;
+        if(value)
+            error("Not implemented");
         usb_cx2_int_check();
         return;
     case 0x154: // Tx zero length pkt
         usb_cx2.txzlp = value;
+        if(value)
+            error("Not implemented");
         usb_cx2_int_check();
         return;
     case 0x160: case 0x164:
