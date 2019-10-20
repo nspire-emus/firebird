@@ -60,14 +60,27 @@ static bool usb_cx2_real_packet_to_calc(uint8_t ep, const uint8_t *packet, size_
 {
     uint8_t fifo = (usb_cx2.epmap[ep > 4] >> (8 * ((ep - 1) & 0b11) + 4)) & 0b11;
 
-    if(size > sizeof(usb_cx2.fifo[fifo].data) - usb_cx2.fifo[fifo].size)
+    // +1 to adjust for the hack below
+    if(size + 1 > sizeof(usb_cx2.fifo[fifo].data) - usb_cx2.fifo[fifo].size)
         return false;
 
     memcpy(&usb_cx2.fifo[fifo].data[usb_cx2.fifo[fifo].size], packet, size);
+
+    /* Hack ahead! Counterpart to the receiving side in usblink_cx2.
+     * The nspire code has if(size & 0x3F == 0) ++size; for some reason,
+     * so send them that way here as well. It's probably to avoid having to
+     * deal with zero-length packets.
+     * TODO: Move to usblink_cx2.cpp as NNSE specific. */
+    if((size & 0x3F) == 0)
+        ++size;
+
     usb_cx2.fifo[fifo].size += size;
     usb_cx2.gisr[1] |= 1 << (fifo * 2); // FIFO OUT IRQ
-    if(size < (usb_cx2.epout[(ep - 1) & 7] & 0x7ff))
+    auto packet_size = usb_cx2.epout[(ep - 1) & 7] & 0x7ff;
+    if(size % packet_size) // Last pkt is short?
         usb_cx2.gisr[1] |= 1 << ((fifo * 2) + 1); // FIFO SPK IRQ
+    else // ZLP needed
+        error("Sending zero-length packets not implemented");
 
     usb_cx2_int_check();
     return true;
