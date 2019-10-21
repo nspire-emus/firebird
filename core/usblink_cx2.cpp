@@ -112,10 +112,13 @@ static uint16_t compute_checksum(const uint8_t *data, uint32_t size)
         }
 
         if (size & 1)
-            acc += (((uint16_t)data[size - 1]) << 8);
+            acc += ((uint16_t)data[size - 1]) << 8;
     }
 
-    return acc + (acc >> 16);
+    while (acc >> 16)
+        acc = (acc >> 16) + uint16_t(acc);
+
+    return acc;
 }
 
 static bool writePacket(NNSEMessage *message)
@@ -126,7 +129,10 @@ static bool writePacket(NNSEMessage *message)
     message->csum = htons(compute_checksum(reinterpret_cast<uint8_t*>(message), length) ^ 0xFFFF);
 
     if(compute_checksum(reinterpret_cast<uint8_t*>(message), length) != 0xFFFF)
+    {
+        error("Failed to compute checksum\n");
         return false;
+    }
 
 #ifdef DEBUG
     printf("Sending packet:\n");
@@ -207,7 +213,7 @@ static void handlePacket(const NNSEMessage *message, const uint8_t **streamdata 
     if(message->reqAck & 8)
     {
         // There's no proper seqid tracking, but shouldn't be necessary
-        printf("Got packet with failed ack flag (seqid %d) - ignoring\n", message->seqno);
+        printf("Got packet with failed ack flag (seqid %d) - ignoring\n", ntohs(message->seqno));
         return;
     }
 
