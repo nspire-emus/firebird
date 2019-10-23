@@ -191,7 +191,7 @@ void usblink_queue_put_file(std::string filepath, std::string folder, usblink_pr
     usblink_queue_add(action);
 }
 
-void usblink_queue_send_os(const char *filepath, usblink_progress_cb callback, void *user_data)
+void usblink_queue_send_os(std::string filepath, usblink_progress_cb callback, void *user_data)
 {
     usblink_queue_action action;
     action.action = usblink_queue_action::SEND_OS;
