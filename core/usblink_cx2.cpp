@@ -12,7 +12,7 @@
 #include "usblink_cx2.h"
 #include "usb_cx2.h"
 
-#define DEBUG
+// #define DEBUG
 
 enum Address {
     AddrAll		= 0xFF,
@@ -189,7 +189,11 @@ static void handlePacket(const NNSEMessage *message, const uint8_t **streamdata 
         printf("Got ack for %02x\n", ntohs(message->seqno));
 #endif
 
-        // TODO: For some services this needs to be relayed to usblink
+        if((message->service & (~AckFlag)) == StreamService)
+        {
+            // Tell usblink that an ack arrived
+            usblink_got_ack();
+        }
         return;
     }
 
