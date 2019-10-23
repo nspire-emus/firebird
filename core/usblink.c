@@ -16,11 +16,18 @@ struct packet {
     struct { uint16_t addr, service; } src;
     struct { uint16_t addr, service; } dst;
     uint16_t data_check;
-    uint8_t data_size;
+    uint8_t data_size; // If 0xFF, bigdata* counts
     uint8_t ack;
     uint8_t seqno;
     uint8_t hdr_check;
-    uint8_t data[255];
+    union {
+        uint8_t      data[254];
+        struct {
+            uint32_t bigdatasize;
+            uint8_t  bigdata[1440];
+        };
+        uint8_t      fulldata[1444];
+    };
 };
 
 #define CONSTANT  BSWAP16(0x54FD)
@@ -58,12 +65,28 @@ enum USB_Mode {
     Dir_Create
 } mode;
 
+static uint8_t *packet_dataptr(struct packet *p) {
+        return (p->data_size == 0xFF) ? p->bigdata : p->data;
+}
+
+static uint32_t packet_datasize(const struct packet *p) {
+        return (p->data_size == 0xFF) ? BSWAP32(p->bigdatasize) : p->data_size;
+}
+
+static uint32_t packet_max_datasize() {
+        return emulate_cx2 ? 1440 : 254;
+}
+
+static uint32_t packet_fulldatasize(const struct packet *p) {
+        return (p->data_size == 0xFF) ? (BSWAP32(p->bigdatasize) + 4) : p->data_size;
+}
+
 uint16_t usblink_data_checksum(struct packet *packet) {
     uint16_t check = 0;
-    int i, size = packet->data_size;
+    int i, size = packet_fulldatasize(packet);
     for (i = 0; i < size; i++) {
         uint16_t tmp = check << 12 ^ check << 8;
-        check = (packet->data[i] << 8 | check >> 8)
+        check = (packet->fulldata[i] << 8 | check >> 8)
                 ^ tmp ^ tmp >> 5 ^ tmp >> 12;
     }
     return BSWAP16(check);
@@ -95,7 +118,7 @@ void usblink_send_packet() {
     usblink_send_buffer.dst.addr   = DST_ADDR;
     usblink_send_buffer.data_check = usblink_data_checksum(&usblink_send_buffer);
     usblink_send_buffer.hdr_check  = usblink_header_checksum(&usblink_send_buffer);
-    dump_packet("send", &usblink_send_buffer, 16 + usblink_send_buffer.data_size);
+    dump_packet("send", &usblink_send_buffer, 16 + packet_fulldatasize(&usblink_send_buffer));
     usblink_start_send();
 }
 
@@ -118,15 +141,15 @@ enum {
     ACKING_04_or_FF_00 = 3,
     RECVING_FF_00      = 4,
     DONE               = 5,
-    EXPECT_FF_00       = 16, // Sent to us after first OS data packet
+    EXPECT_FF_00       = 16, // Sent to us after the first OS data packet(s)
 } put_file_state;
 
 void put_file_next(struct packet *in) {
     struct packet *out = &usblink_send_buffer;
-    int16_t status = 0;
-    if(in && in->data_size >= 2)
+    int16_t status = -1;
+    if(in && packet_datasize(in) >= 2)
     {
-        memcpy(&status, in->data, sizeof(status));
+        memcpy(&status, packet_dataptr(in), sizeof(status));
         status = BSWAP16(status);
     }
 
@@ -138,9 +161,9 @@ void put_file_next(struct packet *in) {
         case RECVING_04:
             if (!in || in->data_size != 1 || in->data[0] != 0x04) {
                 emuprintf("File send error: Didn't get 04\n");
-                status = 0x8000;
                 goto fail;
             }
+
             put_file_state++;
             goto send_data;
         case ACKING_04_or_FF_00:
@@ -161,6 +184,7 @@ send_data:
                 if (len > 253)
                     len = 253;
                 put_file_size -= len;
+
                 out->src.service = SID_File;
                 out->dst.service = put_file_port;
                 out->data_size = 1 + len;
@@ -185,13 +209,20 @@ send_data:
             throttle_timer_on();
             put_file_state = DONE;
             break;
-        case RECVING_FF_00: /* Got FF 00: OS header is valid */
-            if (!in || in->data_size != 2 || in->data[0] != 0xFF || in->data[1]) {
-                emuprintf("File send error: Didn't get FF 00\n");
-                goto fail;
+        case RECVING_FF_00:
+            if (in && in->data_size == 2 && in->data[0] == 0xFF && !in->data[1]) {
+                /* Got FF 00: OS header is valid. Just send data from now on. */
+                put_file_state = ACKING_04_or_FF_00;
+                goto send_data;
             }
-            put_file_state = ACKING_04_or_FF_00;
-            goto send_data;
+            else if (in && in->data_size == 1 && in->data[0] == 0x04) {
+                /* Got 04: Send more data for OS header validation */
+                put_file_state = ACKING_04_or_FF_00 | EXPECT_FF_00;
+                goto send_data;
+            }
+
+            emuprintf("File send error: Didn't get 04 00 or FF 00/\n");
+            goto fail;
         case DONE:
             // TODO: 06 XX (OS progress) should be handled somewhere else
             if (!(in && in->data_size == 2 && in->data[0] == 0x06)
@@ -232,13 +263,16 @@ void get_file_next(struct packet *in)
     if(!in || in->data_size <= 1)
         return;
 
-    switch(in->data[0])
+    uint32_t size = packet_datasize(in);
+    uint8_t *data = packet_dataptr(in);
+
+    switch(data[0])
     {
     case 0x03: // Receive data size
         if(in->data_size == 15)
         {
             uint32_t size = 0;
-            memcpy(&size, in->data + 2 + 9, sizeof(uint32_t));
+            memcpy(&size, data + 2 + 9, sizeof(uint32_t));
             size = BSWAP32(size);
             put_file_size_orig = size;
             put_file_size = 0;
@@ -260,10 +294,10 @@ void get_file_next(struct packet *in)
         break;
 
     case 0x05: // Receive data packet
-        put_file_size += in->data_size - 1;
+        put_file_size += size - 1;
 
         if(put_file_size > put_file_size_orig)
-            in->data_size -= put_file_size_orig - put_file_size;
+            size -= put_file_size_orig - put_file_size;
 
         if(current_file_callback)
         {
@@ -274,7 +308,7 @@ void get_file_next(struct packet *in)
                 current_file_callback(old_progress = progress, current_user_data);
         }
 
-        fwrite(in->data + 1, 1, in->data_size - 1, put_file);
+        fwrite(data + 1, 1, size - 1, put_file);
 
         if(in->data_size < 254 || put_file_size == put_file_size_orig)
         {
@@ -431,7 +465,7 @@ void usblink_received_packet(const uint8_t *data, uint32_t size) {
         memcpy(out->data + 2, &tmp, sizeof(tmp)); // *(uint16_t *)&out->data[2] = BSWAP16(0xFF00);
         usblink_send_packet();
         return;
-    } else if (in && !in->ack) {
+    } else if (in && !in->ack && !emulate_cx2) { // CX2 acks are handled on the NNSE layer
         /* Send an ACK */
         out->src.service = BSWAP16(0x00FF);
         out->dst.service = in->src.service;
@@ -451,8 +485,8 @@ void usblink_received_packet(const uint8_t *data, uint32_t size) {
     case Rename:
     case Delete:
     case Dir_Create:
-        if(in && in->data_size == 2 && in->data[0] == 0xFF && current_file_callback)
-            current_file_callback(in->data[1] == 0x00 ? 100 : -1, current_user_data);
+        if(in && packet_datasize(in) == 2 && packet_dataptr(in)[0] == 0xFF && current_file_callback)
+            current_file_callback(packet_dataptr(in)[1] == 0x00 ? 100 : -1, current_user_data);
         break;
     case Dirlist:
         dirlist_next(in);
@@ -506,7 +540,7 @@ bool usblink_put_file(const char *filepath, const char *folder, usblink_progress
     fseek(f, 0, SEEK_END);
     put_file_size_orig = put_file_size = ftell(f);
     fseek(f, 0, SEEK_SET);
-    put_file_state = 1;
+    put_file_state = SENDING_03;
 
     /* Send the first packet */
     struct packet *out = &usblink_send_buffer;
@@ -566,7 +600,7 @@ bool usblink_send_os(const char *filepath, usblink_progress_cb callback, void *u
     fseek(f, 0, SEEK_END);
     put_file_size_orig = put_file_size = ftell(f);
     fseek(f, 0, SEEK_SET);
-    put_file_state = 1 | 16;
+    put_file_state = SENDING_03 | EXPECT_FF_00;
 
     /* Send the first packet */
     struct packet *out = &usblink_send_buffer;
