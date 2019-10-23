@@ -199,13 +199,11 @@ void usb_cx2_dma1_update()
     {
         usb_cx2.gisr[1] &= ~(0b11 << (fifo * 2)); // FIFO0 OUT/SPK
 
-        gui_debug_printf("Packet sent\n");
+        //gui_debug_printf("Packet sent\n");
 
         if(send_queue.size())
         {
-            if(usb_cx2_packet_to_calc(1, send_queue.front().data, send_queue.front().size))
-                gui_debug_printf("Sending next pkt\n");
-
+            usb_cx2_packet_to_calc(1, send_queue.front().data, send_queue.front().size);
             send_queue.pop();
         }
     }
