@@ -65,15 +65,37 @@ enum USB_Mode {
 } mode;
 
 static uint8_t *packet_dataptr(struct packet *p) {
-        return (p->data_size == 0xFF) ? p->bigdata : p->data;
+    return (p->data_size == 0xFF) ? p->bigdata : p->data;
 }
 
 static uint32_t packet_datasize(const struct packet *p) {
-        return (p->data_size == 0xFF) ? BSWAP32(p->bigdatasize) : p->data_size;
+    return (p->data_size == 0xFF) ? BSWAP32(p->bigdatasize) : p->data_size;
 }
 
 static uint32_t packet_max_datasize() {
-        return emulate_cx2 ? 1440 : 254;
+    // TODO: Would be 1440 for NNSE, but usb_cx2 only handles 1023 per transfer max.
+    return emulate_cx2 ? (1023-4-12-16) : 254;
+}
+
+// Sets the size and returns a pointer where to store the data.
+static uint8_t *packet_prepare(struct packet *p, size_t size) {
+    if(size <= 254) {
+        // Regular small packet
+        p->data_size = size;
+        return p->data;
+    }
+
+    if(size <= 1440 && emulate_cx2) {
+        // Big packet
+        p->data_size = 0xFF;
+        p->fulldata[0] = size >> 24;
+        p->fulldata[1] = size >> 16;
+        p->fulldata[2] = size >> 8;
+        p->fulldata[3] = size;
+        return p->bigdata;
+    }
+
+    return NULL;
 }
 
 static uint32_t packet_fulldatasize(const struct packet *p) {
@@ -188,17 +210,18 @@ send_data:
             if (put_file_size > 0) {
                 /* Send data (05) */
                 uint32_t len = put_file_size;
-                if (len > 253)
-                    len = 253;
+                const uint32_t maxlen = packet_max_datasize() - 1;
+                if (len > maxlen)
+                    len = maxlen;
                 put_file_size -= len;
 
                 out->src.service = SID_File;
                 out->dst.service = put_file_port;
-                out->data_size = 1 + len;
                 out->ack = 0;
                 out->seqno = next_seqno();
-                out->data[0] = File_Contents;
-                (void)fread(out->data + 1, 1, len, put_file);
+                uint8_t *data = packet_prepare(out, len + 1);
+                data[0] = File_Contents;
+                (void)fread(data + 1, 1, len, put_file);
                 usblink_send_packet();
 
                 if(current_file_callback)
@@ -836,7 +859,7 @@ void usblink_start_send() {
     if(emulate_cx2)
     {
         // Wrap it in NNSE
-        usblink_cx2_send_navnet((const uint8_t*) &usblink_send_buffer, 16 + usblink_send_buffer.data_size);
+        usblink_cx2_send_navnet((const uint8_t*) &usblink_send_buffer, 16 + packet_fulldatasize(&usblink_send_buffer));
         return;
     }
 
