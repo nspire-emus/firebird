@@ -34,7 +34,7 @@ ColumnLayout {
         id: fileDialogLoader
         active: false
         sourceComponent: FileDialog {
-            nameFilters: [ "TNS Documents (*.tns)", "Operating Systems (*.tno *.tnc *.tco *.tcc *.tlo *.tmo *.tmc)" ]
+            nameFilters: [ "TNS Documents (*.tns)", "Operating Systems (*.tno *.tnc *.tco *.tcc *.tlo *.tmo *.tmc *.tco2 *.tcc2 *.tct2)" ]
             onAccepted: {
                 transferProgress.indeterminate = true;
                 transferProgress.visible = true;

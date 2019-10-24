@@ -298,7 +298,7 @@
        </item>
        <item>
         <property name="text">
-         <string notr="true">CX II CAS</string>
+         <string notr="true">CX II (/-T/CAS)</string>
         </property>
        </item>
       </widget>
