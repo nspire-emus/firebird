@@ -555,7 +555,9 @@ bool usblink_put_file(const char *filepath, const char *folder, usblink_progress
     // TODO (thanks for the reminder, Excale :P) : Filter depending on which model is being emulated
     if (dot && (!strcmp(dot, ".tno") || !strcmp(dot, ".tnc")
              || !strcmp(dot, ".tco") || !strcmp(dot, ".tcc")
-             || !strcmp(dot, ".tmo") || !strcmp(dot, ".tmc")) ) {
+             || !strcmp(dot, ".tmo") || !strcmp(dot, ".tmc")
+             || !strcmp(dot, ".tco2") || !strcmp(dot, ".tcc2")
+             || !strcmp(dot, ".tct2")) ) {
         emuprintf("File is an OS, calling usblink_send_os\n");
         usblink_send_os(filepath, callback, user_data);
         return 1;
