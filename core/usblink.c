@@ -823,7 +823,7 @@ void usblink_timer() {
             break;
         case 2: {
             usb_bus_reset_off();
-            printf("Sending SET_ADDRESS\n");
+            //printf("Sending SET_ADDRESS\n");
             struct usb_setup packet = { 0, 5, 1, 0, 0 };
             usb_receive_setup_packet(0, &packet);
             usblink_state++;
