@@ -13,6 +13,8 @@
 #include "lcd.h"
 #include "sha256.h"
 #include "usb.h"
+#include "usb_cx2.h"
+#include "cx2.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -93,6 +95,10 @@ typedef struct mem_snapshot
     interrupt_state intr;
     memctl_cx_state memctl_cx;
     serial_cx_state serial_cx;
+    aladdin_pmu_state aladdin_pmu;
+    usb_cx2_state usb_cx2;
+    dma_state dma;
+    cx2_lcd_spi_state cx2_lcd_spi;
 } mem_snapshot;
 
 bool memory_initialize(uint32_t sdram_size);

@@ -86,6 +86,18 @@ void aladdin_pmu_write(uint32_t addr, uint32_t value)
 	bad_write_word(addr, value);
 }
 
+bool aladdin_pmu_suspend(emu_snapshot *snapshot)
+{
+    snapshot->mem.aladdin_pmu = aladdin_pmu;
+    return true;
+}
+
+bool aladdin_pmu_resume(const emu_snapshot *snapshot)
+{
+    aladdin_pmu = snapshot->mem.aladdin_pmu;
+    return true;
+}
+
 /* 90120000: FTDDR3030 */
 uint32_t memc_ddr_read(uint32_t addr)
 {
@@ -168,6 +180,18 @@ void cx2_lcd_spi_write(uint32_t addr, uint32_t value)
 		// Ignored
 		break;
 	}
+}
+
+bool cx2_lcd_spi_suspend(emu_snapshot *snapshot)
+{
+    snapshot->mem.cx2_lcd_spi = cx2_lcd_spi;
+    return true;
+}
+
+bool cx2_lcd_spi_resume(const emu_snapshot *snapshot)
+{
+    cx2_lcd_spi = snapshot->mem.cx2_lcd_spi;
+    return true;
 }
 
 /* BC000000: An FTDMAC020 */
@@ -261,4 +285,16 @@ void dma_cx2_write_word(uint32_t addr, uint32_t value)
 		case 0x114: dma.channels[0].len = value & 0x003fffff; return;
 	}
 	bad_write_word(addr, value);
+}
+
+bool dma_cx2_suspend(emu_snapshot *snapshot)
+{
+    snapshot->mem.dma = dma;
+    return true;
+}
+
+bool dma_cx2_resume(const emu_snapshot *snapshot)
+{
+    dma = snapshot->mem.dma;
+    return true;
 }
