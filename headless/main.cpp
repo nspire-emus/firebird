@@ -4,6 +4,7 @@
 #include "core/emu.h"
 #include "core/mem.h"
 #include "core/mmu.h"
+#include "core/usblink_queue.h"
 
 void gui_do_stuff(bool wait)
 {
@@ -34,6 +35,8 @@ void gui_status_printf(const char *fmt, ...)
     va_start(ap, fmt);
 
     gui_debug_vprintf(fmt, ap);
+
+    putchar('\n');
 
     va_end(ap);
 }
@@ -83,6 +86,8 @@ int main(int argc, char *argv[])
 			debug_on_start = true;
 		else if(strcmp(argv[argi], "--debug-on-warn") == 0)
 			debug_on_warn = true;
+		else if(strcmp(argv[argi], "--print-on-warn") == 0)
+			print_on_warn = true;
 		else if(strcmp(argv[argi], "--diags") == 0)
 			boot_order = ORDER_DIAGS;
 		else
