@@ -109,7 +109,7 @@ static void usb_cx2_packet_from_calc(uint8_t ep, uint8_t *packet, size_t size)
         error("Got packet on unknown EP");
 
     if(!usblink_cx2_handle_packet(packet, size))
-        gui_debug_printf("Packet not handled");
+        warn("Packet not handled");
 }
 
 extern "C" {
@@ -140,7 +140,7 @@ void usb_cx2_bus_reset_on()
     usb_cx2.portsc |= 0x0C000100;
     usb_cx2.usbsts |= 0x40;
     usb_cx2_int_check();
-    gui_debug_printf("usb reset on\n");
+    //gui_debug_printf("usb reset on\n");
 }
 
 void usb_cx2_bus_reset_off()
@@ -155,7 +155,7 @@ void usb_cx2_bus_reset_off()
     usb_cx2.portsc |= 1;
     usb_cx2.usbsts |= 4;
     usb_cx2_int_check();
-    gui_debug_printf("usb reset off\n");
+    //gui_debug_printf("usb reset off\n");
 }
 
 void usb_cx2_receive_setup_packet(const usb_setup *packet)
@@ -163,8 +163,6 @@ void usb_cx2_receive_setup_packet(const usb_setup *packet)
     // Copy data into DMA buffer
     static_assert(sizeof(*packet) == sizeof(usb_cx2.setup_packet), "");
     memcpy(usb_cx2.setup_packet, packet, sizeof(usb_cx2.setup_packet));
-
-    gui_debug_printf("RECEIVE SETUP PACKET\n");
 
     // EP0 Setup packet
     usb_cx2.gisr[0] |= 1;
@@ -198,8 +196,6 @@ void usb_cx2_dma1_update()
     else
     {
         usb_cx2.gisr[1] &= ~(0b11 << (fifo * 2)); // FIFO0 OUT/SPK
-
-        //gui_debug_printf("Packet sent\n");
 
         if(send_queue.size())
         {
@@ -235,7 +231,7 @@ void usb_cx2_dma2_update()
     usb_cx2_int_check();
 }
 
-uint32_t usb_cx2_read_word_real(uint32_t addr)
+uint32_t usb_cx2_read_word(uint32_t addr)
 {
     uint32_t offset = addr & 0xFFF;
     switch(offset)
@@ -338,16 +334,8 @@ uint32_t usb_cx2_read_word_real(uint32_t addr)
     return bad_read_word(addr);
 }
 
-uint32_t usb_cx2_read_word(uint32_t addr)
-{
-    auto value = usb_cx2_read_word_real(addr);
-    //gui_debug_printf("RW %x = %x @ %x @ %x\n", addr, value, arm.reg[15], arm.reg[14]);
-    return value;
-}
-
 void usb_cx2_write_word(uint32_t addr, uint32_t value)
 {
-    //gui_debug_printf("WW %x = %x @ %x @ %x\n", addr, value, arm.reg[15], arm.reg[14]);
     uint32_t offset = addr & 0xFFF;
     switch(offset)
     {
@@ -404,8 +392,8 @@ void usb_cx2_write_word(uint32_t addr, uint32_t value)
     case 0x104:
         usb_cx2.devaddr = value;
 
-        if(value == 0x81) // Configuration set
-            gui_debug_printf("Completed SET_CONFIGURATION\n");
+        /*if(value == 0x81) // Configuration set
+            gui_debug_printf("Completed SET_CONFIGURATION\n");*/
 
         return;
     case 0x108:
@@ -436,7 +424,6 @@ void usb_cx2_write_word(uint32_t addr, uint32_t value)
             if (usb_cx2.devaddr == 1)
             {
                 struct usb_setup packet = { 0, 9, 1, 0, 0 };
-                gui_debug_printf("Sending SET_CONFIGURATION\n");
                 usb_cx2_receive_setup_packet(&packet);
             }
         }
