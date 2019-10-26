@@ -137,7 +137,7 @@ void cx2_backlight_write(uint32_t addr, uint32_t value)
 
 /* 90040000: FTSSP010 SPI controller connected to the LCD.
    Only the bare minimum to get the OS to boot is implemented. */
-struct cx2_lcd_spi_state cx2_lcd_spi_state;
+struct cx2_lcd_spi_state cx2_lcd_spi;
 
 uint32_t cx2_lcd_spi_read(uint32_t addr)
 {
@@ -145,8 +145,8 @@ uint32_t cx2_lcd_spi_read(uint32_t addr)
 	{
 	case 0x0C: // REG_SR
 	{
-		uint32_t ret = 0x10 | (cx2_lcd_spi_state.busy ? 0x04 : 0x02);
-		cx2_lcd_spi_state.busy = false;
+		uint32_t ret = 0x10 | (cx2_lcd_spi.busy ? 0x04 : 0x02);
+		cx2_lcd_spi.busy = false;
 		return ret;
 	}
 	default:
@@ -162,10 +162,103 @@ void cx2_lcd_spi_write(uint32_t addr, uint32_t value)
 	switch (addr & 0xFF)
 	{
 	case 0x18: // REG_DR
-		cx2_lcd_spi_state.busy = true;
+		cx2_lcd_spi.busy = true;
 		break;
 	default:
 		// Ignored
 		break;
 	}
+}
+
+/* BC000000: An FTDMAC020 */
+static dma_state dma;
+
+void dma_cx2_reset()
+{
+	memset(&dma, 0, sizeof(dma));
+}
+
+enum class DMAMemDir {
+	INC=0,
+	DEC=1,
+	FIX=2
+};
+
+static void dma_cx2_update()
+{
+	if(!(dma.csr & 1)) // Enabled?
+		return;
+
+	if(dma.csr & 0b110) // Big-endian?
+		return;
+
+	for(auto &channel : dma.channels)
+	{
+		if(!(channel.control & 1)) // Start?
+			continue;
+
+		if((channel.control & 0b110) != 0b110) // AHB1?
+			error("Not implemented");
+
+		if(channel.control & (1 << 15)) // Abort
+			error("Not implemented");
+
+		auto dstdir = DMAMemDir((channel.control >> 3) & 3),
+			 srcdir = DMAMemDir((channel.control >> 5) & 3);
+
+		if(srcdir != DMAMemDir::INC || dstdir != DMAMemDir::INC)
+			error("Not implemented");
+
+		auto dstwidth = (channel.control >> 8) & 7,
+			 srcwidth = (channel.control >> 11) & 7;
+
+		if(dstwidth != srcwidth || dstwidth > 2)
+			error("Not implemented");
+
+		// Convert to bytes
+		srcwidth = 1 << srcwidth;
+
+		size_t total_len = channel.len * srcwidth;
+
+		void *srcp = phys_mem_ptr(channel.src, total_len),
+			 *dstp = phys_mem_ptr(channel.dest, total_len);
+
+		if(!srcp || !dstp)
+			error("Invalid DMA transfer?");
+
+		/* Doesn't trigger any read or write actions, but on HW
+		 * special care has to be taken anyway regarding caches
+		 * and so on, so should be fine. */
+		memcpy(dstp, srcp, total_len);
+
+		channel.control &= ~1; // Clear start bit
+	}
+}
+
+uint32_t dma_cx2_read_word(uint32_t addr)
+{
+	switch (addr & 0x3FFFFFF) {
+		case 0x00C: return 0;
+		case 0x01C: return 0;
+		case 0x024: return dma.csr;
+		case 0x100: return dma.channels[0].control;
+		case 0x104: return dma.channels[0].config;
+	}
+	return bad_read_word(addr);
+}
+
+void dma_cx2_write_word(uint32_t addr, uint32_t value)
+{
+	switch (addr & 0x3FFFFFF) {
+		case 0x024: dma.csr = value; return;
+		case 0x100:
+			dma.channels[0].control = value;
+			dma_cx2_update();
+			return;
+		case 0x104: dma.channels[0].config = value; return;
+		case 0x108: dma.channels[0].src = value; return;
+		case 0x10C: dma.channels[0].dest = value; return;
+		case 0x114: dma.channels[0].len = value & 0x003fffff; return;
+	}
+	bad_write_word(addr, value);
 }

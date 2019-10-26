@@ -374,9 +374,6 @@ bool memory_initialize(uint32_t sdram_size)
     add_reset_proc(usb_reset);
     add_reset_proc(usblink_reset);
 
-    read_word_map[0xBC >> 2] = unknown_BC_read_word;
-    write_word_map[0xBC >> 2] = unknown_BC_write_word;
-
     read_word_map[0xC0 >> 2] = lcd_read_word;
     write_word_map[0xC0 >> 2] = lcd_write_word;
     add_reset_proc(lcd_reset);
@@ -450,6 +447,10 @@ bool memory_initialize(uint32_t sdram_size)
             write_word_map[0xB8 >> 2] = spinand_cx2_write_word;
             write_byte_map[0xB8 >> 2] = spinand_cx2_write_byte;
             add_reset_proc(flash_spi_reset);
+
+            read_word_map[0xBC >> 2] = dma_cx2_read_word;
+            write_word_map[0xBC >> 2] = dma_cx2_write_word;
+            add_reset_proc(dma_cx2_reset);
         }
         else
         {

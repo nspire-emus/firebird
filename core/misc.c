@@ -890,26 +890,6 @@ void sramctl_write_word(uint32_t addr, uint32_t value) {
     return;
 }
 
-/* BC000000: Likely an FTDMAC020 */
-static dma_state dma;
-
-uint32_t unknown_BC_read_word(uint32_t addr) {
-    switch (addr & 0x3FFFFFF) {
-        case 0xC: return 0;
-        case 0x1C: return 0;
-        case 0x24: return dma.control;
-    }
-    return bad_read_word(addr);
-}
-
-void unknown_BC_write_word(uint32_t addr, uint32_t value) {
-    switch (addr & 0x3FFFFFF) {
-        case 0x24: dma.control = value; return;
-    }
-
-    bad_write_word(addr, value);
-}
-
 /* C4000000: ADC (Analog-to-Digital Converter) */
 static adc_state adc;
 
