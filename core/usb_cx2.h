@@ -7,7 +7,7 @@
 extern "C" {
 #endif
 
-struct usb_cx2_state {
+typedef struct usb_cx2_state {
     uint32_t usbcmd;    // 10
     uint32_t usbsts;    // 14
     uint32_t usbintr;   // 18
@@ -59,11 +59,14 @@ struct usb_cx2_state {
     } cxfifo;
 
     uint32_t setup_packet[2];
-};
+} usb_cx2_state;
 
 extern struct usb_cx2_state usb_cx2;
 
 void usb_cx2_reset(void);
+typedef struct emu_snapshot emu_snapshot;
+bool usb_cx2_suspend(emu_snapshot *snapshot);
+bool usb_cx2_resume(const emu_snapshot *snapshot);
 uint8_t usb_cx2_read_byte(uint32_t addr);
 uint16_t usb_cx2_read_half(uint32_t addr);
 uint32_t usb_cx2_read_word(uint32_t addr);
