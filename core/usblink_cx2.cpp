@@ -284,7 +284,6 @@ static void handlePacket(const NNSEMessage *message, const uint8_t **streamdata 
             printf("Failed to send message\n");
 
         usblink_cx2_state.handshake_complete = true;
-        gui_debug_printf("HANDSHAKE COMPLETE TIME\n");
 
         gui_status_printf("usblink connected.");
         usblink_connected = true;
