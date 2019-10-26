@@ -206,13 +206,6 @@ void sdio_write_word(uint32_t addr, uint32_t value);
 uint32_t sramctl_read_word(uint32_t addr);
 void sramctl_write_word(uint32_t addr, uint32_t value);
 
-typedef struct dma_state {
-	uint32_t control;
-} dma_state;
-
-uint32_t unknown_BC_read_word(uint32_t addr);
-void unknown_BC_write_word(uint32_t addr, uint32_t value);
-
 struct adc_channel {
     uint32_t unknown;
     uint32_t count;
