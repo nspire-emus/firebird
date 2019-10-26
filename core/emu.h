@@ -92,7 +92,7 @@ typedef void (*debug_input_cb)(const char *input);
 void gui_debugger_request_input(debug_input_cb callback);
 
 #define SNAPSHOT_SIG 0xCAFEBEE0
-#define SNAPSHOT_VER 1
+#define SNAPSHOT_VER 2
 
 typedef struct emu_snapshot {
     uint32_t sig; // SNAPSHOT_SIG

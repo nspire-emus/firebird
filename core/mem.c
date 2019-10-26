@@ -523,7 +523,11 @@ bool memory_suspend(emu_snapshot *snapshot)
             && interrupt_suspend(snapshot)
             && memctl_cx_suspend(snapshot)
             && serial_cx_suspend(snapshot)
-            && timer_cx_suspend(snapshot);
+            && timer_cx_suspend(snapshot)
+            && aladdin_pmu_suspend(snapshot)
+            && usb_cx2_suspend(snapshot)
+            && dma_cx2_suspend(snapshot)
+            && cx2_lcd_spi_suspend(snapshot);
 }
 
 bool memory_resume(const emu_snapshot *snapshot)
@@ -553,5 +557,9 @@ bool memory_resume(const emu_snapshot *snapshot)
             && interrupt_resume(snapshot)
             && memctl_cx_resume(snapshot)
             && serial_cx_resume(snapshot)
-            && timer_cx_resume(snapshot);
+            && timer_cx_resume(snapshot)
+            && aladdin_pmu_resume(snapshot)
+            && usb_cx2_resume(snapshot)
+            && dma_cx2_resume(snapshot)
+            && cx2_lcd_spi_resume(snapshot);
 }
