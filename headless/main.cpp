@@ -4,9 +4,55 @@
 #include "core/emu.h"
 #include "core/mem.h"
 #include "core/mmu.h"
+#include "core/usblink_queue.h"
+
+bool stuff()
+{
+	printf("DOING QUEUE\n");
+
+    usblink_queue_send_os("/tmp/os.tcc2", [](int progress, void *user_data) {
+            printf("OS progress: %d %%\n", progress);
+        }, nullptr);
+    usblink_queue_download("/NspireLogs.zip", "/tmp/fblogs.zip", [](int progress, void *user_data) {
+        printf("logs progress: %d %%\n", progress);
+    }, nullptr);
+
+
+    /*usblink_queue_new_dir("ndless", [](int progress, void *) {
+        printf("Mkdir progress: %d %%\n", progress);
+    }, nullptr);*/
+    /*usblink_queue_put_file("/home/fabian/Ndless/ndless/calcbin/downgradefix_3.9.0_classic.tns", "ndless", [](int progress, void *) {
+        printf("Put progress: %d %%\n", progress);
+    }, nullptr);
+    usblink_queue_download("ndless/downgradefix_3.9.0_classic.tns", "/tmp/downgradefix_3.9.0_classic.tns", [](int progress, void *) {
+        printf("Get progress: %d %%\n", progress);
+    }, nullptr);*/
+
+    return true;
+/*
+    usblink_queue_download("/NspireLogs.zip", "/tmp/fblogs.zip", [](int progress, void *user_data) {
+		printf("logs progress: %d %%\n", progress);
+    }, nullptr);*/
+    usblink_queue_send_os("/home/fabian/Arbeitsfläche/Meine Projekte/nspire/rev_eng/OS/TI-Nspire-5.1.0.177.tcc2", [](int progress, void *user_data) {
+		printf("OS progress: %d %%\n", progress);
+    }, nullptr);
+    usblink_queue_download("/NspireLogs.zip", "/tmp/fblogs.zip", [](int progress, void *user_data) {
+            printf("logs progress: %d %%\n", progress);
+    }, nullptr);
+    /*usblink_queue_dirlist("/", [](struct usblink_file *f, bool is_error, void *user_data) {
+		if(f)
+			printf("DIRLIST: %s\n", f->filename);
+		else
+			puts("DIRLIST END\n");
+    }, nullptr);*/
+
+	return true;
+}
 
 void gui_do_stuff(bool wait)
 {
+    static int i = 200;
+	if(i-- == 0) stuff();
 }
 
 void do_stuff(int i)
@@ -29,11 +75,13 @@ void gui_debug_vprintf(const char *fmt, va_list ap)
 }
 
 void gui_status_printf(const char *fmt, ...)
-{
+{   
     va_list ap;
     va_start(ap, fmt);
 
     gui_debug_vprintf(fmt, ap);
+
+    putchar('\n');
 
     va_end(ap);
 }
@@ -83,6 +131,8 @@ int main(int argc, char *argv[])
 			debug_on_start = true;
 		else if(strcmp(argv[argi], "--debug-on-warn") == 0)
 			debug_on_warn = true;
+		else if(strcmp(argv[argi], "--print-on-warn") == 0)
+			print_on_warn = true;
 		else if(strcmp(argv[argi], "--diags") == 0)
 			boot_order = ORDER_DIAGS;
 		else
