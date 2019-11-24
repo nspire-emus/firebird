@@ -967,6 +967,30 @@ enum class FlashSPICmd : uint8_t {
 };
 
 struct flash_param_page_struct {
+    flash_param_page_struct() :
+        signature{'O', 'N', 'F', 'I'},
+        optional_commands{6},
+        manufacturer{'M','I','C','R','O','N',' ',' ',' ',' ',' ',' '},
+        model{'M','T','2','9','F','1','G','0','1','A','A','A','D','D','H','4',' ',' ',' ',' '},
+        manuf_id{0x2C},
+        page_data_size{2048},
+        page_spare_size{64},
+        partial_page_data_size{512},
+        partial_page_spare_size{16},
+        pages_per_block{64},
+        blocks_per_unit{1024},
+        count_logical_units{1},
+        bits_per_cell{1},
+        bad_blocks_per_unit_max{20},
+        block_endurance{0x501},
+        programs_per_page{4},
+        pin_capacitance{10},
+        time_max_prog{900},
+        time_max_erase{10000},
+        time_max_read{100},
+        rev_vendor{1}
+    {}
+
     char        signature[4];
     uint16_t    revision;
     uint16_t    features;
@@ -1002,32 +1026,7 @@ struct flash_param_page_struct {
     uint16_t    crc;
 } __attribute__((packed));
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wmissing-field-initializers"
-static const flash_param_page_struct param_page_micron = {
-    .signature = {'O', 'N', 'F', 'I'},
-    .optional_commands = 6,
-    .manufacturer = {'M','I','C','R','O','N',' ',' ',' ',' ',' ',' '},
-    .model = {'M','T','2','9','F','1','G','0','1','A','A','A','D','D','H','4',' ',' ',' ',' '},
-    .manuf_id = 0x2C,
-    .page_data_size = 2048,
-    .page_spare_size = 64,
-    .partial_page_data_size = 512,
-    .partial_page_spare_size = 16,
-    .pages_per_block = 64,
-    .blocks_per_unit = 1024,
-    .count_logical_units = 1,
-    .bits_per_cell = 1,
-    .bad_blocks_per_unit_max = 20,
-    .block_endurance = 0x501,
-    .programs_per_page = 4,
-    .pin_capacitance = 10,
-    .time_max_prog = 900,
-    .time_max_erase = 10000,
-    .time_max_read = 100,
-    .rev_vendor = 1
-};
-#pragma GCC diagnostic pop
+static const flash_param_page_struct param_page_micron{};
 
 void flash_spi_reset()
 {
