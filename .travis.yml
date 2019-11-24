@@ -6,14 +6,14 @@ dist: xenial
 addons:
   apt:
     sources:
-      - sourceline: 'ppa:beineri/opt-qt562-xenial'
+      - sourceline: 'ppa:beineri/opt-qt597-xenial'
     packages:
       - libgl1-mesa-dev
-      - qt56base
-      - qt56declarative
+      - qt59base
+      - qt59declarative
 
 install:
-  - source /opt/qt56/bin/qt56-env.sh
+  - source /opt/qt59/bin/qt59-env.sh
 
 script:
   - mkdir build
