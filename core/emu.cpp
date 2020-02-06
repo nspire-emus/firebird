@@ -2,7 +2,6 @@
 #include <chrono>
 #include <cstdint>
 #include <cctype>
-#include <csetjmp>
 
 #include <fcntl.h>
 
@@ -33,7 +32,27 @@ BootOrder boot_order = ORDER_DEFAULT;
 uint32_t boot2_base;
 std::string path_boot1, path_flash;
 
-void *restart_after_exception[32];
+#if defined(IS_IOS_BUILD) || defined(__EMSCRIPTEN__)
+// on iOS, setjmp and longjmp are broken and builtins setfault clang
+typedef bool emu_jmp_buf;
+static inline void emu_setjmp(emu_jmp_buf) {}
+__attribute__((noreturn)) static inline int emu_longjmp(emu_jmp_buf) { assert(false); }
+#elif defined(_WIN32) || defined(WIN32)
+// with MinGW, setjmp and longjmp are broken, but the builtins work
+typedef void* emu_jmp_buf[32];
+// When longjmp happens, the call frame used for setjmp has to be valid still,
+// i.e. the caller of setjmp must not have returned. So use a define.
+// The loop is needed as clang/llvm require saving again after the jump backwards.
+#define emu_setjmp(jb) do {} while(__builtin_setjmp(jb))
+__attribute__((noreturn)) static inline int emu_longjmp(emu_jmp_buf jb) { __builtin_longjmp(jb, 1); }
+#else
+#include <setjmp.h>
+typedef jmp_buf emu_jmp_buf;
+#define emu_setjmp(jb) do {setjmp(jb);} while(0)
+__attribute__((noreturn)) static inline int emu_longjmp(emu_jmp_buf jb) { longjmp(jb, 1); };
+#endif
+
+static emu_jmp_buf restart_after_exception;
 
 int log_enabled[MAX_LOG];
 FILE *log_file[MAX_LOG];
@@ -77,11 +96,12 @@ void error(const char *fmt, ...) {
     va_end(va);
     debugger(DBG_EXCEPTION, 0);
     cpu_events |= EVENT_RESET;
-    #ifndef NO_SETJMP
-        __builtin_longjmp(restart_after_exception, 1);
-    #else
-        assert(false);
-    #endif
+    return_to_loop();
+}
+
+void return_to_loop()
+{
+    emu_longjmp(restart_after_exception);
 }
 
 extern "C" void usblink_timer();
@@ -318,11 +338,7 @@ void emu_loop(bool reset)
 
     exiting = false;
 
-// clang segfaults with that, for an iOS build :(
-#ifndef NO_SETJMP
-    // Workaround for LLVM bug #18974
-    while(__builtin_setjmp(restart_after_exception)){};
-#endif
+    emu_setjmp(restart_after_exception);
 
     while (!exiting) {
         sched_process_pending_events();

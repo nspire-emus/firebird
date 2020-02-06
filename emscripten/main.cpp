@@ -134,12 +134,6 @@ void emscripten_loop(bool reset)
 
     exiting = false;
 
-// clang segfaults with that, for an iOS build :(
-#ifndef NO_SETJMP
-    // Workaround for LLVM bug #18974
-    while(__builtin_setjmp(restart_after_exception)){};
-#endif
-
     emscripten_set_main_loop(step, 0, 1);
     return;
 }
