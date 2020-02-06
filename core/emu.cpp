@@ -84,15 +84,6 @@ void error(const char *fmt, ...) {
     #endif
 }
 
-int exec_hack() {
-    if (arm.reg[15] == 0x10040) {
-        arm.reg[15] = arm.reg[14];
-        warn("BOOT1 is required to run this version of BOOT2.");
-        return 1;
-    }
-    return 0;
-}
-
 extern "C" void usblink_timer();
 
 void throttle_interval_event(int index)
