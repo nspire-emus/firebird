@@ -146,7 +146,7 @@ void throttle_interval_event(int index)
         throttle_timer_wait();
 }
 
-size_t gzip_filesize(const char *path)
+static size_t gzip_filesize(const char *path)
 {
     #if __BYTE_ORDER == __LITTLE_ENDIAN
         FILE *fp = fopen_utf8(path, "rb");
