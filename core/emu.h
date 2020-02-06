@@ -70,7 +70,6 @@ __attribute__((noreturn)) void error(const char *fmt, ...);
 void throttle_timer_on();
 void throttle_timer_off();
 void throttle_timer_wait();
-int exec_hack();
 void add_reset_proc(void (*proc)(void));
 
 // Is actually a jmp_buf, but __builtin_*jmp is used instead
