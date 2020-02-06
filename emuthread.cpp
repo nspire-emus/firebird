@@ -32,20 +32,14 @@ void gui_debug_printf(const char *fmt, ...)
 
 void gui_debug_vprintf(const char *fmt, va_list ap)
 {
-    QString str;
-    str.vsprintf(fmt, ap);
-    emu_thread.debugStr(str);
+    emu_thread.debugStr(QString::vasprintf(fmt, ap));
 }
 
 void gui_status_printf(const char *fmt, ...)
 {
     va_list ap;
     va_start(ap, fmt);
-
-    QString str;
-    str.vsprintf(fmt, ap);
-    emu_thread.statusMsg(str);
-
+    emu_thread.statusMsg(QString::vasprintf(fmt, ap));
     va_end(ap);
 }
 
