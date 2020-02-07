@@ -58,8 +58,11 @@ QMAKE_CXXFLAGS_RELEASE = -O3 -DNDEBUG
     QMAKE_CFLAGS += -Wa,--noexecstack
 }
 
-# The linker needs this somehow
-android: QMAKE_LFLAGS += -fPIC
+android {
+    # Fix up all relocations for known symbols, makes it faster and gets rid of some .text relocations
+    # if disabled in asmcode_arm.S.
+    QMAKE_LFLAGS += -Wl,-Bsymbolic
+}
 
 macx: ICON = resources/logo.icns
 

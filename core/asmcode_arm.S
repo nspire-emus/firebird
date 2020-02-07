@@ -24,7 +24,7 @@ translation_sp: .global translation_sp
 #define AC_NOT_PTR 0b01
 #define AC_FLAGS (AC_INVALID|AC_NOT_PTR)
 
-#if defined(__clang__)
+#if defined(__clang__) && !defined(ANDROID)
 /* On iOS, .text relocations are permitted and due to
    a bug it's unable to handle to handle our way of
    avoiding them anyway... */
