@@ -113,6 +113,13 @@ linux-g++-32 {
     FB_ARCH = x86
 }
 
+android: {
+    equals(FB_ARCH, "x86") | equals(FB_ARCH, "x86_64")) {
+        # Built as shared library - forced PIC. JIT not compatible
+        TRANSLATION_ENABLED = false
+    }
+}
+
 # A platform-independant implementation of lowlevel access as default
 ASMCODE_IMPL = core/asmcode.c
 
