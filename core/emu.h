@@ -23,14 +23,10 @@ extern "C" {
 #define NO_TRANSLATION
 #endif
 
-// on iOS, setjmp and longjmp are broken
-#ifdef IS_IOS_BUILD
-#define NO_SETJMP
-#endif
-
 // Helper for micro-optimization
 #define unlikely(x) __builtin_expect(x, 0)
 #define likely(x) __builtin_expect(x, 1)
+
 static inline uint16_t BSWAP16(uint16_t x) { return x << 8 | x >> 8; }
 #define BSWAP32(x) __builtin_bswap32(x)
 
@@ -70,12 +66,10 @@ __attribute__((noreturn)) void error(const char *fmt, ...);
 void throttle_timer_on();
 void throttle_timer_off();
 void throttle_timer_wait();
-int exec_hack();
 void add_reset_proc(void (*proc)(void));
 
-// Is actually a jmp_buf, but __builtin_*jmp is used instead
-// as the MinGW variant is buggy
-extern void *restart_after_exception[32];
+// Uses emu_longjmp to return into the main loop.
+__attribute__((noreturn)) void return_to_loop(void);
 
 // GUI callbacks
 void gui_do_stuff(bool wait); // Called every once in a while...
