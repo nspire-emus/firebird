@@ -292,13 +292,22 @@ bool QMLBridge::isMobile()
 
 void QMLBridge::sendFile(QUrl url, QString dir)
 {
-    usblink_queue_put_file(url.toLocalFile().toStdString(), dir.toStdString(), QMLBridge::usblink_progress_changed, this);
+    usblink_queue_put_file(toLocalFile(url).toStdString(), dir.toStdString(), QMLBridge::usblink_progress_changed, this);
 }
 
 QString QMLBridge::basename(QString path)
 {
     if(path.isEmpty())
         return tr("None");
+
+    if(path.startsWith(QStringLiteral("content://")))
+    {
+        auto parts = path.splitRef(QStringLiteral("%2F"), QString::SkipEmptyParts, Qt::CaseInsensitive);
+        if(parts.length() > 1)
+            return parts.last().toString();
+
+        return tr("(Android File)");
+    }
 
     return QFileInfo(path).fileName();
 }
@@ -310,11 +319,17 @@ QUrl QMLBridge::dir(QString path)
 
 QString QMLBridge::toLocalFile(QUrl url)
 {
+    if(url.scheme() == QStringLiteral("content"))
+        return url.toString(); // Pass through Android content url
+
     return url.toLocalFile();
 }
 
 bool QMLBridge::fileExists(QString path)
 {
+    if(path.startsWith(QStringLiteral("content://")))
+        return true; // Android content URL, can't do much
+
     return QFile::exists(path);
 }
 
@@ -570,6 +585,16 @@ void QMLBridge::toastMessage(QString msg)
 
     QVariant ret;
     QMetaObject::invokeMethod(toast, "showMessage", Q_RETURN_ARG(QVariant, ret), Q_ARG(QVariant, QVariant(msg)));
+}
+
+bool QMLBridge::saveDialogSupported()
+{
+    #ifdef Q_OS_ANDROID
+        // Starting with Qt 5.13, the Android "File Picker" is used, but that doesn't allow creation of files.
+        return QVersionNumber::fromString(QString::fromUtf8(qVersion())) < QVersionNumber(5, 13);
+    #else
+        return true;
+    #endif
 }
 
 void QMLBridge::speedChanged(double speed)

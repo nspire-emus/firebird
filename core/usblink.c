@@ -466,10 +466,17 @@ bool usblink_put_file(const char *filepath, const char *folder, usblink_progress
     current_file_callback = callback;
 
     const char *filename = filepath;
-    const char *p;
-    for (p = filepath; *p; p++)
-        if (*p == ':' || *p == '/' || *p == '\\')
-            filename = p + 1;
+    // Hack for android content:// urls
+    if(strncmp(filepath, "content://", 10) == 0) {
+        for (const char *p = filepath; *p; p++)
+            if (strncasecmp(p, "%2F", 3) == 0)
+                filename = p + 3;
+    }
+    else {
+        for (const char *p = filepath; *p; p++)
+            if (*p == ':' || *p == '/' || *p == '\\')
+                filename = p + 1;
+    }
 
     FILE *f = fopen_utf8(filepath, "rb");
     if (!f) {

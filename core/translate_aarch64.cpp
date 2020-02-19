@@ -836,7 +836,7 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
 		mprotect(translate_buffer, INSN_BUFFER_SIZE, PROT_READ | PROT_EXEC);
 		sys_cache_control(1 /* kCacheFunctionPrepareForExecution */, jump_table_start[0], (code_end-jump_table_start[0])*4);
 	#else
-		__builtin___clear_cache(jump_table_start[0], code_end);
+		__builtin___clear_cache((char*)jump_table_start[0], (char*)code_end);
 	#endif
 }
 

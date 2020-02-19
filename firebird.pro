@@ -16,6 +16,7 @@ ios|android: SUPPORT_LINUX = false
 TRANSLATIONS += i18n/de_DE.ts i18n/fr_FR.ts
 
 QT += core gui widgets quickwidgets
+android: QT += androidextras
 CONFIG += c++11
 
 TEMPLATE = app
@@ -58,17 +59,17 @@ QMAKE_CXXFLAGS_RELEASE = -O3 -DNDEBUG
     QMAKE_CFLAGS += -Wa,--noexecstack
 }
 
-# The linker needs this somehow
-android: QMAKE_LFLAGS += -fPIC
-
 macx: ICON = resources/logo.icns
 
 # This does also apply to android
 linux|macx|ios: SOURCES += core/os/os-linux.c
 
-lessThan(QT_MINOR_VERSION, 6) {
-    # This should not be required. But somehow, it is...
-    android: DEFINES += Q_OS_ANDROID
+android {
+    # Special implementation of fopen_utf8
+    SOURCES += core/os/os-android.cpp
+    # Fix up all relocations for known symbols, makes it faster and gets rid of some .text relocations
+    # if disabled in asmcode_arm.S.
+    QMAKE_LFLAGS += -Wl,-Bsymbolic
 }
 
 ios|android: DEFINES += MOBILE_UI
@@ -86,8 +87,14 @@ ios {
 # QMAKE_HOST can be e.g. armv7hl, but QT_ARCH would be arm in such cases
 FB_ARCH = $$QT_ARCH
 
-equals(FB_ARCH, "arm64") {
+# arm64, arm64-v8a
+contains(FB_ARCH, "arm64.*") {
     FB_ARCH = aarch64
+}
+
+# armv7l, armeabi-v7a
+contains(FB_ARCH, "arm.*") {
+    FB_ARCH = arm
 }
 
 equals(FB_ARCH, "i386") {
@@ -107,44 +114,41 @@ linux-g++-32 {
     FB_ARCH = x86
 }
 
+android: {
+    equals(FB_ARCH, "x86") | equals(FB_ARCH, "x86_64")) {
+        # Built as shared library - forced PIC. JIT not compatible
+        TRANSLATION_ENABLED = false
+    }
+}
+
 # A platform-independant implementation of lowlevel access as default
 ASMCODE_IMPL = core/asmcode.c
 
 equals(TRANSLATION_ENABLED, true) {
-    TRANSLATE = $$join(FB_ARCH, "", "core/translate_", ".c")
-    exists($$TRANSLATE) {
-        SOURCES += $$TRANSLATE
-    }
+    TRANSLATE = $$files("core/translate_"$$FB_ARCH".c*")
+    isEmpty(TRANSLATE): error("No JIT found for arch $$FB_ARCH"))
+    SOURCES += $$TRANSLATE
 
-    TRANSLATE2 = $$join(FB_ARCH, "", "core/translate_", ".cpp")
-    exists($$TRANSLATE2) {
-        SOURCES += $$TRANSLATE2
+    ASMCODE_IMPL = $$files("core/asmcode_"$$FB_ARCH".S")
+    # Only the asmcode_x86.S functions can be called from outside the JIT
+    !equals(FB_ARCH, "x86") {
+        ASMCODE_IMPL += core/asmcode.c
     }
-
-    ASMCODE = $$join(FB_ARCH, "", "core/asmcode_", ".S")
-    exists($$ASMCODE): ASMCODE_IMPL = $$ASMCODE
 
     # Don't build a position independent executable, not compatible with the x86 and x86_64 JITs.
-    equals(FB_ARCH, "x86") | equals(FB_ARCH, "x86_64")  {
+    equals(FB_ARCH, "x86") | equals(FB_ARCH, "x86_64") {
         clang: QMAKE_LFLAGS += -nopie
         else: qtCompileTest(-no-pie): QMAKE_LFLAGS += -no-pie
     }
 }
 else: DEFINES += NO_TRANSLATION
 
-# Only the asmcode_x86.S functions can be called from outside the JIT
-!equals(FB_ARCH, "x86") {
-    !contains(ASMCODE_IMPL, "core/asmcode.c") {
-        SOURCES += core/asmcode.c
-    }
-}
-
 equals(SUPPORT_LINUX, true) {
     DEFINES += SUPPORT_LINUX
 }
 
 # Default to armv7 on ARM for movw/movt. If your CPU doesn't support it, comment this out.
-!defined(ANDROID_TARGET_ARCH):contains(FB_ARCH, "arm") {
+!android:contains(FB_ARCH, "arm") {
     QMAKE_CFLAGS += -march=armv7-a -marm
     QMAKE_CXXFLAGS += -march=armv7-a -marm
     QMAKE_LFLAGS += -march=armv7-a -marm # We're using LTO, so the linker has to get the same flags

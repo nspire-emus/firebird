@@ -1,5 +1,5 @@
 .macro loadsym reg, name
-	#ifdef __clang__
+	#if defined(__clang__) && !defined(ANDROID)
 		adrp \reg, \name\()@PAGE
 		add \reg, \reg, \name\()@PAGEOFF
 	#else
