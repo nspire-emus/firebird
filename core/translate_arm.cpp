@@ -13,6 +13,7 @@
 #include <cstdio>
 
 #ifdef IS_IOS_BUILD
+#include <sys/syscall.h>
 #include <sys/mman.h>
 #endif
 
@@ -412,7 +413,6 @@ bool translate_init()
         return true;
 
 #ifdef IS_IOS_BUILD
-#include <sys/syscall.h>
     if (!iOS_is_debugger_attached())
     {
         syscall(SYS_ptrace, 0 /*PTRACE_TRACEME*/, 0, 0, 0);
@@ -475,6 +475,15 @@ void translate_deinit()
 
     os_free(translate_buffer, INSN_BUFFER_SIZE);
     translate_end = translate_current = translate_buffer = nullptr;
+
+#ifdef IS_IOS_BUILD
+    // New in recent iOS versions: due to some kernel/system bug, if we leave a process
+    // with PT_TRACE_ME, it will not get terminated properly and will refuse
+    // to launch again.
+    syscall(SYS_ptrace, 31 /* PT_DENY_ATTACH */, 0, NULL, 0);
+    // for debugging uncaught exception crashes, set a breakpoint on exceptions
+    // and then use `po $arg1` to dump the exception string.
+#endif
 }
 
 static __attribute__((unused)) void dump_translation(int index)
