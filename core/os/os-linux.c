@@ -76,8 +76,12 @@ void os_free(void *ptr, size_t size)
 void *os_alloc_executable(size_t size)
 {
 #if defined(__i386__) || defined(__x86_64__)
-    // Has to be in 32-bit space for the JIT
-    void *ptr = mmap((void*)0x30000000, size, PROT_READ|PROT_WRITE|PROT_EXEC, MAP_SHARED|MAP_ANON|MAP_32BIT, -1, 0);
+    int map_flags = MAP_SHARED|MAP_ANON;
+#ifndef __APPLE__
+    // MAP_32BIT can't be used anymore on recent macOS. Looks fine elsewhere.
+    map_flags |= MAP_32BIT;
+#endif
+    void *ptr = mmap((void*)0x30000000, size, PROT_READ|PROT_WRITE|PROT_EXEC, map_flags, -1, 0);
 #else
     void *ptr = mmap((void*)0x0, size, PROT_READ|PROT_WRITE|PROT_EXEC, MAP_SHARED|MAP_ANON, -1, 0);
 #endif
