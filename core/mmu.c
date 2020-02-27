@@ -196,7 +196,7 @@ ac_entry *addr_cache = NULL;
 static uint32_t ac_valid_index;
 static uint32_t ac_valid_list[AC_VALID_MAX];
 
-static void addr_cache_invalidate(int i) {
+static void addr_cache_invalidate(unsigned int i) {
     AC_SET_ENTRY_INVALID(addr_cache[i], i >> 1 << 10)
 }
 
@@ -210,7 +210,6 @@ static void addr_cache_invalidate(int i) {
 #define AC_PAGE_SIZE 4096
 
 bool addr_cache_pagefault(void *addr) {
-    static uint8_t ac_commit_map[AC_NUM_ENTRIES * sizeof(ac_entry) / AC_PAGE_SIZE];
     static ac_entry *ac_commit_list[AC_COMMIT_MAX];
     static uint32_t ac_commit_index;
 
@@ -222,12 +221,10 @@ bool addr_cache_pagefault(void *addr) {
     if (oldpage) {
         //printf("Freeing %p, ", oldpage);
         os_sparse_decommit(oldpage, AC_PAGE_SIZE);
-        ac_commit_map[offset / (AC_PAGE_SIZE / sizeof(ac_entry))] = 0;
     }
     //printf("Committing %p\n", page);
     if (!os_sparse_commit(page, AC_PAGE_SIZE))
         return false;
-    ac_commit_map[offset / (AC_PAGE_SIZE / sizeof(ac_entry))] = 1;
 
     uint32_t i;
     for (i = 0; i < (AC_PAGE_SIZE / sizeof(ac_entry)); i++)
@@ -253,7 +250,6 @@ void *addr_cache_miss(uint32_t virt, bool writing, fault_proc *fault) {
     }
     uint32_t oldoffset = ac_valid_list[ac_valid_index];
     uint32_t offset = (virt >> 10) * 2 + writing;
-    //if (ac_commit_map[oldoffset / (AC_PAGE_SIZE / sizeof(ac_entry))])
     addr_cache_invalidate(oldoffset);
     addr_cache[offset] = entry;
     ac_valid_list[ac_valid_index] = offset;
@@ -271,7 +267,6 @@ void addr_cache_flush() {
 
     for (unsigned int i = 0; i < AC_VALID_MAX; i++) {
         uint32_t offset = ac_valid_list[i];
-        //	if (ac_commit_map[offset / (AC_PAGE_SIZE / sizeof(ac_entry))])
         addr_cache_invalidate(offset);
     }
 
