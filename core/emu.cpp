@@ -29,7 +29,6 @@ bool turbo_mode = false;
 
 bool exiting, debug_on_start, debug_on_warn, print_on_warn;
 BootOrder boot_order = ORDER_DEFAULT;
-uint32_t boot2_base;
 std::string path_boot1, path_flash;
 
 #if defined(IS_IOS_BUILD) || defined(__EMSCRIPTEN__)
