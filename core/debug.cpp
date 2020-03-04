@@ -717,7 +717,7 @@ void rdebug_recv(void) {
             #else
                 close(socket_fd);
             #endif
-            socket_fd = 0;
+            socket_fd = -1;
         }
         else if (!ret) // No data available
         {
@@ -796,13 +796,21 @@ void rdebug_quit()
 {
     if(socket_fd != -1)
     {
-        close(socket_fd);
+        #ifdef __MINGW32__
+            closesocket(socket_fd);
+        #else
+            close(socket_fd);
+        #endif
         socket_fd = -1;
     }
 
     if(listen_socket_fd != -1)
     {
-        close(listen_socket_fd);
+        #ifdef __MINGW32__
+            closesocket(listen_socket_fd);
+        #else
+            close(listen_socket_fd);
+        #endif
         listen_socket_fd = -1;
     }
 }
