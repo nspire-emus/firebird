@@ -48,8 +48,8 @@ bool ndls_is_installed(void) {
     return false;
 }
 
-static int listen_socket_fd = 0;
-static int socket_fd = 0;
+static int listen_socket_fd = -1;
+static int socket_fd = -1;
 static bool gdb_handshake_complete = false;
 
 static void log_socket_error(const char *msg) {
@@ -721,7 +721,7 @@ static void gdbstub_disconnect(void) {
 #else
     close(socket_fd);
 #endif
-    socket_fd = 0;
+    socket_fd = -1;
     gdb_connected = false;
     if (ndls_is_installed())
         armloader_load_snippet(SNIPPET_ndls_debug_free, NULL, 0, NULL);
@@ -729,15 +729,14 @@ static void gdbstub_disconnect(void) {
 
 /* Non-blocking poll. Enter the debugger loop if a message is received. */
 void gdbstub_recv(void) {
-    if(listen_socket_fd == 0)
+    if(listen_socket_fd == -1)
         return;
 
     int ret, on;
-    if (!socket_fd) {
-        ret = accept(listen_socket_fd, NULL, NULL);
-        if (ret == -1)
+    if (socket_fd == -1) {
+        socket_fd = accept(listen_socket_fd, NULL, NULL);
+        if (socket_fd == -1)
             return;
-        socket_fd = ret;
         set_nonblocking(socket_fd, true);
         /* Disable Nagle for low latency */
         on = 1;
@@ -809,15 +808,23 @@ void gdbstub_debugger(enum DBG_REASON reason, uint32_t addr) {
 
 void gdbstub_quit()
 {
-    if(listen_socket_fd)
+    if(listen_socket_fd != -1)
     {
-        close(listen_socket_fd);
-        listen_socket_fd = 0;
+        #ifdef __MINGW32__
+            closesocket(listen_socket_fd);
+        #else
+            close(listen_socket_fd);
+        #endif
+        listen_socket_fd = -1;
     }
 
-    if(socket_fd)
+    if(socket_fd != -1)
     {
-        close(socket_fd);
-        socket_fd = 0;
+        #ifdef __MINGW32__
+            closesocket(socket_fd);
+        #else
+            close(socket_fd);
+        #endif
+        socket_fd = -1;
     }
 }
