@@ -628,6 +628,7 @@ void timer_cx_int_check(int which) {
             | (timer_cx.timer[which][1].interrupt & timer_cx.timer[which][1].control >> 5));
 }
 uint32_t timer_cx_read(uint32_t addr) {
+    cycle_count_delta = 0; // Avoid slowdown by fast-forwarding through polling loops
     int which = (addr >> 16) % 5;
     struct cx_timer *t = &timer_cx.timer[which][addr >> 5 & 1];
     switch (addr & 0xFFFF) {
