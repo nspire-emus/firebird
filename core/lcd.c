@@ -258,8 +258,12 @@ uint32_t lcd_read_word(uint32_t addr) {
             case 0x014: return lcd.lpbase;
             case 0x018: return emulate_cx ? lcd.control : lcd.int_mask; break;
             case 0x01C: return emulate_cx ? lcd.int_mask : lcd.control; break;
-            case 0x020: return lcd.int_status;
-            case 0x024: return lcd.int_status & lcd.int_mask;
+            case 0x020:
+                cycle_count_delta = 0; // Avoid slowdown by fast-forwarding through polling loops
+                return lcd.int_status;
+            case 0x024:
+                cycle_count_delta = 0; // Avoid slowdown by fast-forwarding through polling loops
+                return lcd.int_status & lcd.int_mask;
         }
     } else if (offset < 0x400) {
         return *(uint32_t *)((uint8_t *)lcd.palette + offset - 0x200);
