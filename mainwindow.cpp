@@ -139,6 +139,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     //Set up monospace fonts
     QFont monospace = QFontDatabase::systemFont(QFontDatabase::FixedFont);
+    monospace.setStyleHint(QFont::Monospace);
     ui->debugConsole->setFont(monospace);
     ui->serialConsole->setFont(monospace);
 
