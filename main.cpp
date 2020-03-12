@@ -13,6 +13,11 @@
 #include "qmlbridge.h"
 #include "kitmodel.h"
 
+#if !defined(NO_TRANSLATION) && defined(IS_IOS_BUILD)
+#include <unistd.h>
+#include <sys/syscall.h>
+#endif
+
 /* This function reads all keys of all sections available in a QSettings
  * instance created with org and app as parameters. */
 static QVariantHash readOldSettings(const QString &org, const QString &app)
@@ -130,5 +135,16 @@ int main(int argc, char **argv)
         emu_thread.stop();
     });
 
-    return app.exec();
+    int execRet = app.exec();
+
+#if !defined(NO_TRANSLATION) && defined(IS_IOS_BUILD)
+    // New in recent iOS versions: due to some kernel/system bug, if we leave a process
+    // with PT_TRACE_ME, it will not get terminated properly and will refuse
+    // to launch again.
+    syscall(SYS_ptrace, 31 /* PT_DENY_ATTACH */, 0, NULL, 0);
+    // for debugging uncaught exception crashes, set a breakpoint on exceptions
+    // and then use `po $arg1` to dump the exception string.
+#endif
+
+    return execRet;
 }
