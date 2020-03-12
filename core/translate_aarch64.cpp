@@ -217,15 +217,6 @@ void translate_deinit()
 
 	os_free(translate_buffer, INSN_BUFFER_SIZE);
 	translate_current = translate_buffer = nullptr;
-
-#ifdef IS_IOS_BUILD
-    // New in recent iOS versions: due to some kernel/system bug, if we leave a process
-    // with PT_TRACE_ME, it will not get terminated properly and will refuse
-    // to launch again.
-    syscall(SYS_ptrace, 31 /* PT_DENY_ATTACH */, 0, NULL, 0);
-    // for debugging uncaught exception crashes, set a breakpoint on exceptions
-    // and then use `po $arg1` to dump the exception string.
-#endif
 }
 
 void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
