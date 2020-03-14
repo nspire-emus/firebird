@@ -4,7 +4,7 @@ lessThan(QT_MAJOR_VERSION, 5): error("You need at least Qt 5.9 to build firebird
 equals(QT_MAJOR_VERSION, 5):lessThan(QT_MINOR_VERSION, 9): error("You need at least Qt 5.9 to build firebird!")
 
 # Version
-DEFINES += FB_VERSION=1.4-dev
+DEFINES += FB_VERSION=1.5
 
 # JIT
 TRANSLATION_ENABLED = true
