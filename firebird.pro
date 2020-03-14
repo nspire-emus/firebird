@@ -59,6 +59,12 @@ QMAKE_CXXFLAGS_RELEASE = -O3 -DNDEBUG
     QMAKE_CFLAGS += -Wa,--noexecstack
 }
 
+# Work around https://gcc.gnu.org/bugzilla/show_bug.cgi?id=52991
+win32: {
+    QMAKE_CFLAGS += -mno-ms-bitfields
+    QMAKE_CXXFLAGS += -mno-ms-bitfields
+}
+
 macx: ICON = resources/logo.icns
 
 # This does also apply to android
