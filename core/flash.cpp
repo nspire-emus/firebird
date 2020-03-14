@@ -1032,7 +1032,7 @@ void flash_spi_reset()
 {
     memset(&nand.spi, 0, sizeof(nand.spi));
     memset(nand.nand_buffer, 0xFF, sizeof(nand.nand_buffer));
-    assert(sizeof(param_page_micron) == 256);
+    static_assert(sizeof(param_page_micron) == 256);
 }
 
 static uint8_t flash_spi_transceive(uint8_t data = 0x00)
