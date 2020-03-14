@@ -204,16 +204,15 @@ static void handlePacket(const NNSEMessage *message, const uint8_t **streamdata 
 
     if(message->reqAck & 1)
     {
-        NNSEMessage ack = {
-            .misc = message->misc,
-            .service = uint8_t(message->service | AckFlag),
-            .src = message->dest,
-            .dest = message->src,
-            .unknown = message->unknown,
-            .reqAck = uint8_t(message->reqAck & ~1),
-            .length = htons(sizeof(NNSEMessage)),
-            .seqno = message->seqno,
-        };
+        NNSEMessage ack{};
+        ack.misc = message->misc;
+        ack.service = uint8_t(message->service | AckFlag);
+        ack.src = message->dest;
+        ack.dest = message->src;
+        ack.unknown = message->unknown;
+        ack.reqAck = uint8_t(message->reqAck & ~1);
+        ack.length = htons(sizeof(NNSEMessage));
+        ack.seqno = message->seqno;
 
         if(!writePacket(&ack))
             printf("Failed to ack\n");
@@ -251,12 +250,9 @@ static void handlePacket(const NNSEMessage *message, const uint8_t **streamdata 
         if(!sendMessage(resp))
             printf("Failed to send message\n");
 */
-        NNSEMessage_AddrResp resp2 = {
-            .hdr = {
-                .service = message->service,
-            },
-            .addr = 0x80, // No idea
-        };
+        NNSEMessage_AddrResp resp2{};
+        resp2.hdr.service = message->service;
+        resp2.addr = 0x80; // No idea
 
         if(!sendMessage(resp2))
             printf("Failed to send message\n");
@@ -276,14 +272,11 @@ static void handlePacket(const NNSEMessage *message, const uint8_t **streamdata 
         struct timeval val;
         gettimeofday(&val, nullptr);
 
-        NNSEMessage_TimeResp resp = {
-            .hdr = {
-                .service = message->service,
-            },
-            .noidea = 0x80,
-            .sec = htonl(uint32_t(val.tv_sec)),
-            .frac = 0,
-        };
+        NNSEMessage_TimeResp resp{};
+        resp.hdr.service = message->service;
+        resp.noidea = 0x80;
+        resp.sec = htonl(uint32_t(val.tv_sec));
+        resp.frac = 0;
 
         if(!sendMessage(resp))
             printf("Failed to send message\n");
@@ -305,12 +298,9 @@ static void handlePacket(const NNSEMessage *message, const uint8_t **streamdata 
         printf("Got packet for unknown service\n");
 #endif
 
-        NNSEMessage_UnkResp resp = {
-            .hdr = {
-                .service = message->service,
-            },
-            .noidea = {0x81, 0x03},
-        };
+        NNSEMessage_UnkResp resp{};
+        resp.hdr.service = message->service;
+        resp.noidea[0] = 0x81; resp.noidea[1] = 0x03;
 
         if(!sendMessage(resp))
             printf("Failed to send message\n");
@@ -343,14 +333,12 @@ bool usblink_cx2_send_navnet(const uint8_t *data, uint16_t size)
 
     int len = sizeof(NNSEMessage) + size;
     NNSEMessage *msg = reinterpret_cast<NNSEMessage*>(malloc(len));
-    *msg = {
-        .service = StreamService,
-        .src = AddrMe,
-        .dest = AddrCalc,
-        .reqAck = 1,
-        .length = htons(len),
-        .seqno = htons(nextSeqno()),
-    };
+    msg->service = StreamService;
+    msg->src = AddrMe;
+    msg->dest = AddrCalc;
+    msg->reqAck = 1;
+    msg->length = htons(len);
+    msg->seqno = htons(nextSeqno());
     memcpy(msg->data, data, size);
 
     bool ret = writePacket(msg);
