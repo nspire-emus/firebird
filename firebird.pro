@@ -6,11 +6,13 @@ equals(QT_MAJOR_VERSION, 5):lessThan(QT_MINOR_VERSION, 9): error("You need at le
 # Version
 DEFINES += FB_VERSION=1.5-dev
 
-# JIT
-TRANSLATION_ENABLED = true
-# More accurate, but slower
-SUPPORT_LINUX = true
-ios|android: SUPPORT_LINUX = false
+# JIT. Set to true, false or auto (default)
+isEmpty(TRANSLATION_ENABLED): TRANSLATION_ENABLED = auto
+# More accurate, but slower. Set to true, false or auto (default)
+isEmpty(SUPPORT_LINUX) | equals(SUPPORT_LINUX, auto) {
+	SUPPORT_LINUX = true
+	ios|android: SUPPORT_LINUX = false
+}
 
 # Localization
 TRANSLATIONS += i18n/de_DE.ts i18n/fr_FR.ts
@@ -124,9 +126,14 @@ android: {
 # A platform-independant implementation of lowlevel access as default
 ASMCODE_IMPL = core/asmcode.c
 
+TRANSLATE = $$files("core/translate_"$$FB_ARCH".c*")
+equals(TRANSLATION_ENABLED, auto) {
+    isEmpty(TRANSLATE): TRANSLATION_ENABLED = false
+    else: TRANSLATION_ENABLED = true
+}
+
 equals(TRANSLATION_ENABLED, true) {
-    TRANSLATE = $$files("core/translate_"$$FB_ARCH".c*")
-    isEmpty(TRANSLATE): error("No JIT found for arch $$FB_ARCH"))
+    isEmpty(TRANSLATE): error("No JIT found for arch $$FB_ARCH")
     SOURCES += $$TRANSLATE
 
     ASMCODE_IMPL = $$files("core/asmcode_"$$FB_ARCH".S")
@@ -142,6 +149,10 @@ equals(TRANSLATION_ENABLED, true) {
     }
 }
 else: DEFINES += NO_TRANSLATION
+
+message("FB_ARCH: $$FB_ARCH")
+message("TRANSLATION_ENABLED: $$TRANSLATION_ENABLED")
+message("SUPPORT_LINUX: $$SUPPORT_LINUX")
 
 equals(SUPPORT_LINUX, true) {
     DEFINES += SUPPORT_LINUX
