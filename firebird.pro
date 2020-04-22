@@ -117,7 +117,7 @@ linux-g++-32 {
 }
 
 android: {
-    equals(FB_ARCH, "x86") | equals(FB_ARCH, "x86_64")) {
+    equals(FB_ARCH, "x86") | equals(FB_ARCH, "x86_64") {
         # Built as shared library - forced PIC. JIT not compatible
         TRANSLATION_ENABLED = false
     }
