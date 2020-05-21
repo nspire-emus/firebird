@@ -12,11 +12,14 @@ Rectangle {
     property alias font: label.font
     property bool toggle: false
     property bool toggleState: false
+    property int spacing: 10
 
     opacity: disabled ? 0.5 : 1.0
 
+    implicitHeight: label.contentHeight * 2
+    implicitWidth: spacing + image.width + spacing + label.contentWidth + spacing
+
     Layout.fillWidth: true
-    Layout.minimumHeight: label.contentHeight * 2
 
     signal clicked()
 
@@ -44,7 +47,6 @@ Rectangle {
 
         height: 1
         color: "black"
-        visible: true
     }
 
     Rectangle {
@@ -57,7 +59,6 @@ Rectangle {
 
         height: 1
         color: "black"
-        visible: true
     }
 
     color: (mouseArea.pressed !== toggleState) && !disabled ? "#CCC" : "#00000000"
@@ -66,7 +67,7 @@ Rectangle {
     Image {
         id: image
 
-        x: 10
+        x: spacing
 
         height: parent.height * 0.8
 
@@ -80,7 +81,7 @@ Rectangle {
 
         color: "black"
 
-        x: image.x + image.width + 10
+        x: image.x + image.width + spacing
 
         anchors {
             top: parent.top
