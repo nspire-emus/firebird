@@ -7,6 +7,7 @@ QtObject {
     property bool rdbEnabled: true
     property int rdbPort: 3334
     property bool running: false
+    property bool leftHanded: false
     property string version: "1.5"
     property var toast: null
 
@@ -15,6 +16,7 @@ QtObject {
     function setPaused(paused) { }
     function resume() { toast.showMessage("Resume"); }
     function dir() { return "/"; }
+    function registerTouchpad(tpad) {}
     function registerToast(toastref) { toast = toastref; }
     function registerNButton(keymap_id, buttonref) {}
     function restart() { toastMessage("Restart"); }
