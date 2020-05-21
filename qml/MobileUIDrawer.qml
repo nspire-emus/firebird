@@ -8,11 +8,14 @@ import Firebird.UIComponents 1.0
 Rectangle {
     color: "white"
 
+    implicitWidth: layout.implicitWidth
+
     function closeDrawer() {
         listView.closeDrawer();
     }
 
     ColumnLayout {
+        id: layout
         anchors.fill: parent
         spacing: 5
 
