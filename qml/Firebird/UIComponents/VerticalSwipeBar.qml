@@ -4,7 +4,7 @@ Rectangle {
     property alias text: label.text
     signal clicked
 
-    width: label.contentHeight + 2 * 2
+    implicitWidth: label.contentHeight + 2 * 2
     color: "transparent"
 
     FBLabel {
@@ -12,7 +12,7 @@ Rectangle {
         rotation: -90
         anchors.centerIn: parent
         anchors.rightMargin: 2
-        text: "Swipe here"
+        text: qsTr("Swipe here")
     }
 
     MouseArea {
