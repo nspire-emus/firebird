@@ -191,7 +191,7 @@ ApplicationWindow {
                 listView.pageX[index] = x;
             }
 
-            width: modelData === "MobileUIDrawer.qml" ? app.width * (app.width > app.height ? 0.3 : 0.6) : app.width
+            width: modelData === "MobileUIDrawer.qml" ? loader.item.implicitWidth : app.width
             height: app.height
 
             Rectangle {
@@ -216,6 +216,7 @@ ApplicationWindow {
             }
 
             Loader {
+                id: loader
                 z: 0
                 focus: Math.round(parent.x) == Math.round(listView.contentX);
                 anchors.fill: parent
