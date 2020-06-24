@@ -60,6 +60,7 @@
     <qresource prefix="/i18n">
         <file>i18n/de_DE.qm</file>
         <file>i18n/fr_FR.qm</file>
+        <file>i18n/pl_PL.qm</file>
     </qresource>
     <qresource prefix="/keyimages">
         <file>resources/keyimages/questionmark.png</file>
