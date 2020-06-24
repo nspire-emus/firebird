@@ -19,7 +19,7 @@ TRANSLATIONS += i18n/de_DE.ts i18n/fr_FR.ts i18n/pl_PL.ts
 
 QT += core gui widgets quickwidgets
 android: QT += androidextras
-CONFIG += c++11 lrelease embed_translations
+CONFIG += c++11
 
 TEMPLATE = app
 TARGET = firebird-emu
