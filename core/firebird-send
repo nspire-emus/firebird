@@ -4,7 +4,7 @@ rdebug_port=3334
 
 print_usage() {
     echo "Usage: "`basename $0`" [option] <file.tns> [<destdir>]"
-    echo -e "\t-p [port]: firebird remote debug port (default: $rdebug_port)"
+    echo -e "\t-p [port]: Firebird remote debug port (default: $rdebug_port)"
     echo -e "\t-h: display this very helpful message"
 }
 
@@ -54,6 +54,6 @@ ln s ${abs_tns_path}
 EOT
 ret=$?
 if [ $ret -ne 0 ]; then
-    echo "Error: couldn't connect to firebird."
+    echo "Error: couldn't connect to Firebird."
     exit 1
 fi
