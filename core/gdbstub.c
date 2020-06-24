@@ -204,7 +204,7 @@ bool gdbstub_init(unsigned int port) {
     sockaddr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
     r = bind(listen_socket_fd, (struct sockaddr *)&sockaddr, sizeof(sockaddr));
     if (r == -1) {
-        log_socket_error("Failed to bind GDB stub socket. Check that firebird is not already running");
+        log_socket_error("Failed to bind GDB stub socket. Check that Firebird is not already running");
         return false;
     }
     r = listen(listen_socket_fd, 0);
