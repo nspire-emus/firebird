@@ -21,5 +21,6 @@ QtObject {
     signal toastMessage(string msg)
     signal touchpadStateChanged(real x, real y, bool down, bool contact)
     function setTouchpadState(x, y, down, contact) { touchpadStateChanged(x, y, down, contact); }
-    function keypadStateChanged(keymap_id, down) {}
+    signal buttonStateChanged(int id, bool state)
+    function setButtonState(keymap_id, down) {}
 }

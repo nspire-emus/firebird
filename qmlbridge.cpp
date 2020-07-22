@@ -252,18 +252,11 @@ QString QMLBridge::getVersion()
     return QStringLiteral(STRINGIFY(FB_VERSION));
 }
 
-void QMLBridge::keypadStateChanged(int keymap_id, bool state)
+void QMLBridge::setButtonState(int id, bool state)
 {
-    int col = keymap_id % KEYPAD_COLS, row = keymap_id / KEYPAD_COLS;
+    int col = id % KEYPAD_COLS, row = id / KEYPAD_COLS;
 
     ::keypad_set_key(row, col, state);
-}
-
-static std::multimap<int , QObject *> buttons;
-
-void QMLBridge::registerNButton(unsigned int keymap_id, QVariant button)
-{
-    buttons.insert(std::make_pair(keymap_id, button.value<QObject*>()));
 }
 
 void QMLBridge::setTouchpadState(qreal x, qreal y, bool contact, bool down)
@@ -621,26 +614,12 @@ bool QMLBridge::getTurboMode()
     return turbo_mode;
 }
 
-void notifyKeypadStateChanged(int row, int col, bool state)
+void QMLBridge::notifyButtonStateChanged(int row, int col, bool state)
 {
     assert(row < KEYPAD_ROWS);
     assert(col < KEYPAD_COLS);
 
-    int keymap_id = col + row * KEYPAD_COLS;
-    auto it = buttons.lower_bound(keymap_id),
-         end = buttons.upper_bound(keymap_id);
-
-    if(it == buttons.end())
-    {
-        qWarning() << "Warning: Button " << row*KEYPAD_COLS+col << " not present in keypad!";
-        return;
-    }
-
-    do
-    {
-        QQmlProperty::write(it->second, QStringLiteral("pressed"), state);
-    }
-    while (++it != end);
+    emit buttonStateChanged(col + row * KEYPAD_COLS, state);
 }
 
 QObject *qmlBridgeFactory(QQmlEngine *engine, QJSEngine *scriptEngine)
