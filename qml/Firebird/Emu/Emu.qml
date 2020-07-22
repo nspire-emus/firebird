@@ -16,11 +16,11 @@ QtObject {
     function setPaused(paused) { }
     function resume() { toast.showMessage("Resume"); }
     function dir() { return "/"; }
-    function registerTouchpad(tpad) {}
     function registerToast(toastref) { toast = toastref; }
     function registerNButton(keymap_id, buttonref) {}
     function restart() { toastMessage("Restart"); }
     function toastMessage(msg) { toast.showMessage(msg); }
-    function touchpadStateChanged(x, y, down, contact) {}
+    signal touchpadStateChanged(real x, real y, bool down, bool contact)
+    function setTouchpadState(x, y, down, contact) { touchpadStateChanged(x, y, down, contact); }
     function keypadStateChanged(keymap_id, down) {}
 }
