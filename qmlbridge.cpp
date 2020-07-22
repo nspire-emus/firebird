@@ -569,23 +569,6 @@ QString QMLBridge::getSnapshotPath()
         return fallback_snapshot_path;
 }
 
-void QMLBridge::registerToast(QVariant toast)
-{
-    this->toast = toast.value<QObject*>();
-}
-
-void QMLBridge::toastMessage(QString msg)
-{
-    if(!toast)
-    {
-        qWarning() << "Warning: No toast QML component registered!";
-        return;
-    }
-
-    QVariant ret;
-    QMetaObject::invokeMethod(toast, "showMessage", Q_RETURN_ARG(QVariant, ret), Q_ARG(QVariant, QVariant(msg)));
-}
-
 bool QMLBridge::saveDialogSupported()
 {
     #ifdef Q_OS_ANDROID
