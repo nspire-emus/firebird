@@ -113,9 +113,6 @@ public:
     Q_INVOKABLE QString getFlashPath();
     Q_INVOKABLE QString getSnapshotPath();
 
-    Q_INVOKABLE void registerToast(QVariant toast);
-    Q_INVOKABLE void toastMessage(QString msg);
-
     #ifndef MOBILE_UI
         Q_INVOKABLE void createFlash(unsigned int kitIndex);
         Q_INVOKABLE void switchUIMode(bool mobile_ui);
@@ -156,6 +153,8 @@ signals:
     void emuSuspended(bool success);
     void usblinkProgressChanged(int percent);
 
+    void toastMessage(QString msg);
+
     void touchpadStateChanged(qreal x, qreal y, bool contact, bool down);
 
     /* Never called. Used as NOTIFY value for writable properties
@@ -164,8 +163,6 @@ signals:
 
 private:
     static void usblink_progress_changed(int percent, void *qml_bridge_p);
-
-    QObject *toast = nullptr;
 
     int current_kit_id = -1;
     QString fallback_snapshot_path;
