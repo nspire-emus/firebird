@@ -49,8 +49,18 @@ Rectangle {
         property int moveThreshold: 5
         property bool isDown
 
-        Component.onCompleted: {
-            Emu.registerTouchpad(this);
+        Connections {
+            target: Emu
+            function onTouchpadStateChanged(x, y, contact, down) {
+                if(contact || down)
+                {
+                    highlight.x = x*width - highlight.width/2;
+                    highlight.y = y*height - highlight.height/2;
+                    highlight.color = down ? "#b3edf200" : "#b38080ff";
+                }
+
+                highlight.visible = contact || down;
+            }
         }
 
         Timer {
@@ -76,18 +86,7 @@ Rectangle {
         }
 
         function submitState() {
-            Emu.touchpadStateChanged(mouseX/width, mouseY/height, isDown || pressed, isDown);
-        }
-
-        function showHighlight(x, y, down) {
-            highlight.x = x*width - highlight.width/2;
-            highlight.y = y*height - highlight.height/2;
-            highlight.color = down ? "#b3edf200" : "#b38080ff";
-            highlight.visible = true;
-        }
-
-        function hideHighlight() {
-            highlight.visible = false;
+            Emu.setTouchpadState(mouseX/width, mouseY/height, isDown || pressed, isDown);
         }
 
         onMouseXChanged: {
