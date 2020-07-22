@@ -87,6 +87,9 @@ ApplicationWindow {
                     suspendFailedDialog.visible = true;
             }
         }
+        onToastMessage: {
+            toast.showMessage(msg);
+        }
     }
 
     Connections {
@@ -118,8 +121,6 @@ ApplicationWindow {
         anchors.bottom: parent.bottom
         anchors.bottomMargin: 61
         anchors.horizontalCenter: parent.horizontalCenter
-
-        Component.onCompleted: Emu.registerToast(this)
     }
 
     ListView {
