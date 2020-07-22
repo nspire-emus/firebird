@@ -53,8 +53,7 @@ public:
     void setTurboMode(bool e);
 
     KitModel *getKitModel() { return &kit_model; }
-    Q_INVOKABLE void keypadStateChanged(int keymap_id, bool state);
-    Q_INVOKABLE void registerNButton(unsigned int keymap_id, QVariant button);
+    Q_INVOKABLE void setButtonState(int id, bool state);
 
     // Coordinates: (0/0) = top left (1/1) = bottom right
     Q_INVOKABLE void setTouchpadState(qreal x, qreal y, bool contact, bool down);
@@ -96,6 +95,7 @@ public:
 
     void setActive(bool b);
 
+    void notifyButtonStateChanged(int row, int col, bool state);
     void touchpadStateChanged();
 
 public slots:
@@ -137,6 +137,8 @@ signals:
 
     void touchpadStateChanged(qreal x, qreal y, bool contact, bool down);
 
+    void buttonStateChanged(int id, bool state);
+
 private:
     static void usblink_progress_changed(int percent, void *qml_bridge_p);
 
@@ -157,7 +159,6 @@ private:
 
 extern QMLBridge *the_qml_bridge;
 
-void notifyKeypadStateChanged(int row, int col, bool state);
 QObject *qmlBridgeFactory(QQmlEngine *engine, QJSEngine *scriptEngine);
 
 

@@ -15,7 +15,7 @@ void setKeypad(unsigned int keymap_id, bool state)
     //assert(col < KEYPAD_COLS); Not needed.
 
     ::keypad_set_key(row, col, state);
-    notifyKeypadStateChanged(row, col, state);
+    the_qml_bridge->notifyButtonStateChanged(row, col, state);
 }
 
 void keyToKeypad(QKeyEvent *event)
