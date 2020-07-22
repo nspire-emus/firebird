@@ -82,8 +82,7 @@ public:
     Q_INVOKABLE void registerNButton(unsigned int keymap_id, QVariant button);
 
     // Coordinates: (0/0) = top left (1/1) = bottom right
-    Q_INVOKABLE void touchpadStateChanged(qreal x, qreal y, bool contact, bool down);
-    Q_INVOKABLE void registerTouchpad(QVariant touchpad);
+    Q_INVOKABLE void setTouchpadState(qreal x, qreal y, bool contact, bool down);
 
     Q_INVOKABLE bool isMobile();
 
@@ -126,6 +125,8 @@ public:
 
     void setActive(bool b);
 
+    void touchpadStateChanged();
+
 public slots:
     void saveKits();
     void speedChanged(double speed);
@@ -155,6 +156,8 @@ signals:
     void emuSuspended(bool success);
     void usblinkProgressChanged(int percent);
 
+    void touchpadStateChanged(qreal x, qreal y, bool contact, bool down);
+
     /* Never called. Used as NOTIFY value for writable properties
      * that aren't used outside of QML. */
     void neverEmitted();
@@ -176,8 +179,6 @@ private:
 extern QMLBridge *the_qml_bridge;
 
 void notifyKeypadStateChanged(int row, int col, bool state);
-void notifyTouchpadStateChanged();
-void notifyTouchpadStateChanged(qreal x, qreal y, bool contact, bool down);
 QObject *qmlBridgeFactory(QQmlEngine *engine, QJSEngine *scriptEngine);
 
 
