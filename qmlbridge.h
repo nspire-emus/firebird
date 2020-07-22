@@ -138,10 +138,6 @@ signals:
 
     void touchpadStateChanged(qreal x, qreal y, bool contact, bool down);
 
-    /* Never called. Used as NOTIFY value for writable properties
-     * that aren't used outside of QML. */
-    void neverEmitted();
-
 private:
     static void usblink_progress_changed(int percent, void *qml_bridge_p);
 
