@@ -17,11 +17,6 @@ Rectangle {
         width: 1
     }
 
-    QSortFilterProxyModel {
-        id: sortedModel
-        sortRole: KitModel.TypeRole
-    }
-
     ScrollView {
         anchors.margins: parent.border.width
         anchors.fill: parent
@@ -37,6 +32,12 @@ Rectangle {
             highlightMoveDuration: 50
             highlightResizeDuration: 0
 
+            QSortFilterProxyModel {
+                id: sortedModel
+                sortRole: KitModel.TypeRole
+                Component.onCompleted: Emu.sortProxyModel(sortedModel, 0)
+            }
+
             model: sortedModel
 
             highlight: Rectangle {
@@ -45,10 +46,12 @@ Rectangle {
             }
 
             delegate: Item {
-                property variant myData: model
+                property var myData: model;
 
                 height: item.height + 10
                 width: listView.width - listView.anchors.margins
+
+                property int kitIndex: sortedModel.mapToSource(sortedModel.index(index, 0)).row
 
                 MouseArea {
                     anchors.fill: parent
@@ -73,7 +76,6 @@ Rectangle {
                     id: item
                     width: parent.width - 15
                     anchors.centerIn: parent
-
                     kitName: name
                     flashFile: Emu.basename(flash)
                     stateFile: Emu.basename(snapshot)
@@ -90,7 +92,7 @@ Rectangle {
                     text: qsTr("Remove")
                     visible: parent.ListView.view.currentIndex === index && parent.ListView.view.count > 1
                     onClicked: {
-                        kitModel.removeRows(index, 1)
+                        kitModel.removeRows(kitIndex, 1)
                     }
                 }
 
@@ -107,7 +109,7 @@ Rectangle {
                     text: qsTr("Copy")
                     visible: parent.ListView.view.currentIndex === index
                     onClicked: {
-                        kitModel.copy(index)
+                        kitModel.copy(kitIndex)
                     }
                 }
             }

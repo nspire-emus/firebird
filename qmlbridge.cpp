@@ -483,7 +483,14 @@ bool QMLBridge::saveDialogSupported()
         return QVersionNumber::fromString(QString::fromUtf8(qVersion())) < QVersionNumber(5, 13);
     #else
         return true;
-    #endif
+#endif
+}
+
+void QMLBridge::sortProxyModel(QObject *model, int column)
+{
+    auto *sortfilterproxymodel = qobject_cast<QSortFilterProxyModel*>(model);
+    if(sortfilterproxymodel)
+        sortfilterproxymodel->sort(column);
 }
 
 void QMLBridge::speedChanged(double speed)
