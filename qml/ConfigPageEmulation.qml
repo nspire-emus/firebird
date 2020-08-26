@@ -49,7 +49,7 @@ ColumnLayout {
             model: Emu.kits
             currentIndex: model.indexForID(Emu.defaultKit).row
             onCurrentIndexChanged: {
-                Emu.defaultKit = model.data(model.index(currentIndex, 0, null), KitModel.IDRole);
+                Emu.defaultKit = model.data(model.index(currentIndex, 0), KitModel.IDRole);
                 currentIndex = Qt.binding(function() { return model.indexForID(Emu.defaultKit).row; });
             }
         }

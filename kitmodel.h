@@ -14,8 +14,8 @@ class KitModel : public QAbstractListModel
     Q_OBJECT
 public:
     enum Role {
+        NameRole = Qt::DisplayRole,
         IDRole = Qt::UserRole + 1,
-        NameRole,
         TypeRole,
         FlashRole,
         Boot1Role,
@@ -32,7 +32,7 @@ public:
     Q_INVOKABLE virtual QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
     Q_INVOKABLE bool setData(const QModelIndex &index, const QVariant &value, int role = Qt::EditRole) override;
     Q_INVOKABLE bool copy(const int row);
-	Q_INVOKABLE bool removeRows(int row, int count, const QModelIndex &) override;
+    Q_INVOKABLE bool removeRows(int row, int count, const QModelIndex &parent = QModelIndex()) override;
     Q_INVOKABLE void addKit(QString name, QString boot1, QString flash, QString snapshot_path);
     Q_INVOKABLE QModelIndex indexForID(const unsigned int id) const;
     Q_INVOKABLE bool allKitsEmpty() const;

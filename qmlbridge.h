@@ -93,6 +93,8 @@ public:
 
     Q_INVOKABLE bool saveDialogSupported();
 
+    Q_INVOKABLE void sortProxyModel(QObject *model, int column);
+
     void setActive(bool b);
 
     void notifyButtonStateChanged(int row, int col, bool state);

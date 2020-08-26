@@ -51,10 +51,14 @@ QDataStream &operator>>(QDataStream &in, KitModel &kits)
     unsigned int version;
     in >> version;
 
+    kits.beginResetModel();
+
     if(version == 1)
         in >> kits.kits >> kits.nextID;
     else
         qWarning() << "Unknown KitModel serialization version " << version;
+
+    kits.endResetModel();
 
     return in;
 }
