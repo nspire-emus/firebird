@@ -53,7 +53,7 @@ FILE *fopen_utf8(const char *filename, const char *mode)
 
 void *os_reserve(size_t size)
 {
-#ifdef __i386__
+#if !defined(AC_FLAGS)
     // Has to have bit 31 zero
     void *ptr = mmap((void*)0x70000000, size, PROT_READ|PROT_WRITE, MAP_SHARED|MAP_ANON|MAP_32BIT, -1, 0);
 #else
@@ -132,7 +132,6 @@ void addr_cache_init()
     setbuf(stdout, NULL);
 
     #if !defined(AC_FLAGS)
-        unsigned int i;
         for(unsigned int i = 0; i < AC_NUM_ENTRIES; ++i)
         {
             AC_SET_ENTRY_INVALID(addr_cache[i], (i >> 1) << 10)
