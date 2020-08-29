@@ -108,12 +108,6 @@ win32 {
     FB_ARCH = x86
 }
 
-linux-g++-32 {
-    QMAKE_CFLAGS += -m32
-    QMAKE_CXXFLAGS += -m32
-    FB_ARCH = x86
-}
-
 # A platform-independant implementation of lowlevel access as default
 ASMCODE_IMPL = core/asmcode.c
 
