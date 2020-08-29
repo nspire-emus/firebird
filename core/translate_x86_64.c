@@ -43,15 +43,60 @@ static inline void emit_byte(uint8_t b)    { *out++ = b; }
 static inline void emit_word(uint16_t w)   { *(uint16_t *)out = w; out += 2; }
 static inline void emit_dword(uint32_t dw) { *(uint32_t *)out = dw; out += 4; }
 
+/* The GOT is meant to reside in a fixed location in the JIT memory area,
+ * reachable with a relative load. It actually contains absolute addresses. */
+// Enough to contain all absolute (outside of JIT) jump target addresses
+#define GOT_SIZE (32*8)
+
+static uintptr_t *got_start = NULL,	// Beginning of got
+                 *got_tail = NULL,	// Next free entry
+                 *got_end = NULL;	// One past the end
+
+/* Configures the area used by got_entry. */
+void got_init(void *start, size_t size)
+{
+    got_start = got_tail = start;
+    got_end = got_start + (size / sizeof(*got_start));
+}
+
+/* Finds or puts value in the GOT and returns the location of the entry. */
+uintptr_t got_entry(uintptr_t value)
+{
+    // Is the address in the GOT already?
+    for(uintptr_t *entry = got_start; entry < got_tail; ++entry)
+    {
+        if(*entry == value)
+            return (uintptr_t) entry;
+    }
+
+    // Add a new entry
+    if(got_tail == got_end)
+    {
+        error("GOT full, please increase the size");
+        return (uintptr_t) NULL;
+    }
+
+    *got_tail = value;
+    return (uintptr_t) got_tail++;
+}
+
 /*This is a hack:
  * -regs not saved
  * -stack not aligned */
 static inline void emit_call_nosave(uintptr_t target) {
-    emit_byte(0xE8);
-    int64_t diff = target - ((uintptr_t) out + 4);
-    if(diff > INT32_MAX || diff < INT32_MIN)
-        assert(false); //Distance doesn't fit into immediate
+    int64_t diff = target - ((uintptr_t) out + 5);
+    if(diff >= INT32_MIN && diff <= INT32_MAX)
+    {
+        // Relative call
+        emit_byte(0xE8);
+        emit_dword(diff);
+        return;
+    }
 
+    diff = got_entry(target) - ((uintptr_t) out + 6);
+    assert(diff >= INT32_MIN && diff <= INT32_MAX);
+    emit_byte(0xFF); // call *diff(%rip)
+    emit_byte(0x15);
     emit_dword(diff);
 }
 
@@ -77,11 +122,19 @@ static inline void emit_call(uintptr_t target) {
 }
 
 static inline void emit_jump(uintptr_t target) {
-    emit_byte(0xE9);
-    int64_t diff = target - ((uintptr_t) out + 4);
-    if(diff > INT32_MAX || diff < INT32_MIN)
-        assert(false);
+    int64_t diff = target - ((uintptr_t) out + 5);
+    if(diff >= INT32_MIN && diff <= INT32_MAX)
+    {
+        // Relative jump
+        emit_byte(0xE9);
+        emit_dword(diff);
+        return;
+    }
 
+    diff = got_entry(target) - ((uintptr_t) out + 6);
+    assert(diff >= INT32_MIN && diff <= INT32_MAX);
+    emit_byte(0xFF); // jmp *diff(%rip)
+    emit_byte(0x25);
     emit_dword(diff);
 }
 
@@ -275,7 +328,13 @@ bool translate_init()
         insn_bufptr = insn_buffer;
     }
 
-    return !!insn_buffer;
+    if(!insn_buffer)
+        return false;
+
+    // This is setup once and then keeps its entries until the insn_buffer is freed
+    got_init(&insn_buffer[INSN_BUFFER_SIZE - GOT_SIZE], GOT_SIZE);
+
+    return true;
 }
 
 void translate_deinit()
@@ -299,7 +358,7 @@ void translate(uint32_t start_pc, uint32_t *start_insnp) {
     uint8_t *insn_start;
     int stop_here = 0;
     while (1) {
-        if (out >= &insn_buffer[INSN_BUFFER_SIZE - 1000])
+        if (out >= &insn_buffer[INSN_BUFFER_SIZE - 1000 - GOT_SIZE])
             error("Out of instruction space");
         if (outj >= &jtbl_buffer[sizeof jtbl_buffer / sizeof *jtbl_buffer])
             error("Out of jump table space");
