@@ -399,7 +399,7 @@ static void emit_call(void *target, bool save = true)
     if(branch)
         return emit_al(branch | (1 << 24)); // Set the L-bit
 
-    // This is cheaper than doing it like emit_mov above.
+    // This is cheaper than doing it like emit_jmp above
     emit_mov(R3, reinterpret_cast<uintptr_t>(target));
     emit_al(0x12fff33); // blx r3
 
