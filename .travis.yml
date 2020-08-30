@@ -1,19 +1,18 @@
 language: cpp
 
 os: linux
-dist: xenial
+dist: bionic
+arch:
+  - amd64
+  - arm64
+  - ppc64le
 
 addons:
   apt:
-    sources:
-      - sourceline: 'ppa:beineri/opt-qt597-xenial'
     packages:
-      - libgl1-mesa-dev
-      - qt59base
-      - qt59declarative
-
-install:
-  - source /opt/qt59/bin/qt59-env.sh
+      - qt5-default
+      - qtbase5-dev
+      - qtdeclarative5-dev
 
 script:
   - mkdir build
