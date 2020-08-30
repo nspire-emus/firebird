@@ -147,7 +147,7 @@ void literalpool_fill()
 			if(diff < -0x40000 || diff > 0x3ffff)
 				error("Literal unreachable");
 
-			*reinterpret_cast<uint32_t*>(literal_ref.inst) |= diff << 5;
+			*reinterpret_cast<uint32_t*>(literal_ref.inst) |= (diff & 0x7ffff) << 5;
 			literal_ref.inst = nullptr;
 		}
 	}

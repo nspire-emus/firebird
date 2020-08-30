@@ -1,5 +1,3 @@
-!clang: load(configure)
-
 lessThan(QT_MAJOR_VERSION, 5): error("You need at least Qt 5.9 to build Firebird!")
 equals(QT_MAJOR_VERSION, 5):lessThan(QT_MINOR_VERSION, 9): error("You need at least Qt 5.9 to build Firebird!")
 
@@ -110,19 +108,6 @@ win32 {
     FB_ARCH = x86
 }
 
-linux-g++-32 {
-    QMAKE_CFLAGS += -m32
-    QMAKE_CXXFLAGS += -m32
-    FB_ARCH = x86
-}
-
-android: {
-    equals(FB_ARCH, "x86") | equals(FB_ARCH, "x86_64") {
-        # Built as shared library - forced PIC. JIT not compatible
-        TRANSLATION_ENABLED = false
-    }
-}
-
 # A platform-independant implementation of lowlevel access as default
 ASMCODE_IMPL = core/asmcode.c
 
@@ -140,12 +125,6 @@ equals(TRANSLATION_ENABLED, true) {
     # Only the asmcode_x86.S functions can be called from outside the JIT
     !equals(FB_ARCH, "x86") {
         ASMCODE_IMPL += core/asmcode.c
-    }
-
-    # Don't build a position independent executable, not compatible with the x86 and x86_64 JITs.
-    equals(FB_ARCH, "x86") | equals(FB_ARCH, "x86_64") {
-        clang: QMAKE_LFLAGS += -nopie
-        else: qtCompileTest(-no-pie): QMAKE_LFLAGS += -no-pie
     }
 }
 else: DEFINES += NO_TRANSLATION

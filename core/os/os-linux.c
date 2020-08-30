@@ -53,7 +53,7 @@ FILE *fopen_utf8(const char *filename, const char *mode)
 
 void *os_reserve(size_t size)
 {
-#ifdef __i386__
+#if !defined(AC_FLAGS)
     // Has to have bit 31 zero
     void *ptr = mmap((void*)0x70000000, size, PROT_READ|PROT_WRITE, MAP_SHARED|MAP_ANON|MAP_32BIT, -1, 0);
 #else
@@ -75,14 +75,7 @@ void os_free(void *ptr, size_t size)
 
 void *os_alloc_executable(size_t size)
 {
-#if defined(__i386__) || defined(__x86_64__)
-    int map_flags = MAP_SHARED|MAP_ANON;
-#ifndef __APPLE__
-    // MAP_32BIT can't be used anymore on recent macOS. Looks fine elsewhere.
-    map_flags |= MAP_32BIT;
-#endif
-    void *ptr = mmap((void*)0x30000000, size, PROT_READ|PROT_WRITE|PROT_EXEC, map_flags, -1, 0);
-#elif defined(IS_IOS_BUILD)
+#if defined(IS_IOS_BUILD)
     void *ptr = mmap((void*)0x0, size, PROT_READ|PROT_WRITE, MAP_SHARED|MAP_ANON, -1, 0);
 #else
     void *ptr = mmap((void*)0x0, size, PROT_READ|PROT_WRITE|PROT_EXEC, MAP_SHARED|MAP_ANON, -1, 0);
@@ -139,7 +132,6 @@ void addr_cache_init()
     setbuf(stdout, NULL);
 
     #if !defined(AC_FLAGS)
-        unsigned int i;
         for(unsigned int i = 0; i < AC_NUM_ENTRIES; ++i)
         {
             AC_SET_ENTRY_INVALID(addr_cache[i], (i >> 1) << 10)
