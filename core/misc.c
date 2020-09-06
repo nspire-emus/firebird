@@ -275,38 +275,33 @@ void timer_reset() {
     sched.items[SCHED_TIMERS].proc = timer_event;
 }
 
-/* 90030000 */
-static unknown_cx_state unknown_cx;
+/* 90030000: 4KiB of some kind of memory */
+static fastboot_state fastboot;
 
-uint32_t unknown_cx_read(uint32_t addr) {
-    if(addr == 0x90030200)
-        return unknown_cx.fade;
-    else
-        return (features & FEATURE_HWW) ? 0x4 : 0; /* No idea. */
+uint32_t fastboot_cx_read(uint32_t addr) {
+    return fastboot.mem[(addr & 0xFFF) >> 2];
 }
-void unknown_cx_write(uint32_t addr, uint32_t value) {
-    if(addr == 0x90030200)
-        unknown_cx.fade = value;
+void fastboot_cx_write(uint32_t addr, uint32_t value) {
+    // TODO: This isn't cleared on resets, but should be cleared
+    // eventually, probably on restarts?
+    fastboot.mem[(addr & 0xFFF) >> 2] = value;
 }
 
-bool unknown_cx_resume(const emu_snapshot *snapshot)
+bool fastboot_cx_resume(const emu_snapshot *snapshot)
 {
-    unknown_cx = snapshot->mem.unknown_cx;
+    fastboot = snapshot->mem.fastboot;
     return true;
 }
 
-bool unknown_cx_suspend(emu_snapshot *snapshot)
+bool fastboot_cx_suspend(emu_snapshot *snapshot)
 {
-    snapshot->mem.unknown_cx = unknown_cx;
+    snapshot->mem.fastboot = fastboot;
     return true;
 }
 
-/* 90040000: SPI? */
-uint32_t unknown_cx_w_read(uint32_t addr) {
-    if ((features & FEATURE_HWW) == 0)
-        return 0;
-
-    switch (addr & 0xFF)
+/* 90040000: PL022 connected to the LCI over SPI */
+uint32_t spi_cx_read(uint32_t addr) {
+    switch (addr & 0xFFF)
     {
     case 0xC:
         return 0x6;
@@ -314,16 +309,8 @@ uint32_t unknown_cx_w_read(uint32_t addr) {
         return 0;
     }
 }
-void unknown_cx_w_write(uint32_t addr, uint32_t value) {
-    if ((features & FEATURE_HWW) == 0)
-        return;
-
-    switch (addr & 0xFF)
-    {
-    default:
-        (void) value;
-        break;
-    }
+void spi_cx_write(uint32_t addr, uint32_t value) {
+    (void) addr; (void) value;
 }
 
 /* 90060000 */

@@ -75,7 +75,7 @@ typedef struct mem_snapshot
     size_t sdram_size;
     uint8_t mem_and_flags[MEM_MAXSIZE]; // TODO: No flags saved. Only RF_EXEC_BREAKPOINT and maybe RF_READ_ONLY are interesting.
     gpio_state gpio;
-    unknown_cx_state unknown_cx;
+    fastboot_state fastboot;
     watchdog_state watchdog;
     pmu_state pmu;
     keypad_state keypad;
