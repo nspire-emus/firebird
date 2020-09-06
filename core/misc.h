@@ -101,17 +101,17 @@ uint32_t serial_cx_read(uint32_t addr);
 void serial_cx_write(uint32_t addr, uint32_t value);
 void serial_byte_in(uint8_t byte);
 
-typedef struct unknown_cx_state {
-    uint32_t fade; /* No idea. */
-} unknown_cx_state;
+typedef struct fastboot_state {
+    uint32_t mem[0x1000 / sizeof(uint32_t)];
+} fastboot_state;
 
-bool unknown_cx_suspend(emu_snapshot *snapshot);
-bool unknown_cx_resume(const emu_snapshot *snapshot);
-uint32_t unknown_cx_read(uint32_t addr);
-void unknown_cx_write(uint32_t addr, uint32_t value);
+bool fastboot_cx_suspend(emu_snapshot *snapshot);
+bool fastboot_cx_resume(const emu_snapshot *snapshot);
+uint32_t fastboot_cx_read(uint32_t addr);
+void fastboot_cx_write(uint32_t addr, uint32_t value);
 
-uint32_t unknown_cx_w_read(uint32_t addr);
-void unknown_cx_w_write(uint32_t addr, uint32_t value);
+uint32_t spi_cx_read(uint32_t addr);
+void spi_cx_write(uint32_t addr, uint32_t value);
 
 typedef struct watchdog_state {
     uint32_t load;
