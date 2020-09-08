@@ -30,6 +30,7 @@ void keypad_int_check() {
 }
 
 void keypad_on_pressed() {
+    // TODO: What about CX II?
     if(pmu.on_irq_enabled)
         int_set(INT_POWER, true);
 }

@@ -14,7 +14,8 @@ void aladdin_pmu_reset(void) {
 	aladdin_pmu.noidea[1] = 0x101,
 	aladdin_pmu.noidea[2] = 0x0021DB19;
 	aladdin_pmu.noidea[3] = 0x00100000;
-	aladdin_pmu.noidea[4] = 0x111;
+	// Special case for 0x810, see aladdin_pmu_read
+	//aladdin_pmu.noidea[4] = 0x111;
 	aladdin_pmu.noidea[5] = 0x1;
 	aladdin_pmu.noidea[6] = 0x100;
 	aladdin_pmu.noidea[7] = 0x10;
@@ -46,7 +47,10 @@ uint32_t aladdin_pmu_read(uint32_t addr)
 		case 0x60: return aladdin_pmu.disable[2];
 		}
 	}
-	if(offset >= 0x800 && offset < 0x900)
+	else if(offset == 0x810)
+		/* Bit 8 clear when ON key pressed */
+		return 0x11 | ((keypad.key_map[0] & 1<<9) ? 0 : 0x100);
+	else if(offset >= 0x800 && offset < 0x900)
 		return aladdin_pmu.noidea[(offset & 0xFF) >> 2];
 
 	return bad_read_word(addr);
@@ -77,6 +81,8 @@ void aladdin_pmu_write(uint32_t addr, uint32_t value)
 		case 0xC4: return;
 		}
 	}
+	else if(offset == 0x810)
+		return bad_write_word(addr, value);
 	else if(offset >= 0x800 && offset < 0x900)
 	{
 		aladdin_pmu.noidea[(offset & 0xFF) >> 2] = value;
