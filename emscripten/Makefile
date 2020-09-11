@@ -1,9 +1,9 @@
 CC := emcc
 CXX := em++
-FLAGS := -O3 --llvm-lto 3 -Wall -I.. -s USE_ZLIB=1 -s DISABLE_EXCEPTION_CATCHING=1 -s INVOKE_RUN=0 -s NO_EXIT_RUNTIME=1 -s ASSERTIONS=0 --closure 1 --pre-js firebird-utils.js
+FLAGS := -O3 --llvm-lto 3 -Wall -I.. -s USE_ZLIB=1 -s DISABLE_EXCEPTION_CATCHING=1 -s INVOKE_RUN=0 -s NO_EXIT_RUNTIME=1 -s ASSERTIONS=0 --closure 0 -s EXTRA_EXPORTED_RUNTIME_METHODS='["callMain", "cwrap"]' --pre-js firebird-utils.js
 CFLAGS := -std=c11 $(FLAGS)
 CXXFLAGS := -std=c++11 $(FLAGS)
-LFLAGS := --emrun -s TOTAL_MEMORY=500000000
+LFLAGS := --emrun -s TOTAL_MEMORY=536870912
 OUTPUT := firebird
 
 CSOURCES :=    ../core/armsnippets_loader.c ../core/asmcode.c ../core/casplus.c ../core/des.c ../core/disasm.c \

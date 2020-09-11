@@ -79,7 +79,9 @@ extern "C" void EMSCRIPTEN_KEEPALIVE paintLCD(uint32_t *dest)
     }
 }
 
-void step()
+// For some reason, an extra useless argument has to be used here in
+// order to trigger a dynCall_vi codegen instead of an inexistent dynCall_v
+void step(void*)
 {
     int i = 1000;
     while(i--)
@@ -134,7 +136,7 @@ void emscripten_loop(bool reset)
 
     exiting = false;
 
-    emscripten_set_main_loop(step, 0, 1);
+    emscripten_set_main_loop_arg(step, nullptr, 0, 1);
     return;
 }
 
