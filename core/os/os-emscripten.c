@@ -50,7 +50,7 @@ void os_unmap_cow(void *addr, size_t size)
     free(addr);
 }
 
-void addr_cache_init(os_exception_frame_t *frame)
+void addr_cache_init()
 {
     // Only run this if not already initialized
     if(addr_cache)
