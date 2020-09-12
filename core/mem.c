@@ -432,8 +432,8 @@ bool memory_initialize(uint32_t sdram_size)
 
         if(emulate_cx2)
         {
-            // Second serial port - for now use the same state
             apb_set_map(0x04, cx2_lcd_spi_read, cx2_lcd_spi_write);
+            // Second serial port - for now use the same state
             apb_set_map(0x07, serial_cx_read, serial_cx_write);
             apb_set_map(0x08, unknown_9008_read, unknown_9008_write);
             apb_set_map(0x0B, adc_cx2_read_word, adc_cx2_write_word);
