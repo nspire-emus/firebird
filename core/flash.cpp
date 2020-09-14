@@ -6,6 +6,7 @@
 #include <algorithm>
 
 #include "emu.h"
+#include "fieldparser.h"
 #include "flash.h"
 #include "mem.h"
 #include "cpu.h"
@@ -745,13 +746,18 @@ bool flash_read_settings(uint32_t *sdram_size, uint32_t *product, uint32_t *feat
     }
 
     if((*(uint16_t *)&nand_data[0] & 0xF0FF) == 0x0050) {
-        // TODO: Parse new manuf
-        // CX II CAS
         *sdram_size = 64 * 1024 * 1024;
-        *features = 0;
-        *asic_user_flags = 0;
-        *product = 0x1C0;
-        return true;
+
+        auto productField = FieldParser(nand_data, 2048, true).subField(0x5100);
+        if(!productField.isValid() || productField.sizeOfData() != 2)
+            return false;
+
+        *product = (productField.data()[0] << 12) | (productField.data()[1] << 4);
+        static const unsigned char flags[] = { 1, 0, 2 };
+        if(*product <= 0x1E0)
+            *asic_user_flags = flags[(*product >> 4) - 0x1C];
+
+        return *product >= 0x1C0;
     }
 
     struct manuf_data_804 *manuf = (struct manuf_data_804 *)&nand_data[0x844];
@@ -778,25 +784,47 @@ bool flash_read_settings(uint32_t *sdram_size, uint32_t *product, uint32_t *feat
 std::string flash_read_type(FILE *flash)
 {
     uint32_t i;
-    struct manuf_data_804 manuf;
     if(fread(&i, sizeof(i), 1, flash) != 1)
         return "";
 
     if(i == 0xFFFFFFFF)
         return "CAS+";
 
-    if((i & 0xF0FF) == 0x0050)
-        return "CX II something"; // TODO: Parse new manuf
+    uint32_t product = 0, features = 0, revision = 0;
 
-    if((fseek(flash, 0x844 - sizeof(i), SEEK_CUR) != 0)
-    || (fread(&manuf, sizeof(manuf), 1, flash) != 1))
-        return "";
+    if((i & 0xF0FF) == 0x0050)
+    {
+        uint8_t manuf[2048];
+        if(fseek(flash, 0, SEEK_SET) != 0
+           || fread(&manuf, sizeof(manuf), 1, flash) != 1)
+            return "";
+
+        auto productField = FieldParser(manuf, sizeof(manuf), true).subField(0x5100);
+        if(!productField.isValid() || productField.sizeOfData() != 2)
+            return "???";
+
+        product = (productField.data()[0] << 8) | productField.data()[1];
+        if(product < 0x1C)
+            return "???";
+    }
+    else
+    {
+        struct manuf_data_804 manuf;
+        if((fseek(flash, 0x844 - sizeof(i), SEEK_CUR) != 0)
+           || (fread(&manuf, sizeof(manuf), 1, flash) != 1))
+            return "";
+
+        product = manuf.product;
+        if(product >= 0x0F)
+            features = manuf.ext.features;
+        revision = manuf.revision;
+    }
 
     std::string ret;
-    switch(manuf.product)
+    switch(product)
     {
     case 0x0C:
-        if(manuf.revision < 2)
+        if(revision < 2)
             ret = "Clickpad CAS";
         else
             ret = "Touchpad CAS";
@@ -820,27 +848,35 @@ std::string flash_read_type(FILE *flash)
     case 0x12:
         ret = "CM";
         break;
+    case 0x1C:
+        ret = "CX II CAS";
+        break;
+    case 0x1D:
+        ret = "CX II";
+        break;
+    case 0x1E:
+        ret = "CX II-T";
+        break;
     default:
         ret = "???";
         break;
     }
 
-    if(manuf.product >= 0x0F)
+    if(product >= 0x0F && product <= 0x12)
     {
-        ret += " (HW ";
-        switch(manuf.ext.features)
+        switch(features)
         {
         case 0x05:
-            ret += "A)";
+            ret += " (HW A)";
             break;
         case 0x85:
-            ret += "J)";
+            ret += " (HW J)";
             break;
         case 0x185:
-            ret += "W)";
+            ret += " (HW W)";
             break;
         default:
-            ret += "?)";
+            ret += " (HW ?)";
             break;
         }
     }

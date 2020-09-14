@@ -11,10 +11,8 @@ void aladdin_pmu_reset(void) {
 	aladdin_pmu.clocks = 0x21010001;
 	aladdin_pmu.disable[0] = 1 << 20;
 	aladdin_pmu.noidea[0] = 0x1A,
-	aladdin_pmu.noidea[1] = 0x101,
-	aladdin_pmu.noidea[2] = 0x0021DB19;
-	aladdin_pmu.noidea[3] = 0x00100000;
-	// Special case for 0x810, see aladdin_pmu_read
+	aladdin_pmu.noidea[1] = 0x101;
+	// Special cases for 0x808-0x810, see aladdin_pmu_read
 	//aladdin_pmu.noidea[4] = 0x111;
 	aladdin_pmu.noidea[5] = 0x1;
 	aladdin_pmu.noidea[6] = 0x100;
@@ -47,6 +45,10 @@ uint32_t aladdin_pmu_read(uint32_t addr)
 		case 0x60: return aladdin_pmu.disable[2];
 		}
 	}
+	else if(offset == 0x808) // efuse
+		return 0x0021DB19; // TODO: Taken from CX II CAS, same on other models?
+	else if(offset == 0x80C) // also efuse
+		return asic_user_flags << 20; // Has to match the 80E0 field in OS images
 	else if(offset == 0x810)
 		/* Bit 8 clear when ON key pressed */
 		return 0x11 | ((keypad.key_map[0] & 1<<9) ? 0 : 0x100);
@@ -81,7 +83,7 @@ void aladdin_pmu_write(uint32_t addr, uint32_t value)
 		case 0xC4: return;
 		}
 	}
-	else if(offset == 0x810)
+	else if(offset == 0x80C || offset == 0x810)
 		return bad_write_word(addr, value);
 	else if(offset >= 0x800 && offset < 0x900)
 	{

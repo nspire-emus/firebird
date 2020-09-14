@@ -150,6 +150,7 @@ ANDROID_PACKAGE_SOURCE_DIR = $$PWD/android
 QML_IMPORT_PATH += $$PWD/qml
 
 SOURCES += $$ASMCODE_IMPL \
+    core/fieldparser.cpp \
     lcdwidget.cpp \
     mainwindow.cpp \
     main.cpp \
@@ -198,6 +199,7 @@ FORMS += \
     flashdialog.ui
 
 HEADERS += \
+    core/fieldparser.h \
     core/usb_cx2.h \
     core/usblink_cx2.h \
     emuthread.h \
