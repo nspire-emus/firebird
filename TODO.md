@@ -1,3 +1,12 @@
+##CX II:
+* Standby needs fast timer + GPIO bits
+* Check other aladdin PMU bits
+* usb doesn't work after resume if previously connected
+* CX usblink doesn't work anymore
+* Flash creation needs changes
+* Load product from manuf
+* Refactor flash code, split controllers and image manipulation?
+
 ##TODO:
 * Implement write_action for non-x86 to handle SMC and clearing RF_CODE_NO_TRANSLATE correctly
 * File transfer: Move by D'n'D, drop folders, download folders
