@@ -125,13 +125,86 @@ void keypad_reset() {
     sched.items[SCHED_KEYPAD].proc = keypad_scan_event;
 }
 
+static struct {
+    uint8_t current_cmd; // 0 means waiting for command
+    uint8_t byte_offset; // How many bytes were read/written for this cmd
+} touchpad_captivate_state;
+
+static void touchpad_captivate_write(uint8_t value) {
+    //gui_debug_printf("touchpad write: %02x\n", value);
+
+    switch(touchpad_captivate_state.current_cmd) {
+    default:
+        gui_debug_printf("Unknown captivate write at cmd %x\n", touchpad_captivate_state.current_cmd);
+        /* fallthrough */
+    case 0x0: // Next command
+        touchpad_captivate_state.current_cmd = value;
+        touchpad_captivate_state.byte_offset = 0;
+        break;
+    case 0x3: // Some config byte?
+    case 0x0C: // No idea, maybe calibration or reset
+        touchpad_captivate_state.current_cmd = 0;
+        break;
+    }
+}
+
+static uint8_t touchpad_captivate_read() {
+    switch(touchpad_captivate_state.current_cmd) {
+    case 0x01: // "WHY_BOTHER_ME"
+    {
+        uint8_t response[6] = {0};
+        response[1] = (keypad.touchpad_contact << 3) // Actually whether something moved
+                     | (!keypad.touchpad_contact << 2) // To clear relative motion?
+                     | (keypad.touchpad_contact << 1)
+                     | keypad.touchpad_down;
+        response[2] = keypad.touchpad_x & 0xFF;
+        response[3] = keypad.touchpad_x >> 8;
+        response[4] = keypad.touchpad_y & 0xFF;
+        response[5] = keypad.touchpad_y >> 8;
+        if(touchpad_captivate_state.byte_offset == sizeof(response) - 1)
+            touchpad_captivate_state.current_cmd = 0;
+
+        return response[touchpad_captivate_state.byte_offset++];
+    }
+    case 0x06: // status
+    {
+        uint8_t response[] = {0, 1, 0, 0, 0, 0}; // is configured
+        if(touchpad_captivate_state.byte_offset == sizeof(response) - 1)
+            touchpad_captivate_state.current_cmd = 0;
+        return response[touchpad_captivate_state.byte_offset++];
+    }
+    case 0x07: // size, maybe?
+    {
+        uint8_t response[] = {0, 0,
+                              TOUCHPAD_X_MAX & 0xFF, TOUCHPAD_X_MAX >> 8,
+                              TOUCHPAD_Y_MAX & 0xFF, TOUCHPAD_Y_MAX >> 8};
+        if(touchpad_captivate_state.byte_offset == sizeof(response) - 1)
+            touchpad_captivate_state.current_cmd = 0;
+        return response[touchpad_captivate_state.byte_offset++];
+    }
+    case 0x08: // firmware version
+    {
+        uint8_t response[] = {0, 0, 1, 0, 0, 4};
+        if(touchpad_captivate_state.byte_offset == sizeof(response) - 1)
+            touchpad_captivate_state.current_cmd = 0;
+        return response[touchpad_captivate_state.byte_offset++];
+    }
+    case 0x0A: // No idea
+        if(touchpad_captivate_state.byte_offset == 5)
+            touchpad_captivate_state.current_cmd = 0;
+        touchpad_captivate_state.byte_offset++;
+        return 0;
+    default:
+        gui_debug_printf("Unknown captivate read at cmd %x\n", touchpad_captivate_state.current_cmd);
+        return 0;
+    }
+}
+
 static void touchpad_write(uint8_t addr, uint8_t value) {
-    //printf("touchpad write: %02x %02x %02x\n", keypad.touchpad_page, addr, value);
     if (addr == 0xFF)
         keypad.touchpad_page = value;
 }
 static uint8_t touchpad_read(uint8_t addr) {
-    //printf("touchpad read:  %02x\n", addr);
     if (addr == 0xFF)
         return keypad.touchpad_page;
 
@@ -286,7 +359,10 @@ uint32_t touchpad_cx_read(uint32_t addr) {
             if (!keypad.touchpad_cx.reading)
                 break;
             keypad.touchpad_cx.reading--;
-            return touchpad_read(keypad.touchpad_cx.port++);
+            if(emulate_cx2 && (features & 1))
+                return touchpad_captivate_read();
+            else
+                return touchpad_read(keypad.touchpad_cx.port++);
         case 0x0070:
             return keypad.touchpad_cx.reading ? 12 : 4;
         case 0x00FC:
@@ -300,6 +376,15 @@ void touchpad_cx_write(uint32_t addr, uint32_t value) {
     std::lock_guard<std::recursive_mutex> lg(keypad_mut);
     switch (addr & 0xFFFF) {
         case 0x0010:
+            if(emulate_cx2 && (features & 1)) {
+                if (value & 0x100)
+                    keypad.touchpad_cx.reading++;
+                else
+                    touchpad_captivate_write(value & 0xFF);
+
+                return;
+            }
+
             if (keypad.touchpad_cx.state == 0) {
                 keypad.touchpad_cx.port = value;
                 keypad.touchpad_cx.state = 1;

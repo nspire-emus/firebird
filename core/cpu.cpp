@@ -46,6 +46,14 @@ void cpu_arm_loop()
 
         uint32_t *flags_ptr = &RAM_FLAGS(p);
 
+        /* Force use of capTIvate on 5.2.0.722 CX II CAS
+        if(arm.reg[15] == 0x100114D4)
+        {
+            *flags_ptr |= RF_CODE_NO_TRANSLATE;
+            features = 1;
+            arm.reg[0] = features; // captivate
+        }*/
+
         // Check for pending events
         if(cpu_events)
         {
