@@ -748,7 +748,8 @@ bool flash_read_settings(uint32_t *sdram_size, uint32_t *product, uint32_t *feat
     if((*(uint16_t *)&nand_data[0] & 0xF0FF) == 0x0050) {
         *sdram_size = 64 * 1024 * 1024;
 
-        auto productField = FieldParser(nand_data, 2048, true).subField(0x5100);
+        auto manufField = FieldParser(nand_data, 2048, true);
+        auto productField = manufField.subField(0x5100);
         if(!productField.isValid() || productField.sizeOfData() != 2)
             return false;
 
@@ -756,6 +757,15 @@ bool flash_read_settings(uint32_t *sdram_size, uint32_t *product, uint32_t *feat
         static const unsigned char flags[] = { 1, 0, 2 };
         if(*product <= 0x1E0)
             *asic_user_flags = flags[(*product >> 4) - 0x1C];
+
+        auto flagsField = manufField.subField(0x5400);
+        if(flagsField.isValid() && flagsField.sizeOfData() == 4)
+        {
+            auto d = flagsField.data();
+            *features = (d[3] << 24) | (d[2] << 16) | (d[1] << 8) | d[0];
+        }
+        else
+            emuprintf("Failed to parse hardware flags in CX II manuf\n");
 
         return *product >= 0x1C0;
     }
