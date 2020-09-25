@@ -153,7 +153,7 @@ static uint8_t touchpad_captivate_read() {
     case 0x01: // "WHY_BOTHER_ME"
     {
         uint8_t response[6] = {0};
-        response[1] = (keypad.touchpad_contact << 3) // Actually whether something moved
+        response[1] = (1 << 3) // Actually whether something moved
                      | (!keypad.touchpad_contact << 2) // To clear relative motion?
                      | (keypad.touchpad_contact << 1)
                      | keypad.touchpad_down;
