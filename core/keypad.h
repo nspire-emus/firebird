@@ -36,6 +36,11 @@ struct touchpad_cx_state {
     uint8_t port;
 };
 
+struct touchpad_captivate_state {
+    uint8_t current_cmd; // 0 means waiting for command
+    uint8_t byte_offset; // How many bytes were read/written for this cmd
+};
+
 typedef struct keypad_state {
     uint16_t key_map[16];
     uint16_t touchpad_x, touchpad_y;
@@ -46,6 +51,7 @@ typedef struct keypad_state {
     struct keypad_controller_state kpc;
     struct touchpad_gpio_state touchpad_gpio;
     struct touchpad_cx_state touchpad_cx;
+    struct touchpad_captivate_state tpad_captivate;
 } keypad_state;
 
 extern keypad_state keypad;

@@ -125,77 +125,70 @@ void keypad_reset() {
     sched.items[SCHED_KEYPAD].proc = keypad_scan_event;
 }
 
-static struct {
-    uint8_t current_cmd; // 0 means waiting for command
-    uint8_t byte_offset; // How many bytes were read/written for this cmd
-} touchpad_captivate_state;
-
 static void touchpad_captivate_write(uint8_t value) {
-    //gui_debug_printf("touchpad write: %02x\n", value);
-
-    switch(touchpad_captivate_state.current_cmd) {
+    switch(keypad.tpad_captivate.current_cmd) {
     default:
-        gui_debug_printf("Unknown captivate write at cmd %x\n", touchpad_captivate_state.current_cmd);
+        gui_debug_printf("Unknown captivate write at cmd %x\n", keypad.tpad_captivate.current_cmd);
         /* fallthrough */
     case 0x0: // Next command
-        touchpad_captivate_state.current_cmd = value;
-        touchpad_captivate_state.byte_offset = 0;
+        keypad.tpad_captivate.current_cmd = value;
+        keypad.tpad_captivate.byte_offset = 0;
         break;
     case 0x3: // Some config byte?
     case 0x0C: // No idea, maybe calibration or reset
-        touchpad_captivate_state.current_cmd = 0;
+        keypad.tpad_captivate.current_cmd = 0;
         break;
     }
 }
 
 static uint8_t touchpad_captivate_read() {
-    switch(touchpad_captivate_state.current_cmd) {
+    switch(keypad.tpad_captivate.current_cmd) {
     case 0x01: // "WHY_BOTHER_ME"
     {
         uint8_t response[6] = {0};
-        response[1] = (1 << 3) // Actually whether something moved
-                     | (!keypad.touchpad_contact << 2) // To clear relative motion?
+        response[1] = (keypad.touchpad_contact << 3) // Actually whether something changed
+                     | (!keypad.touchpad_contact << 2) // Not sure why.
                      | (keypad.touchpad_contact << 1)
                      | keypad.touchpad_down;
         response[2] = keypad.touchpad_x & 0xFF;
         response[3] = keypad.touchpad_x >> 8;
         response[4] = keypad.touchpad_y & 0xFF;
         response[5] = keypad.touchpad_y >> 8;
-        if(touchpad_captivate_state.byte_offset == sizeof(response) - 1)
-            touchpad_captivate_state.current_cmd = 0;
+        if(keypad.tpad_captivate.byte_offset == sizeof(response) - 1)
+            keypad.tpad_captivate.current_cmd = 0;
 
-        return response[touchpad_captivate_state.byte_offset++];
+        return response[keypad.tpad_captivate.byte_offset++];
     }
     case 0x06: // status
     {
         uint8_t response[] = {0, 1, 0, 0, 0, 0}; // is configured
-        if(touchpad_captivate_state.byte_offset == sizeof(response) - 1)
-            touchpad_captivate_state.current_cmd = 0;
-        return response[touchpad_captivate_state.byte_offset++];
+        if(keypad.tpad_captivate.byte_offset == sizeof(response) - 1)
+            keypad.tpad_captivate.current_cmd = 0;
+        return response[keypad.tpad_captivate.byte_offset++];
     }
     case 0x07: // size, maybe?
     {
         uint8_t response[] = {0, 0,
                               TOUCHPAD_X_MAX & 0xFF, TOUCHPAD_X_MAX >> 8,
                               TOUCHPAD_Y_MAX & 0xFF, TOUCHPAD_Y_MAX >> 8};
-        if(touchpad_captivate_state.byte_offset == sizeof(response) - 1)
-            touchpad_captivate_state.current_cmd = 0;
-        return response[touchpad_captivate_state.byte_offset++];
+        if(keypad.tpad_captivate.byte_offset == sizeof(response) - 1)
+            keypad.tpad_captivate.current_cmd = 0;
+        return response[keypad.tpad_captivate.byte_offset++];
     }
     case 0x08: // firmware version
     {
         uint8_t response[] = {0, 0, 1, 0, 0, 4};
-        if(touchpad_captivate_state.byte_offset == sizeof(response) - 1)
-            touchpad_captivate_state.current_cmd = 0;
-        return response[touchpad_captivate_state.byte_offset++];
+        if(keypad.tpad_captivate.byte_offset == sizeof(response) - 1)
+            keypad.tpad_captivate.current_cmd = 0;
+        return response[keypad.tpad_captivate.byte_offset++];
     }
     case 0x0A: // No idea
-        if(touchpad_captivate_state.byte_offset == 5)
-            touchpad_captivate_state.current_cmd = 0;
-        touchpad_captivate_state.byte_offset++;
+        if(keypad.tpad_captivate.byte_offset == 5)
+            keypad.tpad_captivate.current_cmd = 0;
+        keypad.tpad_captivate.byte_offset++;
         return 0;
     default:
-        gui_debug_printf("Unknown captivate read at cmd %x\n", touchpad_captivate_state.current_cmd);
+        gui_debug_printf("Unknown captivate read at cmd %x\n", keypad.tpad_captivate.current_cmd);
         return 0;
     }
 }
