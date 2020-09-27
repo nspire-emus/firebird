@@ -139,6 +139,10 @@ void usb_cx2_bus_reset_on()
     usb_cx2.portsc &= ~1;
     usb_cx2.portsc |= 0x0C000100;
     usb_cx2.usbsts |= 0x40;
+
+    usb_cx2.otgisr = (1 << 11) | (1 << 9) | (1 << 8) | (1 << 6);
+    usb_cx2.otgcs = (1 << 21) | 1 << 16;
+
     usb_cx2_int_check();
     //gui_debug_printf("usb reset on\n");
 }
@@ -345,7 +349,7 @@ void usb_cx2_write_word(uint32_t addr, uint32_t value)
         return;
     case 0x010: // USBCMD
         if (value & 2) {
-            usb_cx2_reset();
+            // Reset USB HOST stuff, ignored
             return;
         }
         usb_cx2.usbcmd = value;
@@ -409,13 +413,13 @@ void usb_cx2_write_word(uint32_t addr, uint32_t value)
         if (value & 0b1000) // Clear CX FIFO
             usb_cx2.cxfifo.size = 0;
 
-        if (value & 0b100) // Stall CX FIFO
+        if (value & 0b0100) // Stall CX FIFO
             error("control endpoint stall");
 
-        if (value & 0b10) // Test transfer finished
+        if (value & 0b0010) // Test transfer finished
             error("test transfer finished");
 
-        if (value & 0b1) // Setup transfer finished
+        if (value & 0b0001) // Setup transfer finished
         {
             // Clear EP0 OUT/IN/SETUP packet IRQ
             usb_cx2.gisr[0] &= ~0b111;
