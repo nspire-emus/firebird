@@ -1,0 +1,37 @@
+name: CI
+
+# Controls when the action will run. Triggers the workflow on push or pull request
+# events but only for the master branch
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-18.04, ubuntu-20.04]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          submodules: 'recursive'
+          fetch-depth: 0 # submodule checkout does not work with depth=1 (the default)
+
+      - name: Install dependencies
+        run: sudo apt install -y qt5-default qtbase5-dev qtdeclarative5-dev
+
+      - name: Build firebird-headless
+        working-directory: headless
+        run: make -j8
+
+      - name: Build firebird
+        run: |
+          mkdir build
+          cd build
+          qmake ..
+          make -j4
