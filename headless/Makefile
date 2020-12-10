@@ -36,9 +36,10 @@ ifeq "$(SUPPORT_LINUX)" "TRUE"
     FLAGS += -DSUPPORT_LINUX
 endif
 
-CFLAGS := -std=c11 $(FLAGS)
-CXXFLAGS := -std=c++11 $(FLAGS)
-LFLAGS := -lz
+CFLAGS += -std=c11 $(FLAGS)
+CXXFLAGS += -std=c++11 $(FLAGS)
+LFLAGS +=
+LIBS := -lz
 
 CSOURCES   += ../core/armsnippets_loader.c ../core/casplus.c ../core/des.c ../core/disasm.c ../core/gdbstub.c \
               ../core/interrupt.c ../core/lcd.c ../core/link.c ../core/mem.c ../core/misc.c \
@@ -65,7 +66,7 @@ all: $(OUTPUT)
 	$(CXX) -c $(CXXFLAGS) $< -o $@
 
 $(OUTPUT): $(OBJS)
-	$(CXX) $(CXXFLAGS) $(LFLAGS) $^ -o $@
+	$(CXX) $(CXXFLAGS) $(LFLAGS) $^ $(LIBS) -o $@
 
 clean:
 	rm -f $(OBJS) $(OUTPUT)
