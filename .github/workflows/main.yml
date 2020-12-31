@@ -23,7 +23,9 @@ jobs:
           fetch-depth: 0 # submodule checkout does not work with depth=1 (the default)
 
       - name: Install dependencies
-        run: sudo apt install -y qt5-default qtbase5-dev qtdeclarative5-dev
+        run: |
+          sudo apt update
+          sudo apt install -y qt5-default qtbase5-dev qtdeclarative5-dev
 
       - name: Build firebird-headless
         working-directory: headless
