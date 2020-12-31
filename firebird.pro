@@ -48,11 +48,9 @@ QMAKE_CXXFLAGS_RELEASE = -O3 -DNDEBUG
 !clang: QMAKE_LFLAGS_RELEASE += -Wl,-O3
 
 # Don't enable LTO with clang on Linux, incompatible with Qt (QTBUG-43556).
-!clang | !linux: {
-    QMAKE_CFLAGS_RELEASE += -flto
-    QMAKE_CXXFLAGS_RELEASE += -flto
-    QMAKE_LFLAGS_RELEASE += -flto
-}
+# On FreeBSD, clang with LTO produces copy relocs, which are incompatible
+# with Qt's -reduce-relocations option (QTBUG-86173).
+!clang | !if(linux|freebsd): CONFIG += ltcg
 
 # noexecstack is not supported by MinGW's as
 !win32 {
@@ -62,7 +60,7 @@ QMAKE_CXXFLAGS_RELEASE = -O3 -DNDEBUG
 macx: ICON = resources/logo.icns
 
 # This does also apply to android
-linux|macx|ios: SOURCES += core/os/os-linux.c
+unix: SOURCES += core/os/os-linux.c
 
 android {
     # Special implementation of fopen_utf8
