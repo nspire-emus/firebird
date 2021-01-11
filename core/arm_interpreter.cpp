@@ -243,7 +243,7 @@ void do_arm_instruction(Instruction i)
                 writeback = insn & (1 << 21);
             } else {
                 if(insn & (1 << 21))
-                    mmu_check_priv(addr, !((insn & (1 << 20)) || type == 2));
+                    mmu_user_access(addr, !((insn & (1 << 20)) || type == 2));
 
                 writeback = true;
             }
@@ -441,7 +441,7 @@ void do_arm_instruction(Instruction i)
         if(i.mem_proc.p)
             base += offset; // Writeback for pre-indexed handled after access
         else if(i.mem_proc.w) // Usermode Access
-            mmu_check_priv(base, !i.mem_proc.l);
+            mmu_user_access(base, !i.mem_proc.l);
 
         // Byte access
         if(i.mem_proc.b)

@@ -178,14 +178,14 @@ perm_fault:
     return (entry & -page_size) | (addr & (page_size - 1));
 }
 
-void mmu_check_priv(uint32_t addr, bool writing)
+void mmu_user_access(uint32_t addr, bool writing)
 {
     uint8_t status = 0;
     uint32_t saved_cpsr = arm.cpsr_low28;
     arm.cpsr_low28 &= ~3;
     mmu_translate(addr, writing, NULL, &status);
     arm.cpsr_low28 = saved_cpsr;
-    if((status & 0xF) == 0xD)
+    if(status & 0xF)
         data_abort(addr, status);
 }
 

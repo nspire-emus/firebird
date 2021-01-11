@@ -11,8 +11,8 @@ extern "C" {
 /* Translate a VA to a PA, using a page table lookup */
 uint32_t mmu_translate(uint32_t addr, bool writing, fault_proc *fault, uint8_t *s_status);
 
-/* Used for t-type (usermode-like) access */
-void mmu_check_priv(uint32_t addr, bool writing);
+/* Does access as-if in USR mode and calls data_abort on failure */
+void mmu_user_access(uint32_t addr, bool writing);
 
 /* addr_cache is used to cache the translation of VA to PA per page.
  * It has two entries per page (1k), one for reading and one for writing.
