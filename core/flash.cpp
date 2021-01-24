@@ -659,6 +659,30 @@ static uint8_t bootdata[] = {
     // Stuff we don't care about
 };
 
+static uint8_t bootdata_cx2[] = {
+   'D', 'A', 'T', 'A', // Signature
+    0x01, 0x00, 0x00, 0x00, // Which kind to boot (OS Loader/Installer/Diags)
+    0x00, 0x00, 0x00, 0x00, // Which installer to boot (Installer/Other Installer)
+    0x00, 0x00, 0x00, 0x05, // Minimum OS version
+    0x00, 0x00, 0x00, 0x00, // Maybe brightness?
+    0x00, 0x00, 0x00, 0x00, // No idea
+    0x00, 0x00, 0x00, 0x00, // No idea
+};
+
+static bool load_file_cx2(uint8_t *nand_data, struct nand_metrics nand_metrics, uint32_t block, uint32_t offset, const char *filename)
+{
+    FILE *f = fopen_utf8(filename, "rb");
+    if (!f) {
+        gui_perror(filename);
+        return false;
+    }
+
+    size_t block_offset = block * (nand_metrics.page_size & ~0x7F) << nand_metrics.log2_pages_per_block;
+    bool ret = load_file_part(nand_data, nand_metrics, block_offset + offset, f, -1) != 0;
+    fclose(f);
+    return ret;
+}
+
 bool flash_create_new(bool flag_large_nand, const char **preload_file, unsigned int product, unsigned int features, bool large_sdram, uint8_t **nand_data_ptr, size_t *size) {
     assert(nand_data_ptr);
     assert(size);
@@ -673,6 +697,34 @@ bool flash_create_new(bool flag_large_nand, const char **preload_file, unsigned 
 
     memset(nand_data, 0xFF, *size);
 
+    // CX II?
+    if(product >= 0x1C0)
+    {
+        bool ret = true;
+        if(preload_file[0]) // Manuf
+            ret = load_file_cx2(nand_data, nand_metrics, 0, 0, preload_file[0]);
+        else
+            ret = false; // Manuf is required
+        if(ret && preload_file[1]) // Bootloader
+            ret = load_file_cx2(nand_data, nand_metrics, 1, 0, preload_file[1]);
+        if(ret && preload_file[2]) // Diags
+            ret = load_file_cx2(nand_data, nand_metrics, 29, 0, preload_file[2]);
+        if(ret && preload_file[3]) // Installer
+            ret = load_file_cx2(nand_data, nand_metrics, 11, 0, preload_file[3]);
+
+        if(!ret)
+            return false;
+
+        size_t bootdata_offset = (27 << nand_metrics.log2_pages_per_block) * nand_metrics.page_size;
+        bootdata_offset += nand_metrics.page_size; // No idea why.
+
+        memset(nand_data + bootdata_offset, 0xFF, nand_metrics.page_size);
+        memset(nand_data + bootdata_offset + 1024, 0, 1024);
+        memcpy(nand_data + bootdata_offset, bootdata_cx2, sizeof(bootdata_cx2));
+
+        return true;
+    }
+
     if (preload_file[0]) {
         load_file(nand_data, nand_metrics, PartitionManuf, preload_file[0], 0);
 
@@ -683,7 +735,7 @@ bool flash_create_new(bool flag_large_nand, const char **preload_file, unsigned 
         if (product >= 0x0F)
             manuf->ext.features = features;
         ecc_fix(nand_data, nand_metrics, nand_metrics.page_size < 0x800 ? 4 : 1);
-    } else if (!emulate_casplus) {
+    } else if(product != 0x0C0) { // Unless CAS+, create manuf area
         *(uint32_t *)&nand_data[0] = 0x796EB03C;
         ecc_fix(nand_data, nand_metrics, 0);
 
@@ -1311,8 +1363,8 @@ static void spinand_cx2_set_cs(uint8_t cs, bool state)
 
 uint32_t spinand_cx2_read_word(uint32_t addr)
 {
-	switch(addr & 0xFFFF)
-	{
+    switch(addr & 0xFFFF)
+    {
     case 0x000: // REG_CMD0: Address
         return nand_cx2_state.addr;
     case 0x004: // REG_CMD1: No. of cmd, addr and dummy cycles
@@ -1350,7 +1402,7 @@ uint32_t spinand_cx2_read_word(uint32_t addr)
         }
         return data;
     }
-	}
+    }
 
     return bad_read_word(addr);
 }
