@@ -8,8 +8,8 @@ struct aladdin_pmu_state aladdin_pmu;
 
 void aladdin_pmu_reset(void) {
 	memset(&aladdin_pmu, 0, sizeof(aladdin_pmu));
-	aladdin_pmu.clocks = 0x21010001;
-	aladdin_pmu.disable[0] = 1 << 20;
+	aladdin_pmu.clocks = 0x21020303;
+	aladdin_pmu.disable[0] = 0;
 	aladdin_pmu.noidea[0] = 0x1A;
 	aladdin_pmu.noidea[1] = 0x101;
 	// Special cases for 0x808-0x810, see aladdin_pmu_read
