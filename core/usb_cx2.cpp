@@ -175,63 +175,63 @@ void usb_cx2_receive_setup_packet(const usb_setup *packet)
 }
 }
 
-void usb_cx2_dma1_update()
+void usb_cx2_fdma_update(int fdma)
 {
-    if(!(usb_cx2.fdma[1].ctrl & 1))
+    if(!(usb_cx2.fdma[fdma].ctrl & 1))
         return; // DMA disabled
 
-    bool fromMemory = usb_cx2.fdma[1].ctrl & 0b10;
+    bool fromMemory = usb_cx2.fdma[fdma].ctrl & 0b10;
+    size_t length = (usb_cx2.fdma[fdma].ctrl >> 8) & 0x1ffff;
+    uint8_t *ptr = (uint8_t*) phys_mem_ptr(usb_cx2.fdma[fdma].addr, length);
+
+    uint8_t ep = 0;
+    size_t maxsize = sizeof(usb_cx2.cxfifo.data);
+    int fifo = fdma - 1;
+    if(fdma > 0)
+    {
+        ep = (usb_cx2.fifomap >> (fifo * 8)) & 0xF;
+        maxsize = sizeof(usb_cx2.fifo[fifo].data);
+    }
+
+    if(length > maxsize)
+        error("Trying to %s too many bytes on fdma%d", fromMemory ? "send" : "read", fdma);
+
     if(fromMemory)
-        error("Not implemented");
+    {
+        if(fdma == 0)
+            usb_cx2.cxfifo.size = 0;
+        else
+            usb_cx2.fifo[fifo].size = 0;
 
-    int fifo = 0;
-
-    size_t length = (usb_cx2.fdma[1].ctrl >> 8) & 0x1ffff;
-    length = std::min(length, size_t(usb_cx2.fifo[fifo].size));
-    uint8_t *ptr = (uint8_t*) phys_mem_ptr(usb_cx2.fdma[1].addr, length);
-    memcpy(ptr, usb_cx2.fifo[fifo].data, length);
-
-    usb_cx2.dmasr |= 1 << (fifo + 1); // DMA done
-
-    // Move the remaining data to the start
-    usb_cx2.fifo[fifo].size -= length;
-    if(usb_cx2.fifo[fifo].size)
-        memmove(usb_cx2.fifo[fifo].data, usb_cx2.fifo[fifo].data + length, usb_cx2.fifo[fifo].size);
+        usb_cx2_packet_from_calc(ep, ptr, length);
+    }
     else
     {
-        usb_cx2.gisr[1] &= ~(0b11 << (fifo * 2)); // FIFO0 OUT/SPK
+        if(fdma == 0)
+            error("Reading from ep0 not expected\n");
 
-        if(send_queue.size())
+        if(length > usb_cx2.fifo[fifo].size)
+            warn("Trying to read more bytes than available on fdma%d\n", fdma);
+
+        memcpy(ptr, usb_cx2.fifo[fifo].data, length);
+
+        // Move the remaining data to the start
+        usb_cx2.fifo[fifo].size -= length;
+        if(usb_cx2.fifo[fifo].size)
+            memmove(usb_cx2.fifo[fifo].data, usb_cx2.fifo[fifo].data + length, usb_cx2.fifo[fifo].size);
+        else
         {
-            usb_cx2_packet_to_calc(1, send_queue.front().data, send_queue.front().size);
-            send_queue.pop();
+            usb_cx2.gisr[1] &= ~(0b11 << (fifo * 2)); // FIFO0 OUT/SPK
+
+            if(ep == 1 && send_queue.size())
+            {
+                usb_cx2_packet_to_calc(1, send_queue.front().data, send_queue.front().size);
+                send_queue.pop();
+            }
         }
     }
 
-    usb_cx2_int_check();
-}
-
-void usb_cx2_dma2_update()
-{
-    if(!(usb_cx2.fdma[2].ctrl & 1))
-        return; // DMA disabled
-
-    bool fromMemory = usb_cx2.fdma[2].ctrl & 0b10;
-    if(!fromMemory)
-        error("Not implemented");
-
-    int fifo = 1;
-
-    size_t length = (usb_cx2.fdma[2].ctrl >> 8) & 0x1ffff;
-    uint8_t *ptr = (uint8_t*) phys_mem_ptr(usb_cx2.fdma[2].addr, length);
-    usb_cx2.fifo[fifo].size = 0;
-
-    uint8_t ep = (usb_cx2.fifomap >> (fifo * 8)) & 0xF;
-    usb_cx2_packet_from_calc(ep, ptr, length);
-
-    usb_cx2.dmasr |= 1 << (fifo + 1); // DMA done
-    //usb_cx2.gisr[1] |= 1 << (16 + fifo); // FIFO1 IN
-
+    usb_cx2.dmasr |= 1 << fdma; // DMA done
     usb_cx2_int_check();
 }
 
@@ -328,6 +328,18 @@ uint32_t usb_cx2_read_word(uint32_t addr)
         usb_cx2.setup_packet[0] = usb_cx2.setup_packet[1];
         return ret;
     }
+    case 0x300:
+    case 0x308:
+    case 0x310:
+    case 0x318:
+    case 0x320:
+        return usb_cx2.fdma[(offset - 0x300) / 8].ctrl;
+    case 0x304:
+    case 0x30c:
+    case 0x314:
+    case 0x31c:
+    case 0x324:
+        return usb_cx2.fdma[(offset - 0x304) / 8].addr;
     case 0x328:
         return usb_cx2.dmasr;
     case 0x32C:
@@ -496,19 +508,20 @@ void usb_cx2_write_word(uint32_t addr, uint32_t value)
         if(value != 0)
             error("Not implemented");
         return;
+    case 0x300:
     case 0x308:
-        usb_cx2.fdma[1].ctrl = value;
-        usb_cx2_dma1_update();
-        return;
-    case 0x30C:
-        usb_cx2.fdma[1].addr = value;
-        return;
     case 0x310:
-        usb_cx2.fdma[2].ctrl = value;
-        usb_cx2_dma2_update();
+    case 0x318:
+    case 0x320:
+        usb_cx2.fdma[(offset - 0x300) / 8].ctrl = value;
+        usb_cx2_fdma_update((offset - 0x300) / 8);
         return;
+    case 0x304:
+    case 0x30c:
     case 0x314:
-        usb_cx2.fdma[2].addr = value;
+    case 0x31c:
+    case 0x324:
+        usb_cx2.fdma[(offset - 0x304) / 8].addr = value;
         return;
     case 0x328:
         usb_cx2.dmasr &= ~value;

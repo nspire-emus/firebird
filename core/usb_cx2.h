@@ -36,12 +36,12 @@ typedef struct usb_cx2_state {
     uint32_t dmafifo;   // 1C0
     uint32_t dmactrl;   // 1C8
 
-    // For DMA directly to a FIFO
+    // For DMA directly to a FIFO (0 -> cxfifo)
     // There doesn't seem to be any public documentation
     struct {
         uint32_t ctrl;
         uint32_t addr;
-    } fdma[3];
+    } fdma[5];
 
     // Also known as gisr4/gimr4.
     // Lower bits are DMA complete for the fdma,
@@ -50,13 +50,13 @@ typedef struct usb_cx2_state {
     uint32_t dmamr;     // 32C
 
     struct {
-        uint8_t data[1024];
-        uint16_t size;
-    } fifo[4];
-    struct {
         uint8_t data[64];
         uint8_t size;
     } cxfifo;
+    struct {
+        uint8_t data[1024];
+        uint16_t size;
+    } fifo[4];
 
     uint32_t setup_packet[2];
 } usb_cx2_state;
