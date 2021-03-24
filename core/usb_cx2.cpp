@@ -185,16 +185,9 @@ void usb_cx2_fdma_update(int fdma)
     uint8_t *ptr = (uint8_t*) phys_mem_ptr(usb_cx2.fdma[fdma].addr, length);
 
     uint8_t ep = 0;
-    size_t maxsize = sizeof(usb_cx2.cxfifo.data);
     int fifo = fdma - 1;
     if(fdma > 0)
-    {
         ep = (usb_cx2.fifomap >> (fifo * 8)) & 0xF;
-        maxsize = sizeof(usb_cx2.fifo[fifo].data);
-    }
-
-    if(length > maxsize)
-        error("Trying to %s too many bytes on fdma%d", fromMemory ? "send" : "read", fdma);
 
     if(fromMemory)
     {
@@ -203,6 +196,7 @@ void usb_cx2_fdma_update(int fdma)
         else
             usb_cx2.fifo[fifo].size = 0;
 
+        // This is an entire transfer and can be longer than the FIFO
         usb_cx2_packet_from_calc(ep, ptr, length);
     }
     else
