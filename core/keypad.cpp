@@ -30,8 +30,8 @@ void keypad_int_check() {
 }
 
 void keypad_on_pressed() {
-    // TODO: What about CX II?
-    if(pmu.on_irq_enabled)
+    // TODO: The CX II probably has the enable bit elsewhere
+    if(emulate_cx2 || (!emulate_cx2 && pmu.on_irq_enabled))
         int_set(INT_POWER, true);
 }
 
