@@ -44,8 +44,6 @@ LIBS += -lz
 # Override bad default options to enable better optimizations
 QMAKE_CFLAGS_RELEASE = -O3 -DNDEBUG
 QMAKE_CXXFLAGS_RELEASE = -O3 -DNDEBUG
-# I don't know why g++-unix.conf sets -Wl,-O1, override that.
-!clang: QMAKE_LFLAGS_RELEASE += -Wl,-O3
 
 # Don't enable LTO with clang on Linux, incompatible with Qt (QTBUG-43556).
 # On FreeBSD, clang with LTO produces copy relocs, which are incompatible
@@ -139,7 +137,6 @@ equals(SUPPORT_LINUX, true) {
 !android:contains(FB_ARCH, "arm") {
     QMAKE_CFLAGS += -march=armv7-a -marm
     QMAKE_CXXFLAGS += -march=armv7-a -marm
-    QMAKE_LFLAGS += -march=armv7-a -marm # We're using LTO, so the linker has to get the same flags
 }
 
 ANDROID_PACKAGE_SOURCE_DIR = $$PWD/android
