@@ -343,7 +343,7 @@ read_again:
 /* 90050000 */
 void touchpad_cx_reset(void) {
     std::lock_guard<std::recursive_mutex> lg(keypad_mut);
-    keypad.touchpad_cx.state = 0;
+    keypad.touchpad_cx = {};
 }
 uint32_t touchpad_cx_read(uint32_t addr) {
     std::lock_guard<std::recursive_mutex> lg(keypad_mut);
