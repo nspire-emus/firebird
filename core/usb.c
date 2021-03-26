@@ -21,56 +21,36 @@ struct usb_qh { // Queue head
         uint32_t bufptr[5];
     } overlay;
     uint32_t reserved;
-    struct usb_setup {
-        uint8_t bmRequestType;
-        uint8_t bRequest;
-        uint16_t wValue;
-        uint16_t wIndex;
-        uint16_t wLength;
-    } setup;
+    struct usb_setup setup;
 };
 
 static void usb_int_check() {
     int_set(INT_USB, (usb.usbsts & usb.usbintr) | ((usb.otgsc >> 24) & (usb.otgsc >> 16)));
 }
 
-void usb_cx2_reset();
-void usb_cx2_bus_reset_on();
-void usb_cx2_bus_reset_off();
-void usb_cx2_receive_setup_packet(const void *packet);
-
 void usb_reset() {
-    if(emulate_cx2)
-        return usb_cx2_reset();
     memset(&usb, 0, sizeof usb);
     usb.usbcmd = 0x80000;
     usb.portsc = 0xEC000004;
     usb.otgsc = 0x0F20; // 1120 if nothing plugged in
     usb_int_check();
     usblink_reset();
-    gui_debug_printf("usb_reset\n");
 }
 
 void usb_bus_reset_on() {
-    if(emulate_cx2)
-        return usb_cx2_bus_reset_on();
     usb.portsc &= ~1;
     usb.portsc |= 0x0C000100;
     usb.deviceaddr = 0;
     usb.usbsts |= 0x40;
     usb.epsr = 0;
     usb_int_check();
-    gui_debug_printf("usb reset on\n");
 }
 
 void usb_bus_reset_off() {
-    if(emulate_cx2)
-        return usb_cx2_bus_reset_off();
     usb.portsc &= ~0x0C000100;
     usb.portsc |= 1;
     usb.usbsts |= 4;
     usb_int_check();
-    gui_debug_printf("usb reset off\n");
 }
 
 static void usb_prime(struct usb_qh *qh, uint32_t epbit) {
@@ -105,9 +85,6 @@ static void usb_complete(struct usb_qh *qh, uint32_t epbit, uint32_t size) {
 }
 
 void usb_receive_setup_packet(int endpoint, const void *packet) {
-    if(emulate_cx2)
-        return usb_cx2_receive_setup_packet(packet);
-
     struct usb_qh *qh = (struct usb_qh *)(intptr_t)phys_mem_ptr(usb.eplistaddr + (endpoint * 0x80), 0x30);
     if (!qh)
         error("USB: bad QH");

@@ -1,6 +1,7 @@
 #ifndef USB_CX2_H
 #define USB_CX2_H
 
+#include <stddef.h>
 #include <stdint.h>
 
 #ifdef __cplusplus
@@ -64,14 +65,19 @@ typedef struct usb_cx2_state {
 extern struct usb_cx2_state usb_cx2;
 
 void usb_cx2_reset(void);
+
 typedef struct emu_snapshot emu_snapshot;
 bool usb_cx2_suspend(emu_snapshot *snapshot);
 bool usb_cx2_resume(const emu_snapshot *snapshot);
+
 uint8_t usb_cx2_read_byte(uint32_t addr);
 uint16_t usb_cx2_read_half(uint32_t addr);
 uint32_t usb_cx2_read_word(uint32_t addr);
 void usb_cx2_write_word(uint32_t addr, uint32_t value);
 
+void usb_cx2_bus_reset_on();
+void usb_cx2_bus_reset_off();
+void usb_cx2_receive_setup_packet(const struct usb_setup *packet);
 bool usb_cx2_packet_to_calc(uint8_t ep, const uint8_t *packet, size_t size);
 
 #ifdef __cplusplus

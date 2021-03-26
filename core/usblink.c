@@ -758,14 +758,6 @@ extern void usb_bus_reset_off(void);
 extern void usb_receive_setup_packet(int endpoint, void *packet);
 extern void usb_receive_packet(int endpoint, void *packet, uint32_t size);
 
-struct usb_setup {
-    uint8_t bmRequestType;
-    uint8_t bRequest;
-    uint16_t wValue;
-    uint16_t wIndex;
-    uint16_t wLength;
-};
-
 void usblink_reset() {
     if (put_file_state) {
         put_file_state = 0;
@@ -776,6 +768,7 @@ void usblink_reset() {
     gui_usblink_changed(usblink_connected);
     usblink_state = 0;
     usblink_sending = false;
+    usblink_cx2_reset();
 }
 
 void usblink_connect() {
@@ -791,14 +784,27 @@ void usblink_connect() {
 void usblink_timer() {
     switch (usblink_state) {
         case 1:
-            usb_bus_reset_on();
+            if(emulate_cx2)
+                usb_cx2_bus_reset_on();
+            else
+                usb_bus_reset_on();
+
             usblink_state++;
             break;
         case 2: {
-            usb_bus_reset_off();
             //printf("Sending SET_ADDRESS\n");
             struct usb_setup packet = { 0, 5, 1, 0, 0 };
-            usb_receive_setup_packet(0, &packet);
+            if(emulate_cx2)
+            {
+                usb_cx2_bus_reset_off();
+                usb_cx2_receive_setup_packet(&packet);
+            }
+            else
+            {
+                usb_bus_reset_off();
+                usb_receive_setup_packet(0, &packet);
+            }
+
             usblink_state++;
             break;
         }

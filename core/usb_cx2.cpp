@@ -6,15 +6,6 @@
 #include "usb_cx2.h"
 #include "usblink_cx2.h"
 
-// TODO: Move into a separate header for usb stuff and add packed attrib
-struct usb_setup {
-    uint8_t bmRequestType;
-    uint8_t bRequest;
-    uint16_t wValue;
-    uint16_t wIndex;
-    uint16_t wLength;
-};
-
 usb_cx2_state usb_cx2;
 
 static void usb_cx2_int_check()
@@ -112,7 +103,6 @@ static void usb_cx2_packet_from_calc(uint8_t ep, uint8_t *packet, size_t size)
         warn("Packet not handled");
 }
 
-extern "C" {
 void usb_cx2_reset()
 {
     usb_cx2 = {};
@@ -131,7 +121,6 @@ void usb_cx2_reset()
     usb_cx2.gisr[2] |= 1;
 
     usb_cx2_int_check();
-    usblink_cx2_reset();
 }
 
 void usb_cx2_bus_reset_on()
@@ -172,7 +161,6 @@ void usb_cx2_receive_setup_packet(const usb_setup *packet)
     usb_cx2.gisr[0] |= 1;
 
     usb_cx2_int_check();
-}
 }
 
 void usb_cx2_fdma_update(int fdma)

@@ -1,7 +1,6 @@
 ##CX II:
 * Standby needs fast timer + GPIO bits
 * Check other aladdin PMU bits
-* USB needs refactoring, like usblink_cx2_reset called from usblink_reset
 * CX usblink doesn't work anymore
 * Flash creation needs changes
 * Load product from manuf

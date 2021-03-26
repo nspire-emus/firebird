@@ -387,5 +387,4 @@ void usblink_cx2_reset()
 {
     usblink_cx2_state.seqno = 0;
     usblink_cx2_state.handshake_complete = false;
-    usblink_reset();
 }

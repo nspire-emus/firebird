@@ -372,6 +372,7 @@ bool memory_initialize(uint32_t sdram_size)
         write_word_map[0xB4 >> 2] = nope_write_word;
     }
     add_reset_proc(usb_reset);
+    add_reset_proc(usb_cx2_reset);
     add_reset_proc(usblink_reset);
 
     read_word_map[0xC0 >> 2] = lcd_read_word;
