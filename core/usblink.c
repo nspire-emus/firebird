@@ -191,24 +191,39 @@ send_data:
             }
             put_file_state = ACKING_04_or_FF_00;
             goto send_data;
-fail:
-            if(current_file_callback)
-            {
-                current_file_callback(status, current_user_data);
-                current_file_callback = NULL;
-            }
-            emuprintf("Send failed\n");
-            usblink_connected = false;
-            gui_usblink_changed(false);
-            // fallthrough
         case DONE:
+            // TODO: 06 XX (OS progress) should be handled somewhere else
+            if (!(in && in->data_size == 2 && in->data[0] == 0x06)
+                && !(in && in->data_size == 2 && in->data[0] == 0xFF && !in->data[1])){
+                emuprintf("File send error: Didn't get FF 00 or 06 XX\n");
+                goto fail;
+            }
+
             if(current_file_callback)
-                current_file_callback((in->data_size == 2 && in->data[0] == 0xFF && in->data[1] == 00) ? 100 : 0, current_user_data);
-            put_file_state = 0;
-            fclose(put_file);
-            put_file = NULL;
-            break;
+                current_file_callback(100, current_user_data);
+
+            goto teardown;
     }
+
+    return;
+
+fail:
+    if(current_file_callback)
+    {
+        if(status >= 0)
+            status = -1;
+
+        current_file_callback(status, current_user_data);
+        current_file_callback = NULL;
+    }
+    emuprintf("Send failed\n");
+    usblink_connected = false;
+    gui_usblink_changed(false);
+
+teardown:
+    put_file_state = 0;
+    fclose(put_file);
+    put_file = NULL;
 }
 
 void get_file_next(struct packet *in)
