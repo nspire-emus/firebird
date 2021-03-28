@@ -76,7 +76,7 @@ const QString os_ext[] = { QStringLiteral("*.tno"), QStringLiteral("*.tnc"), QSt
 
 void FlashDialog::selectOS()
 {
-    QString path = QFileDialog::getOpenFileName(this, tr("Select OS file"), QString(), os_ext[ui->selectModel->currentIndex()]);
+    QString path = QFileDialog::getOpenFileName(this, tr("Select OS file"), QString(), tr("OS file (%1)").arg(os_ext[ui->selectModel->currentIndex()]));
     if(path.isEmpty() || !QFile(path).exists())
     {
         os_path = QString();
