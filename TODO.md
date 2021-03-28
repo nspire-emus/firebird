@@ -1,9 +1,7 @@
 ##CX II:
 * Standby needs fast timer + GPIO bits
 * Check other aladdin PMU bits
-* CX usblink doesn't work anymore
-* Flash creation needs changes
-* Load product from manuf
+* Flash dialog needs to be adapted (rewrite in QML anyway?)
 * Refactor flash code, split controllers and image manipulation?
 
 ##TODO:
