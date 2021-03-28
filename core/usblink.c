@@ -441,6 +441,10 @@ void usblink_received_packet(uint8_t *data, uint32_t size) {
         usblink_send_packet();
     }
 
+    /* Ignore disconnects from the LOGIN service */
+    if(in && in->src.service == BSWAP16(0x40DE) && in->dst.service == BSWAP16(0x4050))
+        return;
+
     switch(mode)
     {
     case Rename:
