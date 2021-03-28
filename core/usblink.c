@@ -115,9 +115,8 @@ enum {
     SENDING_03         = 1,
     RECVING_04         = 2,
     ACKING_04_or_FF_00 = 3,
-    SENDING_05         = 4,
-    RECVING_FF_00      = 5,
-    DONE               = 6,
+    RECVING_FF_00      = 4,
+    DONE               = 5,
     EXPECT_FF_00       = 16, // Sent to us after first OS data packet
 } put_file_state;
 
@@ -132,7 +131,7 @@ void put_file_next(struct packet *in) {
 
     switch (put_file_state & 15) {
         case SENDING_03:
-            if (!in || in->ack != 0x0A) goto fail;
+            if (in) goto fail;
             put_file_state++;
             break;
         case RECVING_04:
@@ -142,10 +141,13 @@ void put_file_next(struct packet *in) {
                 goto fail;
             }
             put_file_state++;
-            break;
+            goto send_data;
         case ACKING_04_or_FF_00:
             if (in) goto fail;
-            put_file_state++;
+            if (put_file_state & EXPECT_FF_00) {
+                put_file_state = RECVING_FF_00;
+                break;
+            }
 send_data:
             if (prev_seqno == 1)
             {
@@ -182,20 +184,13 @@ send_data:
             throttle_timer_on();
             put_file_state = DONE;
             break;
-        case SENDING_05:
-            if (!in || in->ack != 0x0A) goto fail;
-            if (put_file_state & EXPECT_FF_00) {
-                put_file_state++;
-                break;
-            }
-            goto send_data;
         case RECVING_FF_00: /* Got FF 00: OS header is valid */
             if (!in || in->data_size != 2 || in->data[0] != 0xFF || in->data[1]) {
                 emuprintf("File send error: Didn't get FF 00\n");
                 goto fail;
             }
             put_file_state = ACKING_04_or_FF_00;
-            break;
+            goto send_data;
 fail:
             if(current_file_callback)
             {
@@ -218,7 +213,7 @@ fail:
 
 void get_file_next(struct packet *in)
 {
-    if(in->data_size <= 1)
+    if(!in || in->data_size <= 1)
         return;
 
     switch(in->data[0])
@@ -288,15 +283,6 @@ void get_file_next(struct packet *in)
     }
 }
 
-void usblink_sent_packet() {
-    if (usblink_send_buffer.ack) {
-        /* Received packet has been acked */
-        uint16_t service = usblink_send_buffer.dst.service;
-        if (service == BSWAP16(0x4060) || service == BSWAP16(0x4080))
-            put_file_next(NULL);
-    }
-}
-
 enum Success_Action {
     Success_Done,
     Success_Next
@@ -330,6 +316,9 @@ void usblink_dirlist(const char *dir, usblink_dirlist_cb callback, void *user_da
 
 void dirlist_next(struct packet *in)
 {
+    if(!in)
+        return;
+
     struct packet *out = &usblink_send_buffer;
 
     if(in->data[0] == 0xFF) // Status message
@@ -405,26 +394,11 @@ void usblink_received_packet(uint8_t *data, uint32_t size) {
     struct packet *in = (struct packet *)data;
     struct packet *out = &usblink_send_buffer;
 
-    switch(mode)
-    {
-    case Rename:
-    case Delete:
-    case Dir_Create:
-        if(in->data_size == 2 && in->data[0] == 0xFF && current_file_callback)
-            current_file_callback(in->data[1] == 0x00 ? 100 : -1, current_user_data);
-        break;
-    case Dirlist:
-        dirlist_next(in);
-        break;
-    case File_Send:
-        put_file_next(in);
-        break;
-    case File_Receive:
-        get_file_next(in);
-        break;
-    }
+    // Acks are passed as NULL packets
+    if (in && in->ack == 0x0A)
+        in = NULL;
 
-    if (in->src.service == BSWAP16(0x4003)) { /* Address request */
+    if (in && in->src.service == BSWAP16(0x4003)) { /* Address request */
         gui_status_printf("usblink connected.");
         usblink_connected = true;
         gui_usblink_changed(true);
@@ -438,7 +412,8 @@ void usblink_received_packet(uint8_t *data, uint32_t size) {
         tmp = BSWAP16(0xFF00);
         memcpy(out->data + 2, &tmp, sizeof(tmp)); // *(uint16_t *)&out->data[2] = BSWAP16(0xFF00);
         usblink_send_packet();
-    } else if (!in->ack) {
+        return;
+    } else if (in && !in->ack) {
         /* Send an ACK */
         out->src.service = BSWAP16(0x00FF);
         out->dst.service = in->src.service;
@@ -447,6 +422,25 @@ void usblink_received_packet(uint8_t *data, uint32_t size) {
         out->seqno = in->seqno;
         memcpy(&out->data[0], &in->dst.service, sizeof(in->dst.service)); // *(uint16_t *)&out->data[0] = in->dst.service;
         usblink_send_packet();
+    }
+
+    switch(mode)
+    {
+    case Rename:
+    case Delete:
+    case Dir_Create:
+        if(in && in->data_size == 2 && in->data[0] == 0xFF && current_file_callback)
+            current_file_callback(in->data[1] == 0x00 ? 100 : -1, current_user_data);
+        break;
+    case Dirlist:
+        dirlist_next(in);
+        break;
+    case File_Send:
+        put_file_next(in);
+        break;
+    case File_Receive:
+        get_file_next(in);
+        break;
     }
 }
 
@@ -750,7 +744,6 @@ void usblink_complete_send(int ep) {
         usb_receive_packet(ep, &usblink_send_buffer, size);
         usblink_sending = false;
         //printf("send complete\n");
-        usblink_sent_packet();
     }
 }
 
