@@ -139,7 +139,6 @@ void gpio_reset() {
     gpio.input.w     = 0x00001000071F001F;
     touchpad_gpio_reset();
 }
-#include "debug.h"
 uint32_t gpio_read(uint32_t addr) {
     int port = addr >> 6 & 7;
     switch (addr & 0x3F) {
