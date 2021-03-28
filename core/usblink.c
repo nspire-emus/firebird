@@ -344,7 +344,7 @@ void dirlist_next(struct packet *in)
             //Success
             if(dirlist_success_action == Success_Next)
                 goto request_next;
-            else
+            else if(current_dirlist_callback)
             {
                 current_dirlist_callback(NULL, false, current_user_data);
                 current_dirlist_callback = NULL;
@@ -372,7 +372,8 @@ void dirlist_next(struct packet *in)
             return;
         default:
             //Error
-            current_dirlist_callback(NULL, true, current_user_data);
+            if(current_dirlist_callback)
+                current_dirlist_callback(NULL, true, current_user_data);
             current_dirlist_callback = NULL;
             gui_debug_printf("usblink error 0x%x\n", in->data[1]);
             return;
@@ -386,7 +387,8 @@ void dirlist_next(struct packet *in)
         memcpy(&file_info.size, in->data + (in->data_size - 10), sizeof(uint32_t));
         file_info.size = BSWAP32(file_info.size);
 
-        current_dirlist_callback(&file_info, false, current_user_data);
+        if(current_dirlist_callback)
+            current_dirlist_callback(&file_info, false, current_user_data);
 
         request_next: //Request next entry
         out->src.service = SID_Dirlist;
