@@ -186,20 +186,29 @@ void FASTCALL mmio_write_word(uint32_t addr, uint32_t value) {
     write_word_map[addr >> 26](addr, value);
 }
 
-uint8_t FASTCALL nope_read_byte(uint32_t addr) {
+uint8_t FASTCALL null_read_byte(uint32_t addr) {
+    (void) addr;
     return 0;
 }
-uint16_t FASTCALL nope_read_half(uint32_t addr) {
+uint16_t FASTCALL null_read_half(uint32_t addr) {
+    (void) addr;
     return 0;
 }
-uint32_t FASTCALL nope_read_word(uint32_t addr) {
+uint32_t FASTCALL null_read_word(uint32_t addr) {
+    (void) addr;
     return 0;
 }
-void FASTCALL nope_write_byte(uint32_t addr, uint8_t value) {
+void FASTCALL null_write_byte(uint32_t addr, uint8_t value) {
+    (void) addr;
+    (void) value;
 }
-void FASTCALL nope_write_half(uint32_t addr, uint16_t value) {
+void FASTCALL null_write_half(uint32_t addr, uint16_t value) {
+    (void) addr;
+    (void) value;
 }
-void FASTCALL nope_write_word(uint32_t addr, uint32_t value) {
+void FASTCALL null_write_word(uint32_t addr, uint32_t value) {
+    (void) addr;
+    (void) value;
 }
 
 void (*reset_procs[20])(void);
@@ -366,10 +375,10 @@ bool memory_initialize(uint32_t sdram_size)
         read_word_map[0xB0 >> 2] = usb_cx2_read_word;
         write_word_map[0xB0 >> 2] = usb_cx2_write_word;
 
-        read_byte_map[0xB4 >> 2] = nope_read_byte;
-        read_half_map[0xB4 >> 2] = nope_read_half;
-        read_word_map[0xB4 >> 2] = nope_read_word;
-        write_word_map[0xB4 >> 2] = nope_write_word;
+        read_byte_map[0xB4 >> 2] = null_read_byte;
+        read_half_map[0xB4 >> 2] = null_read_half;
+        read_word_map[0xB4 >> 2] = null_read_word;
+        write_word_map[0xB4 >> 2] = null_write_word;
     }
     add_reset_proc(usb_reset);
     add_reset_proc(usb_cx2_reset);
