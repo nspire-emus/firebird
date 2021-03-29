@@ -37,6 +37,7 @@ uint32_t aladdin_pmu_read(uint32_t addr)
 		switch (addr & 0xFF)
 		{
 		case 0x00: return 0x040000; // Wakeup reason
+		case 0x04: return 0; // No idea
 		case 0x08: return 0x2000;
 		case 0x20: return aladdin_pmu.disable[0];
 		case 0x24: return aladdin_pmu.int_state;
@@ -68,7 +69,14 @@ void aladdin_pmu_write(uint32_t addr, uint32_t value)
 		case 0x00: return;
 		case 0x04: return; // No idea
 		case 0x08: return;
-		case 0x20: aladdin_pmu.disable[0] = value; return;
+		case 0x20:
+			if(value & 2)
+				/* enter sleep, jump to 0 when On pressed. */
+				warn("Sleep not implemented");
+			else
+				aladdin_pmu.disable[0] = value;
+
+			return;
 		case 0x24:
 			aladdin_pmu.int_state &= ~value;
 			aladdin_pmu_update_int();
@@ -115,6 +123,8 @@ uint32_t memc_ddr_read(uint32_t addr)
 		return 0x102;
 	case 0x10:
 		return 3; // Size
+	case 0x28:
+		return 0;
 	case 0x74:
 		return 0;
 	}

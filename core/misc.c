@@ -143,6 +143,7 @@ uint32_t gpio_read(uint32_t addr) {
     int port = addr >> 6 & 7;
     switch (addr & 0x3F) {
         case 0x04: return 0;
+        case 0x08: return 0;
         case 0x10: return gpio.direction.b[port];
         case 0x14: return gpio.output.b[port];
         case 0x18: return gpio.input.b[port] | gpio.output.b[port];
@@ -156,6 +157,7 @@ void gpio_write(uint32_t addr, uint32_t value) {
     int port = addr >> 6 & 3;
     uint32_t change;
     switch (addr & 0x3F) {
+        /* Interrupt handling not implemented */
         case 0x04: return;
         case 0x08: return;
         case 0x0C: return;
@@ -648,6 +650,8 @@ uint32_t timer_cx_read(uint32_t addr) {
         case 0x0014: case 0x0034: return t->interrupt & t->control >> 5;
         case 0x0018: case 0x0038: return t->load;
         case 0x001C: case 0x003C: return 0; //?
+        // The OS reads from 0x80 and writes it into 0x30 ???
+        case 0x0080: return 0;
         case 0x0FE0: return 0x04;
         case 0x0FE4: return 0x18;
         case 0x0FE8: return 0x14;
