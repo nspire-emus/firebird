@@ -662,13 +662,16 @@ uint32_t timer_cx_read(uint32_t addr) {
 void timer_cx_write(uint32_t addr, uint32_t value) {
     int which = (addr >> 16) % 5;
     struct cx_timer *t = &timer_cx.timer[which][addr >> 5 & 1];
-    if(which == 0)
-        error("Fast timer not implemented");
     switch (addr & 0xFFFF) {
         case 0x0000: case 0x0020: t->reload = 1; /* fallthrough */
         case 0x0018: case 0x0038: t->load = value; return;
         case 0x0004: case 0x0024: return;
-        case 0x0008: case 0x0028: t->control = value; timer_cx_int_check(which); return;
+        case 0x0008: case 0x0028:
+            t->control = value;
+            if(which == 0 && (value & 0x80))
+                error("Fast timer not implemented");
+            timer_cx_int_check(which);
+        return;
         case 0x000C: case 0x002C: t->interrupt = 0; timer_cx_int_check(which); return;
 
         case 0x0080: return; // ???
