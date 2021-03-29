@@ -139,20 +139,41 @@ void memc_ddr_write(uint32_t addr, uint32_t value)
 }
 
 /* 90130000: ??? for LCD backlight */
+static struct cx2_backlight_state cx2_backlight;
+
+void cx2_backlight_reset()
+{
+	cx2_backlight.pwm_value = cx2_backlight.pwm_period = 0;
+}
+
 void cx2_backlight_write(uint32_t addr, uint32_t value)
 {
-	switch(addr & 0xFFF)
-	{
-	case 0x014:
-		return;
-	case 0x018:
-		hdq1w.lcd_contrast = value;
-		return;
-	case 0x020:
-		return;
-	}
+	auto offset = addr & 0xFFF;
+	if(offset == 0x014)
+		cx2_backlight.pwm_value = value;
+	else if(offset == 0x018)
+		cx2_backlight.pwm_period = value;
+	else if(offset != 0x020)
+		bad_write_word(addr, value);
 
-	bad_write_word(addr, value);
+	// Hack: Mirror the value in hdq1w
+	if(cx2_backlight.pwm_period == 0)
+		hdq1w.lcd_contrast = 0;
+	else
+		// Lower value -> brighter
+		hdq1w.lcd_contrast = 255 - (cx2_backlight.pwm_value * 255) / cx2_backlight.pwm_period;
+}
+
+bool cx2_backlight_suspend(emu_snapshot *snapshot)
+{
+	snapshot->mem.cx2_backlight = cx2_backlight;
+	return true;
+}
+
+bool cx2_backlight_resume(const emu_snapshot *snapshot)
+{
+	cx2_backlight = snapshot->mem.cx2_backlight;
+	return true;
 }
 
 /* 90040000: FTSSP010 SPI controller connected to the LCD.

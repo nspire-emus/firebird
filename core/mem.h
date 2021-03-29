@@ -98,6 +98,7 @@ typedef struct mem_snapshot
     aladdin_pmu_state aladdin_pmu;
     usb_cx2_state usb_cx2;
     dma_state dma;
+    cx2_backlight_state cx2_backlight;
     cx2_lcd_spi_state cx2_lcd_spi;
 } mem_snapshot;
 
