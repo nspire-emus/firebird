@@ -3,6 +3,9 @@
 * Check other aladdin PMU bits
 * Flash dialog needs to be adapted (rewrite in QML anyway?)
 * Refactor flash code, split controllers and image manipulation?
+* Handle the LCD and "Magic VRAM" correctly
+* Support "deep sleep"
+* Inform when an incomplete boot rom is used
 
 ##TODO:
 * Implement write_action for non-x86 to handle SMC and clearing RF_CODE_NO_TRANSLATE correctly
@@ -10,7 +13,6 @@
 * Better debugger integration
 * Don't use a 60Hz timer for LCD redrawing, hook lcd_event instead
 * Less global vars (emu.h), move into structs
-* Support content:/ URLs returned by the native file dialog on Android with Qt 5.13
 * Use streams for reading/writing snapshots instead of struct emu_snapshot 
 
 ##Wishlist:
