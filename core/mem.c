@@ -186,27 +186,27 @@ void FASTCALL mmio_write_word(uint32_t addr, uint32_t value) {
     write_word_map[addr >> 26](addr, value);
 }
 
-uint8_t FASTCALL null_read_byte(uint32_t addr) {
+uint8_t null_read_byte(uint32_t addr) {
     (void) addr;
     return 0;
 }
-uint16_t FASTCALL null_read_half(uint32_t addr) {
+uint16_t null_read_half(uint32_t addr) {
     (void) addr;
     return 0;
 }
-uint32_t FASTCALL null_read_word(uint32_t addr) {
+uint32_t null_read_word(uint32_t addr) {
     (void) addr;
     return 0;
 }
-void FASTCALL null_write_byte(uint32_t addr, uint8_t value) {
+void null_write_byte(uint32_t addr, uint8_t value) {
     (void) addr;
     (void) value;
 }
-void FASTCALL null_write_half(uint32_t addr, uint16_t value) {
+void null_write_half(uint32_t addr, uint16_t value) {
     (void) addr;
     (void) value;
 }
-void FASTCALL null_write_word(uint32_t addr, uint32_t value) {
+void null_write_word(uint32_t addr, uint32_t value) {
     (void) addr;
     (void) value;
 }
