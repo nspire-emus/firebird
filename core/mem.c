@@ -211,7 +211,7 @@ void null_write_word(uint32_t addr, uint32_t value) {
     (void) value;
 }
 
-void (*reset_procs[20])(void);
+void (*reset_procs[24])(void);
 unsigned int reset_proc_count;
 
 void add_reset_proc(void (*proc)(void))
@@ -344,9 +344,10 @@ bool memory_initialize(uint32_t sdram_size)
     apb_set_map(0x0E, keypad_read, keypad_write);
     add_reset_proc(keypad_reset);
     apb_set_map(0x0F, hdq1w_read, hdq1w_write);
-
     add_reset_proc(hdq1w_reset);
-    apb_set_map(0x11, unknown_9011_read, unknown_9011_write);
+
+    apb_set_map(0x11, led_read_word, led_write_word);
+    add_reset_proc(led_reset);
 
     read_byte_map[0xAC >> 2] = sdio_read_byte;
     read_half_map[0xAC >> 2] = sdio_read_half;
@@ -524,6 +525,7 @@ bool memory_suspend(emu_snapshot *snapshot)
             && pmu_suspend(snapshot)
             && keypad_suspend(snapshot)
             && hdq1w_suspend(snapshot)
+            && led_suspend(snapshot)
             && usb_suspend(snapshot)
             && lcd_suspend(snapshot)
             && adc_suspend(snapshot)
@@ -559,6 +561,7 @@ bool memory_resume(const emu_snapshot *snapshot)
             && pmu_resume(snapshot)
             && keypad_resume(snapshot)
             && hdq1w_resume(snapshot)
+            && led_resume(snapshot)
             && usb_resume(snapshot)
             && lcd_resume(snapshot)
             && adc_resume(snapshot)

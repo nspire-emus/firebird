@@ -83,6 +83,7 @@ typedef struct mem_snapshot
     pmu_state pmu;
     keypad_state keypad;
     hdq1w_state hdq1w;
+    led_state led;
     usb_state usb;
     lcd_state lcd;
     adc_state adc;

@@ -771,26 +771,41 @@ void hdq1w_write(uint32_t addr, uint32_t value) {
     bad_write_word(addr, value);
 }
 
-/* 90110000 */
-uint32_t unknown_9011_read(uint32_t addr) {
-    switch (addr & 0xFFFF) {
-        case 0x000: return 0;
-        case 0xB00: return 0x1643;
-        case 0xB04: return 0;
-        case 0xB08: return 0xFFFFF800;
-        case 0xB0C: return 0;
-        case 0xB10: return 0xFFFFF800;
-    }
+/* 90110000: LED */
+static led_state led;
+
+bool led_resume(const emu_snapshot *snapshot) {
+    led = snapshot->mem.led;
+    return true;
+}
+
+bool led_suspend(emu_snapshot *snapshot) {
+    snapshot->mem.led = led;
+    return true;
+}
+
+void led_reset() {
+    memset(&led, 0, sizeof(led));
+}
+
+uint32_t led_read_word(uint32_t addr) {
+    uint32_t offset = addr & 0xFFFF;
+    if(offset == 0)
+        return 0;
+    else if(offset >= 0xB00 && offset - 0xB00 < sizeof(led.regs))
+        return led.regs[(offset - 0xB00) >> 2];
+
     return bad_read_word(addr);
 }
-void unknown_9011_write(uint32_t addr, uint32_t value) {
-    switch (addr & 0xFFFF) {
-        case 0xB00: return;
-        case 0xB04: return;
-        case 0xB08: return;
-        case 0xB0C: return;
-        case 0xB10: return;
+void led_write_word(uint32_t addr, uint32_t value) {
+    uint32_t offset = addr & 0xFFFF;
+    if(offset == 0)
+        return;
+    else if(offset >= 0xB00 && offset - 0xB00 < sizeof(led.regs)) {
+        led.regs[(offset - 0xB00) >> 2] = value;
+        return;
     }
+
     bad_write_word(addr, value);
 }
 

@@ -190,8 +190,15 @@ void hdq1w_reset(void);
 uint32_t hdq1w_read(uint32_t addr);
 void hdq1w_write(uint32_t addr, uint32_t value);
 
-uint32_t unknown_9011_read(uint32_t addr);
-void unknown_9011_write(uint32_t addr, uint32_t value);
+typedef struct led_state {
+    uint32_t regs[5];
+} led_state;
+
+bool led_suspend(emu_snapshot *snapshot);
+bool led_resume(const emu_snapshot *snapshot);
+void led_reset(void);
+uint32_t led_read_word(uint32_t addr);
+void led_write_word(uint32_t addr, uint32_t value);
 
 uint32_t spi_read_word(uint32_t addr);
 void spi_write_word(uint32_t addr, uint32_t value);
