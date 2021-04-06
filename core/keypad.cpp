@@ -30,8 +30,8 @@ void keypad_int_check() {
 }
 
 void keypad_on_pressed() {
-    // TODO: The CX II probably has the enable bit elsewhere
-    if(emulate_cx2 || (!emulate_cx2 && pmu.on_irq_enabled))
+    // TODO: The CX II may have an enable bit somewhere
+    if(!emulate_cx2 && pmu.on_irq_enabled)
         int_set(INT_POWER, true);
 }
 
@@ -91,6 +91,13 @@ static void keypad_scan_event(int index) {
     uint16_t row = ~keypad.key_map[keypad.kpc.current_row];
     row &= ~(0x80000 >> keypad.kpc.current_row); // Emulate weird diagonal glitch
     row |= ~0u << (keypad.kpc.size >> 8 & 0xFF);  // Unused columns read as 1
+
+    // Touchpad and CX keypads don't actually handle the On key,
+    // that's done by the PMU. Its state is tracked in key_map though,
+    // so mask it out.
+    if(keypad.kpc.current_row == 0)
+        row |= (1 << 9);
+
     if (emulate_cx)
         row = ~row;
 
