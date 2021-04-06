@@ -75,8 +75,12 @@ void aladdin_pmu_write(uint32_t addr, uint32_t value)
 		case 0x08: return;
 		case 0x20:
 			if(value & 2)
+			{
 				/* enter sleep, jump to 0 when On pressed. */
 				warn("Sleep not implemented");
+				// Without this, the clocks are wrong
+				aladdin_pmu_reset();
+			}
 			else
 				aladdin_pmu.disable[0] = value;
 
