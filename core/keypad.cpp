@@ -37,11 +37,9 @@ void keypad_on_pressed() {
 
 uint32_t keypad_read(uint32_t addr) {
     std::lock_guard<std::recursive_mutex> lg(keypad_mut);
-
+    cycle_count_delta += 1000; // avoid slowdown with polling loops
     switch (addr & 0x7F) {
-        case 0x00:
-            cycle_count_delta += 1000; // avoid slowdown with polling loops
-            return keypad.kpc.control;
+        case 0x00: return keypad.kpc.control;
         case 0x04: return keypad.kpc.size;
         case 0x08: return keypad.kpc.int_active;
         case 0x0C: return keypad.kpc.int_enable;
