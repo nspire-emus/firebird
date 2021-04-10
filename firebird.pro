@@ -55,6 +55,12 @@ QMAKE_CXXFLAGS_RELEASE = -O3 -DNDEBUG
     QMAKE_CFLAGS += -Wa,--noexecstack
 }
 
+# Work around https://gcc.gnu.org/bugzilla/show_bug.cgi?id=52991
+win32: {
+    QMAKE_CFLAGS += -mno-ms-bitfields
+    QMAKE_CXXFLAGS += -mno-ms-bitfields
+}
+
 macx: ICON = resources/logo.icns
 
 # This does also apply to android
@@ -144,6 +150,7 @@ ANDROID_PACKAGE_SOURCE_DIR = $$PWD/android
 QML_IMPORT_PATH += $$PWD/qml
 
 SOURCES += $$ASMCODE_IMPL \
+    core/fieldparser.cpp \
     lcdwidget.cpp \
     mainwindow.cpp \
     main.cpp \
@@ -173,7 +180,9 @@ SOURCES += $$ASMCODE_IMPL \
     core/serial.c \
     core/sha256.c \
     core/usb.c \
+    core/usb_cx2.cpp \
     core/usblink.c \
+    core/usblink_cx2.cpp \
     qtframebuffer.cpp \
     core/debug.cpp \
     core/flash.cpp \
@@ -182,13 +191,17 @@ SOURCES += $$ASMCODE_IMPL \
     kitmodel.cpp \
     fbaboutdialog.cpp \
     dockwidget.cpp \
-    consolelineedit.cpp
+    consolelineedit.cpp \
+    core/cx2.cpp
 
 FORMS += \
     mainwindow.ui \
     flashdialog.ui
 
 HEADERS += \
+    core/fieldparser.h \
+    core/usb_cx2.h \
+    core/usblink_cx2.h \
     emuthread.h \
     lcdwidget.h \
     flashdialog.h \
@@ -229,7 +242,8 @@ HEADERS += \
     kitmodel.h \
     fbaboutdialog.h \
     dockwidget.h \
-    consolelineedit.h
+    consolelineedit.h \
+    core/cx2.h
 
 # For localization
 lupdate_only {

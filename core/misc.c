@@ -136,13 +136,14 @@ void gpio_reset() {
     gpio.direction.w = 0xFFFFFFFFFFFFFFFF;
     gpio.output.w    = 0x0000000000000000;
 
-    gpio.input.w     = 0x00001000070F001F;
+    gpio.input.w     = 0x00001000071F001F;
     touchpad_gpio_reset();
 }
 uint32_t gpio_read(uint32_t addr) {
     int port = addr >> 6 & 7;
     switch (addr & 0x3F) {
         case 0x04: return 0;
+        case 0x08: return 0;
         case 0x10: return gpio.direction.b[port];
         case 0x14: return gpio.output.b[port];
         case 0x18: return gpio.input.b[port] | gpio.output.b[port];
@@ -156,6 +157,7 @@ void gpio_write(uint32_t addr, uint32_t value) {
     int port = addr >> 6 & 3;
     uint32_t change;
     switch (addr & 0x3F) {
+        /* Interrupt handling not implemented */
         case 0x04: return;
         case 0x08: return;
         case 0x0C: return;
@@ -405,11 +407,24 @@ void watchdog_write(uint32_t addr, uint32_t value) {
     bad_write_word(addr, value);
 }
 
-/* 90080000 */
+/* 90080000: also an FTSSP010 */
+uint32_t unknown_9008_read(uint32_t addr) {
+    switch (addr & 0xFFFF) {
+        case 0x00: return 0;
+        case 0x08: return 0;
+        case 0x10: return 0;
+        case 0x1C: return 0;
+        case 0x60: return 0;
+        case 0x64: return 0;
+    }
+    return bad_read_word(addr);
+}
+
 void unknown_9008_write(uint32_t addr, uint32_t value) {
     switch (addr & 0xFFFF) {
-        case 0x8: return;
-        case 0xC: return;
+        case 0x00: return;
+        case 0x08: return;
+        case 0x0C: return;
         case 0x10: return;
         case 0x14: return;
         case 0x18: return;
@@ -419,27 +434,28 @@ void unknown_9008_write(uint32_t addr, uint32_t value) {
 }
 
 /* 90090000 */
-static time_t rtc_time_diff;
-uint32_t rtc_read(uint32_t addr) {
-    switch (addr & 0xFFFF) {
-        case 0x00: return time(NULL) - rtc_time_diff;
-        case 0x14: return 0;
-    }
-    return bad_read_word(addr);
-}
-void rtc_write(uint32_t addr, uint32_t value) {
-    switch (addr & 0xFFFF) {
-        case 0x04: return;
-        case 0x08: rtc_time_diff = time(NULL) - value; return;
-        case 0x0C: return;
-        case 0x10: return;
-    }
-    bad_write_word(addr, value);
+struct rtc_state rtc;
+
+bool rtc_resume(const emu_snapshot *snapshot)
+{
+    rtc = snapshot->mem.rtc;
+    return true;
 }
 
-uint32_t rtc_cx_read(uint32_t addr) {
+bool rtc_suspend(emu_snapshot *snapshot)
+{
+    snapshot->mem.rtc = rtc;
+    return true;
+}
+
+void rtc_reset() {
+    rtc.offset = 0;
+}
+
+uint32_t rtc_read(uint32_t addr) {
     switch (addr & 0xFFFF) {
-        case 0x000: return time(NULL);
+        case 0x00: return time(NULL) - rtc.offset;
+        case 0x14: return 0;
         case 0xFE0: return 0x31;
         case 0xFE4: return 0x10;
         case 0xFE8: return 0x04;
@@ -447,12 +463,13 @@ uint32_t rtc_cx_read(uint32_t addr) {
     }
     return bad_read_word(addr);
 }
-void rtc_cx_write(uint32_t addr, uint32_t value) {
+void rtc_write(uint32_t addr, uint32_t value) {
     switch (addr & 0xFFFF) {
-        case 0x004: return;
-        case 0x00C: return;
-        case 0x010: return;
-        case 0x01C: return;
+        case 0x04: return;
+        case 0x08: rtc.offset = time(NULL) - value; return;
+        case 0x0C: return;
+        case 0x10: return;
+        case 0x1C: return;
     }
     bad_write_word(addr, value);
 }
@@ -467,7 +484,14 @@ uint32_t misc_read(uint32_t addr) {
     { 0x8C000000, 0x00000002 },
 };
     switch (addr & 0x0FFF) {
-        case 0x00: return emulate_cx ? 0x101 : 0x01000010;
+        case 0x00: {
+            if(emulate_cx2)
+                return 0x202;
+            else if(emulate_cx)
+                return 0x101;
+
+            return 0x01000010;
+        }
         case 0x04: return 0;
         case 0x0C: return 0;
         case 0x10: case 0x18: case 0x20:
@@ -615,7 +639,7 @@ void timer_cx_int_check(int which) {
             | (timer_cx.timer[which][1].interrupt & timer_cx.timer[which][1].control >> 5));
 }
 uint32_t timer_cx_read(uint32_t addr) {
-    cycle_count_delta = 0; // Avoid slowdown by fast-forwarding through polling loops
+    cycle_count_delta += 1000; // avoid slowdown with polling loops
     int which = (addr >> 16) % 5;
     struct cx_timer *t = &timer_cx.timer[which][addr >> 5 & 1];
     switch (addr & 0xFFFF) {
@@ -626,6 +650,8 @@ uint32_t timer_cx_read(uint32_t addr) {
         case 0x0014: case 0x0034: return t->interrupt & t->control >> 5;
         case 0x0018: case 0x0038: return t->load;
         case 0x001C: case 0x003C: return 0; //?
+        // The OS reads from 0x80 and writes it into 0x30 ???
+        case 0x0080: return 0;
         case 0x0FE0: return 0x04;
         case 0x0FE4: return 0x18;
         case 0x0FE8: return 0x14;
@@ -644,7 +670,12 @@ void timer_cx_write(uint32_t addr, uint32_t value) {
         case 0x0000: case 0x0020: t->reload = 1; /* fallthrough */
         case 0x0018: case 0x0038: t->load = value; return;
         case 0x0004: case 0x0024: return;
-        case 0x0008: case 0x0028: t->control = value; timer_cx_int_check(which); return;
+        case 0x0008: case 0x0028:
+            t->control = value;
+            if(which == 0 && (value & 0x80))
+                error("Fast timer not implemented");
+            timer_cx_int_check(which);
+        return;
         case 0x000C: case 0x002C: t->interrupt = 0; timer_cx_int_check(which); return;
 
         case 0x0080: return; // ???
@@ -740,26 +771,41 @@ void hdq1w_write(uint32_t addr, uint32_t value) {
     bad_write_word(addr, value);
 }
 
-/* 90110000 */
-uint32_t unknown_9011_read(uint32_t addr) {
-    switch (addr & 0xFFFF) {
-        case 0x000: return 0;
-        case 0xB00: return 0x1643;
-        case 0xB04: return 0;
-        case 0xB08: return 0xFFFFF800;
-        case 0xB0C: return 0;
-        case 0xB10: return 0xFFFFF800;
-    }
+/* 90110000: LED */
+static led_state led;
+
+bool led_resume(const emu_snapshot *snapshot) {
+    led = snapshot->mem.led;
+    return true;
+}
+
+bool led_suspend(emu_snapshot *snapshot) {
+    snapshot->mem.led = led;
+    return true;
+}
+
+void led_reset() {
+    memset(&led, 0, sizeof(led));
+}
+
+uint32_t led_read_word(uint32_t addr) {
+    uint32_t offset = addr & 0xFFFF;
+    if(offset == 0)
+        return 0;
+    else if(offset >= 0xB00 && offset - 0xB00 < sizeof(led.regs))
+        return led.regs[(offset - 0xB00) >> 2];
+
     return bad_read_word(addr);
 }
-void unknown_9011_write(uint32_t addr, uint32_t value) {
-    switch (addr & 0xFFFF) {
-        case 0xB00: return;
-        case 0xB04: return;
-        case 0xB08: return;
-        case 0xB0C: return;
-        case 0xB10: return;
+void led_write_word(uint32_t addr, uint32_t value) {
+    uint32_t offset = addr & 0xFFFF;
+    if(offset == 0)
+        return;
+    else if(offset >= 0xB00 && offset - 0xB00 < sizeof(led.regs)) {
+        led.regs[(offset - 0xB00) >> 2] = value;
+        return;
     }
+
     bad_write_word(addr, value);
 }
 
@@ -865,15 +911,6 @@ void sramctl_write_word(uint32_t addr, uint32_t value) {
     return;
 }
 
-/* BC000000 */
-uint32_t unknown_BC_read_word(uint32_t addr) {
-    switch (addr & 0x3FFFFFF) {
-        case 0xC: return 0;
-        case 0x1C: return 0;
-    }
-    return bad_read_word(addr);
-}
-
 /* C4000000: ADC (Analog-to-Digital Converter) */
 static adc_state adc;
 
@@ -963,4 +1000,19 @@ void adc_write_word(uint32_t addr, uint32_t value) {
     }
     bad_write_word(addr, value);
     return;
+}
+
+// Not really implemented
+uint32_t adc_cx2_read_word(uint32_t addr)
+{
+    (void) addr;
+    return 0x6969;
+}
+
+void adc_cx2_write_word(uint32_t addr, uint32_t value)
+{
+    (void) addr;
+    (void) value;
+    // It expects an IRQ on writing something
+    int_set(INT_ADC, 1);
 }

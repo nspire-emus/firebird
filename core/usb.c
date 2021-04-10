@@ -21,13 +21,7 @@ struct usb_qh { // Queue head
         uint32_t bufptr[5];
     } overlay;
     uint32_t reserved;
-    struct usb_setup {
-        uint8_t bmRequestType;
-        uint8_t bRequest;
-        uint16_t wValue;
-        uint16_t wIndex;
-        uint16_t wLength;
-    } setup;
+    struct usb_setup setup;
 };
 
 static void usb_int_check() {

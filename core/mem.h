@@ -13,6 +13,8 @@
 #include "lcd.h"
 #include "sha256.h"
 #include "usb.h"
+#include "usb_cx2.h"
+#include "cx2.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -26,7 +28,7 @@ struct mem_area_desc {
     uint32_t base, size;
     uint8_t *ptr;
 };
-extern struct mem_area_desc mem_areas[4];
+extern struct mem_area_desc mem_areas[5];
 void *phys_mem_ptr(uint32_t addr, uint32_t size);
 uint32_t phys_mem_addr(void *ptr);
 
@@ -77,9 +79,11 @@ typedef struct mem_snapshot
     gpio_state gpio;
     fastboot_state fastboot;
     watchdog_state watchdog;
+    rtc_state rtc;
     pmu_state pmu;
     keypad_state keypad;
     hdq1w_state hdq1w;
+    led_state led;
     usb_state usb;
     lcd_state lcd;
     adc_state adc;
@@ -92,6 +96,11 @@ typedef struct mem_snapshot
     interrupt_state intr;
     memctl_cx_state memctl_cx;
     serial_cx_state serial_cx;
+    aladdin_pmu_state aladdin_pmu;
+    usb_cx2_state usb_cx2;
+    dma_state dma;
+    cx2_backlight_state cx2_backlight;
+    cx2_lcd_spi_state cx2_lcd_spi;
 } mem_snapshot;
 
 bool memory_initialize(uint32_t sdram_size);

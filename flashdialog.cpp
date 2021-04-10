@@ -72,7 +72,7 @@ void FlashDialog::selectManuf()
 }
 
 // Map of ui->selectModel indices to OS filename extensions
-const QString os_ext[] = { QStringLiteral("*.tno"), QStringLiteral("*.tnc"), QStringLiteral("*.tco"), QStringLiteral("*.tcc") };
+const QString os_ext[] = { QStringLiteral("*.tno"), QStringLiteral("*.tnc"), QStringLiteral("*.tco"), QStringLiteral("*.tcc"),  QStringLiteral("*.tco2 *.tcc2 *.tct2")};
 
 void FlashDialog::selectOS()
 {
@@ -104,6 +104,12 @@ void FlashDialog::selectOS()
         version += QStringLiteral(" CX");
     else if(filename.endsWith(QStringLiteral(".tcc")))
         version += QStringLiteral(" CX CAS");
+    else if(filename.endsWith(QStringLiteral(".tco2")))
+        version += QStringLiteral(" CX II");
+    else if(filename.endsWith(QStringLiteral(".tcc2")))
+        version += QStringLiteral(" CX II CAS");
+    else if(filename.endsWith(QStringLiteral(".tct2")))
+        version += QStringLiteral(" CX II-T");
 
     ui->labelOS->setText(version);
 }
@@ -125,11 +131,11 @@ void FlashDialog::selectDiags()
 void FlashDialog::hwTypeChanged(int i)
 {
     // HW-rev can only be selected for CX (CAS)
-    ui->selectModelRev->setEnabled(i >= 2);
+    ui->selectModelRev->setEnabled(i == 2 || i == 3);
 }
 
 // Map of ui->selectModel indices to manuf product numbers
-const unsigned int product_values[] = { 0x0E0, 0x0C2, 0x100, 0x0F0 };
+const unsigned int product_values[] = { 0x0E0, 0x0C2, 0x100, 0x0F0, 0x1C0 };
 
 // Map of ui->selectModelRev indices to manuf feature values
 const unsigned int feature_values[] = { FEATURE_CX, FEATURE_HWJ, FEATURE_HWW };

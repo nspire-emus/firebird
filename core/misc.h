@@ -4,6 +4,7 @@
 #define _H_MISC
 
 #include <stdint.h>
+#include <time.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -127,12 +128,18 @@ void watchdog_reset();
 uint32_t watchdog_read(uint32_t addr);
 void watchdog_write(uint32_t addr, uint32_t value);
 
+uint32_t unknown_9008_read(uint32_t addr);
 void unknown_9008_write(uint32_t addr, uint32_t value);
 
+typedef struct rtc_state {
+    time_t offset;
+} rtc_state;
+
+bool rtc_suspend(emu_snapshot *snapshot);
+bool rtc_resume(const emu_snapshot *snapshot);
+void rtc_reset();
 uint32_t rtc_read(uint32_t addr);
 void rtc_write(uint32_t addr, uint32_t value);
-uint32_t rtc_cx_read(uint32_t addr);
-void rtc_cx_write(uint32_t addr, uint32_t value);
 
 uint32_t misc_read(uint32_t addr);
 void misc_write(uint32_t addr, uint32_t value);
@@ -183,8 +190,15 @@ void hdq1w_reset(void);
 uint32_t hdq1w_read(uint32_t addr);
 void hdq1w_write(uint32_t addr, uint32_t value);
 
-uint32_t unknown_9011_read(uint32_t addr);
-void unknown_9011_write(uint32_t addr, uint32_t value);
+typedef struct led_state {
+    uint32_t regs[5];
+} led_state;
+
+bool led_suspend(emu_snapshot *snapshot);
+bool led_resume(const emu_snapshot *snapshot);
+void led_reset(void);
+uint32_t led_read_word(uint32_t addr);
+void led_write_word(uint32_t addr, uint32_t value);
 
 uint32_t spi_read_word(uint32_t addr);
 void spi_write_word(uint32_t addr, uint32_t value);
@@ -198,8 +212,6 @@ void sdio_write_word(uint32_t addr, uint32_t value);
 
 uint32_t sramctl_read_word(uint32_t addr);
 void sramctl_write_word(uint32_t addr, uint32_t value);
-
-uint32_t unknown_BC_read_word(uint32_t addr);
 
 struct adc_channel {
     uint32_t unknown;
@@ -220,6 +232,10 @@ bool adc_resume(const emu_snapshot *snapshot);
 void adc_reset();
 uint32_t adc_read_word(uint32_t addr);
 void adc_write_word(uint32_t addr, uint32_t value);
+
+// CX2: 0x900B0000
+uint32_t adc_cx2_read_word(uint32_t addr);
+void adc_cx2_write_word(uint32_t addr, uint32_t value);
 
 #ifdef __cplusplus
 }

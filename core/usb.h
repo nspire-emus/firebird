@@ -3,6 +3,8 @@
 #ifndef _H_USB
 #define _H_USB
 
+#include <stdint.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -19,6 +21,14 @@ typedef struct usb_state {
     uint32_t epsr;        // +1B8
     uint32_t epcomplete;  // +1BC
 } usb_state;
+
+typedef struct usb_setup {
+    uint8_t bmRequestType;
+    uint8_t bRequest;
+    uint16_t wValue;
+    uint16_t wIndex;
+    uint16_t wLength;
+} __attribute__((packed)) usb_setup;
 
 extern usb_state usb;
 void usb_reset(void);

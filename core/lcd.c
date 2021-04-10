@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <string.h>
 #include <stdint.h>
 
@@ -125,6 +126,76 @@ void lcd_cx_w_draw_frame(uint16_t *buffer)
         return;
 }
 
+/* Cursor colors as RGB565 */
+static uint16_t cursor_palette_cache[2];
+
+/* Convert a single RGB888 pixel to RGB565 */
+static uint16_t rgb888_to_rgb565(uint32_t val)
+{
+    /* Not entirely correct rounding. */
+    return (val >> 8 & 0xF800) | (val >> 5 & 0x7E0) | (val >> 3 & 0x1F);
+}
+
+/* Treating cursor RAM as 4096px, draw one cursor pixel. */
+static void lcd_draw_cursorpx(uint16_t *buffer, size_t srcindex, size_t dstindex)
+{
+    assert(srcindex < 64*64);
+    assert(dstindex < 320*240);
+
+    uint8_t cursor_px = lcd.cursor_ram[srcindex >> 2]; // Load the byte containing the px
+    cursor_px >>= (~srcindex & 3) << 1; // Shift px to the right
+    cursor_px &= 0b11; // Mask px
+    switch(cursor_px)
+    {
+    case 0b00:
+    case 0b01: // Palette color
+        buffer[dstindex] = cursor_palette_cache[cursor_px];
+        break;
+    case 0b10: // Transparent
+        break;
+    case 0b11: // Invert framebuffer
+        buffer[dstindex] ^= ~0u;
+        break;
+    }
+}
+
+/* Draw the cursor onto the 320x240 RGB565 buffer */
+static void lcd_draw_cursor(uint16_t *buffer)
+{
+    cursor_palette_cache[0] = rgb888_to_rgb565(lcd.cursor_palette[0]);
+    cursor_palette_cache[1] = rgb888_to_rgb565(lcd.cursor_palette[1]);
+
+    if(lcd.cursor_config & 0b110000)
+    {
+        gui_debug_printf("Cursor index != 0 not implemented");
+        return;
+    }
+
+    const uint8_t srcx = lcd.cursor_clip & 0x3F,
+                  srcy = (lcd.cursor_clip >> 8) & 0x3F;
+
+    uint16_t dstx = (lcd.cursor_xy) & 0xFFF,
+             dsty = (lcd.cursor_xy >> 16) & 0xFFF;
+
+    const uint8_t cs = 32 << (lcd.cursor_config & 0b1); // 32 or 64
+
+    if((features & FEATURE_HWW) == FEATURE_HWW)
+    {
+        gui_debug_printf("Cursor on 240x320 not implemented");
+        return;
+    }
+
+    for(int cy = srcy; cy < cs; cy++)
+        for(int cx = srcx; cx < cs; cx++)
+        {
+            // For some reason, X/Y = (Y/-X) here
+            uint16_t x = cy - srcy + dsty,
+                     y = 239 - (cx - srcx + dstx);
+            if(x < 320 && y < 240)
+                lcd_draw_cursorpx(buffer, cy*cs+cx, y*320+x);
+        }
+}
+
 /* Draw the current screen into a 16bpp bitmap. */
 void lcd_cx_draw_frame(uint16_t *buffer) {
     uint32_t mode = lcd.control >> 1 & 7;
@@ -217,6 +288,10 @@ void lcd_cx_draw_frame(uint16_t *buffer) {
             }
         }
     }
+
+    // Draw the cursor on top
+    if(lcd.cursor_control & 1)
+        lcd_draw_cursor(buffer);
 }
 
 static void lcd_event(int index) {
@@ -267,6 +342,22 @@ uint32_t lcd_read_word(uint32_t addr) {
         }
     } else if (offset < 0x400) {
         return *(uint32_t *)((uint8_t *)lcd.palette + offset - 0x200);
+    } else if (offset < 0x800) {
+        return bad_read_word(addr);
+    } else if (emulate_cx && offset < 0xC00) {
+        return *(uint32_t *)((uint8_t *)lcd.cursor_ram + offset - 0x800);
+    } else if (emulate_cx && offset < 0xC30) {
+        switch (offset) {
+        case 0xC00: return lcd.cursor_control;
+        case 0xC04: return lcd.cursor_config;
+        case 0xC08: return lcd.cursor_palette[0];
+        case 0xC0C: return lcd.cursor_palette[1];
+        case 0xC10: return lcd.cursor_xy;
+        case 0xC14: return lcd.cursor_clip;
+        case 0xC20: return lcd.cursor_int_mask;
+        case 0xC28: return lcd.cursor_int_status;
+        case 0xC2C: return lcd.cursor_int_status & lcd.cursor_int_mask;
+        }
     } else if (offset >= 0xFE0) {
         static const uint8_t id[2][8] = {
             /* ARM PrimeCell Color LCD Controller (PL110), Revision 2 */
@@ -313,6 +404,23 @@ write_control:
     } else if (offset < 0x400) {
         *(uint32_t *)((uint8_t *)lcd.palette + offset - 0x200) = value;
         return;
+    } else if (offset < 0x800) {
+        bad_write_word(addr, value);
+        return;
+    } else if (emulate_cx && offset < 0xC00) {
+        *(uint32_t *)((uint8_t *)lcd.cursor_ram + offset - 0x800) = value;
+        return;
+    } else if (emulate_cx && offset < 0xC30) {
+        switch (offset) {
+        case 0xC00: lcd.cursor_control = value; return;
+        case 0xC04: lcd.cursor_config = value; return;
+        case 0xC08: lcd.cursor_palette[0] = value; return;
+        case 0xC0C: lcd.cursor_palette[1] = value; return;
+        case 0xC10: lcd.cursor_xy = value; return;
+        case 0xC14: lcd.cursor_clip = value; return;
+        case 0xC20: lcd.cursor_int_mask = value; return;
+        case 0xC24: lcd.cursor_int_status &= ~value; return;
+        }
     }
     bad_write_word(addr, value);
     return;

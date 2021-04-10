@@ -27,6 +27,8 @@ void cpu_arm_loop()
     {
         arm.reg[15] &= ~0x3; // Align PC
         Instruction *p = static_cast<Instruction*>(read_instruction(arm.reg[15]));
+        if(!p)
+            error("Jumped out of memory\n");
 
         #ifdef BENCHMARK
             static clock_t start = 0;
@@ -43,6 +45,14 @@ void cpu_arm_loop()
         #endif
 
         uint32_t *flags_ptr = &RAM_FLAGS(p);
+
+        /* Force use of capTIvate on 5.2.0.722 CX II CAS
+        if(arm.reg[15] == 0x100114D4)
+        {
+            *flags_ptr |= RF_CODE_NO_TRANSLATE;
+            features = 1;
+            arm.reg[0] = features; // captivate
+        }*/
 
         // Check for pending events
         if(cpu_events)
