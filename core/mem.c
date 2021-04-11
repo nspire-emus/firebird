@@ -515,10 +515,13 @@ bool memory_suspend(emu_snapshot *snapshot)
 {
     assert(mem_and_flags);
 
-    snapshot->mem.sdram_size = mem_areas[1].size;
-    memcpy(snapshot->mem.mem_and_flags, mem_and_flags, MEM_MAXSIZE);
+    uint32_t sdram_size = mem_areas[1].size;
 
-    return misc_suspend(snapshot)
+    // TODO: CAS+ and ti84_io?
+    return snapshot_write(snapshot, &sdram_size, sizeof(sdram_size))
+            // TODO: No flags saved. Only RF_EXEC_BREAKPOINT and maybe RF_READ_ONLY are interesting.
+            && snapshot_write(snapshot, mem_and_flags, MEM_MAXSIZE)
+            && misc_suspend(snapshot)
             && keypad_suspend(snapshot)
             && usb_suspend(snapshot)
             && lcd_suspend(snapshot)
@@ -533,15 +536,14 @@ bool memory_suspend(emu_snapshot *snapshot)
 
 bool memory_resume(const emu_snapshot *snapshot)
 {
-    if(!memory_initialize(snapshot->mem.sdram_size))
-        return false;
+    uint32_t sdram_size = mem_areas[1].size;
 
-    memory_reset();
-
-    memcpy(mem_and_flags, snapshot->mem.mem_and_flags, MEM_MAXSIZE);
-    memset(mem_and_flags + MEM_MAXSIZE, 0, MEM_MAXSIZE); // Set all flags to 0
-
-    return misc_resume(snapshot)
+    return snapshot_read(snapshot, &sdram_size, sizeof(sdram_size))
+            && memory_initialize(sdram_size)
+            && (memory_reset(), true) // To have peripherals register with sched
+            && snapshot_read(snapshot, mem_and_flags, MEM_MAXSIZE)
+            && memset(mem_and_flags + MEM_MAXSIZE, 0, MEM_MAXSIZE) // Set all flags to 0
+            && misc_resume(snapshot)
             && keypad_resume(snapshot)
             && usb_resume(snapshot)
             && lcd_resume(snapshot)

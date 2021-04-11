@@ -399,14 +399,12 @@ void touchpad_cx_write(uint32_t addr, uint32_t value) {
 
 bool keypad_suspend(emu_snapshot *snapshot)
 {
-    snapshot->mem.keypad = keypad;
-    return true;
+    return snapshot_write(snapshot, &keypad, sizeof(keypad));
 }
 
 bool keypad_resume(const emu_snapshot *snapshot)
 {
-    keypad = snapshot->mem.keypad;
-    return true;
+    return snapshot_read(snapshot, &keypad, sizeof(keypad));
 }
 
 void keypad_set_key(int row, int col, bool state)

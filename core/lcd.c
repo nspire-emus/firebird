@@ -428,12 +428,10 @@ write_control:
 
 bool lcd_suspend(emu_snapshot *snapshot)
 {
-    snapshot->mem.lcd = lcd;
-    return true;
+    return snapshot_write(snapshot, &lcd, sizeof(lcd));
 }
 
 bool lcd_resume(const emu_snapshot *snapshot)
 {
-    lcd = snapshot->mem.lcd;
-    return true;
+    return snapshot_read(snapshot, &lcd, sizeof(lcd));
 }

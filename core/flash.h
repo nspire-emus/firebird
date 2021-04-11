@@ -103,14 +103,8 @@ typedef struct nand_state {
 
 extern nand_state nand;
 
-typedef struct flash_snapshot {
-    nand_state state;
-    uint8_t nand_modified_blocks[]; // First modified block comes first, then the 2nd modified one etc.
-} flash_snapshot;
-
 bool flash_open(const char *filename);
 void flash_close();
-size_t flash_suspend_flexsize();
 
 struct emu_snapshot;
 bool flash_suspend(struct emu_snapshot *snapshot);

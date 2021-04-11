@@ -70,14 +70,12 @@ static serial_state serial;
 
 bool serial_resume(const emu_snapshot *snapshot)
 {
-    serial = snapshot->mem.serial;
-    return true;
+    return snapshot_read(snapshot, &serial, sizeof(serial));
 }
 
 bool serial_suspend(emu_snapshot *snapshot)
 {
-    snapshot->mem.serial = serial;
-    return true;
+    return snapshot_write(snapshot, &serial, sizeof(serial));
 }
 
 static void serial_int_check() {
@@ -160,14 +158,12 @@ static serial_cx_state serial_cx;
 
 bool serial_cx_resume(const emu_snapshot *snapshot)
 {
-    serial_cx = snapshot->mem.serial_cx;
-    return true;
+    return snapshot_read(snapshot, &serial_cx, sizeof(serial_cx));
 }
 
 bool serial_cx_suspend(emu_snapshot *snapshot)
 {
-    snapshot->mem.serial_cx = serial_cx;
-    return true;
+    return snapshot_write(snapshot, &serial_cx, sizeof(serial_cx));
 }
 
 static inline void serial_cx_int_check() {
