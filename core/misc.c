@@ -59,18 +59,6 @@ void nandctl_cx_write_word(uint32_t addr, uint32_t value)
     bad_write_word(addr, value);
 }
 
-bool memctl_cx_suspend(emu_snapshot *snapshot)
-{
-    snapshot->mem.memctl_cx = memctl_cx;
-    return true;
-}
-
-bool memctl_cx_resume(const emu_snapshot *snapshot)
-{
-    memctl_cx = snapshot->mem.memctl_cx;
-    return true;
-}
-
 void memctl_cx_reset(void) {
     memctl_cx.status = 0;
     memctl_cx.config = 0;
@@ -118,18 +106,6 @@ void memctl_cx_write_word(uint32_t addr, uint32_t value) {
 
 /* 90000000 */
 struct gpio_state gpio;
-
-bool gpio_resume(const emu_snapshot *snapshot)
-{
-    gpio = snapshot->mem.gpio;
-    return true;
-}
-
-bool gpio_suspend(emu_snapshot *snapshot)
-{
-    snapshot->mem.gpio = gpio;
-    return true;
-}
 
 void gpio_reset() {
     memset(&gpio, 0, sizeof gpio);
@@ -183,18 +159,6 @@ void gpio_write(uint32_t addr, uint32_t value) {
 /* 90010000, 900C0000, 900D0000 */
 static timer_state timer;
 #define ADDR_TO_TP(addr) (&timer.pairs[((addr) >> 16) % 5])
-
-bool timer_resume(const emu_snapshot *snapshot)
-{
-    timer = snapshot->mem.timer;
-    return true;
-}
-
-bool timer_suspend(emu_snapshot *snapshot)
-{
-    snapshot->mem.timer = timer;
-    return true;
-}
 
 uint32_t timer_read(uint32_t addr) {
     struct timerpair *tp = ADDR_TO_TP(addr);
@@ -289,18 +253,6 @@ void fastboot_cx_write(uint32_t addr, uint32_t value) {
     fastboot.mem[(addr & 0xFFF) >> 2] = value;
 }
 
-bool fastboot_cx_resume(const emu_snapshot *snapshot)
-{
-    fastboot = snapshot->mem.fastboot;
-    return true;
-}
-
-bool fastboot_cx_suspend(emu_snapshot *snapshot)
-{
-    snapshot->mem.fastboot = fastboot;
-    return true;
-}
-
 /* 90040000: PL022 connected to the LCI over SPI */
 uint32_t spi_cx_read(uint32_t addr) {
     switch (addr & 0xFFF)
@@ -317,18 +269,6 @@ void spi_cx_write(uint32_t addr, uint32_t value) {
 
 /* 90060000 */
 static watchdog_state watchdog;
-
-bool watchdog_resume(const emu_snapshot *snapshot)
-{
-    watchdog = snapshot->mem.watchdog;
-    return true;
-}
-
-bool watchdog_suspend(emu_snapshot *snapshot)
-{
-    snapshot->mem.watchdog = watchdog;
-    return true;
-}
 
 static void watchdog_reload() {
     if (watchdog.control & 1) {
@@ -436,18 +376,6 @@ void unknown_9008_write(uint32_t addr, uint32_t value) {
 /* 90090000 */
 struct rtc_state rtc;
 
-bool rtc_resume(const emu_snapshot *snapshot)
-{
-    rtc = snapshot->mem.rtc;
-    return true;
-}
-
-bool rtc_suspend(emu_snapshot *snapshot)
-{
-    snapshot->mem.rtc = rtc;
-    return true;
-}
-
 void rtc_reset() {
     rtc.offset = 0;
 }
@@ -539,18 +467,6 @@ void misc_write(uint32_t addr, uint32_t value) {
 /* 900B0000 */
 struct pmu_state pmu;
 
-bool pmu_resume(const emu_snapshot *snapshot)
-{
-    pmu = snapshot->mem.pmu;
-    return true;
-}
-
-bool pmu_suspend(emu_snapshot *snapshot)
-{
-    snapshot->mem.pmu = pmu;
-    return true;
-}
-
 void pmu_reset(void) {
     memset(&pmu, 0, sizeof pmu);
     // No idea what the clock speeds should actually be on reset,
@@ -622,17 +538,6 @@ void pmu_write(uint32_t addr, uint32_t value) {
 /* 90010000, 900C0000(?), 900D0000 */
 static timer_cx_state timer_cx;
 static void timer_cx_event(int index);
-bool timer_cx_resume(const emu_snapshot *snapshot)
-{
-    timer_cx = snapshot->mem.timer_cx;
-    return true;
-}
-
-bool timer_cx_suspend(emu_snapshot *snapshot)
-{
-    snapshot->mem.timer_cx = timer_cx;
-    return true;
-}
 
 void timer_cx_int_check(int which) {
     int_set(INT_TIMER0+which, (timer_cx.timer[which][0].interrupt & timer_cx.timer[which][0].control >> 5)
@@ -736,18 +641,6 @@ void timer_cx_reset() {
 /* 900F0000 */
 hdq1w_state hdq1w;
 
-bool hdq1w_resume(const emu_snapshot *snapshot)
-{
-    hdq1w = snapshot->mem.hdq1w;
-    return true;
-}
-
-bool hdq1w_suspend(emu_snapshot *snapshot)
-{
-    snapshot->mem.hdq1w = hdq1w;
-    return true;
-}
-
 void hdq1w_reset() {
     hdq1w.lcd_contrast = 0;
 }
@@ -773,16 +666,6 @@ void hdq1w_write(uint32_t addr, uint32_t value) {
 
 /* 90110000: LED */
 static led_state led;
-
-bool led_resume(const emu_snapshot *snapshot) {
-    led = snapshot->mem.led;
-    return true;
-}
-
-bool led_suspend(emu_snapshot *snapshot) {
-    snapshot->mem.led = led;
-    return true;
-}
 
 void led_reset() {
     memset(&led, 0, sizeof(led));
@@ -914,18 +797,6 @@ void sramctl_write_word(uint32_t addr, uint32_t value) {
 /* C4000000: ADC (Analog-to-Digital Converter) */
 static adc_state adc;
 
-bool adc_resume(const emu_snapshot *snapshot)
-{
-    adc = snapshot->mem.adc;
-    return true;
-}
-
-bool adc_suspend(emu_snapshot *snapshot)
-{
-    snapshot->mem.adc = adc;
-    return true;
-}
-
 static uint16_t adc_read_channel(int n) {
     if (pmu.disable2 & 0x10)
         return 0x3FF;
@@ -1015,4 +886,36 @@ void adc_cx2_write_word(uint32_t addr, uint32_t value)
     (void) value;
     // It expects an IRQ on writing something
     int_set(INT_ADC, 1);
+}
+
+bool misc_suspend(emu_snapshot *snapshot)
+{
+    snapshot->mem.memctl_cx = memctl_cx;
+    snapshot->mem.gpio = gpio;
+    snapshot->mem.timer = timer;
+    snapshot->mem.fastboot = fastboot;
+    snapshot->mem.watchdog = watchdog;
+    snapshot->mem.rtc = rtc;
+    snapshot->mem.pmu = pmu;
+    snapshot->mem.timer_cx = timer_cx;
+    snapshot->mem.hdq1w = hdq1w;
+    snapshot->mem.led = led;
+    snapshot->mem.adc = adc;
+    return true;
+}
+
+bool misc_resume(const emu_snapshot *snapshot)
+{
+    memctl_cx = snapshot->mem.memctl_cx;
+    gpio = snapshot->mem.gpio;
+    timer = snapshot->mem.timer;
+    fastboot = snapshot->mem.fastboot;
+    watchdog = snapshot->mem.watchdog;
+    rtc = snapshot->mem.rtc;
+    pmu = snapshot->mem.pmu;
+    timer_cx = snapshot->mem.timer_cx;
+    hdq1w = snapshot->mem.hdq1w;
+    led = snapshot->mem.led;
+    adc = snapshot->mem.adc;
+    return true;
 }
