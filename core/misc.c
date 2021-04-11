@@ -890,32 +890,30 @@ void adc_cx2_write_word(uint32_t addr, uint32_t value)
 
 bool misc_suspend(emu_snapshot *snapshot)
 {
-    snapshot->mem.memctl_cx = memctl_cx;
-    snapshot->mem.gpio = gpio;
-    snapshot->mem.timer = timer;
-    snapshot->mem.fastboot = fastboot;
-    snapshot->mem.watchdog = watchdog;
-    snapshot->mem.rtc = rtc;
-    snapshot->mem.pmu = pmu;
-    snapshot->mem.timer_cx = timer_cx;
-    snapshot->mem.hdq1w = hdq1w;
-    snapshot->mem.led = led;
-    snapshot->mem.adc = adc;
-    return true;
+    return snapshot_write(snapshot, &memctl_cx, sizeof(memctl_cx))
+            && snapshot_write(snapshot, &gpio, sizeof(gpio))
+            && snapshot_write(snapshot, &timer, sizeof(timer))
+            && snapshot_write(snapshot, &fastboot, sizeof(fastboot))
+            && snapshot_write(snapshot, &watchdog, sizeof(watchdog))
+            && snapshot_write(snapshot, &rtc, sizeof(rtc))
+            && snapshot_write(snapshot, &pmu, sizeof(pmu))
+            && snapshot_write(snapshot, &timer_cx, sizeof(timer_cx))
+            && snapshot_write(snapshot, &hdq1w, sizeof(hdq1w))
+            && snapshot_write(snapshot, &led, sizeof(led))
+            && snapshot_write(snapshot, &adc, sizeof(adc));
 }
 
 bool misc_resume(const emu_snapshot *snapshot)
 {
-    memctl_cx = snapshot->mem.memctl_cx;
-    gpio = snapshot->mem.gpio;
-    timer = snapshot->mem.timer;
-    fastboot = snapshot->mem.fastboot;
-    watchdog = snapshot->mem.watchdog;
-    rtc = snapshot->mem.rtc;
-    pmu = snapshot->mem.pmu;
-    timer_cx = snapshot->mem.timer_cx;
-    hdq1w = snapshot->mem.hdq1w;
-    led = snapshot->mem.led;
-    adc = snapshot->mem.adc;
-    return true;
+    return snapshot_read(snapshot, &memctl_cx, sizeof(memctl_cx))
+            && snapshot_read(snapshot, &gpio, sizeof(gpio))
+            && snapshot_read(snapshot, &timer, sizeof(timer))
+            && snapshot_read(snapshot, &fastboot, sizeof(fastboot))
+            && snapshot_read(snapshot, &watchdog, sizeof(watchdog))
+            && snapshot_read(snapshot, &rtc, sizeof(rtc))
+            && snapshot_read(snapshot, &pmu, sizeof(pmu))
+            && snapshot_read(snapshot, &timer_cx, sizeof(timer_cx))
+            && snapshot_read(snapshot, &hdq1w, sizeof(hdq1w))
+            && snapshot_read(snapshot, &led, sizeof(led))
+            && snapshot_read(snapshot, &adc, sizeof(adc));
 }

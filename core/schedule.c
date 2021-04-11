@@ -124,29 +124,28 @@ void sched_set_clocks(int count, uint32_t *new_rates) {
 
 bool sched_resume(const emu_snapshot *snapshot)
 {
+    struct sched_state new_sched;
+    if(!snapshot_read(snapshot, &new_sched, sizeof(new_sched)))
+        return false;
+
     // sched_item::proc is a function pointer.
     // Obviously, it's not possible to just save and restore that one,
     // so we use the already initialized sched_state as source
     // for the proper proc values.
     for(int i = 0; i < SCHED_NUM_ITEMS; ++i)
     {
-        struct sched_item j = snapshot->sched.items[i];
-        j.proc = sched.items[i].proc;
-        if(!j.proc)
-            return false;
+        if(new_sched.items[i].proc && !sched.items[i].proc)
+            return false; // proc was set, but we don't have it
 
-        sched.items[i] = j;
+        new_sched.items[i].proc = sched.items[i].proc;
     }
-    memcpy(sched.clock_rates, snapshot->sched.clock_rates, sizeof(sched.clock_rates));
-    sched.next_cputick = snapshot->sched.next_cputick;
-    sched.next_index = snapshot->sched.next_index;
-    sched_update_next_event(sched.next_cputick);
+
+    sched = new_sched;
 
     return true;
 }
 
 bool sched_suspend(emu_snapshot *snapshot)
 {
-    snapshot->sched = sched;
-    return true;
+    return snapshot_write(snapshot, &sched, sizeof(sched));
 }

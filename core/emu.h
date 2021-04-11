@@ -92,19 +92,22 @@ typedef void (*debug_input_cb)(const char *input);
 void gui_debugger_request_input(debug_input_cb callback);
 
 #define SNAPSHOT_SIG 0xCAFEBEE0
-#define SNAPSHOT_VER 2
+#define SNAPSHOT_VER 3
 
+// Passed to resume/suspend functions.
+// Use snapshot_(read/write) to access stream contents.
 typedef struct emu_snapshot {
-    uint32_t sig; // SNAPSHOT_SIG
-    uint32_t version; // SNAPSHOT_VER
-    int product, asic_user_flags;
-    char path_boot1[512];
-    char path_flash[512];
-    sched_state sched;
-    arm_state cpu_state;
-    mem_snapshot mem;
-    flash_snapshot flash;
+    void *stream_handle;
+    struct {
+        uint32_t sig; // SNAPSHOT_SIG
+        uint32_t version; // SNAPSHOT_VER
+        char path_boot1[512];
+        char path_flash[512];
+    } header;
 } emu_snapshot;
+
+bool snapshot_read(const emu_snapshot *snapshot, void *dest, int size);
+bool snapshot_write(emu_snapshot *snapshot, const void *src, int size);
 
 bool emu_start(unsigned int port_gdb, unsigned int port_rdbg, const char *snapshot);
 void emu_loop(bool reset);

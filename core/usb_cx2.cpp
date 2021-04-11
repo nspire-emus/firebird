@@ -542,12 +542,10 @@ uint16_t usb_cx2_read_half(uint32_t addr)
 
 bool usb_cx2_suspend(emu_snapshot *snapshot)
 {
-    snapshot->mem.usb_cx2 = usb_cx2;
-    return true;
+    return snapshot_write(snapshot, &usb_cx2, sizeof(usb_cx2));
 }
 
 bool usb_cx2_resume(const emu_snapshot *snapshot)
 {
-    usb_cx2 = snapshot->mem.usb_cx2;
-    return true;
+    return snapshot_read(snapshot, &usb_cx2, sizeof(usb_cx2));
 }

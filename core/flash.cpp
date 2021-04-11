@@ -946,23 +946,11 @@ std::string flash_read_type(FILE *flash)
     return ret;
 }
 
-size_t flash_suspend_flexsize()
-{
-    const size_t num_blocks = nand.metrics.num_pages >> nand.metrics.log2_pages_per_block,
-            block_size = nand.metrics.page_size << nand.metrics.log2_pages_per_block;
-
-    size_t count_modified_blocks = std::count_if(nand.nand_block_modified, nand.nand_block_modified + num_blocks, [](uint8_t i) { return i; });
-
-    return block_size * count_modified_blocks;
-}
-
 bool flash_suspend(emu_snapshot *snapshot)
 {
-    flash_snapshot *flash = &snapshot->flash;
+    if(!snapshot_write(snapshot, &nand, sizeof(nand)))
+        return false;
 
-    flash->state = nand;
-
-    uint8_t *cur_modified_block = flash->nand_modified_blocks;
     const size_t num_blocks = nand.metrics.num_pages >> nand.metrics.log2_pages_per_block,
             block_size = nand.metrics.page_size << nand.metrics.log2_pages_per_block;
 
@@ -971,8 +959,8 @@ bool flash_suspend(emu_snapshot *snapshot)
         if(!nand.nand_block_modified[cur_modified_block_nr])
             continue;
 
-        memcpy(cur_modified_block, nand_data + block_size * cur_modified_block_nr, block_size);
-        cur_modified_block += block_size;
+        if(!snapshot_write(snapshot, nand_data + block_size * cur_modified_block_nr, block_size))
+            return true;
     }
 
     return true;
@@ -980,16 +968,14 @@ bool flash_suspend(emu_snapshot *snapshot)
 
 bool flash_resume(const emu_snapshot *snapshot)
 {
-    const flash_snapshot *flash = &snapshot->flash;
-
     flash_close();
 
-    if(!flash_open(snapshot->path_flash))
+    if(!flash_open(snapshot->header.path_flash))
         return false;
 
-    nand = flash->state;
+    if(!snapshot_read(snapshot, &nand, sizeof(nand)))
+        return false;
 
-    const uint8_t *cur_modified_block = flash->nand_modified_blocks;
     const size_t num_blocks = nand.metrics.num_pages >> nand.metrics.log2_pages_per_block,
             block_size = nand.metrics.page_size << nand.metrics.log2_pages_per_block;
 
@@ -998,8 +984,8 @@ bool flash_resume(const emu_snapshot *snapshot)
         if(!nand.nand_block_modified[cur_modified_block_nr])
             continue;
 
-        memcpy(nand_data + block_size * cur_modified_block_nr, cur_modified_block, block_size);
-        cur_modified_block += block_size;
+        if(!snapshot_read(snapshot, nand_data + block_size * cur_modified_block_nr, block_size))
+            return false;
     }
 
     return true;

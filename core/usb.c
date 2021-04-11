@@ -261,12 +261,10 @@ void usb_write_word(uint32_t addr, uint32_t value) {
 
 bool usb_suspend(emu_snapshot *snapshot)
 {
-    snapshot->mem.usb = usb;
-    return true;
+    return snapshot_write(snapshot, &usb, sizeof(usb));
 }
 
 bool usb_resume(const emu_snapshot *snapshot)
 {
-    usb = snapshot->mem.usb;
-    return true;
+    return snapshot_read(snapshot, &usb, sizeof(usb));
 }
