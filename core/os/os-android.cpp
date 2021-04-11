@@ -40,12 +40,20 @@ FILE *fopen_utf8(const char *path, const char *mode)
     contentResolver.callMethod<void>("takePersistableUriPermission",
                                      "(Landroid/net/Uri;I)V", uri.object<jobject>(), permflags);
 
+    QAndroidJniEnvironment env;
+
+    if (env->ExceptionCheck())
+    {
+        env->ExceptionDescribe();
+        env->ExceptionClear();
+        return nullptr;
+    }
+
     QAndroidJniObject parcelFileDescriptor = contentResolver
             .callObjectMethod("openFileDescriptor",
                               "(Landroid/net/Uri;Ljava/lang/String;)Landroid/os/ParcelFileDescriptor;",
                               uri.object<jobject>(), jmode.object<jobject>());
 
-    QAndroidJniEnvironment env;
     if (env->ExceptionCheck())
     {
         env->ExceptionDescribe();
