@@ -14,6 +14,9 @@
 #include "gdbstub.h"
 #include "usblink_queue.h"
 #include "os/os.h"
+#include "schedule.h"
+#include "misc.h"
+#include "mem.h"
 
 /* cycle_count_delta is a (usually negative) number telling what the time is relative
  * to the next scheduled event. See sched.c */

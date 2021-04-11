@@ -7,6 +7,7 @@
 #include "interrupt.h"
 #include "schedule.h"
 #include "mem.h"
+#include "lcd.h"
 
 static lcd_state lcd;
 

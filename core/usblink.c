@@ -7,6 +7,7 @@
 
 #include "emu.h"
 #include "usb.h"
+#include "usb_cx2.h"
 #include "usblink.h"
 #include "usblink_cx2.h"
 #include "os/os.h"

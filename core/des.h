@@ -3,6 +3,8 @@
 #ifndef _DES_H
 #define _DES_H
 
+#include <stdint.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif

@@ -5,11 +5,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#include "cpu.h"
 #include "flash.h"
-#include "mem.h"
-#include "lcd.h"
-#include "schedule.h"
 
 #ifdef __cplusplus
 #include <string>

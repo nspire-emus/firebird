@@ -1,6 +1,7 @@
 #include <stdbool.h>
 #include <string.h>
 
+#include "des.h"
 #include "emu.h"
 #include "mem.h"
 
