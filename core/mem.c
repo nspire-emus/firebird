@@ -518,30 +518,17 @@ bool memory_suspend(emu_snapshot *snapshot)
     snapshot->mem.sdram_size = mem_areas[1].size;
     memcpy(snapshot->mem.mem_and_flags, mem_and_flags, MEM_MAXSIZE);
 
-    return gpio_suspend(snapshot)
-            && fastboot_cx_suspend(snapshot)
-            && watchdog_suspend(snapshot)
-            && rtc_suspend(snapshot)
-            && pmu_suspend(snapshot)
+    return misc_suspend(snapshot)
             && keypad_suspend(snapshot)
-            && hdq1w_suspend(snapshot)
-            && led_suspend(snapshot)
             && usb_suspend(snapshot)
             && lcd_suspend(snapshot)
-            && adc_suspend(snapshot)
             && des_suspend(snapshot)
             && sha256_suspend(snapshot)
-            && timer_suspend(snapshot)
             && serial_suspend(snapshot)
             && interrupt_suspend(snapshot)
-            && memctl_cx_suspend(snapshot)
             && serial_cx_suspend(snapshot)
-            && timer_cx_suspend(snapshot)
-            && aladdin_pmu_suspend(snapshot)
-            && usb_cx2_suspend(snapshot)
-            && dma_cx2_suspend(snapshot)
-            && cx2_backlight_suspend(snapshot)
-            && cx2_lcd_spi_suspend(snapshot);
+            && cx2_suspend(snapshot)
+            && usb_cx2_suspend(snapshot);
 }
 
 bool memory_resume(const emu_snapshot *snapshot)
@@ -554,28 +541,15 @@ bool memory_resume(const emu_snapshot *snapshot)
     memcpy(mem_and_flags, snapshot->mem.mem_and_flags, MEM_MAXSIZE);
     memset(mem_and_flags + MEM_MAXSIZE, 0, MEM_MAXSIZE); // Set all flags to 0
 
-    return gpio_resume(snapshot)
-            && fastboot_cx_resume(snapshot)
-            && watchdog_resume(snapshot)
-            && rtc_resume(snapshot)
-            && pmu_resume(snapshot)
+    return misc_resume(snapshot)
             && keypad_resume(snapshot)
-            && hdq1w_resume(snapshot)
-            && led_resume(snapshot)
             && usb_resume(snapshot)
             && lcd_resume(snapshot)
-            && adc_resume(snapshot)
             && des_resume(snapshot)
             && sha256_resume(snapshot)
-            && timer_resume(snapshot)
             && serial_resume(snapshot)
             && interrupt_resume(snapshot)
-            && memctl_cx_resume(snapshot)
             && serial_cx_resume(snapshot)
-            && timer_cx_resume(snapshot)
-            && aladdin_pmu_resume(snapshot)
-            && usb_cx2_resume(snapshot)
-            && dma_cx2_resume(snapshot)
-            && cx2_backlight_resume(snapshot)
-            && cx2_lcd_spi_resume(snapshot);
+            && cx2_resume(snapshot)
+            && usb_cx2_resume(snapshot);
 }

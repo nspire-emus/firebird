@@ -22,8 +22,6 @@ typedef struct memctl_cx_state {
     uint32_t nandctl_ecc_memcfg;
 } memctl_cx_state;
 
-bool memctl_cx_suspend(emu_snapshot *snapshot);
-bool memctl_cx_resume(const emu_snapshot *snapshot);
 void memctl_cx_reset(void);
 uint32_t memctl_cx_read_word(uint32_t addr);
 void memctl_cx_write_word(uint32_t addr, uint32_t value);
@@ -39,8 +37,6 @@ typedef struct gpio_state {
 } gpio_state;
 extern gpio_state gpio;
 
-bool gpio_suspend(emu_snapshot *snapshot);
-bool gpio_resume(const emu_snapshot *snapshot);
 void gpio_reset();
 uint32_t gpio_read(uint32_t addr);
 void gpio_write(uint32_t addr, uint32_t value);
@@ -64,8 +60,6 @@ typedef struct timer_state {
     struct timerpair pairs[3];
 } timer_state;
 
-bool timer_suspend(emu_snapshot *snapshot);
-bool timer_resume(const emu_snapshot *snapshot);
 uint32_t timer_read(uint32_t addr);
 void timer_write(uint32_t addr, uint32_t value);
 void timer_reset(void);
@@ -106,8 +100,6 @@ typedef struct fastboot_state {
     uint32_t mem[0x1000 / sizeof(uint32_t)];
 } fastboot_state;
 
-bool fastboot_cx_suspend(emu_snapshot *snapshot);
-bool fastboot_cx_resume(const emu_snapshot *snapshot);
 uint32_t fastboot_cx_read(uint32_t addr);
 void fastboot_cx_write(uint32_t addr, uint32_t value);
 
@@ -122,8 +114,6 @@ typedef struct watchdog_state {
     uint8_t locked;
 } watchdog_state;
 
-bool watchdog_suspend(emu_snapshot *snapshot);
-bool watchdog_resume(const emu_snapshot *snapshot);
 void watchdog_reset();
 uint32_t watchdog_read(uint32_t addr);
 void watchdog_write(uint32_t addr, uint32_t value);
@@ -135,8 +125,6 @@ typedef struct rtc_state {
     time_t offset;
 } rtc_state;
 
-bool rtc_suspend(emu_snapshot *snapshot);
-bool rtc_resume(const emu_snapshot *snapshot);
 void rtc_reset();
 uint32_t rtc_read(uint32_t addr);
 void rtc_write(uint32_t addr, uint32_t value);
@@ -154,8 +142,6 @@ typedef struct pmu_state {
 } pmu_state;
 extern pmu_state pmu;
 
-bool pmu_suspend(emu_snapshot *snapshot);
-bool pmu_resume(const emu_snapshot *snapshot);
 void pmu_reset(void);
 uint32_t pmu_read(uint32_t addr);
 void pmu_write(uint32_t addr, uint32_t value);
@@ -173,8 +159,6 @@ typedef struct timer_cx_state {
     struct cx_timer timer[3][2];
 } timer_cx_state;
 
-bool timer_cx_suspend(emu_snapshot *snapshot);
-bool timer_cx_resume(const emu_snapshot *snapshot);
 uint32_t timer_cx_read(uint32_t addr);
 void timer_cx_write(uint32_t addr, uint32_t value);
 void timer_cx_reset(void);
@@ -184,8 +168,6 @@ typedef struct hdq1w_state {
 } hdq1w_state;
 extern hdq1w_state hdq1w;
 
-bool hdq1w_suspend(emu_snapshot *snapshot);
-bool hdq1w_resume(const emu_snapshot *snapshot);
 void hdq1w_reset(void);
 uint32_t hdq1w_read(uint32_t addr);
 void hdq1w_write(uint32_t addr, uint32_t value);
@@ -194,8 +176,6 @@ typedef struct led_state {
     uint32_t regs[5];
 } led_state;
 
-bool led_suspend(emu_snapshot *snapshot);
-bool led_resume(const emu_snapshot *snapshot);
 void led_reset(void);
 uint32_t led_read_word(uint32_t addr);
 void led_write_word(uint32_t addr, uint32_t value);
@@ -227,8 +207,6 @@ typedef struct adc_state {
     struct adc_channel channel[7];
 } adc_state;
 
-bool adc_suspend(emu_snapshot *snapshot);
-bool adc_resume(const emu_snapshot *snapshot);
 void adc_reset();
 uint32_t adc_read_word(uint32_t addr);
 void adc_write_word(uint32_t addr, uint32_t value);
@@ -236,6 +214,11 @@ void adc_write_word(uint32_t addr, uint32_t value);
 // CX2: 0x900B0000
 uint32_t adc_cx2_read_word(uint32_t addr);
 void adc_cx2_write_word(uint32_t addr, uint32_t value);
+
+// The peripherals in misc.c have trivial suspend/resume ops, so don't need
+// separate functions each. Note: serial/serial_cx is in serial.c instead.
+bool misc_suspend(emu_snapshot *snapshot);
+bool misc_resume(const emu_snapshot *snapshot);
 
 #ifdef __cplusplus
 }
