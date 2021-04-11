@@ -106,9 +106,8 @@ static void usb_cx2_packet_from_calc(uint8_t ep, uint8_t *packet, size_t size)
 void usb_cx2_reset()
 {
     usb_cx2 = {};
-    usb.usbcmd = 0x80000;
-    usb.portsc = 0xEC000004;
     usb_cx2.usbcmd = 0x80000;
+    usb_cx2.portsc = 0xEC000004;
     // All IRQs masked
     usb_cx2.imr = 0xF;
     usb_cx2.otgier = 0;
