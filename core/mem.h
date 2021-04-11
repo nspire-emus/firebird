@@ -6,15 +6,6 @@
 #include <stdint.h>
 
 #include "cpu.h"
-#include "des.h"
-#include "misc.h"
-#include "interrupt.h"
-#include "keypad.h"
-#include "lcd.h"
-#include "sha256.h"
-#include "usb.h"
-#include "usb_cx2.h"
-#include "cx2.h"
 
 #ifdef __cplusplus
 extern "C" {

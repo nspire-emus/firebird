@@ -1,5 +1,6 @@
 #include <string.h>
 #include "emu.h"
+#include "sha256.h"
 #include "mem.h"
 
 static sha256_state sha256;

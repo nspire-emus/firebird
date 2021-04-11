@@ -1,7 +1,11 @@
 #include "emu.h"
 
+#include "mem.h"
 #include "cx2.h"
 #include "misc.h"
+#include "schedule.h"
+#include "interrupt.h"
+#include "keypad.h"
 
 /* 90140000 */
 struct aladdin_pmu_state aladdin_pmu;

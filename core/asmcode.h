@@ -3,6 +3,7 @@
 #ifndef _H_ASMCODE
 #define _H_ASMCODE
 
+#include "cpu.h"
 #include "emu.h"
 
 #ifdef __cplusplus

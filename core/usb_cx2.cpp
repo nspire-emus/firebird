@@ -3,8 +3,10 @@
 
 #include "emu.h"
 #include "mem.h"
+#include "usb.h"
 #include "usb_cx2.h"
 #include "usblink_cx2.h"
+#include "interrupt.h"
 
 usb_cx2_state usb_cx2;
 
