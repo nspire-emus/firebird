@@ -1,8 +1,6 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
-#include <atomic>
-
 #include <QMainWindow>
 #include <QSettings>
 #include <QLabel>

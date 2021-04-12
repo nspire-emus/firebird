@@ -1,5 +1,3 @@
-#include <future>
-
 #include <QFileDialog>
 #include <QStandardPaths>
 #include <QTextBlock>

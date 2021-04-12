@@ -1,3 +1,6 @@
+#include <QDataStream>
+#include <QDebug>
+
 #include "core/flash.h"
 #include "core/os/os.h"
 

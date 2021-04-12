@@ -4,7 +4,6 @@
 #include <QObject>
 #include <QtQml>
 
-#include "emuthread.h"
 #include "kitmodel.h"
 
 class QMLBridge : public QObject

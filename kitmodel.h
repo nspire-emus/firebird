@@ -1,7 +1,7 @@
 #ifndef KITMODEL_H
 #define KITMODEL_H
 
-#include <QtQml>
+#include <QAbstractListModel>
 
 struct Kit
 {
