@@ -3,8 +3,8 @@
 #ifndef _H_FLASH
 #define _H_FLASH
 
+#include <stddef.h>
 #include <stdint.h>
-#include <unistd.h>
 
 #ifdef __cplusplus
 #include <string>
