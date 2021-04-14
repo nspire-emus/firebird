@@ -9,6 +9,7 @@
 #include <QWindow>
 #include <QQmlApplicationEngine>
 
+#include "emuthread.h"
 #include "qtframebuffer.h"
 #include "qmlbridge.h"
 #include "kitmodel.h"

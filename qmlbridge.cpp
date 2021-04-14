@@ -3,6 +3,7 @@
 
 #include <QUrl>
 
+#include "emuthread.h"
 #include "qmlbridge.h"
 
 #ifndef MOBILE_UI
