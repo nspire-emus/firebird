@@ -1,7 +1,7 @@
 import QtQuick 2.0
 import QtQuick.Controls 2.0
-import QtQuick.Dialogs 1.1
 import QtQuick.Layouts 1.0
+import Qt.labs.platform 1.1
 import Firebird.Emu 1.0
 import Firebird.UIComponents 1.0
 
@@ -35,12 +35,12 @@ ColumnLayout {
         active: false
         sourceComponent: FileDialog {
             nameFilters: [ qsTr("TNS Documents") +"(*.tns)", qsTr("Operating Systems") + "(*.tno *.tnc *.tco *.tcc *.tlo *.tmo *.tmc *.tco2 *.tcc2 *.tct2)" ]
-            selectMultiple: true
+            fileMode: FileDialog.OpenFiles
             onAccepted: {
                 transferStatus.text = qsTr("Starting");
                 transferProgress.indeterminate = true;
-                for(let i = 0; i < fileUrls.length; ++i)
-                    Emu.sendFile(fileUrls[i], Emu.usbdir);
+                for(let i = 0; i < files.length; ++i)
+                    Emu.sendFile(files[i], Emu.usbdir);
             }
         }
     }

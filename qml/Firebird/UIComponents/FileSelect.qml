@@ -1,10 +1,11 @@
 import QtQuick 2.0
 import QtQuick.Controls 2.3
-import QtQuick.Dialogs 1.0
+import Qt.labs.platform 1.1
 import QtQuick.Layouts 1.0
 import Firebird.Emu 1.0
 
 RowLayout {
+    id: root
     property string filePath: ""
     property bool selectExisting: true
     property alias subtext: subtextLabel.text
@@ -20,9 +21,9 @@ RowLayout {
         sourceComponent: FileDialog {
             folder: Emu.dir(filePath)
             // If save dialogs are not supported, force an open dialog
-            selectExisting: parent.selectExisting || !Emu.saveDialogSupported()
+            fileMode: (root.selectExisting || !Emu.saveDialogSupported()) ? FileDialog.OpenFile : FileDialog.SaveFile
             onAccepted: {
-                filePath = Emu.toLocalFile(fileUrl);
+                filePath = Emu.toLocalFile(file);
                 forceRefresh++;
             }
         }
@@ -69,10 +70,10 @@ RowLayout {
             id: createDialogLoader
             active: false
             sourceComponent: FileDialog {
-                folder: Emu.dir(filePath)
-                selectExisting: false
+                folder: Emu.dir(file)
+                fileMode: FileDialog.SaveFile
                 onAccepted: {
-                    filePath = Emu.toLocalFile(fileUrl);
+                    filePath = Emu.toLocalFile(file);
                     forceRefresh++;
                 }
             }

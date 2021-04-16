@@ -3,7 +3,7 @@ import Firebird.UIComponents 1.0
 
 import QtQuick 2.0
 import QtQuick.Controls 2.0
-import QtQuick.Dialogs 1.1
+import Qt.labs.platform 1.1
 import QtQuick.Layouts 1.0
 
 ApplicationWindow {
@@ -60,12 +60,11 @@ ApplicationWindow {
 
     MessageDialog {
         id: suspendFailedDialog
-        standardButtons: StandardButton.Yes | StandardButton.No
-        icon: StandardIcon.Warning
+        buttons: MessageDialog.Yes | MessageDialog.No
         title: qsTr("Suspend failed")
         text: qsTr("Suspending the emulation failed. Do you still want to quit Firebird?")
 
-        onYes: {
+        onYesClicked: {
             ignoreSuspendOnClose = true;
             app.close();
         }
