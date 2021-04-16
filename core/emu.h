@@ -27,7 +27,6 @@ static inline uint16_t BSWAP16(uint16_t x) { return x << 8 | x >> 8; }
 #define BSWAP32(x) __builtin_bswap32(x)
 
 extern int cycle_count_delta __asm__("cycle_count_delta");
-extern int throttle_delay;
 extern uint32_t cpu_events __asm__("cpu_events");
 #define EVENT_IRQ 1
 #define EVENT_FIQ 2
@@ -63,7 +62,7 @@ void warn(const char *fmt, ...);
 __attribute__((noreturn)) void error(const char *fmt, ...);
 void throttle_timer_on();
 void throttle_timer_off();
-void throttle_timer_wait();
+void throttle_timer_wait(unsigned int usec);
 void add_reset_proc(void (*proc)(void));
 
 // Uses emu_longjmp to return into the main loop.

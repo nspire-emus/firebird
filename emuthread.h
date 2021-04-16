@@ -10,7 +10,7 @@ public:
     explicit EmuThread(QObject *parent = 0);
 
     void doStuff(bool wait);
-    void throttleTimerWait();
+    void throttleTimerWait(unsigned int usec);
 
     QString boot1, flash;
     unsigned int port_gdb = 0, port_rdbg = 0;

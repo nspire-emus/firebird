@@ -22,8 +22,6 @@
  * to the next scheduled event. See sched.c */
 int cycle_count_delta = 0;
 
-int throttle_delay = 10; /* in milliseconds */
-
 uint32_t cpu_events;
 
 bool do_translate = true;
@@ -108,15 +106,19 @@ void return_to_loop()
 
 extern "C" void usblink_timer();
 
+// Store the last time the throttle event happened
+static auto last_throttle = std::chrono::high_resolution_clock::now();
+// Calculate speed by summing up the elapsed virtual and real time and taking the ratio
+static std::chrono::microseconds real_time_elapsed_sum, virt_time_elapsed_sum;
+
 void throttle_interval_event(int index)
 {
-    event_repeat(index, 27000000 / 100);
-
     /* Throttle interval (defined arbitrarily as 100Hz) - used for
      * keeping the emulator speed down, and other miscellaneous stuff
      * that needs to be done periodically */
-    static int intervals = 0, prev_intervals = 0;
-    intervals += 1;
+    event_repeat(index, 27000000 / 100);
+    // 100Hz -> called every virtual 10ms
+    const auto virt_throttle_interval = std::chrono::milliseconds(10);
 
     usblink_timer();
 
@@ -130,22 +132,32 @@ void throttle_interval_event(int index)
 
     rdebug_recv();
 
-    // Calculate speed
-    auto interval_end = std::chrono::high_resolution_clock::now();
-    static auto prev = interval_end;
-    static double speed = 1.0;
-    auto time = std::chrono::duration_cast<std::chrono::microseconds>(interval_end - prev).count();
-    if (time >= 500000) {
-        speed = (double)10000 * (intervals - prev_intervals) / time;
-        gui_show_speed(speed);
-        prev_intervals = intervals;
-        prev = interval_end;
+    // Compute how much time elapsed since last_throttle
+    auto real_interval = std::chrono::high_resolution_clock::now() - last_throttle;
+    auto real_time_diff = virt_throttle_interval - real_interval;
+    auto real_time_left_us = std::chrono::duration_cast<std::chrono::microseconds>(real_time_diff).count();
+    // If less than the virtual throttle interval elapsed, wait
+    if(real_time_left_us > 0 && !turbo_mode)
+        throttle_timer_wait(real_time_left_us);
+
+    // Use this as the new value for last_throttle
+    auto new_last_throttle = std::chrono::high_resolution_clock::now();
+
+    // Add the elapsed times to (real/virt)_time_elapsed_sum
+    auto real_time_elapsed = (new_last_throttle - last_throttle);
+    auto real_time_elapsed_us = std::chrono::duration_cast<std::chrono::microseconds>(real_time_elapsed);
+    real_time_elapsed_sum += real_time_elapsed_us;
+    virt_time_elapsed_sum += virt_throttle_interval;
+    // When half a (real) second passes, use the sums for speed computation and clear them
+    if(real_time_elapsed_sum >= std::chrono::milliseconds(500))
+    {
+        gui_show_speed(double(virt_time_elapsed_sum.count()) / real_time_elapsed_sum.count());
+        virt_time_elapsed_sum = real_time_elapsed_sum = {};
     }
 
-    gui_do_stuff(true);
+    last_throttle = new_last_throttle;
 
-    if (!turbo_mode)
-        throttle_timer_wait();
+    gui_do_stuff(true);
 }
 
 struct gui_busy_raii {

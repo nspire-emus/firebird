@@ -99,9 +99,9 @@ void throttle_timer_on()
     emu_thread.setTurboMode(false);
 }
 
-void throttle_timer_wait()
+void throttle_timer_wait(unsigned int usec)
 {
-    emu_thread.throttleTimerWait();
+    emu_thread.throttleTimerWait(usec);
 }
 
 EmuThread::EmuThread(QObject *parent) :
@@ -163,13 +163,10 @@ void EmuThread::run()
     emit stopped();
 }
 
-void EmuThread::throttleTimerWait()
+void EmuThread::throttleTimerWait(unsigned int usec)
 {
-    unsigned int now = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count();
-    unsigned int throttle = throttle_delay * 1000;
-    unsigned int left = throttle - (now % throttle);
-    if(left > 0)
-        QThread::usleep(left);
+    if(usec > 1)
+        QThread::usleep(usec);
 }
 
 void EmuThread::setTurboMode(bool enabled)

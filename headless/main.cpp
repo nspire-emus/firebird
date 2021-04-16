@@ -63,7 +63,7 @@ void gui_show_speed(double d) {}
 void gui_usblink_changed(bool state) {}
 void throttle_timer_off() {}
 void throttle_timer_on() {}
-void throttle_timer_wait() {}
+void throttle_timer_wait(unsigned int usec) {}
 
 int main(int argc, char *argv[])
 {
