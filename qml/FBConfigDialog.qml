@@ -1,6 +1,5 @@
 import QtQuick 2.0
 import QtQuick.Window 2.2
-import QtQuick.Dialogs 1.2
 import QtQuick.Controls 1.2
 import QtQuick.Layouts 1.0
 import Firebird.UIComponents 1.0
@@ -13,12 +12,11 @@ Window {
     height: 420
     width: 540
 
-    Dialog {
-        visible: false
-        Component.onCompleted: {
-            window.color = contentItem.color
-        }
+    SystemPalette {
+        id: paletteActive
     }
+
+    color: paletteActive.window
 
     ConfigPages {
         anchors {

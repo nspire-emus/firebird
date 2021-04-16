@@ -3,7 +3,6 @@ import Firebird.UIComponents 1.0
 
 import QtQuick 2.0
 import QtQuick.Layouts 1.0
-import QtQuick.Dialogs 1.1
 
 GridLayout {
     id: mobileui
