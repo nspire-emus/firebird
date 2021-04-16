@@ -73,12 +73,14 @@ static void migrateSettings()
 
 int main(int argc, char **argv)
 {
-    #ifdef Q_OS_ANDROID
-        QGuiApplication::setAttribute(Qt::AA_DisableHighDpiScaling);
-    #else
-        QGuiApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
+    #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+        #ifdef Q_OS_ANDROID
+            QGuiApplication::setAttribute(Qt::AA_DisableHighDpiScaling);
+        #else
+            QGuiApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
+        #endif
+        QGuiApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
     #endif
-    QGuiApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
 
     #ifdef MOBILE_UI
         QGuiApplication app(argc, argv);
@@ -104,7 +106,9 @@ int main(int argc, char **argv)
     QCoreApplication::setApplicationName(QStringLiteral("firebird-emu"));
 
     // Needed for settings migration
-    qRegisterMetaTypeStreamOperators<KitModel>();
+    #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+        qRegisterMetaTypeStreamOperators<KitModel>();
+    #endif
     qRegisterMetaType<KitModel>();
 
     migrateSettings();

@@ -123,7 +123,7 @@ MainWindow::MainWindow(QWidget *parent) :
         languageCode.chop(3); // Chop off file extension
         QLocale locale(languageCode);
         QAction *action = new QAction(locale.nativeLanguageName(), ui->menuLanguage);
-        connect(action, &QAction::triggered, this, [this,languageCode] { this->switchTranslator(languageCode); });
+        connect(action, &QAction::triggered, this, [this,locale] { this->switchTranslator(locale); });
         ui->menuLanguage->addAction(action);
     }
 
