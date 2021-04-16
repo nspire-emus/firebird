@@ -1,5 +1,5 @@
 import QtQuick 2.0
-import QtQuick.Controls 1.0
+import QtQuick.Controls 2.0
 import QtQuick.Layouts 1.0
 import Firebird.Emu 1.0
 import Firebird.UIComponents 1.0
@@ -26,7 +26,6 @@ ColumnLayout {
     GroupBox {
         Layout.fillWidth: true
         Layout.minimumWidth: contentItem.Layout.minimumWidth
-        Layout.bottomMargin: -1
         title: qsTr("Kit Properties")
 
         GridLayout {

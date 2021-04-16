@@ -1,5 +1,5 @@
 import QtQuick 2.0
-import QtQuick.Controls 1.0
+import QtQuick.Controls 2.0
 import QtQuick.Layouts 1.0
 import Firebird.Emu 1.0
 import Firebird.UIComponents 1.0
@@ -43,8 +43,8 @@ ColumnLayout {
             id: gdbPort
             Layout.maximumWidth: TextMetrics.normalSize * 8
 
-            minimumValue: 1
-            maximumValue: 65535
+            from: 1
+            to: 65535
 
             value: Emu.gdbPort
             onValueChanged: {
@@ -91,8 +91,8 @@ ColumnLayout {
             id: rdbPort
             Layout.maximumWidth: TextMetrics.normalSize * 8
 
-            minimumValue: 1
-            maximumValue: 65535
+            from: 1
+            to: 65535
 
             value: Emu.rdbPort
             onValueChanged: {

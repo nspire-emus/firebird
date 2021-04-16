@@ -1,5 +1,5 @@
 import QtQuick 2.0
-import QtQuick.Controls 1.0
+import QtQuick.Controls 2.0
 import QtQuick.Dialogs 1.1
 import QtQuick.Layouts 1.0
 import Firebird.Emu 1.0
@@ -64,8 +64,8 @@ ColumnLayout {
         ProgressBar {
             id: transferProgress
             Layout.fillWidth: true
-            minimumValue: 0
-            maximumValue: 100
+            from: 0
+            to: 100
         }
     }
 
