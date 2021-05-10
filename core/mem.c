@@ -60,14 +60,14 @@ uint32_t phys_mem_addr(void *ptr) {
     return -1; // should never happen
 }
 
-void read_action(void *ptr) {
+SYSVABI void read_action(void *ptr) {
     uint32_t addr = phys_mem_addr(ptr);
     if (!gdb_connected)
         emuprintf("Hit read breakpoint at %08x. Entering debugger.\n", addr);
     debugger(DBG_READ_BREAKPOINT, addr);
 }
 
-void write_action(void *ptr) {
+SYSVABI void write_action(void *ptr) {
     uint32_t addr = phys_mem_addr(ptr);
     uint32_t *flags = &RAM_FLAGS((size_t)ptr & ~3);
     if (*flags & RF_WRITE_BREAKPOINT) {

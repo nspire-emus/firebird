@@ -95,15 +95,6 @@ void os_unmap_cow(void *addr, size_t size)
     _close(flash_fd);
 }
 
-static int addr_cache_exception(PEXCEPTION_RECORD er, void *x, void *y, void *z) {
-    (void) x; (void) y; (void) z;
-    if (er->ExceptionCode == EXCEPTION_ACCESS_VIOLATION) {
-        if (addr_cache_pagefault((void *)er->ExceptionInformation[1]))
-            return 0; // Continue execution
-    }
-    return 1; // Continue search
-}
-
 void addr_cache_init() {
     // Don't run more than once
     if(addr_cache)
@@ -111,14 +102,14 @@ void addr_cache_init() {
 
     DWORD flags = MEM_RESERVE;
 
-#ifndef NDEBUG
+#if !defined(NDEBUG) || !defined(__i386__)
     // Commit memory to not trigger segfaults which make debugging a PITA
     flags |= MEM_COMMIT;
 #endif
 
     addr_cache = VirtualAlloc(NULL, AC_NUM_ENTRIES * sizeof(ac_entry), flags, PAGE_READWRITE);
 
-#ifndef NDEBUG
+#if !defined(NDEBUG) || !defined(__i386__)
     // Without segfaults we have to invalidate everything here
     unsigned int i;
     for(i = 0; i < AC_NUM_ENTRIES; ++i)
@@ -127,6 +118,7 @@ void addr_cache_init() {
     }
 #endif
 
+#if defined(__i386__) && !defined(NO_TRANSLATION)
     // Relocate the assembly code that wants addr_cache at a fixed address
     extern DWORD *ac_reloc_start[] __asm__("ac_reloc_start"), *ac_reloc_end[] __asm__("ac_reloc_end");
     DWORD **reloc;
@@ -136,6 +128,17 @@ void addr_cache_init() {
         **reloc += (DWORD)addr_cache;
         VirtualProtect(*reloc, 4, prot, &prot);
     }
+#endif
+}
+
+#if defined(__i386__)
+static int addr_cache_exception(PEXCEPTION_RECORD er, void *x, void *y, void *z) {
+    (void) x; (void) y; (void) z;
+    if (er->ExceptionCode == EXCEPTION_ACCESS_VIOLATION) {
+        if (addr_cache_pagefault((void *)er->ExceptionInformation[1]))
+            return 0; // Continue execution
+    }
+    return 1; // Continue search
 }
 
 void os_faulthandler_arm(os_exception_frame_t *frame)
@@ -154,16 +157,19 @@ void os_faulthandler_unarm(os_exception_frame_t *frame)
     asm ("movl %0, %%fs:(%1)" : : "r" (frame->prev), "r" (0));
     frame->prev = NULL;
 }
+#endif
 
 void addr_cache_deinit() {
     if(!addr_cache)
         return;
 
+#if defined(__i386__) && !defined(NO_TRANSLATION)
     // Undo the relocations
     extern DWORD *ac_reloc_start[] __asm__("ac_reloc_start"), *ac_reloc_end[] __asm__("ac_reloc_end");
     DWORD **reloc;
     for (reloc = ac_reloc_start; reloc != ac_reloc_end; reloc++)
         **reloc -= (DWORD)addr_cache;
+#endif
 
     VirtualFree(addr_cache, 0, MEM_RELEASE);
     addr_cache = NULL;

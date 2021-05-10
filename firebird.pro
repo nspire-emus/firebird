@@ -106,8 +106,6 @@ equals(FB_ARCH, "i386") {
 win32 {
     SOURCES += core/os/os-win32.c
     LIBS += -lwinmm -lws2_32
-    # Somehow it's set to x86_64...
-    FB_ARCH = x86
 }
 
 # A platform-independant implementation of lowlevel access as default

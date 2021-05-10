@@ -8,7 +8,6 @@
 #include "debug.h"
 #include "os/os.h"
 
-extern void translation_enter() __asm__("translation_enter");
 extern void translation_next() __asm__("translation_next");
 extern void translation_next_bx() __asm__("translation_next_bx");
 extern uintptr_t arm_shift_proc[2][4] __asm__("arm_shift_proc");
