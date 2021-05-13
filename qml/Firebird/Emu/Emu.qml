@@ -9,18 +9,18 @@ QtObject {
     property bool running: false
     property bool leftHanded: false
     property string version: "1.5"
-    property var toast: null
 
     function useDefaultKit() {}
     function isMobile() { return true; }
     function setPaused(paused) { }
     function resume() { toast.showMessage("Resume"); }
     function dir() { return "/"; }
-    function registerTouchpad(tpad) {}
     function registerToast(toastref) { toast = toastref; }
     function registerNButton(keymap_id, buttonref) {}
     function restart() { toastMessage("Restart"); }
-    function toastMessage(msg) { toast.showMessage(msg); }
-    function touchpadStateChanged(x, y, down, contact) {}
-    function keypadStateChanged(keymap_id, down) {}
+    signal toastMessage(string msg)
+    signal touchpadStateChanged(real x, real y, bool down, bool contact)
+    function setTouchpadState(x, y, down, contact) { touchpadStateChanged(x, y, down, contact); }
+    signal buttonStateChanged(int id, bool state)
+    function setButtonState(keymap_id, down) {}
 }

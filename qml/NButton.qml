@@ -21,11 +21,15 @@ Rectangle {
         if(pressed)
             clicked();
 
-        Emu.keypadStateChanged(keymap_id, pressed);
+        Emu.setButtonState(keymap_id, pressed);
     }
 
-    Component.onCompleted: {
-        Emu.registerNButton(keymap_id, this);
+    Connections {
+        target: Emu
+        function onButtonStateChanged(id, state) {
+            if(id === keymap_id)
+                pressed = state;
+        }
     }
 
     Text {
