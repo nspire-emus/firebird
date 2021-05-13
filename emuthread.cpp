@@ -9,6 +9,11 @@
 #include <QEventLoop>
 #include <QTimer>
 
+#ifdef Q_OS_WINDOWS
+    #include <time.h>
+    #include <windows.h>
+#endif
+
 #include "core/debug.h"
 #include "core/emu.h"
 #include "core/usblink_queue.h"
@@ -165,8 +170,20 @@ void EmuThread::run()
 
 void EmuThread::throttleTimerWait(unsigned int usec)
 {
-    if(usec > 1)
+    if(usec <= 1)
+        return;
+
+    #ifdef Q_OS_WINDOWS
+        // QThread::usleep uses Sleep, which may sleep up to ~32ms more!
+        // Use nanosleep inside a timeBeginPeriod/timeEndPeriod block for accuracy.
+        timeBeginPeriod(10);
+        struct timespec ts{};
+        ts.tv_nsec = usec * 1000;
+        nanosleep(&ts, nullptr);
+        timeEndPeriod(10);
+    #else
         QThread::usleep(usec);
+    #endif
 }
 
 void EmuThread::setTurboMode(bool enabled)
