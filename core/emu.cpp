@@ -107,7 +107,7 @@ void return_to_loop()
 extern "C" void usblink_timer();
 
 // Store the last time the throttle event happened
-static auto last_throttle = std::chrono::high_resolution_clock::now();
+static auto last_throttle = std::chrono::steady_clock::now();
 // Calculate speed by summing up the elapsed virtual and real time and taking the ratio
 static std::chrono::microseconds real_time_elapsed_sum, virt_time_elapsed_sum;
 
@@ -133,7 +133,7 @@ void throttle_interval_event(int index)
     rdebug_recv();
 
     // Compute how much time elapsed since last_throttle
-    auto real_interval = std::chrono::high_resolution_clock::now() - last_throttle;
+    auto real_interval = std::chrono::steady_clock::now() - last_throttle;
     auto real_time_diff = virt_throttle_interval - real_interval;
     auto real_time_left_us = std::chrono::duration_cast<std::chrono::microseconds>(real_time_diff).count();
     // If less than the virtual throttle interval elapsed, wait
@@ -141,7 +141,7 @@ void throttle_interval_event(int index)
         throttle_timer_wait(real_time_left_us);
 
     // Use this as the new value for last_throttle
-    auto new_last_throttle = std::chrono::high_resolution_clock::now();
+    auto new_last_throttle = std::chrono::steady_clock::now();
 
     // Add the elapsed times to (real/virt)_time_elapsed_sum
     auto real_time_elapsed = (new_last_throttle - last_throttle);
