@@ -25,14 +25,16 @@ TARGET = firebird-emu
 # Warn if git submodules not downloaded
 !exists("core/gif-h/gif.h"): error("You have to run 'git submodule init' and 'git submodule update' first.")
 
-linux: !android {
+unix: !android {
     # For make install support
-    target.path = /usr/bin
-    desktop.path = /usr/share/applications
+    isEmpty(PREFIX): PREFIX = /usr/local
+    message("PREFIX: $$PREFIX")
+    target.path = $$PREFIX/bin
+    desktop.path = $$PREFIX/share/applications
     desktop.files += resources/org.firebird-emus.firebird-emu.desktop
-    icon.path = /usr/share/icons/hicolor/512x512/apps
+    icon.path = $$PREFIX/share/icons/hicolor/512x512/apps
     icon.files += resources/org.firebird-emus.firebird-emu.png
-    sendtool.path = /usr/bin
+    sendtool.path = $$PREFIX/bin
     sendtool.files = core/firebird-send
     INSTALLS += target desktop icon sendtool
 }
