@@ -35,6 +35,7 @@ unix: !android {
     icon.path = $$PREFIX/share/icons/hicolor/512x512/apps
     icon.files += resources/org.firebird-emus.firebird-emu.png
     sendtool.path = $$PREFIX/bin
+    sendtool.CONFIG = nostrip
     sendtool.files = core/firebird-send
     INSTALLS += target desktop icon sendtool
 }
