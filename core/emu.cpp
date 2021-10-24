@@ -4,6 +4,7 @@
 #include <cctype>
 
 #include <fcntl.h>
+#include <unistd.h>
 
 #include <zlib.h>
 
