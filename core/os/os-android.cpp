@@ -46,7 +46,6 @@ FILE *fopen_utf8(const char *path, const char *mode)
     {
         env->ExceptionDescribe();
         env->ExceptionClear();
-        return nullptr;
     }
 
     QAndroidJniObject parcelFileDescriptor = contentResolver
