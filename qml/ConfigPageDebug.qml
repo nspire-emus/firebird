@@ -4,8 +4,14 @@ import QtQuick.Layouts 1.0
 import Firebird.Emu 1.0
 import Firebird.UIComponents 1.0
 
-ColumnLayout {
+ScrollView {
+    id: sv
+    // TODO: Find out why this breaks on desktop
+    flickableItem.interactive: Emu.isMobile()
+
+    ColumnLayout {
     spacing: 5
+    width: sv.viewport.width
 
     FBLabel {
         text: qsTr("Remote GDB debugging")
@@ -179,4 +185,5 @@ ColumnLayout {
             }
         }
     }
+}
 }
