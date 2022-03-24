@@ -359,6 +359,9 @@ void QMLBridge::switchUIMode(bool mobile_ui)
 
 void QMLBridge::setActive(bool b)
 {
+    if(is_active == b)
+        return;
+
     if(b)
     {
         connect(&emu_thread, SIGNAL(speedChanged(double)), this, SLOT(speedChanged(double)), Qt::QueuedConnection);
@@ -388,6 +391,8 @@ void QMLBridge::setActive(bool b)
         disconnect(&emu_thread, SIGNAL(resumed(bool)), this, SLOT(resumed(bool)));
         disconnect(&emu_thread, SIGNAL(suspended(bool)), this, SLOT(suspended(bool)));
     }
+
+    is_active = b;
 }
 
 void QMLBridge::saveKits()
