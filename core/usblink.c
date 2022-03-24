@@ -230,7 +230,6 @@ send_data:
             }
 
             gui_status_printf("Send complete");
-            throttle_timer_on();
             put_file_state = DONE;
             break;
         case RECVING_FF_00:
@@ -277,6 +276,7 @@ fail:
     gui_usblink_changed(false);
 
 teardown:
+    throttle_timer_on();
     put_file_state = 0;
     fclose(put_file);
     put_file = NULL;
