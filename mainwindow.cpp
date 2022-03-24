@@ -353,6 +353,7 @@ void MainWindow::debugStr(QString str)
 
 void MainWindow::debugCommand()
 {
+    emit debugStr(QStringLiteral("> %1\n").arg(ui->lineEdit->text()));
     emit debuggerCommand(ui->lineEdit->text());
     ui->lineEdit->clear();
 }
