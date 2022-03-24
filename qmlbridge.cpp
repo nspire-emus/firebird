@@ -430,6 +430,7 @@ void QMLBridge::setActive(bool b)
         connect(&emu_thread, SIGNAL(started(bool)), this, SLOT(started(bool)), Qt::QueuedConnection);
         connect(&emu_thread, SIGNAL(resumed(bool)), this, SLOT(resumed(bool)), Qt::QueuedConnection);
         connect(&emu_thread, SIGNAL(suspended(bool)), this, SLOT(suspended(bool)), Qt::QueuedConnection);
+        connect(&emu_thread, SIGNAL(debugStr(QString)), this, SIGNAL(debugStr(QString)), Qt::QueuedConnection);
 
         // We might have missed some events.
         turboModeChanged();
@@ -447,6 +448,7 @@ void QMLBridge::setActive(bool b)
         disconnect(&emu_thread, SIGNAL(started(bool)), this, SLOT(started(bool)));
         disconnect(&emu_thread, SIGNAL(resumed(bool)), this, SLOT(resumed(bool)));
         disconnect(&emu_thread, SIGNAL(suspended(bool)), this, SLOT(suspended(bool)));
+        disconnect(&emu_thread, SIGNAL(debugStr(QString)), this, SIGNAL(debugStr(QString)));
     }
 
     is_active = b;

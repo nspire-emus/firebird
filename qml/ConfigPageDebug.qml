@@ -151,7 +151,32 @@ ColumnLayout {
         }
     }
 
-    Item {
+    FBLabel {
+        text: qsTr("Debug Messages")
+        font.pixelSize: TextMetrics.title2Size
+        Layout.topMargin: 5
+        Layout.bottomMargin: 5
+        visible: debugMessages.visible
+    }
+
+    TextArea {
+        id: debugMessages
         Layout.fillHeight: true
+        Layout.fillWidth: true
+        Layout.minimumHeight: TextMetrics.normalSize * 12
+        font.pixelSize: TextMetrics.normalSize
+        font.family: "monospace"
+        readOnly: true
+        visible: Emu.isMobile()
+
+        Connections {
+            target: Emu
+            // TODO: Use once QtQuick 2.7+ works
+            // enabled: debugMessages.visible
+            function onDebugStr(str) {
+                // if(debugMessages.visible) is false for some reason...
+                debugMessages.insert(debugMessages.length, str);
+            }
+        }
     }
 }

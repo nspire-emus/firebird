@@ -25,4 +25,5 @@ QtObject {
     function setButtonState(keymap_id, down) {}
     function toLocalFile(url) { return url; }
     function basename(path) { return path; }
+    signal debugStr
 }
