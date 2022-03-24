@@ -44,6 +44,8 @@ ColumnLayout {
     }
 
     RowLayout {
+        Layout.maximumWidth: parent.width
+
         Button {
             text: qsTr("Send a file")
             // If this button is disabled, the transfer directory textinput has the focus again,

@@ -55,7 +55,9 @@ ColumnLayout {
     }
 
     FBLabel {
+        Layout.maximumWidth: parent.width
         text: qsTr("Remote access to internal debugger")
+        wrapMode: Text.WordWrap
         font.pixelSize: TextMetrics.title2Size
         Layout.topMargin: 10
         Layout.bottomMargin: 5
