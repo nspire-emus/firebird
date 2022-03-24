@@ -48,10 +48,7 @@ Item {
 
             Tab {
                 title: qsTranslate("ConfigPagesModel", rep.model.get(index).title)
-
-                Loader {
-                    source: file
-                }
+                source: file
             }
         }
     }
