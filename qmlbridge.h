@@ -170,6 +170,7 @@ private:
     double speed = 0;
     KitModel kit_model;
     QSettings settings;
+    bool is_active = false;
 };
 
 extern QMLBridge *the_qml_bridge;
