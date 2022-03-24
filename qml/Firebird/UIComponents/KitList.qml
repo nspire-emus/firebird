@@ -21,6 +21,8 @@ Rectangle {
         anchors.margins: parent.border.width
         anchors.fill: parent
 
+        activeFocusOnTab: true
+
         ListView {
             id: listView
 
