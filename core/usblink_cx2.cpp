@@ -333,6 +333,7 @@ bool usblink_cx2_send_navnet(const uint8_t *data, uint16_t size)
 
     int len = sizeof(NNSEMessage) + size;
     NNSEMessage *msg = reinterpret_cast<NNSEMessage*>(malloc(len));
+    msg->misc = 0;
     msg->service = StreamService;
     msg->src = AddrMe;
     msg->dest = AddrCalc;
