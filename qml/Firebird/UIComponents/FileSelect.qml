@@ -11,6 +11,9 @@ RowLayout {
     property bool showCreateButton: false
     signal create()
 
+    // Hack to force reevaluation of Emu.fileExists(filePath) after reselection.
+    // Needed on Android due to persistent permissions.
+    property int forceRefresh: 0
     Loader {
         id: dialogLoader
         active: false
@@ -18,7 +21,10 @@ RowLayout {
             folder: Emu.dir(filePath)
             // If save dialogs are not supported, force an open dialog
             selectExisting: parent.selectExisting || !Emu.saveDialogSupported()
-            onAccepted: filePath = Emu.toLocalFile(fileUrl)
+            onAccepted: {
+                filePath = Emu.toLocalFile(fileUrl);
+                forceRefresh++;
+            }
         }
     }
 
@@ -37,7 +43,7 @@ RowLayout {
 
             font.italic: filePath === ""
             text: filePath === "" ? qsTr("(none)") : Emu.basename(filePath)
-            color: (!selectExisting || filePath === "" || Emu.fileExists(filePath)) ? paletteActive.text : "red"
+            color: { forceRefresh; return ((!selectExisting && Emu.saveDialogSupported()) || filePath === "" || Emu.fileExists(filePath)) ? paletteActive.text : "red"; }
         }
 
         FBLabel {
