@@ -319,8 +319,9 @@ QUrl QMLBridge::dir(QString path)
 
 QString QMLBridge::toLocalFile(QUrl url)
 {
+    // Pass through Android content url, see fopen_utf8
     if(url.scheme() == QStringLiteral("content"))
-        return url.toString(); // Pass through Android content url
+        return url.toString(QUrl::FullyEncoded);
 
     return url.toLocalFile();
 }
