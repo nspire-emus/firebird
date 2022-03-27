@@ -8,10 +8,10 @@
 
 #ifndef MOBILE_UI
     #include "mainwindow.h"
-    #include "flashdialog.h"
 #endif
 
 #include "core/emu.h"
+#include "core/os/os.h"
 #include "core/keypad.h"
 #include "core/usblink_queue.h"
 
@@ -326,23 +326,91 @@ int QMLBridge::kitIndexForID(unsigned int id)
 }
 
 #ifndef MOBILE_UI
-void QMLBridge::createFlash(unsigned int kitIndex)
-{
-    FlashDialog dialog;
-
-    connect(&dialog, &FlashDialog::flashCreated, [&] (QString f){
-        kit_model.setDataRow(kitIndex, f, KitModel::FlashRole);
-    });
-
-    dialog.show();
-    dialog.exec();
-}
-
 void QMLBridge::switchUIMode(bool mobile_ui)
 {
     main_window->switchUIMode(mobile_ui);
 }
 #endif
+
+bool QMLBridge::createFlash(QString path, int productID, int featureValues, QString manuf, QString boot2, QString os, QString diags)
+{
+    bool is_cx = productID >= 0x0F0;
+    std::string preload_str[4] = { manuf.toStdString(), boot2.toStdString(), diags.toStdString(), os.toStdString() };
+    const char *preload[4] = { nullptr, nullptr, nullptr, nullptr };
+
+    for(unsigned int i = 0; i < 4; ++i)
+        if(preload_str[i] != "")
+            preload[i] = preload_str[i].c_str();
+
+    uint8_t *nand_data = nullptr;
+    size_t nand_size;
+
+    if(!flash_create_new(is_cx, preload, productID, featureValues, is_cx, &nand_data, &nand_size))
+    {
+        free(nand_data);
+        return false;
+    }
+
+    QFile flash_file(path);
+    if(!flash_file.open(QFile::WriteOnly) || !flash_file.write(reinterpret_cast<char*>(nand_data), nand_size))
+    {
+        free(nand_data);
+        return false;
+    }
+
+    free(nand_data);
+
+    flash_file.close();
+    return true;
+}
+
+QString QMLBridge::componentDescription(QString path, QString expected_type)
+{
+    FILE *file = fopen_utf8(path.toUtf8().data(), "rb");
+    if(!file)
+        return tr("Open failed");
+
+    std::string type, version;
+    bool b = flash_component_info(file, type, version);
+    fclose(file);
+    if(!b)
+        return QStringLiteral("???");
+
+    if(type != expected_type.toStdString())
+        return tr("Found %1 instead").arg(QString::fromStdString(type).trimmed());
+
+    return QString::fromStdString(version);
+}
+
+QString QMLBridge::manufDescription(QString path)
+{
+    FILE *file = fopen_utf8(path.toUtf8().data(), "rb");
+    if(!file)
+        return tr("Open failed");
+
+    auto raw_type = flash_read_type(file, true);
+    fclose(file);
+    // Reading or parsing failed
+    if(raw_type == "" || raw_type == "???")
+        return QStringLiteral("???");
+
+    return QString::fromStdString(raw_type);
+}
+
+QString QMLBridge::osDescription(QString path)
+{
+    FILE *file = fopen_utf8(path.toUtf8().data(), "rb");
+    if(!file)
+        return tr("Open failed");
+
+    std::string version;
+    bool b = flash_os_info(file, version);
+    fclose(file);
+    if(!b)
+        return QStringLiteral("???");
+
+    return QString::fromStdString(version);
+}
 
 void QMLBridge::setActive(bool b)
 {

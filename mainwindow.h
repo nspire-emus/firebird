@@ -8,7 +8,6 @@
 
 #include "emuthread.h"
 #include "fbaboutdialog.h"
-#include "flashdialog.h"
 #include "lcdwidget.h"
 #include "qmlbridge.h"
 
@@ -148,7 +147,7 @@ private:
     QLabel status_label;
 
     QSettings *settings = nullptr;
-    FlashDialog flash_dialog;
+
     // To make it possible to activate the debugger
     QDockWidget *dock_debugger = nullptr;
 
@@ -165,6 +164,11 @@ private:
     QQmlComponent *config_component = nullptr;
     // The QML Config Dialog
     QObject *config_dialog = nullptr;
+
+    // The flash dialog component, used to create the flash_dialog
+    QQmlComponent *flash_dialog_component = nullptr;
+    // The QML Config Dialog
+    QObject *flash_dialog = nullptr;
 
     // The Mobile UI component, used to create the mobile_dialog
     QQmlComponent *mobileui_component = nullptr;

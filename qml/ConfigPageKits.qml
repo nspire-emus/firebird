@@ -78,7 +78,7 @@ ColumnLayout {
                 elide: Text.ElideMiddle
             }
 
-            RowLayout {
+            ColumnLayout {
                 Layout.fillWidth: true
 
                 FileSelect {
@@ -92,18 +92,23 @@ ColumnLayout {
                     }
                 }
 
-                Button {
-                    text: qsTr("Create")
-                    visible: !Emu.isMobile()
-                    onClicked: {
-                        Emu.createFlash(kitList.currentIndex)
-                        flashEdit.filePath = kitList.currentItem.myData.flash
+                FlashDialog {
+                    id: flashDialog
+                    onFlashCreated: {
+                        kitModel.setDataRow(kitList.currentIndex, filePath, KitModel.FlashRole);
                     }
+                }
+
+                Button {
+                    id: createButton
+                    Layout.alignment: Qt.AlignRight
+                    text: qsTr("New")
+                    onClicked: flashDialog.visible = true
                 }
             }
 
             FBLabel {
-                text: qsTr("Snapshot file:")
+                text: qsTr("Snapshot:")
                 elide: Text.ElideMiddle
             }
 

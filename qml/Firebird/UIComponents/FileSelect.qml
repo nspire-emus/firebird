@@ -8,6 +8,7 @@ RowLayout {
     id: root
     property string filePath: ""
     property bool selectExisting: true
+    property alias subtext: subtextLabel.text
 
     Loader {
         id: dialogLoader
@@ -24,15 +25,28 @@ RowLayout {
         id: paletteActive
     }
 
-    FBLabel {
-        id: filenameLabel
-        elide: "ElideRight"
-
+    ColumnLayout {
         Layout.fillWidth: true
 
-        font.italic: filePath === ""
-        text: filePath === "" ? qsTr("(none)") : Emu.basename(filePath)
-        color: (!selectExisting || filePath === "" || Emu.fileExists(filePath)) ? paletteActive.text : "red"
+        FBLabel {
+            id: filenameLabel
+            elide: "ElideRight"
+
+            Layout.fillWidth: true
+
+            font.italic: filePath === ""
+            text: filePath === "" ? qsTr("(none)") : Emu.basename(filePath)
+            color: (!selectExisting || filePath === "" || Emu.fileExists(filePath)) ? paletteActive.text : "red"
+        }
+
+        FBLabel {
+            id: subtextLabel
+            elide: "ElideRight"
+
+            font.pixelSize: TextMetrics.normalSize * 0.8
+            Layout.fillWidth: true
+            visible: text !== ""
+        }
     }
 
     Button {

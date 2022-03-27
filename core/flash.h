@@ -121,7 +121,17 @@ void flash_set_bootorder(BootOrder order);
 /* Give it a FILE pointing to a flash image and it'll return a string
  * that describes the HW type, such as "CX (HW J)". If reading fails,
  * it returns an empty string. */
-std::string flash_read_type(FILE *flash);
+std::string flash_read_type(FILE *flash, bool manuf_file = false);
+
+/* Given a FILE to a boot2/bootloader/diags/installer/... image,
+ * it reads the raw type and parsed version.
+ * Returns false on read/parse failure. */
+bool flash_component_info(FILE *file, std::string &type, std::string &version);
+
+/* Given a FILE to an OS file, it reads the type and version to
+ * return a string like "4.5.0.1337 CX CAS".
+ * Returnf false on read/parse failure. */
+bool flash_os_info(FILE *file, std::string &version);
 #endif
 
 #endif

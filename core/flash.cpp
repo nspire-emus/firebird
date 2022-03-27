@@ -843,7 +843,7 @@ bool flash_read_settings(uint32_t *sdram_size, uint32_t *product, uint32_t *feat
     return true;
 }
 
-std::string flash_read_type(FILE *flash)
+std::string flash_read_type(FILE *flash, bool manuf_file)
 {
     uint32_t i;
     if(fread(&i, sizeof(i), 1, flash) != 1)
@@ -872,7 +872,9 @@ std::string flash_read_type(FILE *flash)
     else
     {
         struct manuf_data_804 manuf;
-        if((fseek(flash, 0x844 - sizeof(i), SEEK_CUR) != 0)
+        // Skip OOB area if reading a flash file
+        int offset = manuf_file ? 0x804 : 0x844;
+        if((fseek(flash, offset - sizeof(i), SEEK_CUR) != 0)
            || (fread(&manuf, sizeof(manuf), 1, flash) != 1))
             return "";
 
@@ -944,6 +946,110 @@ std::string flash_read_type(FILE *flash)
     }
 
     return ret;
+}
+
+// The middle part needs an extra dot:
+// 5.13.110 -> 5.1.3.110, 5.0.89 -> 5.0.0.89
+static bool convert_version(std::string &version)
+{
+    auto middle_start = version.find('.');
+    if(middle_start == std::string::npos)
+        return false;
+
+    auto middle_end = version.find('.', middle_start + 1);
+    if(middle_end == std::string::npos)
+        return false;
+
+    const auto middle_len = middle_end - middle_start - 1;
+    if(middle_len == 1)
+        version.insert(middle_start + 1, "0.");
+    else if(middle_len == 2)
+        version.insert(middle_start + 2, ".");
+    /* else not seen yet */
+
+    return true;
+}
+
+bool flash_component_info(FILE *file, std::string &type, std::string &version)
+{
+    uint8_t header[2048];
+    if(fread(&header, sizeof(header), 1, file) != 1)
+        return false;
+
+    auto parser = FieldParser(header, sizeof(header), true);
+    if(!parser.isValid() || parser.id() != 0x8000)
+        return false;
+
+    auto typeField = parser.subField(0x8040),
+         versionField = parser.subField(0x8020);
+    if(!typeField.isValid() || !versionField.isValid())
+        return false;
+
+    type = std::string(reinterpret_cast<const char*>(typeField.data()), typeField.sizeOfData());
+    version = std::string(reinterpret_cast<const char*>(versionField.data()), versionField.sizeOfData());
+
+    return convert_version(version);
+}
+
+bool flash_os_info(FILE *file, std::string &version)
+{
+    std::string header;
+    {
+        uint8_t header_data[1024];
+        if(fread(&header_data, sizeof(header_data), 1, file) != 1)
+            return false;
+        header = std::string(reinterpret_cast<const char*>(header_data), sizeof(header_data));
+    }
+
+    // Pre CX-II OS files have a header like
+    // "TI-Nspire.tcc 4.55.79". CX-II files are plain
+    // ZIP files, but they start with the uncompressed
+    // manifest.txt which has a similar header:
+    // "# TI-Nspire.tco2 \r\n5.00.1407".
+
+    auto pos = header.find("TI-Nspire.");
+    if(pos == std::string::npos)
+        return false;
+
+    auto extstart = pos + sizeof("TI-Nspire.") - 1;
+
+    auto sep = " \r\n";
+    pos = header.find_first_of(sep, pos);
+    if(pos == std::string::npos)
+        return false;
+
+    auto ext = header.substr(extstart, pos - extstart);
+
+    pos = header.find_first_not_of(sep, pos);
+    if(pos == std::string::npos)
+        return false;
+
+    auto end_pos = header.find_first_of(sep, pos);
+    if(pos == std::string::npos)
+        return false;
+
+    version = header.substr(pos, end_pos - pos);
+    if(!convert_version(version))
+        return false;
+
+    if(ext == "tno")
+        /*version += ""*/;
+    else if(ext == "tnc")
+        version += " CAS";
+    else if(ext == "tco")
+        version += " CX";
+    else if(ext == "tcc")
+        version += " CX CAS";
+    else if(ext == "tco2")
+        version += " CX II";
+    else if(ext == "tcc2")
+        version += " CX II CAS";
+    else if(ext == "tct2")
+        version += " CX II-T";
+    else
+        return false;
+
+    return true;
 }
 
 bool flash_suspend(emu_snapshot *snapshot)
