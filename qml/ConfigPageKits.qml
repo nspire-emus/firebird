@@ -24,12 +24,9 @@ ColumnLayout {
     }
 
     GroupBox {
-        id: groupBox1
-        Layout.minimumWidth: parent.width
-        Layout.maximumWidth: parent.width
+        Layout.fillWidth: true
         Layout.bottomMargin: -1
         title: qsTr("Kit Properties")
-
 
         GridLayout {
             anchors.fill: parent
