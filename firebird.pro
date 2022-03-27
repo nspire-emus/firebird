@@ -155,7 +155,6 @@ SOURCES += $$ASMCODE_IMPL \
     lcdwidget.cpp \
     mainwindow.cpp \
     main.cpp \
-    flashdialog.cpp \
     emuthread.cpp \
     qmlbridge.cpp \
     qtkeypadbridge.cpp \
@@ -196,8 +195,7 @@ SOURCES += $$ASMCODE_IMPL \
     core/cx2.cpp
 
 FORMS += \
-    mainwindow.ui \
-    flashdialog.ui
+    mainwindow.ui
 
 HEADERS += \
     core/fieldparser.h \
@@ -205,7 +203,6 @@ HEADERS += \
     core/usblink_cx2.h \
     emuthread.h \
     lcdwidget.h \
-    flashdialog.h \
     mainwindow.h \
     keymap.h \
     qmlbridge.h \
@@ -263,6 +260,7 @@ SOURCES += qml/Keypad.qml \
     qml/NAlphaButton.qml \
     qml/NDualButton.qml \
     qml/FBConfigDialog.qml \
+    qml/FlashDialog.qml \
     qml/Touchpad.qml \
     qml/Firebird/Emu/Emu.qml \
     qml/Firebird/Emu/EmuScreen.qml \

@@ -47,6 +47,11 @@ MainWindow::MainWindow(QWidget *parent) :
     if(!config_component->isReady())
         qCritical() << "Could not create QML config dialog:" << config_component->errorString();
 
+    // Create flash dialog UI component
+    flash_dialog_component = new QQmlComponent(qml_engine, QUrl(QStringLiteral("qrc:/qml/qml/FlashDialog.qml")), this);
+    if(!flash_dialog_component->isReady())
+        qCritical() << "Could not create mobile UI component:" << mobileui_component->errorString();
+
     // Create mobile UI component
     mobileui_component = new QQmlComponent(qml_engine, QUrl(QStringLiteral("qrc:/qml/qml/MobileUI.qml")), this);
     if(!mobileui_component->isReady())
@@ -225,6 +230,9 @@ MainWindow::~MainWindow()
 {
     if(config_dialog)
         config_dialog->deleteLater();
+
+    if(flash_dialog)
+        flash_dialog->deleteLater();
 
     if(mobileui_component)
         mobileui_component->deleteLater();
@@ -673,8 +681,13 @@ void MainWindow::saveFlash()
 
 void MainWindow::createFlash()
 {
-    flash_dialog.show();
-    flash_dialog.exec();
+    if(!flash_dialog)
+        flash_dialog = flash_dialog_component->create();
+
+    if(!flash_dialog)
+        qWarning() << "Could not create flash dialog!";
+    else
+        flash_dialog->setProperty("visible", QVariant(true));
 }
 
 void MainWindow::setUIEditMode(bool e)
@@ -745,6 +758,9 @@ void MainWindow::closeEvent(QCloseEvent *e)
 {
     if(config_dialog)
         config_dialog->setProperty("visible", false);
+
+    if(flash_dialog)
+        flash_dialog->setProperty("visible", false);
 
     if(!close_after_suspend &&
             settings->value(QStringLiteral("suspendOnClose")).toBool() && emu_thread.isRunning() && exiting == false)

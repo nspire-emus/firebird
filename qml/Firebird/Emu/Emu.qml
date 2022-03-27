@@ -23,4 +23,6 @@ QtObject {
     function setTouchpadState(x, y, down, contact) { touchpadStateChanged(x, y, down, contact); }
     signal buttonStateChanged(int id, bool state)
     function setButtonState(keymap_id, down) {}
+    function toLocalFile(url) { return url; }
+    function basename(path) { return path; }
 }
