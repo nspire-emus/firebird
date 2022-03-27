@@ -9,3 +9,4 @@ FBLink 1.0 FBLink.qml
 Toast 1.0 Toast.qml
 VerticalSwipeBar 1.0 VerticalSwipeBar.qml
 singleton TextMetrics 1.0 TextMetrics.qml
+singleton Global 1.0 Global.qml
