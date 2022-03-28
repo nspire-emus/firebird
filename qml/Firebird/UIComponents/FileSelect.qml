@@ -5,10 +5,11 @@ import QtQuick.Layouts 1.0
 import Firebird.Emu 1.0
 
 RowLayout {
-    id: root
     property string filePath: ""
     property bool selectExisting: true
     property alias subtext: subtextLabel.text
+    property bool showCreateButton: false
+    signal create()
 
     Loader {
         id: dialogLoader
@@ -16,7 +17,7 @@ RowLayout {
         sourceComponent: FileDialog {
             folder: Emu.dir(filePath)
             // If save dialogs are not supported, force an open dialog
-            selectExisting: root.selectExisting || !Emu.saveDialogSupported()
+            selectExisting: parent.selectExisting || !Emu.saveDialogSupported()
             onAccepted: filePath = Emu.toLocalFile(fileUrl)
         }
     }
@@ -49,13 +50,40 @@ RowLayout {
         }
     }
 
-    Button {
-        id: selectButton
-        text: qsTr("Select")
+    // Button for either custom creation functionality (onCreate) or
+    // if the open file dialog doesn't allow creation, to open a file creation dialog.
+    IconButton {
+        visible: showCreateButton || (!selectExisting && !Emu.saveDialogSupported())
+        icon: "qrc:/icons/resources/icons/document-new.png"
+
+        Loader {
+            id: createDialogLoader
+            active: false
+            sourceComponent: FileDialog {
+                folder: filePath ? Emu.dir(filePath) : Global.lastFileDialogDir
+                selectExisting: false
+                onAccepted: {
+                    filePath = Emu.toLocalFile(fileUrl);
+                    Global.lastFileDialogDir = Emu.dir(filePath);
+                }
+            }
+        }
 
         onClicked: {
-            dialogLoader.active = true
-            dialogLoader.item.visible = true
+            if(showCreateButton)
+                parent.create()
+            else {
+                createDialogLoader.active = true;
+                createDialogLoader.item.visible = true;
+            }
+        }
+    }
+
+    IconButton {
+        icon: "qrc:/icons/resources/icons/document-edit.png"
+        onClicked: {
+            dialogLoader.active = true;
+            dialogLoader.item.visible = true;
         }
     }
 }

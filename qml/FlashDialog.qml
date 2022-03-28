@@ -23,7 +23,7 @@ Dialog {
     GridLayout {
         id: layout
         width: parent.width
-        columns: width > modelCombo.implicitWidth * 2 ? 2 : 1
+        columns: 2
 
         FBLabel {
             Layout.minimumHeight: implicitHeight
