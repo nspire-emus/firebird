@@ -13,7 +13,7 @@ CSOURCES :=    ../core/armsnippets_loader.c ../core/asmcode.c ../core/casplus.c 
 
 CPPSOURCES := ../core/arm_interpreter.cpp ../core/coproc.cpp ../core/cpu.cpp ../core/debug.cpp ../core/emu.cpp \
 	      ../core/flash.cpp ../core/gif.cpp ../core/thumb_interpreter.cpp ../core/usblink_queue.cpp main.cpp \
-	      ../core/fieldparser.cpp
+	      ../core/fieldparser.cpp ../core/cx2.cpp ../core/usb_cx2.cpp ../core/usblink_cx2.cpp
 
 OBJS = $(patsubst %.c, %.bc, $(CSOURCES))
 OBJS += $(patsubst %.cpp, %.bc, $(CPPSOURCES))
@@ -21,10 +21,10 @@ OBJS += $(patsubst %.cpp, %.bc, $(CPPSOURCES))
 all: $(OUTPUT).js
 
 %.bc: %.c Makefile
-	$(CC) $(CFLAGS) $< -o $@
+	$(CC) $(CFLAGS) -c $< -o $@
 
 %.bc: %.cpp Makefile
-	$(CXX) $(CXXFLAGS) $< -o $@
+	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 test: $(OUTPUT).js
 	emrun --safe_firefox_profile --browser firefox $(OUTPUT).html
