@@ -121,6 +121,9 @@ public:
     Q_INVOKABLE QString manufDescription(QString path);
     Q_INVOKABLE QString osDescription(QString path);
 
+    Q_INVOKABLE void loadFile(int index, int role);
+    Q_INVOKABLE bool saveSnapshot();
+
     Q_INVOKABLE bool saveDialogSupported();
 
     void setActive(bool b);

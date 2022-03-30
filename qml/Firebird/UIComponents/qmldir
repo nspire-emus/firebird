@@ -2,6 +2,7 @@ module Firebird.UIComponents
 PageDelegate 1.0 PageDelegate.qml
 PageList 1.0 PageList.qml
 ConfigPages 1.0 ConfigPages.qml
+IconButton 1.0 IconButton.qml
 KitList 1.0 KitList.qml
 FBLabel 1.0 FBLabel.qml
 FileSelect 1.0 FileSelect.qml

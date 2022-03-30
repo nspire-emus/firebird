@@ -15,7 +15,7 @@ extern "C" {
 #endif
 
 // Can also be set manually
-#if !defined(__i386__) && !defined(__x86_64__) && !(defined(__arm__) && !defined(__thumb__)) && !(defined(__aarch64__))
+#if !defined(__i386__) && !defined(__x86_64__) && !(defined(__arm__) && !defined(__thumb__)) && !(defined(__aarch64__)) && !defined(NO_TRANSLATION)
 #define NO_TRANSLATION
 #endif
 

@@ -31,13 +31,13 @@ ColumnLayout {
 
         GridLayout {
             anchors.fill: parent
-            columns: (width < 550 || Qt.platform.os === "android") ? 2 : 4
+            columns: (width < 550 || Qt.platform.os === "android") ? 3 : 6
 
             FBLabel {
                 Layout.columnSpan: parent.columns
                 Layout.fillWidth: true
                 color: "red"
-                visible: boot1Edit.filePath == "" || flashEdit.filePath == ""
+                visible: kitList.currentItem.myData.boot1 === "" || kitList.currentItem.myData.flash === ""
                 wrapMode: Text.WordWrap
                 text: qsTr("You need to specify files for Boot1 and Flash")
             }
@@ -50,6 +50,7 @@ ColumnLayout {
             TextField {
                 id: nameEdit
                 placeholderText: qsTr("Name")
+                Layout.columnSpan: 2
                 Layout.fillWidth: true
 
                 text: kitList.currentItem.myData.name
@@ -65,15 +66,22 @@ ColumnLayout {
                 elide: Text.ElideMiddle
             }
 
-            FileSelect {
-                id: boot1Edit
+            FBLabel {
+                property string filePath: kitList.currentItem.myData.boot1
+                elide: "ElideRight"
+
                 Layout.fillWidth: true
-                filePath: kitList.currentItem.myData.boot1
-                onFilePathChanged: {
-                    if(filePath !== kitList.currentItem.myData.boot1)
-                        kitModel.setDataRow(kitList.currentIndex, filePath, KitModel.Boot1Role);
-                    filePath = Qt.binding(function() { return kitList.currentItem.myData.boot1; });
-                }
+                // Allow the label to shrink below its implicitWidth.
+                // Without this, the layout doesn't allow it to go smaller...
+                Layout.preferredWidth: 100
+
+                font.italic: filePath === ""
+                text: filePath === "" ? qsTr("(none)") : Emu.basename(filePath)
+            }
+
+            IconButton {
+                icon: "qrc:/icons/resources/icons/document-edit.png"
+                onClicked: Emu.loadFile(kitList.currentIndex, KitModel.Boot1Role)
             }
 
             FBLabel {
@@ -81,24 +89,22 @@ ColumnLayout {
                 elide: Text.ElideMiddle
             }
 
-            FileSelect {
-                id: flashEdit
+            FBLabel {
+                property string filePath: kitList.currentItem.myData.flash
+                elide: "ElideRight"
+
                 Layout.fillWidth: true
-                filePath: kitList.currentItem.myData.flash
-                onFilePathChanged: {
-                    if(filePath !== kitList.currentItem.myData.flash)
-                        kitModel.setDataRow(kitList.currentIndex, filePath, KitModel.FlashRole);
-                    filePath = Qt.binding(function() { return kitList.currentItem.myData.flash; });
-                }
-                showCreateButton: true
-                onCreate: flashDialog.visible = true
+                // Allow the label to shrink below its implicitWidth.
+                // Without this, the layout doesn't allow it to go smaller...
+                Layout.preferredWidth: 100
+
+                font.italic: filePath === ""
+                text: filePath === "" ? qsTr("(none)") : Emu.basename(filePath)
             }
 
-            FlashDialog {
-                id: flashDialog
-                onFlashCreated: {
-                    kitModel.setDataRow(kitList.currentIndex, filePath, KitModel.FlashRole);
-                }
+            IconButton {
+                icon: "qrc:/icons/resources/icons/document-edit.png"
+                onClicked: Emu.loadFile(kitList.currentIndex, KitModel.FlashRole)
             }
 
             FBLabel {
@@ -106,16 +112,22 @@ ColumnLayout {
                 elide: Text.ElideMiddle
             }
 
-            FileSelect {
-                id: snapshotEdit
+            FBLabel {
+                property string filePath: kitList.currentItem.myData.snapshot
+                elide: "ElideRight"
+
                 Layout.fillWidth: true
-                selectExisting: false
-                filePath: kitList.currentItem.myData.snapshot
-                onFilePathChanged: {
-                    if(filePath !== kitList.currentItem.myData.snapshot)
-                        kitModel.setDataRow(kitList.currentIndex, filePath, KitModel.SnapshotRole);
-                    filePath = Qt.binding(function() { return kitList.currentItem.myData.snapshot; });
-                }
+                // Allow the label to shrink below its implicitWidth.
+                // Without this, the layout doesn't allow it to go smaller...
+                Layout.preferredWidth: 100
+
+                font.italic: filePath === ""
+                text: filePath === "" ? qsTr("(none)") : Emu.basename(filePath)
+            }
+
+            IconButton {
+                icon: "qrc:/icons/resources/icons/document-edit.png"
+                onClicked: Emu.loadFile(kitList.currentIndex, KitModel.SnapshotRole)
             }
         }
     }

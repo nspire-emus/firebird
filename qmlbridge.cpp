@@ -1,6 +1,7 @@
 #include <cassert>
 #include <unistd.h>
 
+#include <QFileDialog>
 #include <QUrl>
 
 #include "emuthread.h"
@@ -407,6 +408,46 @@ QString QMLBridge::osDescription(QString path)
         return QStringLiteral("???");
 
     return QString::fromStdString(version);
+}
+
+void QMLBridge::loadFile(int index, int role)
+{
+    QFileDialog::getOpenFileContent(QStringLiteral("File%1 (*.*)").arg(role), [=](const QString &, const QByteArray &fileContent) {
+        int kitId = kit_model.getDataRow(index, KitModel::IDRole).toInt();
+        QString path = QStringLiteral("/tmp/kit%1-%2").arg(kitId).arg(role);
+        QFile file(path);
+        if (file.open(QFile::WriteOnly)) {
+            file.write(fileContent);
+            file.close();
+            kit_model.setDataRow(index, path, role);
+        }
+    });
+}
+
+bool QMLBridge::saveSnapshot()
+{
+    const int kitIndex = kit_model.indexForID(current_kit_id);
+    QString filename = kit_model.getDataRow(kitIndex, KitModel::SnapshotRole).toString();
+    // If the kit doesn't have a snapshot file assigned, do it now
+    if(filename.isEmpty()) {
+        // Same algorithm as above
+        filename = QStringLiteral("/tmp/kit%1-%2").arg(current_kit_id).arg(KitModel::SnapshotRole);
+        kit_model.setDataRow(kitIndex, filename, KitModel::SnapshotRole);
+    }
+
+    // Write the snapshot to the file
+    if(!emu_suspend(filename.toUtf8().constData()))
+        return false;
+
+    // Read in all the data (again)
+    QFile snapshotFile(filename);
+    if(!snapshotFile.open(QIODevice::ReadOnly))
+        return false;
+
+    auto snapshotData = snapshotFile.readAll();
+    QFileDialog::saveFileContent(snapshotData, QStringLiteral("%1-snapshot.img").arg(kit_model.getDataRow(kitIndex, KitModel::NameRole).toString()));
+
+    return true;
 }
 
 void QMLBridge::setActive(bool b)
