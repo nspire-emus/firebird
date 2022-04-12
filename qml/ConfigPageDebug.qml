@@ -1,4 +1,4 @@
-import QtQuick 2.0
+import QtQuick 2.7
 import QtQuick.Controls 1.0
 import QtQuick.Layouts 1.0
 import Firebird.Emu 1.0
@@ -15,7 +15,7 @@ ScrollView {
 
     FBLabel {
         text: qsTr("Remote GDB debugging")
-        font.pixelSize: TextMetrics.title2Size
+        font.pixelSize: TextSize.title2Size
         Layout.topMargin: 5
         Layout.bottomMargin: 5
     }
@@ -24,7 +24,7 @@ ScrollView {
         Layout.fillWidth: true
         wrapMode: Text.WordWrap
         text: qsTr("If enabled, a remote GDB debugger can be connected to the port and be used for debugging.")
-        font.pixelSize: TextMetrics.normalSize
+        font.pixelSize: TextSize.normalSize
     }
 
     RowLayout {
@@ -47,7 +47,7 @@ ScrollView {
 
         SpinBox {
             id: gdbPort
-            Layout.maximumWidth: TextMetrics.normalSize * 8
+            Layout.maximumWidth: TextSize.normalSize * 8
 
             minimumValue: 1
             maximumValue: 65535
@@ -64,7 +64,7 @@ ScrollView {
         Layout.fillWidth: true
         text: qsTr("Remote access to internal debugger")
         wrapMode: Text.WordWrap
-        font.pixelSize: TextMetrics.title2Size
+        font.pixelSize: TextSize.title2Size
         Layout.topMargin: 10
         Layout.bottomMargin: 5
     }
@@ -73,7 +73,7 @@ ScrollView {
         Layout.fillWidth: true
         wrapMode: Text.WordWrap
         text: qsTr("Enable this to access the internal debugger via TCP (telnet/netcat), like for firebird-send.")
-        font.pixelSize: TextMetrics.normalSize
+        font.pixelSize: TextSize.normalSize
     }
 
     RowLayout {
@@ -95,7 +95,7 @@ ScrollView {
 
         SpinBox {
             id: rdbPort
-            Layout.maximumWidth: TextMetrics.normalSize * 8
+            Layout.maximumWidth: TextSize.normalSize * 8
 
             minimumValue: 1
             maximumValue: 65535
@@ -110,7 +110,7 @@ ScrollView {
 
     FBLabel {
         text: qsTr("Enter into Debugger")
-        font.pixelSize: TextMetrics.title2Size
+        font.pixelSize: TextSize.title2Size
         Layout.topMargin: 5
         Layout.bottomMargin: 5
     }
@@ -119,7 +119,7 @@ ScrollView {
         Layout.fillWidth: true
         wrapMode: Text.WordWrap
         text: qsTr("Configure which situations cause the emulator to trap into the debugger.")
-        font.pixelSize: TextMetrics.normalSize
+        font.pixelSize: TextSize.normalSize
     }
 
     CheckBox {
@@ -159,7 +159,7 @@ ScrollView {
 
     FBLabel {
         text: qsTr("Debug Messages")
-        font.pixelSize: TextMetrics.title2Size
+        font.pixelSize: TextSize.title2Size
         Layout.topMargin: 5
         Layout.bottomMargin: 5
         visible: debugMessages.visible
@@ -169,18 +169,16 @@ ScrollView {
         id: debugMessages
         Layout.fillHeight: true
         Layout.fillWidth: true
-        Layout.minimumHeight: TextMetrics.normalSize * 12
-        font.pixelSize: TextMetrics.normalSize
+        Layout.minimumHeight: TextSize.normalSize * 12
+        font.pixelSize: TextSize.normalSize
         font.family: "monospace"
         readOnly: true
         visible: Emu.isMobile()
 
         Connections {
             target: Emu
-            // TODO: Use once QtQuick 2.7+ works
-            // enabled: debugMessages.visible
+            enabled: debugMessages.visible
             function onDebugStr(str) {
-                // if(debugMessages.visible) is false for some reason...
                 debugMessages.insert(debugMessages.length, str);
             }
         }
