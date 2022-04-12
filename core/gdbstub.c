@@ -125,33 +125,54 @@ static int range_translated(uint32_t range_start, uint32_t range_end) {
     return translated;
 }
 
+// returns 0 on timeout, 1 if ready (or EOF/disconnected!) and -1 on error.
+static int can_read_from_socket(int socket_fd) {
+    const int timeoutms = 100;
+
+    // There are reports that WSAPoll times out on some exceptions,
+    // so use select. Would be possible on other platforms as well,
+    // but it's limited to fds < FD_SETSIZE, unlike poll.
+#ifdef __MINGW32__
+    fd_set rfds;
+    FD_ZERO(&rfds);
+    // No need to worry about FD_SETSIZE, winsock2 uses a list instead
+    FD_SET(socket_fd, &rfds);
+    struct timeval timeout = {
+        .tv_sec = 0,
+        .tv_usec = timeoutms * 1000,
+    };
+    return select(socket_fd + 1, &rfds, NULL, NULL, &timeout);
+#else
+    struct pollfd pfd;
+    pfd.fd = socket_fd;
+    pfd.events = POLLIN;
+    return poll(&pfd, 1, timeoutms);
+#endif
+}
+
 /* Returns -1 on disconnection */
 static char get_debug_char(void) {
-    char c;
+    while(true)
+    {
+        int p = can_read_from_socket(socket_fd);
+        if(p == -1) {
+            log_socket_error("Failed to poll socket");
+            return -1;
+        }
 
-    #ifndef WIN32
-        while(true)
+        if(p) // Data available
+            break;
+
+        else // No data available
         {
-            struct pollfd pfd;
-            pfd.fd = socket_fd;
-            pfd.events = POLLIN;
-            int p = poll(&pfd, 1, 100);
-            if(p == -1) // Disconnected
+            if(exiting)
                 return -1;
 
-            if(p) // Data available
-                break;
-
-            else // No data available
-            {
-                if(exiting)
-                    return -1;
-
-                gui_do_stuff(false);
-            }
+            gui_do_stuff(false);
         }
-    #endif
+    }
 
+    char c;
     int r = recv(socket_fd, &c, 1, 0);
     if (r == -1) {
         // only for debugging - log_socket_error("Failed to recv from GDB stub socket");
