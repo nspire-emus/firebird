@@ -25,6 +25,7 @@ ColumnLayout {
 
     GroupBox {
         Layout.fillWidth: true
+        Layout.minimumWidth: contentItem.Layout.minimumWidth
         Layout.bottomMargin: -1
         title: qsTr("Kit Properties")
 
