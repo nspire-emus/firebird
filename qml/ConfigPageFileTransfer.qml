@@ -16,7 +16,7 @@ ColumnLayout {
     }
 
     FBLabel {
-        Layout.maximumWidth: parent.width
+        Layout.fillWidth: true
         wrapMode: Text.WordWrap
         text: qsTr("If you are unable to use the main window's file transfer using either drag'n'drop or the file explorer, you can send single files here.")
         font.pixelSize: TextMetrics.normalSize
@@ -24,7 +24,7 @@ ColumnLayout {
     }
 
     FBLabel {
-        Layout.maximumWidth: parent.width
+        Layout.fillWidth: true
         wrapMode: Text.WordWrap
         text: qsTr("Here you can send single files into the target folder specified below.")
         font.pixelSize: TextMetrics.normalSize
@@ -44,7 +44,7 @@ ColumnLayout {
     }
 
     RowLayout {
-        Layout.maximumWidth: parent.width
+        Layout.fillWidth: true
 
         Button {
             text: qsTr("Send a file")
@@ -111,20 +111,23 @@ ColumnLayout {
     }
 
     FBLabel {
-        Layout.maximumWidth: parent.width
+        Layout.fillWidth: true
         wrapMode: Text.WordWrap
         text: qsTr("When dragging files onto Firebird, it will try to send the file to the emulated system.")
         font.pixelSize: TextMetrics.normalSize
     }
 
     RowLayout {
-        width: parent.width
+        Layout.fillWidth: true
 
         FBLabel {
+            Layout.fillWidth: true
             text: qsTr("Target folder for dropped files:")
+            wrapMode: Text.WordWrap
         }
 
         TextField {
+            Layout.fillWidth: true
             text: Emu.usbdir
             onTextChanged: {
                 Emu.usbdir = text
@@ -136,5 +139,4 @@ ColumnLayout {
     Item {
         Layout.fillHeight: true
     }
-
 }

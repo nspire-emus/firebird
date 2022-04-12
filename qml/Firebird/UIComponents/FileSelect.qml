@@ -40,6 +40,9 @@ RowLayout {
             elide: "ElideRight"
 
             Layout.fillWidth: true
+            // Allow the label to shrink below its implicitWidth.
+            // Without this, the layout doesn't allow it to go smaller...
+            Layout.preferredWidth: 100
 
             font.italic: filePath === ""
             text: filePath === "" ? qsTr("(none)") : Emu.basename(filePath)

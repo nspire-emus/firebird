@@ -42,7 +42,6 @@ Rectangle {
 
                 height: item.height + 10
                 width: listView.width - listView.anchors.margins
-                anchors.horizontalCenter: parent.horizontalCenter
 
                 MouseArea {
                     anchors.fill: parent

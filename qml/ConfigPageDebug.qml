@@ -15,7 +15,7 @@ ColumnLayout {
     }
 
     FBLabel {
-        Layout.maximumWidth: parent.width
+        Layout.fillWidth: true
         wrapMode: Text.WordWrap
         text: qsTr("If enabled, a remote GDB debugger can be connected to the port and be used for debugging.")
         font.pixelSize: TextMetrics.normalSize
@@ -55,7 +55,7 @@ ColumnLayout {
     }
 
     FBLabel {
-        Layout.maximumWidth: parent.width
+        Layout.fillWidth: true
         text: qsTr("Remote access to internal debugger")
         wrapMode: Text.WordWrap
         font.pixelSize: TextMetrics.title2Size
@@ -64,7 +64,7 @@ ColumnLayout {
     }
 
     FBLabel {
-        Layout.maximumWidth: parent.width
+        Layout.fillWidth: true
         wrapMode: Text.WordWrap
         text: qsTr("Enable this to access the internal debugger via TCP (telnet/netcat), like for firebird-send.")
         font.pixelSize: TextMetrics.normalSize
@@ -73,7 +73,6 @@ ColumnLayout {
     RowLayout {
         // No spacing so that the spin box looks like part of the label
         spacing: 0
-        width: parent.width
         Layout.fillWidth: true
 
         CheckBox {
@@ -111,14 +110,14 @@ ColumnLayout {
     }
 
     FBLabel {
-        Layout.maximumWidth: parent.width
+        Layout.fillWidth: true
         wrapMode: Text.WordWrap
         text: qsTr("Configure which situations cause the emulator to trap into the debugger.")
         font.pixelSize: TextMetrics.normalSize
     }
 
     CheckBox {
-        Layout.maximumWidth: parent.width
+        Layout.fillWidth: true
         text: qsTr("Enter Debugger on Startup")
 
         checked: Emu.debugOnStart
@@ -129,7 +128,7 @@ ColumnLayout {
     }
 
     CheckBox {
-        Layout.maximumWidth: parent.width
+        Layout.fillWidth: true
         text: qsTr("Enter Debugger on Warnings and Errors")
 
         checked: Emu.debugOnWarn
@@ -140,7 +139,7 @@ ColumnLayout {
     }
 
     CheckBox {
-        Layout.maximumWidth: parent.width
+        Layout.fillWidth: true
         text: qsTr("Print a message on Warnings")
 
         enabled: !Emu.debugOnWarn
