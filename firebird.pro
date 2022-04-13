@@ -41,7 +41,7 @@ unix: !android {
 }
 
 QMAKE_CFLAGS += -g -std=gnu11 -Wall -Wextra
-QMAKE_CXXFLAGS += -g -std=c++11 -Wall -Wextra -D QT_NO_CAST_FROM_ASCII
+QMAKE_CXXFLAGS += -g -Wall -Wextra -D QT_NO_CAST_FROM_ASCII
 LIBS += -lz
 
 # Override bad default options to enable better optimizations
