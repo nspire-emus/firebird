@@ -72,7 +72,7 @@ ApplicationWindow {
 
     Connections {
         target: Emu
-        onEmuSuspended: {
+        function onEmuSuspended() {
             if(closeAfterSuspend)
             {
                 closeAfterSuspend = false;
@@ -86,14 +86,14 @@ ApplicationWindow {
                     suspendFailedDialog.visible = true;
             }
         }
-        onToastMessage: {
+        function onToastMessage(msg) {
             toast.showMessage(msg);
         }
     }
 
     Connections {
         target: Qt.application
-        onStateChanged: {
+        function onStateChanged() {
             switch (Qt.application.state)
             {
                 case Qt.ApplicationSuspended: // Might be reaped on mobile

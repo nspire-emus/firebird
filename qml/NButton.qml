@@ -95,7 +95,7 @@ Rectangle {
 
         hoverEnabled: !Emu.isMobile()
 
-        onPressed: {
+        onPressed: function(mouse) {
             mouse.accepted = true;
 
             if(mouse.button == Qt.LeftButton)
@@ -110,7 +110,7 @@ Rectangle {
             }
         }
 
-        onReleased: {
+        onReleased: function(mouse) {
             mouse.accepted = true;
 
             if(mouse.button == Qt.LeftButton
