@@ -126,10 +126,6 @@ int main(int argc, char **argv)
     qmlRegisterType<KitModel>("Firebird.Emu", 1, 0, "KitModel");
 
     #ifndef MOBILE_UI
-        #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
-            // To be able to use QQuickWidget
-            QQuickWindow::setGraphicsApi(QSGRendererInterface::OpenGL);
-        #endif
         MainWindow mw;
         main_window = &mw;
     #else

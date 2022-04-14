@@ -343,41 +343,7 @@
        <attribute name="title">
         <string>Keypad</string>
        </attribute>
-       <layout class="QHBoxLayout" name="horizontalLayout_5">
-        <item>
-         <widget class="QQuickWidgetLessBroken" name="keypadWidget" native="true">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="minimumSize">
-           <size>
-            <width>265</width>
-            <height>90</height>
-           </size>
-          </property>
-          <property name="maximumSize">
-           <size>
-            <width>999999</width>
-            <height>999999</height>
-           </size>
-          </property>
-          <property name="focusPolicy">
-           <enum>Qt::NoFocus</enum>
-          </property>
-          <property name="resizeMode">
-           <enum>QQuickWidget::SizeRootObjectToView</enum>
-          </property>
-          <property name="source">
-           <url>
-            <string notr="true">qrc:/qml/qml/ScrollingKeypad.qml</string>
-           </url>
-          </property>
-         </widget>
-        </item>
-       </layout>
+       <layout class="QHBoxLayout" name="keypadLayout"/>
       </widget>
      </widget>
     </item>
@@ -664,11 +630,6 @@
   </action>
  </widget>
  <customwidgets>
-  <customwidget>
-   <class>QQuickWidgetLessBroken</class>
-   <extends>QWidget</extends>
-   <header>mainwindow.h</header>
-  </customwidget>
   <customwidget>
    <class>LCDWidget</class>
    <extends>QWidget</extends>

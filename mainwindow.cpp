@@ -8,6 +8,7 @@
 #include <QDockWidget>
 #include <QShortcut>
 #include <QQmlComponent>
+#include <QQuickView>
 
 #include "core/debug.h"
 #include "core/emu.h"
@@ -34,14 +35,19 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->setupUi(this);
     ui->statusBar->addWidget(&status_label);
 
+    // Create Keypad view
+    auto *keypadView = new QQuickView;
+    keypadView->setSource(QStringLiteral("qrc:/qml/qml/ScrollingKeypad.qml"));
+    keypadView->setResizeMode(QQuickView::SizeRootObjectToView);
+    auto *keypadWidget = QWidget::createWindowContainer(keypadView);
+    ui->keypadLayout->addWidget(keypadWidget);
+
     // Register QtKeypadBridge for the virtual keyboard functionality
-    ui->keypadWidget->installEventFilter(&qt_keypad_bridge);
+    keypadView->installEventFilter(&qt_keypad_bridge);
     ui->lcdView->installEventFilter(&qt_keypad_bridge);
     lcd.installEventFilter(&qt_keypad_bridge);
 
-    ui->keypadWidget->setAttribute(Qt::WA_AcceptTouchEvents);
-
-    qml_engine = ui->keypadWidget->engine();
+    qml_engine = keypadView->engine();
     qml_engine->addImportPath(QStringLiteral("qrc:/qml/qml"));
 
     // Create config dialog component
@@ -949,15 +955,4 @@ void MainWindow::xmodemSend()
 void MainWindow::switchToMobileUI()
 {
     switchUIMode(true);
-}
-
-bool QQuickWidgetLessBroken::event(QEvent *event)
-{
-    if(event->type() == QEvent::Leave)
-    {
-        QMouseEvent ev(QMouseEvent::MouseMove, QPointF(0, 0), Qt::NoButton, Qt::NoButton, Qt::NoModifier);
-        QQuickWidget::event(&ev);
-    }
-
-    return QQuickWidget::event(event);
 }
