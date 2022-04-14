@@ -45,6 +45,7 @@ ColumnLayout {
 
             from: 1
             to: 65535
+            textFromValue: function(value, locale) { return "" + value; }
 
             value: Emu.gdbPort
             onValueChanged: {
@@ -93,6 +94,7 @@ ColumnLayout {
 
             from: 1
             to: 65535
+            textFromValue: function(value, locale) { return "" + value; }
 
             value: Emu.rdbPort
             onValueChanged: {
