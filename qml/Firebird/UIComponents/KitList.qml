@@ -22,6 +22,7 @@ Rectangle {
         anchors.fill: parent
 
         activeFocusOnTab: true
+        clip: true
 
         ListView {
             id: listView
