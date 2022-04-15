@@ -134,7 +134,7 @@ ApplicationWindow {
         boundsBehavior: ListView.StopAtBounds
         pixelAligned: true
 
-        // TODO: Hack #1! The keypad uses Emu.registerNButton and all that, so it must not be destroyed
+        // Keep the pages alive
         cacheBuffer: width * count
 
         model: [ "MobileUIConfig.qml", "MobileUIDrawer.qml", "MobileUIFront.qml" ]
@@ -181,7 +181,7 @@ ApplicationWindow {
         }
 
         delegate: Item {
-            // TODO: Hack #2! The keypad uses Emu.registerNButton and all that, so it must not be destroyed
+            // The pages are expensive, keep them
             ListView.delayRemove: true
 
             Component.onCompleted: {
