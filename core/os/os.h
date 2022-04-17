@@ -22,6 +22,11 @@ int iOS_is_debugger_attached();
 /* Some really crappy APIs don't use UTF-8 in fopen. */
 FILE *fopen_utf8(const char *filename, const char *mode);
 
+#if defined(__ANDROID__)
+/* Returns an allocated string or NULL on failure. */
+char *android_basename(const char *path);
+#endif
+
 void *os_reserve(size_t size);
 void *os_alloc_executable(size_t size);
 void os_free(void *ptr, size_t size);

@@ -45,7 +45,7 @@ RowLayout {
             Layout.preferredWidth: 100
 
             font.italic: filePath === ""
-            text: filePath === "" ? qsTr("(none)") : Emu.basename(filePath)
+            text: { forceRefresh; return filePath === "" ? qsTr("(none)") : Emu.basename(filePath); }
             color: { forceRefresh; return ((!selectExisting && Emu.saveDialogSupported()) || filePath === "" || Emu.fileExists(filePath)) ? paletteActive.text : "red"; }
         }
 
