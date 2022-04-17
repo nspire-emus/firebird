@@ -687,14 +687,6 @@ void QMLBridge::notifyButtonStateChanged(int row, int col, bool state)
     emit buttonStateChanged(col + row * KEYPAD_COLS, state);
 }
 
-QObject *qmlBridgeFactory(QQmlEngine *engine, QJSEngine *scriptEngine)
-{
-    Q_UNUSED(engine)
-    Q_UNUSED(scriptEngine)
-
-    return new QMLBridge();
-}
-
 void QMLBridge::touchpadStateChanged()
 {
     touchpadStateChanged(float(keypad.touchpad_x)/TOUCHPAD_X_MAX, 1.0f-(float(keypad.touchpad_y)/TOUCHPAD_Y_MAX), keypad.touchpad_contact, keypad.touchpad_down);

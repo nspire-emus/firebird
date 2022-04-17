@@ -180,7 +180,4 @@ private:
 
 extern QMLBridge *the_qml_bridge;
 
-QObject *qmlBridgeFactory(QQmlEngine *engine, QJSEngine *scriptEngine);
-
-
 #endif // QMLBRIDGE_H
