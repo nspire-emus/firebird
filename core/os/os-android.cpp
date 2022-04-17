@@ -2,6 +2,7 @@
 #include <QAndroidJniObject>
 #include <QAndroidJniEnvironment>
 #include <QAndroidActivityResultReceiver>
+#include <QScopeGuard>
 
 #include "os.h"
 
@@ -77,4 +78,54 @@ FILE *fopen_utf8(const char *path, const char *mode)
         return nullptr;
 
     return fdopen(fd, mode);
+}
+
+char *android_basename(const char *path)
+{
+    const char pattern[] = "content:";
+    if(strncmp(pattern, path, sizeof(pattern)-1) != 0)
+        return nullptr;
+
+    QAndroidJniObject jpath = QAndroidJniObject::fromString(QString::fromUtf8(path));
+    QAndroidJniObject uri = QAndroidJniObject::callStaticObjectMethod(
+                "android/net/Uri", "parse", "(Ljava/lang/String;)Landroid/net/Uri;",
+                jpath.object<jstring>());
+
+    QAndroidJniObject contentResolver = QtAndroid::androidActivity()
+            .callObjectMethod("getContentResolver",
+                              "()Landroid/content/ContentResolver;");
+
+    QAndroidJniEnvironment env;
+    QAndroidJniObject col = QAndroidJniObject::getStaticObjectField("android/provider/OpenableColumns", "DISPLAY_NAME", "Ljava/lang/String;");
+    QAndroidJniObject proj = env->NewObjectArray(1, env->FindClass("java/lang/String"), col.object<jstring>());
+
+    QAndroidJniObject cursor = contentResolver.callObjectMethod("query", "(Landroid/net/Uri;[Ljava/lang/String;Landroid/os/Bundle;Landroid/os/CancellationSignal;)Landroid/database/Cursor;", uri.object<jobject>(), proj.object<jobject>(), nullptr, nullptr);
+    if (env->ExceptionCheck())
+    {
+        env->ExceptionDescribe();
+        env->ExceptionClear();
+        return nullptr;
+    }
+
+    if(!cursor.isValid())
+        return nullptr;
+
+    auto closeCursor = qScopeGuard([&] { cursor.callMethod<void>("close", "()V"); });
+
+    bool hasContent = cursor.callMethod<jboolean>("moveToFirst", "()Z");
+    if (env->ExceptionCheck())
+    {
+        env->ExceptionDescribe();
+        env->ExceptionClear();
+        return nullptr;
+    }
+
+    if(!hasContent)
+        return nullptr;
+
+    QAndroidJniObject name = cursor.callObjectMethod("getString", "(I)Ljava/lang/String;", 0);
+    if (!name.isValid())
+        return nullptr;
+
+    return strdup(name.toString().toUtf8().data());
 }
