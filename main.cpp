@@ -109,8 +109,13 @@ int main(int argc, char **argv)
 
     migrateSettings();
 
+    QMLBridge qmlBridge;
+    QQmlEngine::setObjectOwnership(&qmlBridge, QQmlEngine::CppOwnership);
+
     // Register QMLBridge for Keypad<->Emu communication
-    qmlRegisterSingletonType<QMLBridge>("Firebird.Emu", 1, 0, "Emu", qmlBridgeFactory);
+    qmlRegisterSingletonType<QMLBridge>("Firebird.Emu", 1, 0, "Emu", [](QQmlEngine *, QJSEngine *) -> QObject* {
+        return the_qml_bridge;
+    });
     // Register QtFramebuffer for QML display
     qmlRegisterType<QMLFramebuffer>("Firebird.Emu", 1, 0, "EmuScreen");
     // Register KitModel
