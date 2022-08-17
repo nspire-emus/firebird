@@ -72,7 +72,7 @@ void keyToKeypad(QKeyEvent *event)
         ,{Qt::Key_Z, keymap::az}
         ,{Qt::Key_Less, keymap::ee}
         ,{Qt::Key_Comma | ALT, keymap::ee} //US keyboard '<' is [Shift]+[,]
-        ,{Qt::Key_E | ALT, keymap::ee}
+        ,{Qt::Key_E | ALT, keymap::ee} // Conflicts with and superceded by menubar item '_E_mulation' [Alt]+[E] keyboard shortcut.
         ,{Qt::Key_Bar, keymap::pi}
         ,{Qt::Key_Backslash | ALT, keymap::pi} //US keyboard '|' is [Shift]+[\]
         ,{Qt::Key_Comma, keymap::comma}
@@ -81,7 +81,7 @@ void keyToKeypad(QKeyEvent *event)
         ,{Qt::Key_W | ALT, keymap::punct}
         ,{Qt::Key_Greater, keymap::flag}
         ,{Qt::Key_Period | ALT, keymap::flag} //US keyboard '>' is [Shift]+[.]
-        ,{Qt::Key_F | ALT, keymap::flag}
+        ,{Qt::Key_F | ALT, keymap::flag} // Conflicts with and superceded by menubar item '_F_lash' [Alt]+[F] keyboard shortcut.
         ,{Qt::Key_Space, keymap::space}
         ,{Qt::Key_Enter | ALT, keymap::ret}
         ,{Qt::Key_Return | ALT, keymap::ret}
