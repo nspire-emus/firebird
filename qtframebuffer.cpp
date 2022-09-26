@@ -29,8 +29,8 @@ QImage renderFramebuffer()
         for(unsigned int i = 0; i < 320*240; ++i)
         {
             uint8_t pix = *px & 0xF;
-            uint16_t n = pix << 8 | pix << 4 | pix;
-            *px = ~n;
+            uint16_t n = (pix << 8) | (pix << 4) | pix;
+            *px = ~n & 0xFFF;
             ++px;
         }
     }

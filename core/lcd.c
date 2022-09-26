@@ -216,8 +216,15 @@ void lcd_cx_draw_frame(uint16_t *buffer) {
             memset(buffer, 0, 320 * 240 * 2);
             return;
         }
-        int row;
-        for (row = 0; row < 240; ++row) {
+
+        // In STN mode, only the 4 MSB of the red channel are used
+        uint32_t pal_shift = 0, pal_mask = 0xFFFF;
+        if(!(lcd.control & (1 << 5))) {
+            pal_shift = (lcd.control & (1 << 8)) ? 11 : 1;
+            pal_mask &= 0xF;
+        }
+
+        for (int row = 0; row < 240; ++row) {
             uint16_t *out = buffer + (row * 320);
             uint32_t words = (320 / 32) * bpp;
             if (bpp < 16) {
@@ -229,7 +236,8 @@ void lcd_cx_draw_frame(uint16_t *buffer) {
                     uint32_t word = *in++;
                     int bitpos = 32;
                     do {
-                        uint16_t color = lcd.palette[word >> ((bitpos -= bpp) ^ bi) & mask];
+                        uint16_t color = lcd.palette[word >> ((bitpos -= bpp) ^ bi) & mask] >> pal_shift;
+                        color &= pal_mask;
                         *out++ = color + (color & 0xFFE0) + (color >> 10 & 0x20);
                     } while (bitpos != 0);
                 } while (--words != 0);
