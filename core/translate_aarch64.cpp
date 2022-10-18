@@ -422,8 +422,15 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
 			if(i.data_proc.op == OP_RSC || i.data_proc.op == OP_TEQ)
 				goto unimpl;
 
-			if(i.data_proc.shift == SH_ROR && !i.data_proc.imm && (i.data_proc.op == OP_SUB || i.data_proc.op == OP_ADD || i.data_proc.shift_imm == 0))
-				goto unimpl; // ADD/SUB do not support ROR. RRX (encoded as ror #0) is not supported anywhere
+			if(!i.data_proc.imm && i.data_proc.shift == SH_ROR)
+			{
+				if(i.data_proc.shift_imm == 0)
+					goto unimpl; // RRX (encoded as ror #0) is not supported anywhere
+
+				if(i.data_proc.op == OP_ADD || i.data_proc.op == OP_SUB
+				   || i.data_proc.op == OP_CMP || i.data_proc.op == OP_CMN)
+					goto unimpl; // ADD/SUB(S) do not support ROR.
+			}
 
 			// Using pc is not supported
 			if(i.data_proc.rd == PC
@@ -455,15 +462,15 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
 				#ifdef SUPPORT_LINUX
 					0, // TST not possible, carry and overflow flags not identical
 				#else
-					0x6A00001F, // TST
+					0x6A00001F, // TST (ANDS with rd = wzr)
 				#endif
 				0, // TEQ not possible
-				0x6B00001F, // CMP
-				0x2B00001F, // CMN
+				0x6B00001F, // CMP (SUBS with rd = wzr)
+				0x2B00001F, // CMN (ADDS with rd = wzr)
 				0x2A000000, // ORR
 				0x2A0003E0, // MOV (ORR with rn = wzr)
 				0x0A200000, // BIC
-				0x2A2003E0, // MVN (ORRN with rn = wzr)
+				0x2A2003E0, // MVN (ORN with rn = wzr)
 			};
 
 			uint32_t instruction = opmap[i.data_proc.op];
@@ -471,7 +478,7 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
 			if(i.data_proc.s)
 				instruction |= 1 << 29;
 
-			if(i.data_proc.op < OP_TST || i.data_proc.op > OP_CMP)
+			if(i.data_proc.op < OP_TST || i.data_proc.op > OP_CMN)
 				instruction |= mapreg(i.data_proc.rd);
 
 			if(i.data_proc.op != OP_MOV && i.data_proc.op != OP_MVN)
