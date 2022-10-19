@@ -33,5 +33,5 @@ int main()
 	assert(nestedChild.isValid());
 	assert(nestedChild.sizeOfData() == 1);
 	assert(nestedChild.sizeWithHeader() == 3);
-	assert(nestedChild.data()[0] != 0x42);
+	assert(nestedChild.data()[0] == 0x42);
 }
