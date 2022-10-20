@@ -99,7 +99,7 @@ GridLayout {
         /* Keypad fills right side, as wide as needed */
         PropertyChanges {
             target: controls
-            Layout.minimumWidth: Math.ceil(keypad.width/keypad.height * (mobileui.height - iosmargin.height))
+            Layout.minimumWidth: Math.floor(keypad.width/keypad.height * (mobileui.height - iosmargin.height))
             Layout.maximumWidth: Layout.minimumWidth
             Layout.fillHeight: true
             Layout.columnSpan: 1
