@@ -19,6 +19,10 @@ Rectangle {
         anchors.leftMargin: 5
         anchors.top: rectangle3.top
         anchors.topMargin: 0
+        // This defaults to 5 and is affected by scaling,
+        // which is not desired here as the keypad is scaled
+        // by its parent already.
+        spacing: 0
 
         NBigButton {
             id: nButton1
@@ -69,6 +73,9 @@ Rectangle {
         anchors.topMargin: 0
         anchors.right: parent.right
         anchors.rightMargin: 5
+        // See above.
+        spacing: 0
+
         NBigButton {
             id: nButton4
             text: "⌂on"
