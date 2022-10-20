@@ -8,6 +8,8 @@ import Firebird.UIComponents 1.0
 Dialog {
     id: flashDialog
     title: qsTr("Create Flash Image")
+    // Work around QTBUG-89607: Menu (used by ComboBox) doesn't work in modal windows
+    modality: Qt.platform.pluginName == "cocoa" ? Qt.NonModal : Qt.WindowModal
     standardButtons: Dialog.Save | Dialog.Cancel
     onVisibleChanged: {
         // For some reason the initial size on wayland is too big.
