@@ -72,9 +72,10 @@ Rectangle {
         color: "#68cce0"
         text: "aa"
         horizontalAlignment: Text.AlignHCenter
-        verticalAlignment: Text.AlignBottom
+        verticalAlignment: Text.AlignVCenter
         z: -1
-        font.pixelSize: 10
+        font.pixelSize: 8
+        font.bold: true
     }
 
     Text {
@@ -86,9 +87,10 @@ Rectangle {
         color: "#68cce0"
         text: "bb"
         horizontalAlignment: Text.AlignHCenter
-        verticalAlignment: Text.AlignBottom
-        font.pixelSize: 10
+        verticalAlignment: Text.AlignVCenter
+        font.pixelSize: 8
         z: -2
+        font.bold: true
     }
 }
 

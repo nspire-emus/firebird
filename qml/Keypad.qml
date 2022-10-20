@@ -48,7 +48,7 @@ Rectangle {
                 horizontalAlignment: Text.AlignHCenter
                 font.pixelSize: 9
                 anchors.bottomMargin: 0
-                font.bold: false
+                font.bold: true
                 verticalAlignment: Text.AlignVCenter
                 anchors.bottom: parent.top
             }
@@ -112,7 +112,7 @@ Rectangle {
                 horizontalAlignment: Text.AlignHCenter
                 font.pixelSize: 9
                 anchors.bottomMargin: 0
-                font.bold: false
+                font.bold: true
                 verticalAlignment: Text.AlignVCenter
                 anchors.bottom: parent.top
             }
@@ -120,17 +120,15 @@ Rectangle {
 
         NBigButton {
             id: nButton6
-            width: 30
             text: "menu"
             Layout.fillWidth: true
             keymap_id: 71
 
             Image {
                 source: "qrc:/keyimages/resources/keyimages/context_menu.png"
-                width: nButton6.width * .5
+                height: 10
                 anchors.bottom: nButton6.top
-                anchors.left: nButton6.left
-                anchors.leftMargin: nButton6.width / 4
+                anchors.horizontalCenter: parent.horizontalCenter
                 fillMode: Image.PreserveAspectFit
                 smooth: true
                 mipmap: true
@@ -164,7 +162,7 @@ Rectangle {
         anchors.bottom: nButton8.bottom
         anchors.bottomMargin: 0
         anchors.top: rectangle3.bottom
-        anchors.topMargin: 10
+        anchors.topMargin: 12
 
         NBigButton {
             id: nButton11
@@ -182,18 +180,11 @@ Rectangle {
                 text: "CAPS"
                 anchors.bottom: parent.top
                 horizontalAlignment: Text.AlignHCenter
-                font.pixelSize: 10
+                font.pixelSize: 9
                 anchors.bottomMargin: 0
-                font.bold: false
+                font.bold: true
                 verticalAlignment: Text.AlignVCenter
             }
-        }
-
-        Rectangle {
-            id: rectangle2
-            width: 30
-            height: 20
-            color: "#00000000"
         }
 
         NBigButton {
@@ -205,6 +196,7 @@ Rectangle {
             border.width: 1
             clip: false
             keymap_id: 56
+            Layout.column: 2
 
             Text {
                 id: text4
@@ -216,9 +208,9 @@ Rectangle {
                 text: "sto→"
                 anchors.bottom: parent.top
                 horizontalAlignment: Text.AlignHCenter
-                font.pixelSize: 10
+                font.pixelSize: 9
                 anchors.bottomMargin: 0
-                font.bold: false
+                font.bold: true
                 verticalAlignment: Text.AlignVCenter
             }
         }
@@ -301,7 +293,7 @@ Rectangle {
                 horizontalAlignment: Text.AlignHCenter
                 font.pixelSize: 9
                 anchors.bottomMargin: 0
-                font.bold: false
+                font.bold: true
                 verticalAlignment: Text.AlignVCenter
             }
         }
@@ -323,7 +315,7 @@ Rectangle {
                 horizontalAlignment: Text.AlignHCenter
                 font.pixelSize: 9
                 anchors.bottomMargin: 0
-                font.bold: false
+                font.bold: true
                 verticalAlignment: Text.AlignVCenter
             }
         }
@@ -365,9 +357,9 @@ Rectangle {
             color: "#68cce0"
             text: "clear"
             horizontalAlignment: Text.AlignHCenter
-            font.pixelSize: 10
+            font.pixelSize: 9
             anchors.bottomMargin: 0
-            font.bold: false
+            font.bold: true
             verticalAlignment: Text.AlignVCenter
             anchors.bottom: parent.top
         }
@@ -612,12 +604,12 @@ Rectangle {
             height: 11
             color: "#68cce0"
             text: "≈"
-            font.bold: false
+            font.bold: true
             anchors.bottom: nButton8.top
             anchors.bottomMargin: 1
             verticalAlignment: Text.AlignVCenter
             horizontalAlignment: Text.AlignHCenter
-            font.pixelSize: 17
+            font.pixelSize: 12
         }
     }
 
