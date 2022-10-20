@@ -42,6 +42,8 @@ GridLayout {
 
         Layout.fillHeight: true
         Layout.fillWidth: true
+        Layout.preferredHeight: contentHeight
+        Layout.maximumHeight: contentHeight
         Layout.columnSpan: 2
 
         boundsBehavior: Flickable.StopAtBounds
@@ -70,6 +72,13 @@ GridLayout {
             // This is needed to avoid opening the control center
             height: Qt.platform.os === "ios" ? 20 : 0
         }
+    }
+
+    Rectangle {
+        Layout.fillHeight: true
+        Layout.fillWidth: true
+        Layout.columnSpan: 2
+        color: keypad.color
     }
 
     states: [ State {
