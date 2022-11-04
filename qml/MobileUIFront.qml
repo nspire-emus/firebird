@@ -66,7 +66,7 @@ GridLayout {
             anchors {
                 left: parent.left
                 right: parent.right
-                top: keypad.bottom
+                bottom: parent.bottom
             }
 
             // This is needed to avoid opening the control center
