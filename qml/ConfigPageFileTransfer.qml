@@ -9,7 +9,7 @@ ColumnLayout {
     spacing: 5
 
     FBLabel {
-        text: qsTr("Single File Transfer")
+        text: qsTr("File Transfer")
         font.pixelSize: TextMetrics.title2Size
         Layout.topMargin: 5
         Layout.bottomMargin: 5
@@ -18,7 +18,7 @@ ColumnLayout {
     FBLabel {
         Layout.fillWidth: true
         wrapMode: Text.WordWrap
-        text: qsTr("If you are unable to use the main window's file transfer using either drag'n'drop or the file explorer, you can send single files here.")
+        text: qsTr("If you are unable to use the main window's file transfer using either drag'n'drop or the file explorer, you can send files here.")
         font.pixelSize: TextMetrics.normalSize
         visible: !Emu.isMobile()
     }
@@ -26,7 +26,7 @@ ColumnLayout {
     FBLabel {
         Layout.fillWidth: true
         wrapMode: Text.WordWrap
-        text: qsTr("Here you can send single files into the target folder specified below.")
+        text: qsTr("Here you can send files into the target folder specified below.")
         font.pixelSize: TextMetrics.normalSize
     }
 
@@ -35,10 +35,12 @@ ColumnLayout {
         active: false
         sourceComponent: FileDialog {
             nameFilters: [ "TNS Documents (*.tns)", "Operating Systems (*.tno *.tnc *.tco *.tcc *.tlo *.tmo *.tmc *.tco2 *.tcc2 *.tct2)" ]
+            selectMultiple: true
             onAccepted: {
                 transferProgress.indeterminate = true;
                 transferProgress.visible = true;
-                Emu.sendFile(fileUrl, Emu.usbdir);
+                for(let i = 0; i < fileUrls.length; ++i)
+                    Emu.sendFile(fileUrls[i], Emu.usbdir);
             }
         }
     }
@@ -47,7 +49,7 @@ ColumnLayout {
         Layout.fillWidth: true
 
         Button {
-            text: qsTr("Send a file")
+            text: qsTr("Send files")
             // If this button is disabled, the transfer directory textinput has the focus again,
             // which is annoying on mobile.
             // enabled: Emu.isRunning
@@ -113,7 +115,7 @@ ColumnLayout {
     FBLabel {
         Layout.fillWidth: true
         wrapMode: Text.WordWrap
-        text: qsTr("When dragging files onto Firebird, it will try to send the file to the emulated system.")
+        text: qsTr("When dragging files onto Firebird, it will try to send them to the emulated system.")
         font.pixelSize: TextMetrics.normalSize
     }
 
