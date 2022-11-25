@@ -206,6 +206,15 @@ void keyToKeypad(QKeyEvent *event)
     }
 }
 
+QtKeypadBridge::QtKeypadBridge(QObject *parent)
+    : QObject(parent)
+{
+    pressTimer.setSingleShot(true);
+    connect(&pressTimer, &QTimer::timeout, this, &QtKeypadBridge::arrowPressHelper);
+    releaseTimer.setSingleShot(true);
+    connect(&releaseTimer, &QTimer::timeout, this, &QtKeypadBridge::arrowReleaseHelper);
+}
+
 void QtKeypadBridge::keyPressEvent(QKeyEvent *event)
 {
     Qt::Key key = static_cast<Qt::Key>(event->key());
@@ -286,8 +295,47 @@ bool QtKeypadBridge::eventFilter(QObject *obj, QEvent *event)
         keyPressEvent(static_cast<QKeyEvent*>(event));
     else if(event->type() == QEvent::KeyRelease)
         keyReleaseEvent(static_cast<QKeyEvent*>(event));
+    else if(event->type() == QEvent::Wheel) {
+        auto ev = static_cast<QWheelEvent*>(event);
+        scrollDelta += ev->angleDelta().y();
+        if(!pressTimer.isActive())
+            pressTimer.start(50);
+    }
     else
         return false;
 
     return true;
+}
+
+void QtKeypadBridge::arrowPressHelper()
+{
+    if(pressedKey) {
+        pressTimer.start(16);
+        return;
+    }
+
+    if(scrollDelta >= 120) {
+        scrollDelta -= 120;
+        pressedKey = Qt::Key_Up;
+    } else if(scrollDelta <= -120) {
+        scrollDelta += 120;
+        pressedKey = Qt::Key_Down;
+    } else
+        return;
+
+    QKeyEvent ev(QEvent::KeyPress, pressedKey, {});
+    keyPressEvent(&ev);
+    releaseTimer.start(50);
+
+    if(scrollDelta <= -120 || scrollDelta >= 120)
+        pressTimer.start(50);
+}
+
+void QtKeypadBridge::arrowReleaseHelper()
+{
+    QKeyEvent ev(QEvent::KeyRelease, pressedKey, {});
+    keyReleaseEvent(&ev);
+    QTimer::singleShot(50, this, [this]() {
+        pressedKey = static_cast<Qt::Key>(0);
+    });
 }
