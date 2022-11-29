@@ -190,42 +190,42 @@ werden sie an das angegebene Verzeichnis gesendet.</translation>
     <message>
         <location filename="../qml/ConfigPageFileTransfer.qml" line="12"/>
         <source>File Transfer</source>
-        <translation type="unfinished"></translation>
+        <translation>Dateiübertragung</translation>
     </message>
     <message>
         <location filename="../qml/ConfigPageFileTransfer.qml" line="21"/>
         <source>If you are unable to use the main window&apos;s file transfer using either drag&apos;n&apos;drop or the file explorer, you can send files here.</source>
-        <translation type="unfinished"></translation>
+        <translation>Hier können Dateien gesendet werden, wenn das Hauptfenster es mit dem Dateiexplorer oder per Drag-and-Drop nicht erlaubt.</translation>
     </message>
     <message>
         <location filename="../qml/ConfigPageFileTransfer.qml" line="29"/>
         <source>Here you can send files into the target folder specified below.</source>
-        <translation type="unfinished"></translation>
+        <translation>Hier können Dateien in den unten angegebenen Ordner gesendet werden.</translation>
     </message>
     <message>
         <location filename="../qml/ConfigPageFileTransfer.qml" line="37"/>
         <source>TNS Documents</source>
-        <translation type="unfinished"></translation>
+        <translation>TNS Dokumente</translation>
     </message>
     <message>
         <location filename="../qml/ConfigPageFileTransfer.qml" line="37"/>
         <source>Operating Systems</source>
-        <translation type="unfinished"></translation>
+        <translation>Betriebssysteme</translation>
     </message>
     <message>
         <location filename="../qml/ConfigPageFileTransfer.qml" line="40"/>
         <source>Starting</source>
-        <translation type="unfinished"></translation>
+        <translation>Startet</translation>
     </message>
     <message>
         <location filename="../qml/ConfigPageFileTransfer.qml" line="52"/>
         <source>Send files</source>
-        <translation type="unfinished"></translation>
+        <translation>Dateien senden</translation>
     </message>
     <message>
         <location filename="../qml/ConfigPageFileTransfer.qml" line="83"/>
         <source>Idle</source>
-        <translation type="unfinished"></translation>
+        <translation>Inaktiv</translation>
     </message>
     <message>
         <location filename="../qml/ConfigPageFileTransfer.qml" line="90"/>
@@ -240,7 +240,8 @@ werden sie an das angegebene Verzeichnis gesendet.</translation>
     <message>
         <location filename="../qml/ConfigPageFileTransfer.qml" line="111"/>
         <source>When dragging files onto Firebird, it will try to send them to the emulated system.</source>
-        <translation type="unfinished"></translation>
+        <translation>Wenn Dateien auf Firebird abgelegt werden,
+werden sie an das angegebene Verzeichnis gesendet.</translation>
     </message>
     <message>
         <source> % sent</source>
@@ -282,7 +283,7 @@ werden sie an das angegebene Verzeichnis gesendet.</translation>
     <message>
         <location filename="../qml/ConfigPageKits.qml" line="103"/>
         <source>Snapshot:</source>
-        <translation type="unfinished"></translation>
+        <translation>Snapshot:</translation>
     </message>
     <message>
         <source>Create</source>
@@ -436,12 +437,12 @@ werden sie an das angegebene Verzeichnis gesendet.</translation>
     <message>
         <location filename="../qml/FlashDialog.qml" line="33"/>
         <source>Model:</source>
-        <translation type="unfinished"></translation>
+        <translation>Modell:</translation>
     </message>
     <message>
         <location filename="../qml/FlashDialog.qml" line="49"/>
         <source>CX Subtype:</source>
-        <translation type="unfinished"></translation>
+        <translation>CX Subtyp:</translation>
     </message>
     <message>
         <location filename="../qml/FlashDialog.qml" line="62"/>
@@ -456,12 +457,12 @@ werden sie an das angegebene Verzeichnis gesendet.</translation>
     <message>
         <location filename="../qml/FlashDialog.qml" line="104"/>
         <source>Bootloader:</source>
-        <translation type="unfinished"></translation>
+        <translation>Bootloader:</translation>
     </message>
     <message>
         <location filename="../qml/FlashDialog.qml" line="117"/>
         <source>Installer:</source>
-        <translation type="unfinished"></translation>
+        <translation>Installer:</translation>
     </message>
     <message>
         <location filename="../qml/FlashDialog.qml" line="130"/>
@@ -471,7 +472,7 @@ werden sie an das angegebene Verzeichnis gesendet.</translation>
     <message>
         <location filename="../qml/FlashDialog.qml" line="139"/>
         <source>Manuf required for CX II</source>
-        <translation type="unfinished"></translation>
+        <translation>Für CX II wird eine Manuf benötigt</translation>
     </message>
     <message>
         <source>Save as..</source>
@@ -1405,19 +1406,19 @@ Schieben sie die Tastatur nach links, um die Einstellungen zu ändern.</translat
     <message>
         <location filename="../qmlbridge.cpp" line="295"/>
         <source>(Android File)</source>
-        <translation type="unfinished"></translation>
+        <translation>(Android Datei)</translation>
     </message>
     <message>
         <location filename="../qmlbridge.cpp" line="368"/>
         <location filename="../qmlbridge.cpp" line="386"/>
         <location filename="../qmlbridge.cpp" line="401"/>
         <source>Open failed</source>
-        <translation type="unfinished"></translation>
+        <translation>Öffnen fehlgeschlagen</translation>
     </message>
     <message>
         <location filename="../qmlbridge.cpp" line="377"/>
         <source>Found %1 instead</source>
-        <translation type="unfinished"></translation>
+        <translation>Stattdessen %1 gefunden</translation>
     </message>
     <message>
         <location filename="../qmlbridge.cpp" line="522"/>
@@ -1514,7 +1515,7 @@ Für Konfiguration Tastatur nach links schieben.</translation>
     <message>
         <location filename="../qml/Firebird/UIComponents/VerticalSwipeBar.qml" line="15"/>
         <source>Swipe here</source>
-        <translation type="unfinished"></translation>
+        <translation>Hier wischen</translation>
     </message>
 </context>
 </TS>
