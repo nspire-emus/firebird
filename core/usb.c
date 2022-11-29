@@ -232,13 +232,16 @@ void usb_write_word(uint32_t addr, uint32_t value) {
                     struct usb_qh *qh = (struct usb_qh *)(intptr_t)phys_mem_ptr(usb.eplistaddr + (ep * 0x80) + 0x40, 0x30);
                     if (!qh)
                         error("USB: bad QH");
-                    usb_prime(qh, 0x10000 << ep);
 
-                    uint32_t size = qh->overlay.flags >> 16 & 0x7FFF;
-                    uint8_t *buf = (uint8_t*)(intptr_t)phys_mem_ptr(qh->overlay.bufptr[0], size);
-                    usblink_receive(ep, buf, size);
+                    do {
+                        usb_prime(qh, 0x10000 << ep);
 
-                    usb_complete(qh, 0x10000 << ep, size);
+                        uint32_t size = qh->overlay.flags >> 16 & 0x7FFF;
+                        uint8_t *buf = (uint8_t*)(intptr_t)phys_mem_ptr(qh->overlay.bufptr[0], size);
+                        usblink_receive(ep, buf, size);
+
+                        usb_complete(qh, 0x10000 << ep, size);
+                    } while(!(qh->overlay.next_td & 1));
                 }
             }
             return;
