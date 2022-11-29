@@ -43,8 +43,9 @@ void USBLinkTreeWidget::usblink_upload_callback(int progress, void *data)
     USBLinkTreeWidget *that = static_cast<USBLinkTreeWidget*>(data);
 
     // TODO: Don't do a full refresh
-    if(progress == 100)
-        emit that->wantToReload();
+    // Also refresh on error, in case of multiple transfers
+    if((progress == 100 || progress < 0) && usblink_queue_size() == 1)
+        that->wantToReload(); // Reload the file explorer after uploads finished
 
     emit that->uploadProgress(progress);
 }
@@ -146,32 +147,40 @@ QStringList USBLinkTreeWidget::mimeTypes() const
 
 void USBLinkTreeWidget::dragEnterEvent(QDragEnterEvent *e)
 {
-    // Somehow caching this QList is necessary. Without this, the values vanished in the middle of the if() condition...
-    QList<QUrl> urls = e->mimeData()->urls();
-    if(urls.size() != 1)
+    if(!e->mimeData()->hasUrls())
         return e->ignore();
 
-    static const QStringList valid_suffixes = { QStringLiteral("tns"), QStringLiteral("tno"),
-                                          QStringLiteral("tnc"), QStringLiteral("tco"),
-                                          QStringLiteral("tcc") };
+    for(QUrl &url : e->mimeData()->urls())
+    {
+        static const QStringList valid_suffixes = { QStringLiteral("tns"),
+                                              QStringLiteral("tno"), QStringLiteral("tnc"),
+                                              QStringLiteral("tco"), QStringLiteral("tcc"),
+                                              QStringLiteral("tco2"), QStringLiteral("tcc2"),
+                                              QStringLiteral("tct2") };
 
-    QFileInfo file(urls[0].fileName());
-    if(valid_suffixes.contains(file.suffix().toLower()))
-        QTreeWidget::dragEnterEvent(e);
-    else
-        e->ignore();
+        QFileInfo file(url.fileName());
+        if(!valid_suffixes.contains(file.suffix().toLower()))
+            return e->ignore();
+    }
+
+    return QTreeWidget::dragEnterEvent(e);
 }
 
 bool USBLinkTreeWidget::dropMimeData(QTreeWidgetItem *parent, int index, const QMimeData *data, Qt::DropAction action)
 {
-    if(data->urls().size() != 1)
+    if(!data->hasUrls())
         return false;
 
     (void) index;
     (void) action;
 
-    std::string file = QDir::toNativeSeparators(data->urls()[0].toLocalFile()).toStdString();
-    usblink_queue_put_file(file, usblink_path_item(parent).toStdString(), usblink_upload_callback, this);
+    auto parentDir = usblink_path_item(parent).toStdString();
+    for(auto &&url : data->urls())
+    {
+        auto local = QDir::toNativeSeparators(url.toLocalFile()).toStdString();
+        usblink_queue_put_file(local, parentDir, usblink_upload_callback, this);
+    }
+
     return true;
 }
 
@@ -245,7 +254,7 @@ void USBLinkTreeWidget::usblink_dirlist_callback(struct usblink_file *file, bool
     if(is_error)
         return;
 
-    QTreeWidget *w = static_cast<QTreeWidget*>(data);
+    auto *w = static_cast<USBLinkTreeWidget*>(data);
 
     //End of enumeration or error
     if(!file)
