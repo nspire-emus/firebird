@@ -34,11 +34,11 @@ ColumnLayout {
         id: fileDialogLoader
         active: false
         sourceComponent: FileDialog {
-            nameFilters: [ "TNS Documents (*.tns)", "Operating Systems (*.tno *.tnc *.tco *.tcc *.tlo *.tmo *.tmc *.tco2 *.tcc2 *.tct2)" ]
+            nameFilters: [ qsTr("TNS Documents") +"(*.tns)", qsTr("Operating Systems") + "(*.tno *.tnc *.tco *.tcc *.tlo *.tmo *.tmc *.tco2 *.tcc2 *.tct2)" ]
             selectMultiple: true
             onAccepted: {
+                transferStatus.text = qsTr("Starting");
                 transferProgress.indeterminate = true;
-                transferProgress.visible = true;
                 for(let i = 0; i < fileUrls.length; ++i)
                     Emu.sendFile(fileUrls[i], Emu.usbdir);
             }
@@ -61,44 +61,37 @@ ColumnLayout {
             }
         }
 
+        ProgressBar {
+            id: transferProgress
+            Layout.fillWidth: true
+            minimumValue: 0
+            maximumValue: 100
+        }
+    }
+
+    RowLayout {
+        Layout.fillWidth: true
+
         FBLabel {
             id: transferStatusLabel
-            visible: !transferProgress.visible
             text: qsTr("Status:")
         }
 
         FBLabel {
             id: transferStatus
-            visible: !transferProgress.visible
             Layout.fillWidth: true
-            text: qsTr("idle")
-        }
-
-        ProgressBar {
-            id: transferProgress
-            visible: false
-            Layout.fillWidth: true
-            minimumValue: 0
-            maximumValue: 100
+            text: qsTr("Idle")
         }
 
         Connections {
             target: Emu
-            onUsblinkProgressChanged: {
+            function onUsblinkProgressChanged(percent) {
                 if(percent < 0)
-                {
                     transferStatus.text = qsTr("Failed!");
-                    transferProgress.visible = false;
-                }
-                else if(percent == 100)
-                {
-                    transferStatus.text = qsTr("Done!");
-                    transferProgress.visible = false;
-                }
                 else
                 {
+                    transferStatus.text = (percent >= 100) ? qsTr("Done!") : (percent + "%");
                     transferProgress.value = percent;
-                    transferProgress.visible = true;
                     transferProgress.indeterminate = false;
                 }
             }
