@@ -19,7 +19,7 @@ to the port and be used for debugging.</source>
         <translation>Activer le GDB stub sur le port</translation>
     </message>
     <message>
-        <location filename="../qml/ConfigPageDebug.qml" line="58"/>
+        <location filename="../qml/ConfigPageDebug.qml" line="59"/>
         <source>Remote access to internal debugger</source>
         <translation>Accès distant au débuggeur interne</translation>
     </message>
@@ -34,37 +34,37 @@ like for firebird-send.</source>
         <translation>Si activé, un débuggeur GDB distant peut être connecté au port et être utilisé pour débugger.</translation>
     </message>
     <message>
-        <location filename="../qml/ConfigPageDebug.qml" line="67"/>
+        <location filename="../qml/ConfigPageDebug.qml" line="69"/>
         <source>Enable this to access the internal debugger via TCP (telnet/netcat), like for firebird-send.</source>
         <translation>Activer pour accéder au débuggeur interne via TCP (telnet/netcat), pour firebird-send par exemple.</translation>
     </message>
     <message>
-        <location filename="../qml/ConfigPageDebug.qml" line="80"/>
+        <location filename="../qml/ConfigPageDebug.qml" line="81"/>
         <source>Enable internal debugger on Port</source>
         <translation>Activer le débuggeur interne sur le port</translation>
     </message>
     <message>
-        <location filename="../qml/ConfigPageDebug.qml" line="105"/>
+        <location filename="../qml/ConfigPageDebug.qml" line="106"/>
         <source>Enter into Debugger</source>
         <translation>Entrer dans le débuggeur</translation>
     </message>
     <message>
-        <location filename="../qml/ConfigPageDebug.qml" line="114"/>
+        <location filename="../qml/ConfigPageDebug.qml" line="115"/>
         <source>Configure which situations cause the emulator to trap into the debugger.</source>
         <translation>Choisir quelles situations font que l&apos;émulateur lancera le débuggeur.</translation>
     </message>
     <message>
-        <location filename="../qml/ConfigPageDebug.qml" line="120"/>
+        <location filename="../qml/ConfigPageDebug.qml" line="121"/>
         <source>Enter Debugger on Startup</source>
         <translation>Lancer le débuggeur au démarrage</translation>
     </message>
     <message>
-        <location filename="../qml/ConfigPageDebug.qml" line="131"/>
+        <location filename="../qml/ConfigPageDebug.qml" line="132"/>
         <source>Enter Debugger on Warnings and Errors</source>
         <translation>Entrer dans le débuggeur lors d&apos;avertissements et d&apos;erreurs</translation>
     </message>
     <message>
-        <location filename="../qml/ConfigPageDebug.qml" line="142"/>
+        <location filename="../qml/ConfigPageDebug.qml" line="143"/>
         <source>Print a message on Warnings</source>
         <translation>Afficher un message lors d&apos;avertissements</translation>
     </message>
@@ -139,7 +139,7 @@ If available, it will resume the emulation from the provided snapshot.</source>
 <context>
     <name>ConfigPageFileTransfer</name>
     <message>
-        <location filename="../qml/ConfigPageFileTransfer.qml" line="99"/>
+        <location filename="../qml/ConfigPageFileTransfer.qml" line="102"/>
         <source>Target Directory</source>
         <translation>Répertoire cible</translation>
     </message>
@@ -149,54 +149,93 @@ it will try to send the file to the emulated system.</source>
         <translation type="vanished">Quand des fichiers sont glissés sur Firebird,\nun transfert vers le système émulé sera tenté.</translation>
     </message>
     <message>
-        <location filename="../qml/ConfigPageFileTransfer.qml" line="108"/>
         <source>When dragging files onto Firebird, it will try to send the file to the emulated system.</source>
-        <translation>Quand des fichiers sont glissés sur Firebird, un transfert vers le système émulé sera tenté.</translation>
+        <translation type="vanished">Quand des fichiers sont glissés sur Firebird, un transfert vers le système émulé sera tenté.</translation>
     </message>
     <message>
-        <location filename="../qml/ConfigPageFileTransfer.qml" line="116"/>
+        <location filename="../qml/ConfigPageFileTransfer.qml" line="120"/>
         <source>Target folder for dropped files:</source>
         <translation>Répertoire cible pour les fichiers glissés :</translation>
     </message>
     <message>
-        <location filename="../qml/ConfigPageFileTransfer.qml" line="12"/>
         <source>Single File Transfer</source>
-        <translation>Transfert de fichier unique</translation>
+        <translation type="vanished">Transfert de fichier unique</translation>
     </message>
     <message>
-        <location filename="../qml/ConfigPageFileTransfer.qml" line="21"/>
         <source>If you are unable to use the main window&apos;s file transfer using either drag&apos;n&apos;drop or the file explorer, you can send single files here.</source>
-        <translation>Si vous n&apos;êtes pas en mesure d&apos;utiliser la fenêtre principale pour les transferts (glisser/déposer ou via l&apos;explorateur), vous pouvez transférer des fichiers ici.</translation>
+        <translation type="vanished">Si vous n&apos;êtes pas en mesure d&apos;utiliser la fenêtre principale pour les transferts (glisser/déposer ou via l&apos;explorateur), vous pouvez transférer des fichiers ici.</translation>
     </message>
     <message>
-        <location filename="../qml/ConfigPageFileTransfer.qml" line="29"/>
         <source>Here you can send single files into the target folder specified below.</source>
-        <translation>Ici vous pouvez envoyer des fichiers seuls dans le dossier cible donné ci-dessous.</translation>
+        <translation type="vanished">Ici vous pouvez envoyer des fichiers seuls dans le dossier cible donné ci-dessous.</translation>
     </message>
     <message>
-        <location filename="../qml/ConfigPageFileTransfer.qml" line="45"/>
         <source>Send a file</source>
-        <translation>Envoyer un fichier</translation>
+        <translation type="vanished">Envoyer un fichier</translation>
     </message>
     <message>
-        <location filename="../qml/ConfigPageFileTransfer.qml" line="57"/>
+        <location filename="../qml/ConfigPageFileTransfer.qml" line="77"/>
         <source>Status:</source>
         <translation>Statut :</translation>
     </message>
     <message>
-        <location filename="../qml/ConfigPageFileTransfer.qml" line="64"/>
         <source>idle</source>
-        <translation>en attente</translation>
+        <translation type="vanished">en attente</translation>
     </message>
     <message>
-        <location filename="../qml/ConfigPageFileTransfer.qml" line="80"/>
+        <location filename="../qml/ConfigPageFileTransfer.qml" line="12"/>
+        <source>File Transfer</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../qml/ConfigPageFileTransfer.qml" line="21"/>
+        <source>If you are unable to use the main window&apos;s file transfer using either drag&apos;n&apos;drop or the file explorer, you can send files here.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../qml/ConfigPageFileTransfer.qml" line="29"/>
+        <source>Here you can send files into the target folder specified below.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../qml/ConfigPageFileTransfer.qml" line="37"/>
+        <source>TNS Documents</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../qml/ConfigPageFileTransfer.qml" line="37"/>
+        <source>Operating Systems</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../qml/ConfigPageFileTransfer.qml" line="40"/>
+        <source>Starting</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../qml/ConfigPageFileTransfer.qml" line="52"/>
+        <source>Send files</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../qml/ConfigPageFileTransfer.qml" line="83"/>
+        <source>Idle</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../qml/ConfigPageFileTransfer.qml" line="90"/>
         <source>Failed!</source>
         <translation>Echec !</translation>
     </message>
     <message>
-        <location filename="../qml/ConfigPageFileTransfer.qml" line="85"/>
+        <location filename="../qml/ConfigPageFileTransfer.qml" line="93"/>
         <source>Done!</source>
         <translation>Terminé !</translation>
+    </message>
+    <message>
+        <location filename="../qml/ConfigPageFileTransfer.qml" line="111"/>
+        <source>When dragging files onto Firebird, it will try to send them to the emulated system.</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <source> % sent</source>
@@ -206,44 +245,47 @@ it will try to send the file to the emulated system.</source>
 <context>
     <name>ConfigPageKits</name>
     <message>
-        <location filename="../qml/ConfigPageKits.qml" line="31"/>
+        <location filename="../qml/ConfigPageKits.qml" line="30"/>
         <source>Kit Properties</source>
         <translation>Propriétés du Kit</translation>
     </message>
     <message>
-        <location filename="../qml/ConfigPageKits.qml" line="42"/>
+        <location filename="../qml/ConfigPageKits.qml" line="40"/>
         <source>You need to specify files for Boot1 and Flash</source>
         <translation>Vous devez spécifier les fichiers de Boot1 et de Flash</translation>
     </message>
     <message>
-        <location filename="../qml/ConfigPageKits.qml" line="46"/>
+        <location filename="../qml/ConfigPageKits.qml" line="44"/>
         <source>Name:</source>
         <translation>Nom :</translation>
     </message>
     <message>
-        <location filename="../qml/ConfigPageKits.qml" line="52"/>
+        <location filename="../qml/ConfigPageKits.qml" line="50"/>
         <source>Name</source>
         <translation>Nom</translation>
     </message>
     <message>
-        <location filename="../qml/ConfigPageKits.qml" line="64"/>
+        <location filename="../qml/ConfigPageKits.qml" line="62"/>
         <source>Boot1:</source>
         <translation>Boot1 :</translation>
     </message>
     <message>
-        <location filename="../qml/ConfigPageKits.qml" line="80"/>
+        <location filename="../qml/ConfigPageKits.qml" line="78"/>
         <source>Flash:</source>
         <translation>Flash :</translation>
     </message>
     <message>
-        <location filename="../qml/ConfigPageKits.qml" line="99"/>
-        <source>Create</source>
-        <translation>Créer</translation>
+        <location filename="../qml/ConfigPageKits.qml" line="103"/>
+        <source>Snapshot:</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/ConfigPageKits.qml" line="109"/>
+        <source>Create</source>
+        <translation type="vanished">Créer</translation>
+    </message>
+    <message>
         <source>Snapshot file:</source>
-        <translation>Snapshot :</translation>
+        <translation type="vanished">Snapshot :</translation>
     </message>
 </context>
 <context>
@@ -335,17 +377,17 @@ it will try to send the file to the emulated system.</source>
 <context>
     <name>FBConfigDialog</name>
     <message>
-        <location filename="../qml/FBConfigDialog.qml" line="10"/>
+        <location filename="../qml/FBConfigDialog.qml" line="9"/>
         <source>Firebird Emu Configuration</source>
         <translation>Configuration de Firebird Emu</translation>
     </message>
     <message>
-        <location filename="../qml/FBConfigDialog.qml" line="48"/>
+        <location filename="../qml/FBConfigDialog.qml" line="46"/>
         <source>Changes are saved automatically</source>
         <translation>Les changements sont sauvés automatiquement</translation>
     </message>
     <message>
-        <location filename="../qml/FBConfigDialog.qml" line="54"/>
+        <location filename="../qml/FBConfigDialog.qml" line="52"/>
         <source>Ok</source>
         <translation>Ok</translation>
     </message>
@@ -353,62 +395,73 @@ it will try to send the file to the emulated system.</source>
 <context>
     <name>FileSelect</name>
     <message>
-        <location filename="../qml/Firebird/UIComponents/FileSelect.qml" line="26"/>
+        <location filename="../qml/Firebird/UIComponents/FileSelect.qml" line="48"/>
         <source>(none)</source>
         <translation>(aucun)</translation>
     </message>
     <message>
-        <location filename="../qml/Firebird/UIComponents/FileSelect.qml" line="32"/>
         <source>Select</source>
-        <translation>Choisir</translation>
+        <translation type="vanished">Choisir</translation>
     </message>
 </context>
 <context>
     <name>FlashDialog</name>
     <message>
-        <location filename="../flashdialog.ui" line="14"/>
+        <location filename="../qml/FlashDialog.qml" line="10"/>
         <source>Create Flash Image</source>
         <translation>Créer l&apos;image Flash</translation>
     </message>
     <message>
-        <location filename="../flashdialog.ui" line="268"/>
         <source>Calculator Type:</source>
-        <translation>Type de calculatrice:</translation>
+        <translation type="vanished">Type de calculatrice:</translation>
     </message>
     <message>
-        <location filename="../flashdialog.ui" line="68"/>
+        <location filename="../qml/FlashDialog.qml" line="76"/>
         <source>Boot2:</source>
         <translation>Boot2 :</translation>
     </message>
     <message>
-        <location filename="../flashdialog.ui" line="33"/>
-        <location filename="../flashdialog.ui" line="75"/>
-        <location filename="../flashdialog.ui" line="130"/>
-        <location filename="../flashdialog.ui" line="222"/>
-        <location filename="../flashdialog.cpp" line="51"/>
-        <location filename="../flashdialog.cpp" line="65"/>
-        <location filename="../flashdialog.cpp" line="83"/>
-        <location filename="../flashdialog.cpp" line="117"/>
         <source>None</source>
-        <translation>Aucun</translation>
+        <translation type="vanished">Aucun</translation>
     </message>
     <message>
-        <location filename="../flashdialog.ui" line="99"/>
-        <location filename="../flashdialog.ui" line="154"/>
-        <location filename="../flashdialog.ui" line="191"/>
-        <location filename="../flashdialog.ui" line="246"/>
         <source>Select file</source>
-        <translation>Choisir le fichier</translation>
+        <translation type="vanished">Choisir le fichier</translation>
     </message>
     <message>
-        <location filename="../flashdialog.ui" line="123"/>
+        <location filename="../qml/FlashDialog.qml" line="33"/>
+        <source>Model:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../qml/FlashDialog.qml" line="49"/>
+        <source>CX Subtype:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../qml/FlashDialog.qml" line="62"/>
         <source>Manuf:</source>
         <translation>Manuf :</translation>
     </message>
     <message>
-        <location filename="../flashdialog.ui" line="215"/>
+        <location filename="../qml/FlashDialog.qml" line="89"/>
         <source>OS:</source>
         <translation>OS :</translation>
+    </message>
+    <message>
+        <location filename="../qml/FlashDialog.qml" line="104"/>
+        <source>Bootloader:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../qml/FlashDialog.qml" line="117"/>
+        <source>Installer:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../qml/FlashDialog.qml" line="139"/>
+        <source>Manuf required for CX II</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <source>HW-A</source>
@@ -423,69 +476,57 @@ it will try to send the file to the emulated system.</source>
         <translation type="vanished">HW-W (CXCR4)</translation>
     </message>
     <message>
-        <location filename="../flashdialog.ui" line="26"/>
+        <location filename="../qml/FlashDialog.qml" line="130"/>
         <source>Diags:</source>
         <translation>Diags :</translation>
     </message>
     <message>
-        <location filename="../flashdialog.ui" line="57"/>
         <source>Save as..</source>
-        <translation>Sauvegarder sous...</translation>
+        <translation type="vanished">Sauvegarder sous...</translation>
     </message>
     <message>
-        <location filename="../flashdialog.cpp" line="47"/>
         <source>Select Boot2</source>
-        <translation>Choisir le Boot2</translation>
+        <translation type="vanished">Choisir le Boot2</translation>
     </message>
     <message>
-        <location filename="../flashdialog.cpp" line="36"/>
-        <location filename="../flashdialog.cpp" line="42"/>
-        <location filename="../flashdialog.cpp" line="89"/>
         <source>Unknown</source>
-        <translation>Inconnu</translation>
+        <translation type="vanished">Inconnu</translation>
     </message>
     <message>
-        <location filename="../flashdialog.cpp" line="61"/>
         <source>Select Manuf</source>
-        <translation>Choisir le Manuf</translation>
+        <translation type="vanished">Choisir le Manuf</translation>
     </message>
     <message>
-        <location filename="../flashdialog.cpp" line="71"/>
         <source>Loaded</source>
-        <translation>Chargé</translation>
+        <translation type="vanished">Chargé</translation>
     </message>
     <message>
-        <location filename="../flashdialog.cpp" line="79"/>
         <source>Select OS file</source>
-        <translation>Choisir le fichier d&apos;OS</translation>
+        <translation type="vanished">Choisir le fichier d&apos;OS</translation>
     </message>
     <message>
-        <location filename="../flashdialog.cpp" line="113"/>
         <source>Select Diags</source>
-        <translation>Choisir le Diags</translation>
+        <translation type="vanished">Choisir le Diags</translation>
     </message>
     <message>
-        <location filename="../flashdialog.cpp" line="139"/>
         <source>Save flash image</source>
-        <translation>Sauvegarder l&apos;image Flash</translation>
+        <translation type="vanished">Sauvegarder l&apos;image Flash</translation>
     </message>
     <message>
-        <location filename="../flashdialog.cpp" line="156"/>
         <source>Flash creation failed</source>
-        <translation>Erreur de création de l&apos;image flash</translation>
+        <translation type="vanished">Erreur de création de l&apos;image flash</translation>
     </message>
     <message>
-        <location filename="../flashdialog.cpp" line="156"/>
         <source>Creating the flash file failed!</source>
-        <translation>Erreur de création du fichier de l&apos;image flash !</translation>
+        <translation type="vanished">Erreur de création du fichier de l&apos;image flash !</translation>
     </message>
     <message>
-        <location filename="../flashdialog.cpp" line="166"/>
+        <location filename="../qml/FlashDialog.qml" line="151"/>
         <source>Flash saving failed</source>
         <translation>Erreur de sauvegarde de l&apos;image flash</translation>
     </message>
     <message>
-        <location filename="../flashdialog.cpp" line="166"/>
+        <location filename="../qml/FlashDialog.qml" line="152"/>
         <source>Saving the flash file failed!</source>
         <translation>Erreur de sauvegarde du fichier de l&apos;image flash !</translation>
     </message>
@@ -493,12 +534,12 @@ it will try to send the file to the emulated system.</source>
 <context>
     <name>KitList</name>
     <message>
-        <location filename="../qml/Firebird/UIComponents/KitList.qml" line="78"/>
+        <location filename="../qml/Firebird/UIComponents/KitList.qml" line="83"/>
         <source>Remove</source>
         <translation>Supprimer</translation>
     </message>
     <message>
-        <location filename="../qml/Firebird/UIComponents/KitList.qml" line="95"/>
+        <location filename="../qml/Firebird/UIComponents/KitList.qml" line="100"/>
         <source>Copy</source>
         <translation>Copier</translation>
     </message>
@@ -565,7 +606,7 @@ it will try to send the file to the emulated system.</source>
         <translation type="vanished">au démarrage</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="502"/>
+        <location filename="../mainwindow.cpp" line="514"/>
         <source>Docks</source>
         <translation>&quot;Docks&quot;</translation>
     </message>
@@ -614,47 +655,47 @@ it will try to send the file to the emulated system.</source>
         <translation type="vanished">Boot&amp;2</translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="473"/>
+        <location filename="../mainwindow.ui" line="470"/>
         <source>Abo&amp;ut</source>
         <translation>A propos...</translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="577"/>
+        <location filename="../mainwindow.ui" line="574"/>
         <source>Send &amp;file over XModem</source>
         <translation>Envoyer un &amp;fichier par XModem</translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="586"/>
+        <location filename="../mainwindow.ui" line="583"/>
         <source>&amp;Suspend</source>
         <translation>Mettre en pau&amp;se</translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="595"/>
+        <location filename="../mainwindow.ui" line="592"/>
         <source>&amp;Resume</source>
         <translation>&amp;Reprendre</translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="604"/>
+        <location filename="../mainwindow.ui" line="601"/>
         <source>Save &amp;to file</source>
         <translation>Enregis&amp;trer dans le fichier</translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="613"/>
+        <location filename="../mainwindow.ui" line="610"/>
         <source>Load &amp;from file</source>
         <translation>Charger depuis le &amp;fichier</translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="625"/>
+        <location filename="../mainwindow.ui" line="622"/>
         <source>&amp;Record GIF</source>
         <translation>Captu&amp;re GIF</translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="634"/>
+        <location filename="../mainwindow.ui" line="631"/>
         <source>&amp;About Firebird</source>
         <translation>&amp;A propos de Firebird</translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="639"/>
+        <location filename="../mainwindow.ui" line="636"/>
         <source>About &amp;Qt</source>
         <translation>A propos de &amp;Qt</translation>
     </message>
@@ -694,6 +735,7 @@ it will try to send the file to the emulated system.</source>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="17"/>
+        <location filename="../mainwindow.cpp" line="837"/>
         <source>Firebird Emu</source>
         <translation></translation>
     </message>
@@ -726,80 +768,65 @@ it will try to send the file to the emulated system.</source>
         <translation>Langage</translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="463"/>
+        <location filename="../mainwindow.ui" line="460"/>
         <source>S&amp;napshot</source>
         <translation>S&amp;napshot</translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="490"/>
+        <location filename="../mainwindow.ui" line="487"/>
         <source>&amp;Reset</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="499"/>
+        <location filename="../mainwindow.ui" line="496"/>
         <source>Enter &amp;Debugger</source>
         <translation>&amp;Entrer dans le débuggeur</translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="520"/>
+        <location filename="../mainwindow.ui" line="517"/>
         <source>&amp;Pause</source>
         <translation>&amp;Pause</translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="532"/>
-        <location filename="../mainwindow.cpp" line="474"/>
+        <location filename="../mainwindow.ui" line="529"/>
+        <location filename="../mainwindow.cpp" line="486"/>
         <source>Re&amp;start</source>
         <translation>&amp;Redémarrer</translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="541"/>
+        <location filename="../mainwindow.ui" line="538"/>
         <source>&amp;Screenshot</source>
         <translation>&amp;Capture d&apos;écran</translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="554"/>
+        <location filename="../mainwindow.ui" line="551"/>
         <source>Connect &amp;USB</source>
         <translation>Connecter l&apos;&amp;USB</translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="563"/>
+        <location filename="../mainwindow.ui" line="560"/>
         <source>&amp;Save</source>
         <translation>&amp;Sauvegarder</translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="572"/>
+        <location filename="../mainwindow.ui" line="569"/>
         <source>&amp;Create Flash</source>
         <translation>&amp;Créer la Flash</translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="647"/>
+        <location filename="../mainwindow.ui" line="644"/>
         <source>&amp;External LCD</source>
         <translation>LCD &amp;Externe</translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="656"/>
+        <location filename="../mainwindow.ui" line="653"/>
         <source>&amp;Configuration</source>
         <translation>&amp;Configuration</translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="665"/>
+        <location filename="../mainwindow.ui" line="662"/>
         <source>Switch to Mobile UI</source>
         <translation>Activer l&apos;interface mobile</translation>
-    </message>
-    <message>
-        <location filename="../mainwindow.ui" line="670"/>
-        <source>English</source>
-        <translation></translation>
-    </message>
-    <message>
-        <location filename="../mainwindow.ui" line="675"/>
-        <source>Français</source>
-        <translation></translation>
-    </message>
-    <message>
-        <location filename="../mainwindow.ui" line="680"/>
-        <source>Deutsch</source>
-        <translation></translation>
     </message>
     <message>
         <source>Configuration</source>
@@ -821,12 +848,12 @@ it will try to send the file to the emulated system.</source>
         <translation>Booter sur les Diags avec le Kit</translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="508"/>
+        <location filename="../mainwindow.ui" line="505"/>
         <source>&amp;Quit</source>
         <translation>&amp;Quitter</translation>
     </message>
     <message>
-        <location filename="../mainwindow.ui" line="523"/>
+        <location filename="../mainwindow.ui" line="520"/>
         <source>Pause execution</source>
         <translation>Mettre en pause l&apos;exécution</translation>
     </message>
@@ -850,8 +877,8 @@ it will try to send the file to the emulated system.</source>
         <translation>Capture d&apos;écran</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="608"/>
-        <location filename="../mainwindow.cpp" line="610"/>
+        <location filename="../mainwindow.cpp" line="620"/>
+        <location filename="../mainwindow.cpp" line="622"/>
         <source>Connect USB</source>
         <translation>Connecter l&apos;USB</translation>
     </message>
@@ -860,22 +887,22 @@ it will try to send the file to the emulated system.</source>
         <translation type="vanished">Démarrer l&apos;émulation via Emulation-&gt;Redémarrer.</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="836"/>
+        <location filename="../mainwindow.cpp" line="873"/>
         <source>Restart needed</source>
         <translation>Redémarrage requis</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="458"/>
+        <location filename="../mainwindow.cpp" line="470"/>
         <source>Try to restart this app.</source>
         <translation>Essayer de redémarrer l&apos;application.</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="369"/>
+        <location filename="../mainwindow.cpp" line="374"/>
         <source>Download failed</source>
         <translation>Transfert échoué</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="369"/>
+        <location filename="../mainwindow.cpp" line="374"/>
         <source>Could not download file.</source>
         <translation>Le fichier n&apos;a pas pu être récupéré.</translation>
     </message>
@@ -896,7 +923,7 @@ it will try to send the file to the emulated system.</source>
         <translation type="vanished">Choisir l&apos;emplacement du snapshot :</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="548"/>
+        <location filename="../mainwindow.cpp" line="560"/>
         <source>Speed: %1 %</source>
         <translation>Vitesse : %1 %</translation>
     </message>
@@ -909,53 +936,53 @@ it will try to send the file to the emulated system.</source>
         <translation type="vanished">Voulez-vous utiliser ces nouveaux paramètres de Flash ?</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="555"/>
+        <location filename="../mainwindow.cpp" line="567"/>
         <source>Save Screenshot</source>
         <translation>Sauvegarder la capture d&apos;écran</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="555"/>
+        <location filename="../mainwindow.cpp" line="567"/>
         <source>PNG images (*.png)</source>
         <translation>Images PNG (*.png)</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="560"/>
+        <location filename="../mainwindow.cpp" line="572"/>
         <source>Screenshot failed</source>
         <translation>Capture d&apos;écran échée</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="560"/>
+        <location filename="../mainwindow.cpp" line="572"/>
         <source>Failed to save screenshot!</source>
         <translation>Impossible de sauvegarder la capture !</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="578"/>
+        <location filename="../mainwindow.cpp" line="590"/>
         <source>GIF images (*.gif)</source>
         <translation>Images GIF (*.gif)</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="578"/>
+        <location filename="../mainwindow.cpp" line="590"/>
         <source>Save Recording</source>
         <translation>Enregistrer la capture</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="588"/>
+        <location filename="../mainwindow.cpp" line="600"/>
         <source>Failed recording GIF</source>
         <translation>Erreur de capture GIF</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="588"/>
+        <location filename="../mainwindow.cpp" line="600"/>
         <source>A failure occured during recording</source>
         <translation>Une erreur est survenue lors de la capture</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="608"/>
-        <location filename="../mainwindow.cpp" line="610"/>
+        <location filename="../mainwindow.cpp" line="620"/>
+        <location filename="../mainwindow.cpp" line="622"/>
         <source>Disconnect USB</source>
         <translation>Déconnecter l&apos;USB</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="633"/>
+        <location filename="../mainwindow.cpp" line="649"/>
         <source>Can&apos;t resume</source>
         <translation>Impossible de reprendre</translation>
     </message>
@@ -964,17 +991,17 @@ it will try to send the file to the emulated system.</source>
         <translation type="vanished">Pas d&apos;emplacement de snapshot donné (Paramètres-&gt;Snapshot)</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="644"/>
+        <location filename="../mainwindow.cpp" line="660"/>
         <source>Can&apos;t suspend</source>
         <translation>Impossible de mettre en pause</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="649"/>
+        <location filename="../mainwindow.cpp" line="665"/>
         <source>Select snapshot to resume from</source>
         <translation>Choisir l&apos;emplacement du snapshot pour la reprise</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="656"/>
+        <location filename="../mainwindow.cpp" line="672"/>
         <source>Select snapshot to suspend to</source>
         <translation>Choisir l&apos;emplacement du snapshot pour la mise en pause</translation>
     </message>
@@ -987,66 +1014,66 @@ it will try to send the file to the emulated system.</source>
         <translation type="vanished">&lt;h3&gt;Firebird %1&lt;/h3&gt;&lt;a href=&apos;https://github.com/nspire-emus/firebird&apos;&gt;Sur GitHub&lt;/a&gt;&lt;br&gt;&lt;br&gt;Auteurs:&lt;br&gt;Fabian Vogt (&lt;a href=&apos;https://github.com/Vogtinator&apos;&gt;Vogtinator&lt;/a&gt;)&lt;br&gt;Adrien Bertrand (&lt;a href=&apos;https://github.com/adriweb&apos;&gt;Adriweb&lt;/a&gt;)&lt;br&gt;Antonio Vasquez (&lt;a href=&apos;https://github.com/antoniovazquezblanco&apos;&gt;antoniovazquezblanco&lt;/a&gt;)&lt;br&gt;Lionel Debroux (&lt;a href=&apos;https://github.com/debrouxl&apos;&gt;debrouxl&lt;/a&gt;)&lt;br&gt;Basé sur nspire_emu v0.70 par Goplat&lt;br&gt;&lt;br&gt;Projet sous licence GPLv3.&lt;br&gt;Pour voir une opie de cette licence, visitez &lt;a href=&apos;https://www.gnu.org/licenses/gpl-3.0.html&apos;&gt;https://www.gnu.org/licenses/gpl-3.0.html&lt;/a&gt;</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="698"/>
+        <location filename="../mainwindow.cpp" line="720"/>
         <source>Emulation started</source>
         <translation>Emulation démarrée</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="700"/>
+        <location filename="../mainwindow.cpp" line="722"/>
         <source>Could not start the emulation</source>
         <translation>Impossible de démarrer l&apos;émulation</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="700"/>
+        <location filename="../mainwindow.cpp" line="722"/>
         <source>Starting the emulation failed.
 Are the paths to boot1 and flash correct?</source>
         <translation>Le démarrage de l&apos;émulation a échoué. Les emplacements des boot1 et flash sont-ils corrects ?</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="708"/>
+        <location filename="../mainwindow.cpp" line="730"/>
         <source>Emulation resumed from snapshot</source>
         <translation>Emulation reprise depuis le snapshot</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="458"/>
-        <location filename="../mainwindow.cpp" line="710"/>
+        <location filename="../mainwindow.cpp" line="470"/>
+        <location filename="../mainwindow.cpp" line="732"/>
         <source>Could not resume</source>
         <translation>Impossible de reprendre</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="192"/>
-        <location filename="../mainwindow.cpp" line="211"/>
+        <location filename="../mainwindow.cpp" line="205"/>
+        <location filename="../mainwindow.cpp" line="224"/>
         <source>Start the emulation via Emulation-&gt;Start.</source>
         <translation>Démarrer l&apos;émulation via Emulation-&gt;Démarrer.</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="198"/>
+        <location filename="../mainwindow.cpp" line="211"/>
         <source>Default Kit not found</source>
         <translation>Kit par défaut non trouvé</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="250"/>
+        <location filename="../mainwindow.cpp" line="262"/>
         <source>Language change</source>
         <translation>Changement de langage</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="250"/>
+        <location filename="../mainwindow.cpp" line="262"/>
         <source>No translation available for this language :(</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="474"/>
+        <location filename="../mainwindow.cpp" line="486"/>
         <source>&amp;Start</source>
         <translation>Démarrer</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="505"/>
+        <location filename="../mainwindow.cpp" line="517"/>
         <source>Enable UI edit mode</source>
         <translation>Activer le mode d&apos;édition d&apos;interface</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="633"/>
-        <location filename="../mainwindow.cpp" line="644"/>
+        <location filename="../mainwindow.cpp" line="649"/>
+        <location filename="../mainwindow.cpp" line="660"/>
         <source>The current kit does not have a snapshot file configured</source>
         <translation>Le Kit courant n&apos;a pas de fichier snapshot configuré</translation>
     </message>
@@ -1055,61 +1082,66 @@ Are the paths to boot1 and flash correct?</source>
         <translation type="vanished">&lt;h3&gt;Firebird %1&lt;/h3&gt;&lt;a href=&apos;https://github.com/nspire-emus/firebird&apos;&gt;Sur GitHub&lt;/a&gt;&lt;br&gt;&lt;br&gt;Auteurs:&lt;br&gt;Fabian Vogt (&lt;a href=&apos;https://github.com/Vogtinator&apos;&gt;Vogtinator&lt;/a&gt;)&lt;br&gt;Adrien Bertrand (&lt;a href=&apos;https://github.com/adriweb&apos;&gt;Adriweb&lt;/a&gt;)&lt;br&gt;Antonio Vasquez (&lt;a href=&apos;https://github.com/antoniovazquezblanco&apos;&gt;antoniovazquezblanco&lt;/a&gt;)&lt;br&gt;Lionel Debroux (&lt;a href=&apos;https://github.com/debrouxl&apos;&gt;debrouxl&lt;/a&gt;)&lt;br&gt;Denis Avashurov (&lt;a href=&apos;https://github.com/denisps&apos;&gt;denisps&lt;/a&gt;)&lt;br&gt;Basé sur nspire_emu v0.70 par Goplat&lt;br&gt;&lt;br&gt;Projet sous licence GPLv3.&lt;br&gt;Pour voir une opie de cette licence, visitez &lt;a href=&apos;https://www.gnu.org/licenses/gpl-3.0.html&apos;&gt;https://www.gnu.org/licenses/gpl-3.0.html&lt;/a&gt;</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="710"/>
+        <location filename="../mainwindow.cpp" line="732"/>
         <source>Resuming failed.
 Try to fix the issue and try again.</source>
         <translation>La reprise a échouée. Essayez de corriger le problème, puis retentez.</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="716"/>
+        <location filename="../mainwindow.cpp" line="738"/>
         <source>Snapshot saved</source>
         <translation>Snapshot sauvegardé</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="718"/>
+        <location filename="../mainwindow.cpp" line="740"/>
         <source>Could not suspend</source>
         <translation>Impossible de mettre en pause</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="718"/>
+        <location filename="../mainwindow.cpp" line="740"/>
         <source>Suspending failed.
 Try to fix the issue and try again.</source>
         <translation>Mise en pause échouée. Essayez de corriger le problème, puis retentez.</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="732"/>
+        <location filename="../mainwindow.cpp" line="754"/>
         <source>Emulation stopped</source>
         <translation>Emulation arrêtée</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="820"/>
+        <location filename="../mainwindow.cpp" line="834"/>
+        <source>Firebird Emu - %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../mainwindow.cpp" line="859"/>
         <source>No boot1 set</source>
         <translation>Pas de Boot1 choisi</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="820"/>
+        <location filename="../mainwindow.cpp" line="859"/>
         <source>Before you can start the emulation, you have to select a proper boot1 file.</source>
         <translation>Avant de pouvoir démarrer l&apos;émulation, vous devez choisir un fichier Boot1 valide.</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="826"/>
+        <location filename="../mainwindow.cpp" line="865"/>
         <source>No flash image loaded</source>
         <translation>Pas d&apos;image Flash chargée</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="826"/>
+        <location filename="../mainwindow.cpp" line="865"/>
         <source>Before you can start the emulation, you have to load a proper flash file.
 You can create one via Flash-&gt;Create Flash in the menu.</source>
         <translation>Avant de pouvoir démarrer l&apos;émulation, vous devez choisir un fichier d&apos;image Flash valide. Vous pouvez en créer un via le menu Flash-&gt;Créer la Flash.</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="836"/>
+        <location filename="../mainwindow.cpp" line="873"/>
         <source>Failed to restart emulator. Close and reopen this app.
 </source>
         <translation>Impossible de redémarrer l&apos;émulateur. Veuillez fermer puis réouvrir l&apos;application.</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="882"/>
+        <location filename="../mainwindow.cpp" line="919"/>
         <source>Select file to send</source>
         <translation>Choisir le fichier à envoyer</translation>
     </message>
@@ -1199,7 +1231,7 @@ You won&apos;t be able to resume.</source>
 <context>
     <name>MobileUIConfig</name>
     <message>
-        <location filename="../qml/MobileUIConfig.qml" line="69"/>
+        <location filename="../qml/MobileUIConfig.qml" line="66"/>
         <source>Changes are saved automatically</source>
         <translation>Les changements sont sauvés autoamtiquement</translation>
     </message>
@@ -1207,69 +1239,69 @@ You won&apos;t be able to resume.</source>
 <context>
     <name>MobileUIDrawer</name>
     <message>
-        <location filename="../qml/MobileUIDrawer.qml" line="38"/>
+        <location filename="../qml/MobileUIDrawer.qml" line="42"/>
         <source>Start</source>
         <translation>Démarrer</translation>
     </message>
     <message>
-        <location filename="../qml/MobileUIDrawer.qml" line="53"/>
+        <location filename="../qml/MobileUIDrawer.qml" line="57"/>
         <source>Reset</source>
         <translation>Reset</translation>
     </message>
     <message>
-        <location filename="../qml/MobileUIDrawer.qml" line="65"/>
+        <location filename="../qml/MobileUIDrawer.qml" line="69"/>
         <source>Resume</source>
         <translation>Reprendre</translation>
     </message>
     <message>
-        <location filename="../qml/MobileUIDrawer.qml" line="80"/>
+        <location filename="../qml/MobileUIDrawer.qml" line="84"/>
         <source>Save</source>
         <translation>Sauver</translation>
     </message>
     <message>
-        <location filename="../qml/MobileUIDrawer.qml" line="85"/>
+        <location filename="../qml/MobileUIDrawer.qml" line="89"/>
         <source>Error</source>
         <translation>Erreur</translation>
     </message>
     <message>
-        <location filename="../qml/MobileUIDrawer.qml" line="86"/>
+        <location filename="../qml/MobileUIDrawer.qml" line="90"/>
         <source>Failed to save changes!</source>
         <translation>Impossible de sauvegarder les modifications !</translation>
     </message>
     <message>
-        <location filename="../qml/MobileUIDrawer.qml" line="92"/>
+        <location filename="../qml/MobileUIDrawer.qml" line="96"/>
         <source>Warning</source>
         <translation>Avertissement</translation>
     </message>
     <message>
-        <location filename="../qml/MobileUIDrawer.qml" line="93"/>
+        <location filename="../qml/MobileUIDrawer.qml" line="97"/>
         <source>Flash saved, but no snapshot location configured.
 You won&apos;t be able to resume.</source>
         <translation>Flash sauvée, mais aucun emplacement de snapshot configuré.
 Vous ne pourrez pas reprendre.</translation>
     </message>
     <message>
-        <location filename="../qml/MobileUIDrawer.qml" line="123"/>
+        <location filename="../qml/MobileUIDrawer.qml" line="127"/>
         <source>Desktop UI</source>
         <translation>Interface ordinateur</translation>
     </message>
     <message>
-        <location filename="../qml/MobileUIDrawer.qml" line="132"/>
+        <location filename="../qml/MobileUIDrawer.qml" line="136"/>
         <source>Configuration</source>
         <translation>Configuration</translation>
     </message>
     <message>
-        <location filename="../qml/MobileUIDrawer.qml" line="152"/>
+        <location filename="../qml/MobileUIDrawer.qml" line="156"/>
         <source>Speed: %1 %</source>
         <translation>Vitesse : %1 %</translation>
     </message>
     <message>
-        <location filename="../qml/MobileUIDrawer.qml" line="171"/>
+        <location filename="../qml/MobileUIDrawer.qml" line="175"/>
         <source>About Firebird</source>
         <translation>A propos de Firebird</translation>
     </message>
     <message>
-        <location filename="../qml/MobileUIDrawer.qml" line="172"/>
+        <location filename="../qml/MobileUIDrawer.qml" line="176"/>
         <source>Authors:&lt;br&gt;
                                Fabian Vogt (&lt;a href=&apos;https://github.com/Vogtinator&apos;&gt;Vogtinator&lt;/a&gt;)&lt;br&gt;
                                Adrien Bertrand (&lt;a href=&apos;https://github.com/adriweb&apos;&gt;Adriweb&lt;/a&gt;)&lt;br&gt;
@@ -1293,45 +1325,37 @@ Vous ne pourrez pas reprendre.</translation>
 <context>
     <name>MobileUIFront</name>
     <message>
-        <location filename="../qml/MobileUIFront.qml" line="83"/>
         <source>Start</source>
-        <translation>Démarrer</translation>
+        <translation type="vanished">Démarrer</translation>
     </message>
     <message>
-        <location filename="../qml/MobileUIFront.qml" line="98"/>
         <source>Reset</source>
-        <translation>Reset</translation>
+        <translation type="vanished">Reset</translation>
     </message>
     <message>
-        <location filename="../qml/MobileUIFront.qml" line="110"/>
         <source>Resume</source>
-        <translation>Reprendre</translation>
+        <translation type="vanished">Reprendre</translation>
     </message>
     <message>
-        <location filename="../qml/MobileUIFront.qml" line="125"/>
         <source>Save</source>
-        <translation>Sauver</translation>
+        <translation type="vanished">Sauver</translation>
     </message>
     <message>
-        <location filename="../qml/MobileUIFront.qml" line="130"/>
         <source>Error</source>
-        <translation>Erreur</translation>
+        <translation type="vanished">Erreur</translation>
     </message>
     <message>
-        <location filename="../qml/MobileUIFront.qml" line="131"/>
         <source>Failed to save changes!</source>
-        <translation>Impossible de sauvegarder les modifications !</translation>
+        <translation type="vanished">Impossible de sauvegarder les modifications !</translation>
     </message>
     <message>
-        <location filename="../qml/MobileUIFront.qml" line="137"/>
         <source>Warning</source>
-        <translation>Avertissement</translation>
+        <translation type="vanished">Avertissement</translation>
     </message>
     <message>
-        <location filename="../qml/MobileUIFront.qml" line="138"/>
         <source>Flash saved, but no snapshot location configured.
 You won&apos;t be able to resume.</source>
-        <translation>Flash sauvée, mais aucun emplacement de snapshot configuré.
+        <translation type="vanished">Flash sauvée, mais aucun emplacement de snapshot configuré.
 Vous ne pourrez pas reprendre.</translation>
     </message>
 </context>
@@ -1345,12 +1369,12 @@ Vous ne pourrez pas reprendre.</translation>
 <context>
     <name>QMLBridge</name>
     <message>
-        <location filename="../qmlbridge.cpp" line="438"/>
+        <location filename="../qmlbridge.cpp" line="510"/>
         <source>Could not stop emulation</source>
         <translation>Impossible d&apos;arrêter l&apos;émulation</translation>
     </message>
     <message>
-        <location filename="../qmlbridge.cpp" line="446"/>
+        <location filename="../qmlbridge.cpp" line="518"/>
         <source>Starting emulation</source>
         <translation>Démarrage de l&apos;émulation</translation>
     </message>
@@ -1365,17 +1389,17 @@ Swipe the keypad to the left to show the settings menu.</source>
 Faites glisser le clavier versl a gauche pour afficher les paramètres.</translation>
     </message>
     <message>
-        <location filename="../qmlbridge.cpp" line="467"/>
+        <location filename="../qmlbridge.cpp" line="539"/>
         <source>Suspending emulation</source>
         <translation>Mise en pause de l&apos;émulation</translation>
     </message>
     <message>
-        <location filename="../qmlbridge.cpp" line="477"/>
+        <location filename="../qmlbridge.cpp" line="549"/>
         <source>Resuming emulation</source>
         <translation>Reprise de l&apos;émulation</translation>
     </message>
     <message>
-        <location filename="../qmlbridge.cpp" line="301"/>
+        <location filename="../qmlbridge.cpp" line="287"/>
         <source>None</source>
         <translation>Aucun</translation>
     </message>
@@ -1385,44 +1409,61 @@ Faites glisser le clavier versl a gauche pour afficher les paramètres.</transla
         <translation>Par défaut</translation>
     </message>
     <message>
-        <location filename="../qmlbridge.cpp" line="450"/>
+        <location filename="../qmlbridge.cpp" line="295"/>
+        <source>(Android File)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../qmlbridge.cpp" line="368"/>
+        <location filename="../qmlbridge.cpp" line="386"/>
+        <location filename="../qmlbridge.cpp" line="401"/>
+        <source>Open failed</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../qmlbridge.cpp" line="377"/>
+        <source>Found %1 instead</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../qmlbridge.cpp" line="522"/>
         <source>No boot1 or flash selected.
 Swipe keypad left for configuration.</source>
         <translation>Pas de boot1 ou flash choisie.\nSwipez le clavier à gauche pour ajuster la configuration.</translation>
     </message>
     <message>
-        <location filename="../qmlbridge.cpp" line="472"/>
-        <location filename="../qmlbridge.cpp" line="486"/>
+        <location filename="../qmlbridge.cpp" line="544"/>
+        <location filename="../qmlbridge.cpp" line="558"/>
         <source>The current kit does not have a snapshot file configured</source>
         <translation>Le Kit courant n&apos;a pas de fichier snapshot configuré</translation>
     </message>
     <message>
-        <location filename="../qmlbridge.cpp" line="575"/>
+        <location filename="../qmlbridge.cpp" line="649"/>
         <source>Emulation started</source>
         <translation>Emulation démarrée</translation>
     </message>
     <message>
-        <location filename="../qmlbridge.cpp" line="577"/>
+        <location filename="../qmlbridge.cpp" line="651"/>
         <source>Couldn&apos;t start emulation</source>
         <translation>Impossible de démarrer l&apos;émulation</translation>
     </message>
     <message>
-        <location filename="../qmlbridge.cpp" line="583"/>
+        <location filename="../qmlbridge.cpp" line="657"/>
         <source>Emulation resumed</source>
         <translation>Emulation reprise</translation>
     </message>
     <message>
-        <location filename="../qmlbridge.cpp" line="585"/>
+        <location filename="../qmlbridge.cpp" line="659"/>
         <source>Could not resume</source>
         <translation>Impossible de reprendre</translation>
     </message>
     <message>
-        <location filename="../qmlbridge.cpp" line="591"/>
+        <location filename="../qmlbridge.cpp" line="665"/>
         <source>Flash and snapshot saved</source>
         <translation>Flash et snapshot sauvegardés</translation>
     </message>
     <message>
-        <location filename="../qmlbridge.cpp" line="593"/>
+        <location filename="../qmlbridge.cpp" line="667"/>
         <source>Couldn&apos;t save snapshot</source>
         <translation>Impossible de sauvegarder le snapshot</translation>
     </message>
@@ -1443,34 +1484,42 @@ Swipe keypad left for configuration.</source>
 <context>
     <name>USBLinkTreeWidget</name>
     <message>
-        <location filename="../usblinktreewidget.cpp" line="81"/>
+        <location filename="../usblinktreewidget.cpp" line="82"/>
         <source>Delete</source>
         <translation>Supprimer</translation>
     </message>
     <message>
-        <location filename="../usblinktreewidget.cpp" line="90"/>
+        <location filename="../usblinktreewidget.cpp" line="91"/>
         <source>New folder</source>
         <translation>Nouveau dossier</translation>
     </message>
     <message>
-        <location filename="../usblinktreewidget.cpp" line="108"/>
+        <location filename="../usblinktreewidget.cpp" line="109"/>
         <source>Download</source>
         <translation>Récupérer</translation>
     </message>
     <message>
-        <location filename="../usblinktreewidget.cpp" line="128"/>
+        <location filename="../usblinktreewidget.cpp" line="129"/>
         <source>Too much</source>
         <translation>Trop</translation>
     </message>
     <message>
-        <location filename="../usblinktreewidget.cpp" line="289"/>
+        <location filename="../usblinktreewidget.cpp" line="298"/>
         <source>Chose save location</source>
         <translation>Choisir l&apos;emplacement du fichier à récupérer</translation>
     </message>
     <message>
-        <location filename="../usblinktreewidget.cpp" line="289"/>
+        <location filename="../usblinktreewidget.cpp" line="298"/>
         <source>TNS file (*.tns)</source>
         <translation>Fichier TNS (*.tns)</translation>
+    </message>
+</context>
+<context>
+    <name>VerticalSwipeBar</name>
+    <message>
+        <location filename="../qml/Firebird/UIComponents/VerticalSwipeBar.qml" line="15"/>
+        <source>Swipe here</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 </TS>
