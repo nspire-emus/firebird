@@ -251,7 +251,7 @@ it will try to send the file to the emulated system.</source>
     <message>
         <location filename="../qml/ConfigPagesModel.qml" line="5"/>
         <source>Flash &amp; Boot1</source>
-        <translation>Flash </translation>
+        <translation>Flash &amp; Boot1</translation>
     </message>
     <message>
         <location filename="../qml/ConfigPagesModel.qml" line="10"/>
@@ -430,7 +430,7 @@ it will try to send the file to the emulated system.</source>
     <message>
         <location filename="../flashdialog.ui" line="57"/>
         <source>Save as..</source>
-        <translation>Sauvegarder sous...</translation>
+        <translation>Sauvegarder sous..</translation>
     </message>
     <message>
         <location filename="../flashdialog.cpp" line="47"/>
@@ -616,7 +616,7 @@ it will try to send the file to the emulated system.</source>
     <message>
         <location filename="../mainwindow.ui" line="473"/>
         <source>Abo&amp;ut</source>
-        <translation>A propos...</translation>
+        <translation>A pr&amp;opos</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="577"/>
@@ -813,12 +813,12 @@ it will try to send the file to the emulated system.</source>
     <message>
         <location filename="../mainwindow.ui" line="402"/>
         <source>Restart &amp;with Kit</source>
-        <translation>Redémarrer avec le Kit</translation>
+        <translation>Redémarrer avec le &amp;Kit</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="411"/>
         <source>&amp;Boot Diags with Kit</source>
-        <translation>Booter sur les Diags avec le Kit</translation>
+        <translation>Booter sur les &amp;Diags avec le Kit</translation>
     </message>
     <message>
         <location filename="../mainwindow.ui" line="508"/>
@@ -1106,7 +1106,8 @@ You can create one via Flash-&gt;Create Flash in the menu.</source>
         <location filename="../mainwindow.cpp" line="836"/>
         <source>Failed to restart emulator. Close and reopen this app.
 </source>
-        <translation>Impossible de redémarrer l&apos;émulateur. Veuillez fermer puis réouvrir l&apos;application.</translation>
+        <translation>Impossible de redémarrer l&apos;émulateur. Veuillez fermer puis réouvrir l&apos;application.
+</translation>
     </message>
     <message>
         <location filename="../mainwindow.cpp" line="882"/>
