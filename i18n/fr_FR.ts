@@ -185,42 +185,42 @@ it will try to send the file to the emulated system.</source>
     <message>
         <location filename="../qml/ConfigPageFileTransfer.qml" line="12"/>
         <source>File Transfer</source>
-        <translation type="unfinished"></translation>
+        <translation>Transfert de fichiers</translation>
     </message>
     <message>
         <location filename="../qml/ConfigPageFileTransfer.qml" line="21"/>
         <source>If you are unable to use the main window&apos;s file transfer using either drag&apos;n&apos;drop or the file explorer, you can send files here.</source>
-        <translation type="unfinished"></translation>
+        <translation>Si vous n&apos;êtes pas en mesure d&apos;utiliser la fenêtre principale pour les transferts (glisser/déposer ou via l&apos;explorateur), vous pouvez transférer des fichiers ici.</translation>
     </message>
     <message>
         <location filename="../qml/ConfigPageFileTransfer.qml" line="29"/>
         <source>Here you can send files into the target folder specified below.</source>
-        <translation type="unfinished"></translation>
+        <translation>Ici vous pouvez envoyer des fichiers seuls dans le dossier cible donné ci-dessous.</translation>
     </message>
     <message>
         <location filename="../qml/ConfigPageFileTransfer.qml" line="37"/>
         <source>TNS Documents</source>
-        <translation type="unfinished"></translation>
+        <translation>Documents TNS</translation>
     </message>
     <message>
         <location filename="../qml/ConfigPageFileTransfer.qml" line="37"/>
         <source>Operating Systems</source>
-        <translation type="unfinished"></translation>
+        <translation>Systèmes d&apos;exploitation</translation>
     </message>
     <message>
         <location filename="../qml/ConfigPageFileTransfer.qml" line="40"/>
         <source>Starting</source>
-        <translation type="unfinished"></translation>
+        <translation>Démarrage</translation>
     </message>
     <message>
         <location filename="../qml/ConfigPageFileTransfer.qml" line="52"/>
         <source>Send files</source>
-        <translation type="unfinished"></translation>
+        <translation>Envoyer les fichiers</translation>
     </message>
     <message>
         <location filename="../qml/ConfigPageFileTransfer.qml" line="83"/>
         <source>Idle</source>
-        <translation type="unfinished"></translation>
+        <translation>en attente</translation>
     </message>
     <message>
         <location filename="../qml/ConfigPageFileTransfer.qml" line="90"/>
@@ -235,7 +235,7 @@ it will try to send the file to the emulated system.</source>
     <message>
         <location filename="../qml/ConfigPageFileTransfer.qml" line="111"/>
         <source>When dragging files onto Firebird, it will try to send them to the emulated system.</source>
-        <translation type="unfinished"></translation>
+        <translation>Quand des fichiers sont glissés sur Firebird, un transfert vers le système émulé sera tenté.</translation>
     </message>
     <message>
         <source> % sent</source>
@@ -277,7 +277,7 @@ it will try to send the file to the emulated system.</source>
     <message>
         <location filename="../qml/ConfigPageKits.qml" line="103"/>
         <source>Snapshot:</source>
-        <translation type="unfinished"></translation>
+        <translation>Snapshot:</translation>
     </message>
     <message>
         <source>Create</source>
@@ -431,12 +431,12 @@ it will try to send the file to the emulated system.</source>
     <message>
         <location filename="../qml/FlashDialog.qml" line="33"/>
         <source>Model:</source>
-        <translation type="unfinished"></translation>
+        <translation>Modèle:</translation>
     </message>
     <message>
         <location filename="../qml/FlashDialog.qml" line="49"/>
         <source>CX Subtype:</source>
-        <translation type="unfinished"></translation>
+        <translation>Sous-type CX:</translation>
     </message>
     <message>
         <location filename="../qml/FlashDialog.qml" line="62"/>
@@ -451,17 +451,17 @@ it will try to send the file to the emulated system.</source>
     <message>
         <location filename="../qml/FlashDialog.qml" line="104"/>
         <source>Bootloader:</source>
-        <translation type="unfinished"></translation>
+        <translation>Bootloader:</translation>
     </message>
     <message>
         <location filename="../qml/FlashDialog.qml" line="117"/>
         <source>Installer:</source>
-        <translation type="unfinished"></translation>
+        <translation>Installer:</translation>
     </message>
     <message>
         <location filename="../qml/FlashDialog.qml" line="139"/>
         <source>Manuf required for CX II</source>
-        <translation type="unfinished"></translation>
+        <translation>Manuf requis pour CX II</translation>
     </message>
     <message>
         <source>HW-A</source>
@@ -1064,7 +1064,7 @@ Are the paths to boot1 and flash correct?</source>
     <message>
         <location filename="../mainwindow.cpp" line="486"/>
         <source>&amp;Start</source>
-        <translation>Démarrer</translation>
+        <translation>&amp;Démarrer</translation>
     </message>
     <message>
         <location filename="../mainwindow.cpp" line="517"/>
@@ -1111,7 +1111,7 @@ Try to fix the issue and try again.</source>
     <message>
         <location filename="../mainwindow.cpp" line="834"/>
         <source>Firebird Emu - %1</source>
-        <translation type="unfinished"></translation>
+        <translation>Firebird Emu - %1</translation>
     </message>
     <message>
         <location filename="../mainwindow.cpp" line="859"/>
@@ -1412,19 +1412,19 @@ Faites glisser le clavier versl a gauche pour afficher les paramètres.</transla
     <message>
         <location filename="../qmlbridge.cpp" line="295"/>
         <source>(Android File)</source>
-        <translation type="unfinished"></translation>
+        <translation>(Fichier Android)</translation>
     </message>
     <message>
         <location filename="../qmlbridge.cpp" line="368"/>
         <location filename="../qmlbridge.cpp" line="386"/>
         <location filename="../qmlbridge.cpp" line="401"/>
         <source>Open failed</source>
-        <translation type="unfinished"></translation>
+        <translation>Ouverture échouée</translation>
     </message>
     <message>
         <location filename="../qmlbridge.cpp" line="377"/>
         <source>Found %1 instead</source>
-        <translation type="unfinished"></translation>
+        <translation>Trouvé %1 à la place</translation>
     </message>
     <message>
         <location filename="../qmlbridge.cpp" line="522"/>
@@ -1520,7 +1520,7 @@ Swipe keypad left for configuration.</source>
     <message>
         <location filename="../qml/Firebird/UIComponents/VerticalSwipeBar.qml" line="15"/>
         <source>Swipe here</source>
-        <translation type="unfinished"></translation>
+        <translation>Swipez ici</translation>
     </message>
 </context>
 </TS>
