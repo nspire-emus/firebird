@@ -1,0 +1,59 @@
+name: Build for Windows
+
+on:
+  push:
+    branches: [ master, ci/windows ]
+  pull_request:
+    branches: [ master, ci/windows ]
+  release:
+    types: [published]
+
+jobs:
+  build:
+    name: "Build: ${{ matrix.arch }}"
+    runs-on: windows-2022
+    strategy:
+      fail-fast: false
+      matrix:
+        arch:
+          - win32
+          - win64
+
+    steps:
+    - name: Checkout Git Repo
+      uses: actions/checkout@v3
+      with:
+        submodules: 'recursive'
+
+    - name: Install Qt
+      uses: jurplel/install-qt-action@43ec12788e42f375acfcb2cec059edfb9572fbaa # v3
+      with:
+        version: '5.15.2'
+        host: 'windows'
+        target: 'desktop'
+        arch: '${{ matrix.arch }}_mingw81'
+        tools: 'tools_mingw,qt.tools.${{ matrix.arch }}_mingw810'
+        cache: true
+
+    - name: Fixup PATH
+      run: |
+        echo "$env:IQTA_TOOLS/mingw810_32/bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+        echo "$env:IQTA_TOOLS/mingw810_64/bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+
+    - name: Build firebird-emu
+      run: |
+        mkdir build
+        cd build
+        qmake ..
+        mingw32-make -j4
+        mkdir firebird-emu
+        mv release/firebird-emu.exe firebird-emu/
+        windeployqt --qmldir=../qml --no-qmltooling firebird-emu/firebird-emu.exe
+
+    - name: Upload zip
+      uses: actions/upload-artifact@v3
+      with:
+          name: firebird-emu-${{ matrix.arch }}
+          # Use a wildcard to force a subfolder
+          path: "build/*-emu/"
+          if-no-files-found: error
