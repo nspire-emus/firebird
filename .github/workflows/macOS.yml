@@ -1,0 +1,97 @@
+name: Build macOS
+
+on:
+  push:
+    branches: [ master, ci/macOS ]
+  pull_request:
+    branches: [ master, ci/macOS ]
+  release:
+    types: [published]
+
+jobs:
+  build:
+    name: "Build: ${{ matrix.os }}"
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macOS-latest]
+
+    steps:
+    - name: Checkout Git Repo
+      uses: actions/checkout@v3
+      with:
+        submodules: 'recursive'
+
+    - name: Install Qt
+      uses: jurplel/install-qt-action@43ec12788e42f375acfcb2cec059edfb9572fbaa # v3
+      with:
+          target: desktop
+          setup-python: false
+
+    - name: Build firebird-emu Qt on macOS
+      run: |
+        set -e
+        mkdir build
+        cd build
+        qmake .. && make -j4
+        macdeployqt firebird-emu.app -qmldir=../qml
+        mkdir -p /tmp/firebird-emu_macOS/
+        mv firebird-emu.app /tmp/firebird-emu_macOS/
+
+    - name: "Codesign firebird-emu.app"
+      env:
+          HAVE_SECRETS: ${{ secrets.MACOS_CERTIFICATE_PWD != '' }}
+          MACOS_CERTIFICATE: ${{ secrets.MACOS_CERTIFICATE }}
+          MACOS_CERTIFICATE_PWD: ${{ secrets.MACOS_CERTIFICATE_PWD }}
+          MACOS_KEYCHAIN_PWD: ${{ secrets.MACOS_KEYCHAIN_PWD }}
+          MACOS_CODESIGN_IDENT: ${{ secrets.MACOS_CODESIGN_IDENT }}
+      if: runner.os == 'macOS' && github.repository == 'nspire-emus/firebird' && ${{ env.HAVE_SECRETS == 'true' }}
+      run: |
+          echo $MACOS_CERTIFICATE | base64 -d > certificate.p12
+          security create-keychain -p $MACOS_KEYCHAIN_PWD build.keychain
+          security default-keychain -s build.keychain
+          security unlock-keychain -p $MACOS_KEYCHAIN_PWD build.keychain
+          security import certificate.p12 -k build.keychain -P $MACOS_CERTIFICATE_PWD -T /usr/bin/codesign
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k $MACOS_KEYCHAIN_PWD build.keychain
+          /usr/bin/codesign --deep --force --verify --verbose --sign "$MACOS_CODESIGN_IDENT" --timestamp --options runtime /tmp/firebird-emu_macOS/firebird-emu.app
+
+    - name: "Create the DMG"
+      run: |
+          brew install create-dmg || brew install create-dmg; # we try twice because sometimes it fails...
+          # The codesign variable may be empty (for forks) but that's fine, create-dmg only does code-signing if it's not empty.
+          createDmgArgs="--codesign '${{ secrets.MACOS_CODESIGN_IDENT }}' \
+              --volname 'firebird-emu_macOS' \
+              --window-pos 200 120 \
+              --window-size 600 400 \
+              --icon-size 64 \
+              --icon 'firebird-emu.app' 125 200 \
+              --app-drop-link 400 200 \
+              'firebird-emu_macOS.dmg' \
+              '/tmp/firebird-emu_macOS/'"
+          eval "create-dmg $createDmgArgs" || eval "create-dmg $createDmgArgs" # We also retry just in case...
+
+    - name: "Notarize DMG"
+      env:
+        HAVE_SECRETS: ${{ secrets.APPLE_NOTARIZATION_PASSWORD != '' }}
+      if: runner.os == 'macOS' && github.repository == 'nspire-emus/firebird' && ${{ env.HAVE_SECRETS == 'true' }}
+      uses: adriweb/xcode-notarize-please@77452e14fadc0b5629870193e273c99623a1b320 # v1.2
+      with:
+          product-path: firebird-emu_macOS.dmg
+          appstore-connect-username: ${{ secrets.APPLE_NOTARIZATION_USERNAME }}
+          appstore-connect-password: ${{ secrets.APPLE_NOTARIZATION_PASSWORD }}
+          primary-bundle-id: 'com.adriweb.firebird-emu'
+
+    - name: "Staple DMG"
+      env:
+        HAVE_SECRETS: ${{ secrets.APPLE_NOTARIZATION_PASSWORD != '' }}
+      if: runner.os == 'macOS' && github.repository == 'nspire-emus/firebird' && ${{ env.HAVE_SECRETS == 'true' }}
+      uses: adriweb/xcode-staple@2114e06658d8492882b252406aaa7fee3e75ed85 # v1.0.0
+      with:
+          product-path: firebird-emu_macOS.dmg
+
+    - name: "Upload DMG"
+      uses: actions/upload-artifact@v3
+      with:
+          name: firebird-emu_macOS
+          path: firebird-emu_macOS.dmg
