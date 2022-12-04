@@ -1,0 +1,62 @@
+name: Build for Android
+
+# Controls when the action will run. Triggers the workflow on push or pull request
+# events but only for the master branch
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+    runs-on: ubuntu-20.04
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          submodules: 'recursive'
+
+      - name: Set up JDK 8
+        uses: actions/setup-java@v3
+        with:
+          java-version: 8
+          distribution: temurin
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@7c5672355aaa8fde5f97a91aa9a99616d1ace6bc # v2
+
+      - uses: nttld/setup-ndk@8c3b609ff4d54576ea420551943fd34b4d03b0dc # v1
+        id: setup-ndk
+        with:
+          # Newer doesn't work with Qt 5.15: https://bugreports.qt.io/browse/QTBUG-104580
+          ndk-version: r21
+          add-to-path: false
+
+      - name: Install Qt
+        uses: jurplel/install-qt-action@43ec12788e42f375acfcb2cec059edfb9572fbaa # v3
+        with:
+          version: '5.15.2'
+          host: 'linux'
+          target: 'android'
+          arch: 'android'
+          cache: true
+
+      - name: Build firebird
+        env:
+          ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
+          ANDROID_NDK_ROOT: ${{ steps.setup-ndk.outputs.ndk-path }}
+        run: |
+          mkdir build
+          cd build
+          qmake .. ANDROID_ABIS="arm64-v8a armeabi-v7a"
+          make -j4 apk
+          mv android-build/build/outputs/apk/debug/android-build-debug.apk firebird-emu.apk
+
+      - name: Upload zip
+        uses: actions/upload-artifact@v3
+        with:
+            name: firebird-emu-android
+            path: build/firebird-emu.apk
+            if-no-files-found: error
