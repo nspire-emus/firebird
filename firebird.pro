@@ -51,7 +51,9 @@ QMAKE_CXXFLAGS_RELEASE = -O3 -DNDEBUG
 # Don't enable LTO with clang on Linux, incompatible with Qt (QTBUG-43556).
 # On FreeBSD, clang with LTO produces copy relocs, which are incompatible
 # with Qt's -reduce-relocations option (QTBUG-86173).
-!clang | !if(linux|freebsd): CONFIG += ltcg
+# MinGW fails with
+# lto1.exe: internal compiler error: in gen_subprogram_die, at dwarf2out.c:22668
+!clang | !if(linux|freebsd): !win32: CONFIG += ltcg
 
 # noexecstack is not supported by MinGW's as
 !win32 {
