@@ -53,7 +53,10 @@ QMAKE_CXXFLAGS_RELEASE = -O3 -DNDEBUG
 # with Qt's -reduce-relocations option (QTBUG-86173).
 # MinGW fails with
 # lto1.exe: internal compiler error: in gen_subprogram_die, at dwarf2out.c:22668
-!clang | !if(linux|freebsd): !win32: CONFIG += ltcg
+# On 32bit ARM, Qt adds -Oz by default but that breaks LTO with NDK r21
+# (https://github.com/android/ndk/issues/721). Can be worked around with
+# CONFIG -= optimize size, but the resulting binary has random crashes.
+if(android:contains(QT_ARCH, "arm64.*")) | if(linux:!clang): CONFIG += ltcg
 
 # noexecstack is not supported by MinGW's as
 !win32 {
@@ -137,6 +140,8 @@ else: DEFINES += NO_TRANSLATION
 message("FB_ARCH: $$FB_ARCH")
 message("TRANSLATION_ENABLED: $$TRANSLATION_ENABLED")
 message("SUPPORT_LINUX: $$SUPPORT_LINUX")
+ltcg: message("LTCG: true")
+else: message("LTCG: false")
 
 equals(SUPPORT_LINUX, true) {
     DEFINES += SUPPORT_LINUX
