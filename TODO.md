@@ -13,7 +13,11 @@
 * Better debugger integration
 * Don't use a 60Hz timer for LCD redrawing, hook lcd_event instead
 * Less global vars (emu.h), move into structs
-* Use streams for reading/writing snapshots instead of struct emu_snapshot 
+* Use streams for reading/writing snapshots instead of struct emu_snapshot
+* Fastboot data is currently not cleared at all, it survives soft and hard
+  resets as well as restarts. This was the simplest way to get installers to
+  work, which require that state is persisted across software resets. Ideally,
+  fastboot data is cleared on hardware resets and restarts.
 
 ##Wishlist:
 * Skin loader/switcher

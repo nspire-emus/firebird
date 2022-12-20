@@ -77,7 +77,7 @@ void aladdin_pmu_write(uint32_t addr, uint32_t value)
 			if(value & 2)
 			{
 				/* enter sleep, jump to 0 when On pressed. */
-				warn("Sleep not implemented");
+				cpu_events |= EVENT_SLEEP;
 				// Without this, the clocks are wrong
 				aladdin_pmu_reset();
 			}

@@ -432,6 +432,17 @@ void set_reg_bx(uint8_t i, uint32_t value)
     }
 }
 
+void cpu_reset()
+{
+    memset(&arm, 0, sizeof arm);
+    arm.control = 0x00050078;
+    arm.cpsr_low28 = MODE_SVC | 0xC0;
+    cpu_events &= EVENT_DEBUG_STEP;
+
+    addr_cache_flush();
+    flush_translations();
+}
+
 bool cpu_resume(const emu_snapshot *s)
 {
     return snapshot_read(s, &arm, sizeof(arm))

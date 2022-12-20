@@ -348,6 +348,12 @@ void emu_loop(bool reset)
                 goto reset;
             }
 
+            if (cpu_events & EVENT_SLEEP) {
+                assert(emulate_cx2);
+                cycle_count_delta = 0;
+                break;
+            }
+
             if (cpu_events & (EVENT_FIQ | EVENT_IRQ)) {
                 // Align PC in case the interrupt occurred immediately after a jump
                 if (arm.cpsr_low28 & 0x20)

@@ -33,6 +33,11 @@ void keypad_on_pressed() {
     // TODO: The CX II may have an enable bit somewhere
     if(!emulate_cx2 && pmu.on_irq_enabled)
         int_set(INT_POWER, true);
+
+    if(cpu_events & EVENT_SLEEP) {
+        assert(emulate_cx2);
+        cpu_reset();
+    }
 }
 
 uint32_t keypad_read(uint32_t addr) {
