@@ -18,6 +18,8 @@ void setKeypad(unsigned int keymap_id, bool state)
     the_qml_bridge->notifyButtonStateChanged(row, col, state);
 }
 
+static QHash<int, int> pressed_keys;
+
 void keyToKeypad(QKeyEvent *event)
 {
     static const int ALT   = 0x02000000;
@@ -153,7 +155,6 @@ void keyToKeypad(QKeyEvent *event)
         ,{Qt::Key_Enter, keymap::enter}
         ,{Qt::Key_Return, keymap::enter}
     };
-    static QHash<int, int> pressed_keys;
 
     // Ignore autorepeat, calc os must handle it on it's own
     if (event->isAutoRepeat())
@@ -286,6 +287,15 @@ bool QtKeypadBridge::eventFilter(QObject *obj, QEvent *event)
         keyPressEvent(static_cast<QKeyEvent*>(event));
     else if(event->type() == QEvent::KeyRelease)
         keyReleaseEvent(static_cast<QKeyEvent*>(event));
+    else if(event->type() == QEvent::FocusOut)
+    {
+        // Release all keys on focus change
+        for(auto calc_key : pressed_keys)
+            setKeypad(calc_key, false);
+
+        pressed_keys.clear();
+        return false;
+    }
     else
         return false;
 
