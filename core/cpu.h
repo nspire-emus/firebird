@@ -84,6 +84,7 @@ extern struct arm_state arm __asm__("arm");
 #endif
 
 typedef struct emu_snapshot emu_snapshot;
+void cpu_reset(); // Essentially a soft reset
 bool cpu_resume(const emu_snapshot *s);
 bool cpu_suspend(emu_snapshot *s);
 void cpu_int_check();

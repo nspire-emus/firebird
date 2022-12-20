@@ -33,6 +33,7 @@ extern uint32_t cpu_events __asm__("cpu_events");
 #define EVENT_RESET 4
 #define EVENT_DEBUG_STEP 8
 #define EVENT_WAITING 16
+#define EVENT_SLEEP 32
 
 // Settings
 extern bool exiting, debug_on_start, debug_on_warn, print_on_warn;
