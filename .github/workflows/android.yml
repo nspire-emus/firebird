@@ -51,8 +51,22 @@ jobs:
           mkdir build
           cd build
           qmake .. ANDROID_ABIS="arm64-v8a armeabi-v7a"
-          make -j4 apk
-          mv android-build/build/outputs/apk/debug/android-build-debug.apk firebird-emu.apk
+          make -j4 apk_install_target
+
+      - name: Pack APK
+        env:
+          ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
+          ANDROID_NDK_ROOT: ${{ steps.setup-ndk.outputs.ndk-path }}
+          ANDROID_KEYSTORE: ${{ secrets.ANDROID_KEYSTORE }}
+          ANDROID_KEYSTORE_PWD: ${{ secrets.ANDROID_KEYSTORE_PWD }}
+        run: |
+          cd build
+          if [ -n "$ANDROID_KEYSTORE_PWD" ]; then
+            echo "$ANDROID_KEYSTORE" | base64 -d > keystore.jks
+            androiddeployqt --input android-firebird-emu-deployment-settings.json --output android-build --apk firebird-emu.apk --sign keystore.jks firebirdemugh --storepass "$ANDROID_KEYSTORE_PWD"
+          else
+            androiddeployqt --input android-firebird-emu-deployment-settings.json --output android-build --apk firebird-emu.apk
+          fi
 
       - name: Upload zip
         uses: actions/upload-artifact@v3
