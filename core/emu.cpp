@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <cassert>
 #include <chrono>
 #include <cstdint>
@@ -289,6 +290,10 @@ bool emu_start(unsigned int port_gdb, unsigned int port_rdbg, const char *snapsh
     }
     (void)fread(rom, 1, 0x80000, f);
     fclose(f);
+
+    // Warn if the CX II bootrom is missing the key area
+    if (emulate_cx2 && std::all_of(rom + 0x27800, rom + 0x28000, [](uint8_t b) { return b == 0; }))
+        gui_debug_printf("Incomplete bootrom dump detected: Booting will fail.\nThere is currently no public way to perform a complete readout.\n");
 
 #ifndef NO_TRANSLATION
     if(!translate_init())
