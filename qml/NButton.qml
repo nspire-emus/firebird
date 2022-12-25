@@ -8,6 +8,8 @@ Rectangle {
     property alias text: label.text
     property bool active: pressed || mouseArea.containsMouse
     property bool pressed: false
+    // Pressing the right mouse button "locks" the button in enabled state
+    property bool fixed: false
     property int keymap_id: 1
 
     signal clicked()
@@ -20,6 +22,9 @@ Rectangle {
     onPressedChanged: {
         if(pressed)
             clicked();
+
+        if(!pressed)
+            fixed = false;
 
         Emu.setButtonState(keymap_id, pressed);
     }
@@ -80,9 +85,6 @@ Rectangle {
         id: mouseArea
 
         enabled: !multiMouseArea.mouseEnabled
-
-        // Pressing the right mouse button "locks" the button in enabled state
-        property bool fixed: false
 
         preventStealing: true
 
