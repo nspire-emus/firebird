@@ -333,7 +333,6 @@ Rectangle {
         anchors.leftMargin: 5
         active_color: "#cce"
         back_color: "#bbf"
-        active: false
         font_color: "#222"
     }
 
