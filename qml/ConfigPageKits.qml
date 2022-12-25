@@ -35,8 +35,10 @@ ColumnLayout {
 
             FBLabel {
                 Layout.columnSpan: parent.columns
+                Layout.fillWidth: true
                 color: "red"
                 visible: boot1Edit.filePath == "" || flashEdit.filePath == ""
+                wrapMode: Text.WordWrap
                 text: qsTr("You need to specify files for Boot1 and Flash")
             }
 
