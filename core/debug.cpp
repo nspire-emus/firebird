@@ -635,6 +635,8 @@ static void set_nonblocking(int socket, bool nonblocking) {
 #else
     int ret = fcntl(socket, F_GETFL, 0);
     fcntl(socket, F_SETFL, nonblocking ? ret | O_NONBLOCK : ret & ~O_NONBLOCK);
+    ret = fcntl(socket, F_GETFD, 0);
+    fcntl(socket, F_SETFD, ret | FD_CLOEXEC);
 #endif
 }
 
