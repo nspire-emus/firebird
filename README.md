@@ -1,8 +1,10 @@
-Firebird Emu [![Build Status](https://travis-ci.org/nspire-emus/firebird.svg)](https://travis-ci.org/nspire-emus/firebird) <img align="right" src="https://i.imgur.com/TE0Bxm8.png">
+Firebird Emu
 ==========
 
+![Build for Android](https://github.com/nspire-emus/firebird/actions/workflows/android.yml/badge.svg?branch=master) ![Build for macOS](https://github.com/nspire-emus/firebird/actions/workflows/macOS.yml/badge.svg?branch=master) ![Build for Windows](https://github.com/nspire-emus/firebird/actions/workflows/windows.yml/badge.svg?branch=master) [![build result](https://build.opensuse.org/projects/home:Vogtinator:firebird-emu:unstable/packages/firebird-emu/badge.svg?type=percent)](https://build.opensuse.org/package/show/home:Vogtinator:firebird-emu:unstable/firebird-emu)
+
 This project is currently the community TI-Nspire emulator, originally created by Goplat.  
-It supports the emulation of Touchpad, TPad CAS, CX and CX CAS calcs on Android, iOS, Linux, macOS and Windows.
+It supports the emulation of Nspire Touchpad (CAS), CX (CAS) and CX II (-T/CAS) calcs on Android, iOS, Linux, macOS and Windows.
 
 Download:
 ---------
