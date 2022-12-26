@@ -50,7 +50,7 @@ MainWindow::MainWindow(QWidget *parent) :
     // Create flash dialog UI component
     flash_dialog_component = new QQmlComponent(qml_engine, QUrl(QStringLiteral("qrc:/qml/qml/FlashDialog.qml")), this);
     if(!flash_dialog_component->isReady())
-        qCritical() << "Could not create mobile UI component:" << mobileui_component->errorString();
+        qCritical() << "Could not create flash dialog component:" << flash_dialog_component->errorString();
 
     // Create mobile UI component
     mobileui_component = new QQmlComponent(qml_engine, QUrl(QStringLiteral("qrc:/qml/qml/MobileUI.qml")), this);
