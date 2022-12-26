@@ -69,11 +69,11 @@ RowLayout {
             id: createDialogLoader
             active: false
             sourceComponent: FileDialog {
-                folder: filePath ? Emu.dir(filePath) : Global.lastFileDialogDir
+                folder: Emu.dir(filePath)
                 selectExisting: false
                 onAccepted: {
                     filePath = Emu.toLocalFile(fileUrl);
-                    Global.lastFileDialogDir = Emu.dir(filePath);
+                    forceRefresh++;
                 }
             }
         }
