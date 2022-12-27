@@ -2,22 +2,29 @@ name: Build for Windows
 
 on:
   push:
-    branches: [ master, ci/windows ]
+    branches: [ master ]
   pull_request:
-    branches: [ master, ci/windows ]
+    branches: [ master ]
   release:
     types: [published]
 
 jobs:
   build:
-    name: "Build: ${{ matrix.arch }}"
+    name: "Qt ${{ matrix.qt }} ${{ matrix.arch }}"
     runs-on: windows-2022
     strategy:
       fail-fast: false
       matrix:
-        arch:
-          - win32
-          - win64
+        include:
+          - qt: '5.15.2'
+            qtmaj: '5'
+            arch: 'win32'
+          - qt: '5.15.2'
+            qtmaj: '5'
+            arch: 'win64'
+          - qt: '6.4.1'
+            qtmaj: '6'
+            arch: 'win64'
 
     steps:
     - name: Checkout Git Repo
@@ -25,20 +32,33 @@ jobs:
       with:
         submodules: 'recursive'
 
-    - name: Install Qt
+    - name: "Install Qt ${{ matrix.qt }}"
       uses: jurplel/install-qt-action@43ec12788e42f375acfcb2cec059edfb9572fbaa # v3
+      if: matrix.qtmaj == '5'
       with:
-        version: '5.15.2'
+        version: '${{ matrix.qt }}'
         host: 'windows'
         target: 'desktop'
         arch: '${{ matrix.arch }}_mingw81'
         tools: 'tools_mingw,qt.tools.${{ matrix.arch }}_mingw810'
         cache: true
 
+    - name: "Install Qt ${{ matrix.qt }}"
+      uses: jurplel/install-qt-action@43ec12788e42f375acfcb2cec059edfb9572fbaa # v3
+      if: matrix.qtmaj != '5'
+      with:
+        version: '${{ matrix.qt }}'
+        host: 'windows'
+        target: 'desktop'
+        arch: '${{ matrix.arch }}_mingw'
+        tools: 'tools_mingw90'
+        cache: true
+
     - name: Fixup PATH
       run: |
         echo "$env:IQTA_TOOLS/mingw810_32/bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
         echo "$env:IQTA_TOOLS/mingw810_64/bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+        echo "$env:IQTA_TOOLS/mingw1120_64/bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
 
     - name: Build firebird-emu
       run: |
@@ -53,7 +73,7 @@ jobs:
     - name: Upload zip
       uses: actions/upload-artifact@v3
       with:
-          name: firebird-emu-${{ matrix.arch }}
-          # Use a wildcard to force a subfolder
-          path: "build/*-emu/"
-          if-no-files-found: error
+        name: firebird-emu-Qt${{ matrix.qtmaj }}-${{ matrix.arch }}
+        # Use a wildcard to force a subfolder
+        path: "build/*-emu/"
+        if-no-files-found: error
