@@ -39,6 +39,8 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->lcdView->installEventFilter(&qt_keypad_bridge);
     lcd.installEventFilter(&qt_keypad_bridge);
 
+    ui->keypadWidget->setAttribute(Qt::WA_AcceptTouchEvents);
+
     qml_engine = ui->keypadWidget->engine();
     qml_engine->addImportPath(QStringLiteral("qrc:/qml/qml"));
 
