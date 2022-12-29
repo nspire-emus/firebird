@@ -1,0 +1,60 @@
+name: Build for Qt for WebAssembly
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+    runs-on: ubuntu-20.04
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          submodules: 'recursive'
+
+      - name: Install cached emscripten
+        id: cache
+        uses: actions/cache@v3
+        with:
+          path: 'emsdk'
+          key: 'emsdk-1.39.8'
+
+      - name: Install emscripten
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: |
+          curl -L https://github.com/emscripten-core/emsdk/archive/HEAD.tar.gz | tar xz
+          mv emsdk-* emsdk
+          ./emsdk/emsdk install 1.39.8
+          ./emsdk/emsdk activate 1.39.8
+
+      - name: Install Qt
+        uses: jurplel/install-qt-action@43ec12788e42f375acfcb2cec059edfb9572fbaa # v3
+        with:
+          version: '5.15.2'
+          host: 'linux'
+          target: 'desktop'
+          arch: 'wasm_32'
+          cache: true
+
+      - name: Build firebird
+        run: |
+          . ./emsdk/emsdk_env.sh
+          mkdir build
+          cd build
+          qmake ..
+          make -j4
+
+      - name: Upload zip
+        uses: actions/upload-artifact@v3
+        with:
+            name: firebird-emu-wasm
+            path: |
+              build/*.html
+              build/*.js
+              build/*.wasm
+              build/*.svg
+            if-no-files-found: error
