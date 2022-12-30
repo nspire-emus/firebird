@@ -147,42 +147,42 @@
     <message>
         <location filename="../qml/ConfigPageFileTransfer.qml" line="12"/>
         <source>File Transfer</source>
-        <translation type="unfinished">Transfer plików</translation>
+        <translation>Transfer plików</translation>
     </message>
     <message>
         <location filename="../qml/ConfigPageFileTransfer.qml" line="21"/>
         <source>If you are unable to use the main window&apos;s file transfer using either drag&apos;n&apos;drop or the file explorer, you can send files here.</source>
-        <translation type="unfinished"></translation>
+        <translation>Jeśli nie jesteś w stanie używać transferu plików z użyciem drag&apos;n&apos;drop (przeciągnij i upuść) bądź eksploratora plików, możesz wysyłać pojedyncze pliki tutaj.</translation>
     </message>
     <message>
         <location filename="../qml/ConfigPageFileTransfer.qml" line="29"/>
         <source>Here you can send files into the target folder specified below.</source>
-        <translation type="unfinished"></translation>
+        <translation>Tutaj możesz wysyłać pliki do folderu docelowego wybranego poniżej.</translation>
     </message>
     <message>
         <location filename="../qml/ConfigPageFileTransfer.qml" line="37"/>
         <source>TNS Documents</source>
-        <translation type="unfinished"></translation>
+        <translation>Dokumenty TNS</translation>
     </message>
     <message>
         <location filename="../qml/ConfigPageFileTransfer.qml" line="37"/>
         <source>Operating Systems</source>
-        <translation type="unfinished"></translation>
+        <translation>Systemy operacyjne</translation>
     </message>
     <message>
         <location filename="../qml/ConfigPageFileTransfer.qml" line="40"/>
         <source>Starting</source>
-        <translation type="unfinished"></translation>
+        <translation>Rozpoczynanie</translation>
     </message>
     <message>
         <location filename="../qml/ConfigPageFileTransfer.qml" line="52"/>
         <source>Send files</source>
-        <translation type="unfinished"></translation>
+        <translation>Wyślij pliki</translation>
     </message>
     <message>
         <location filename="../qml/ConfigPageFileTransfer.qml" line="83"/>
         <source>Idle</source>
-        <translation type="unfinished"></translation>
+        <translation>Bezczynny</translation>
     </message>
     <message>
         <location filename="../qml/ConfigPageFileTransfer.qml" line="90"/>
@@ -202,7 +202,7 @@
     <message>
         <location filename="../qml/ConfigPageFileTransfer.qml" line="111"/>
         <source>When dragging files onto Firebird, it will try to send them to the emulated system.</source>
-        <translation type="unfinished"></translation>
+        <translation>Gdy przeciągniesz pliki na okno Firebird, zostaną one wysłane do emulowanego systemu.</translation>
     </message>
     <message>
         <source>When dragging files onto Firebird, it will try to send the file to the emulated system.</source>
@@ -249,7 +249,7 @@
     <message>
         <location filename="../qml/ConfigPageKits.qml" line="103"/>
         <source>Snapshot:</source>
-        <translation type="unfinished"></translation>
+        <translation>Migawka:</translation>
     </message>
     <message>
         <source>Create</source>
@@ -394,22 +394,22 @@
     <message>
         <location filename="../qml/FlashDialog.qml" line="33"/>
         <source>Model:</source>
-        <translation type="unfinished"></translation>
+        <translation>Model:</translation>
     </message>
     <message>
         <location filename="../qml/FlashDialog.qml" line="49"/>
         <source>CX Subtype:</source>
-        <translation type="unfinished"></translation>
+        <translation>Podtyp CX:</translation>
     </message>
     <message>
         <location filename="../qml/FlashDialog.qml" line="104"/>
         <source>Bootloader:</source>
-        <translation type="unfinished"></translation>
+        <translation>Bootloader:</translation>
     </message>
     <message>
         <location filename="../qml/FlashDialog.qml" line="117"/>
         <source>Installer:</source>
-        <translation type="unfinished"></translation>
+        <translation>Instalator:</translation>
     </message>
     <message>
         <location filename="../qml/FlashDialog.qml" line="130"/>
@@ -419,7 +419,7 @@
     <message>
         <location filename="../qml/FlashDialog.qml" line="139"/>
         <source>Manuf required for CX II</source>
-        <translation type="unfinished"></translation>
+        <translation>Manuf jest wymagany dla CX II</translation>
     </message>
     <message>
         <source>None</source>
@@ -1091,12 +1091,12 @@ Wznawianie nie będzie możliwe.</translation>
         <location filename="../qmlbridge.cpp" line="386"/>
         <location filename="../qmlbridge.cpp" line="401"/>
         <source>Open failed</source>
-        <translation type="unfinished"></translation>
+        <translation>Otwieranie nie powiodło się</translation>
     </message>
     <message>
         <location filename="../qmlbridge.cpp" line="377"/>
         <source>Found %1 instead</source>
-        <translation type="unfinished"></translation>
+        <translation>Zamiast tego odnaleziono %1</translation>
     </message>
     <message>
         <location filename="../qmlbridge.cpp" line="510"/>
