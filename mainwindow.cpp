@@ -170,6 +170,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     //Load settings
     convertTabsToDocks();
+    retranslateDocks();
     setExtLCD(settings->value(QStringLiteral("extLCDVisible")).toBool());
     lcd.restoreGeometry(settings->value(QStringLiteral("extLCDGeometry")).toByteArray());
     restoreGeometry(settings->value(QStringLiteral("windowGeometry")).toByteArray());
@@ -271,6 +272,7 @@ void MainWindow::changeEvent(QEvent* event)
     {
         ui->retranslateUi(this);
         updateWindowTitle();
+        retranslateDocks();
     }
     else if (eventType == QEvent::LocaleChange)
         switchTranslator(QLocale::system());
@@ -532,7 +534,8 @@ void MainWindow::convertTabsToDocks()
         DockWidget *dw = new DockWidget(ui->tabWidget->tabText(0), this);
         dw->hideTitlebar(true); // Create with hidden titlebar to not resize the window on startup
         dw->setWindowIcon(ui->tabWidget->tabIcon(0));
-        dw->setObjectName(dw->windowTitle());
+        // This is used for storing window state, so must not be translated at this point
+        dw->setObjectName(ui->tabWidget->tabText(0));
 
         // Fill "Docks" menu
         QAction *action = dw->toggleViewAction();
@@ -555,6 +558,23 @@ void MainWindow::convertTabsToDocks()
     setUIEditMode(editmode_toggle->isChecked());
 
     ui->tabWidget->setHidden(true);
+}
+
+void MainWindow::retranslateDocks()
+{
+    // The docks are not handled by mainwindow.ui but got created by
+    // convertTabsToDocks() above, so translation needs to be done manually.
+    const auto dockChildren = findChildren<DockWidget*>();
+    for(DockWidget *dw : dockChildren) {
+        if(dw->widget() == ui->tab)
+            dw->setWindowTitle(tr("Keypad"));
+        else if(dw->widget() == ui->tabFiles)
+            dw->setWindowTitle(tr("File Transfer"));
+        else if(dw->widget() == ui->tabSerial)
+            dw->setWindowTitle(tr("Serial Monitor"));
+        else if(dw->widget() == ui->tabDebugger)
+            dw->setWindowTitle(tr("Debugger"));
+    }
 }
 
 void MainWindow::showSpeed(double value)

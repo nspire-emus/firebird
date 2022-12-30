@@ -123,6 +123,7 @@ private:
     bool resumeFromPath(QString path);
 
     void convertTabsToDocks();
+    void retranslateDocks();
 
     void updateUIActionState(bool emulation_running);
     void raiseDebugger();
