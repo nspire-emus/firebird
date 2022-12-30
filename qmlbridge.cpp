@@ -540,8 +540,10 @@ void QMLBridge::suspend()
     auto snapshot_path = getSnapshotPath();
     if(!snapshot_path.isEmpty())
         emu_thread.suspend(snapshot_path);
-    else
+    else {
         toastMessage(tr("The current kit does not have a snapshot file configured"));
+        emit emuSuspended(false);
+    }
 }
 
 void QMLBridge::resume()
