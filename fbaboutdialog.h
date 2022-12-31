@@ -19,11 +19,16 @@ public slots:
 
     void setVisible(bool v) override;
 
+protected:
+    void changeEvent(QEvent* event) override;
+
 private:
+    void retranslateUi();
+
     bool checkSuccessful = false;
 
     QLabel iconLabel, header, update, authors;
-    QPushButton updateButton;
+    QPushButton okButton, updateButton;
     QNetworkReply *reply;
     QNetworkAccessManager nam;
 };

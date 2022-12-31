@@ -5,6 +5,7 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 
+#include <QEvent>
 #include <QIcon>
 #include <QDialogButtonBox>
 #include <QVBoxLayout>
@@ -17,41 +18,28 @@
 FBAboutDialog::FBAboutDialog(QWidget *parent)
     : QDialog(parent)
 {
+    retranslateUi();
+
     QIcon icon{QStringLiteral(":/icons/resources/org.firebird-emus.firebird-emu.png")};
     iconLabel.setPixmap(icon.pixmap(icon.actualSize(QSize{64, 64})));
 
-    setWindowTitle(tr("About Firebird"));
-    header.setText(tr("<h3>Firebird %1</h3>"
-                      "<a href='https://github.com/nspire-emus/firebird'>On GitHub</a>").arg(QStringLiteral(STRINGIFY(FB_VERSION))));
     header.setTextInteractionFlags(Qt::TextBrowserInteraction);
     header.setOpenExternalLinks(true);
 
-    update.setText(tr("Checking for update"));
     update.setTextInteractionFlags(Qt::TextBrowserInteraction);
     update.setOpenExternalLinks(true);
 
-    authors.setText(tr(  "Authors:<br>"
-                         "Fabian Vogt (<a href='https://github.com/Vogtinator'>Vogtinator</a>)<br>"
-                         "Adrien Bertrand (<a href='https://github.com/adriweb'>Adriweb</a>)<br>"
-                         "Antonio Vasquez (<a href='https://github.com/antoniovazquezblanco'>antoniovazquezblanco</a>)<br>"
-                         "Lionel Debroux (<a href='https://github.com/debrouxl'>debrouxl</a>)<br>"
-                         "Denis Avashurov (<a href='https://github.com/denisps'>denisps</a>)<br>"
-                         "Based on nspire_emu v0.70 by Goplat<br><br>"
-                         "This work is licensed under the GPLv3.<br>"
-                         "To view a copy of this license, visit <a href='https://www.gnu.org/licenses/gpl-3.0.html'>https://www.gnu.org/licenses/gpl-3.0.html</a>"));
     authors.setTextInteractionFlags(Qt::TextBrowserInteraction);
     authors.setOpenExternalLinks(true);
 
-    auto *okButton = new QPushButton(tr("Ok"));
-    connect(okButton, SIGNAL(clicked(bool)), this, SLOT(close()));
-    okButton->setDefault(true);
+    connect(&okButton, SIGNAL(clicked(bool)), this, SLOT(close()));
+    okButton.setDefault(true);
 
-    updateButton.setText(tr("Check for Update"));
     updateButton.setAutoDefault(false);
     connect(&updateButton, SIGNAL(clicked(bool)), this, SLOT(checkForUpdate()));
 
     auto *buttonBox = new QDialogButtonBox(Qt::Horizontal);
-    buttonBox->addButton(okButton, QDialogButtonBox::AcceptRole);
+    buttonBox->addButton(&okButton, QDialogButtonBox::AcceptRole);
     buttonBox->addButton(&updateButton, QDialogButtonBox::ActionRole);
 
     auto *layout = new QVBoxLayout;
@@ -63,6 +51,40 @@ FBAboutDialog::FBAboutDialog(QWidget *parent)
     auto *hlayout = new QHBoxLayout(this);
     hlayout->addWidget(&iconLabel);
     hlayout->addLayout(layout);
+}
+
+void FBAboutDialog::changeEvent(QEvent* event)
+{
+    if (event->type() == QEvent::LanguageChange)
+        retranslateUi();
+
+    QDialog::changeEvent(event);
+}
+
+void FBAboutDialog::retranslateUi()
+{
+    setWindowTitle(tr("About Firebird"));
+    header.setText(tr("<h3>Firebird %1</h3>"
+                      "<a href='https://github.com/nspire-emus/firebird'>On GitHub</a>").arg(QStringLiteral(STRINGIFY(FB_VERSION))));
+
+    authors.setText(tr(  "Authors:<br>"
+                         "Fabian Vogt (<a href='https://github.com/Vogtinator'>Vogtinator</a>)<br>"
+                         "Adrien Bertrand (<a href='https://github.com/adriweb'>Adriweb</a>)<br>"
+                         "Antonio Vasquez (<a href='https://github.com/antoniovazquezblanco'>antoniovazquezblanco</a>)<br>"
+                         "Lionel Debroux (<a href='https://github.com/debrouxl'>debrouxl</a>)<br>"
+                         "Denis Avashurov (<a href='https://github.com/denisps'>denisps</a>)<br>"
+                         "Based on nspire_emu v0.70 by Goplat<br><br>"
+                         "This work is licensed under the GPLv3.<br>"
+                         "To view a copy of this license, visit <a href='https://www.gnu.org/licenses/gpl-3.0.html'>https://www.gnu.org/licenses/gpl-3.0.html</a>"));
+
+    update.setText(tr("Checking for update"));
+
+    okButton.setText(tr("Ok"));
+    updateButton.setText(tr("Check for Update"));
+
+    // If necessary, refresh the status text. Easiest way is to just check again.
+    if(isVisible() || checkSuccessful)
+        QTimer::singleShot(0, this, SLOT(checkForUpdate()));
 }
 
 void FBAboutDialog::checkForUpdate()
