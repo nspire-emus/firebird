@@ -8,7 +8,7 @@ QtObject {
     property int rdbPort: 3334
     property bool running: false
     property bool leftHanded: false
-    property string version: "1.5"
+    property string version: "1.6"
 
     function useDefaultKit() {}
     function isMobile() { return true; }
