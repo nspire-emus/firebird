@@ -92,7 +92,6 @@ ColumnLayout {
         font.pixelSize: TextMetrics.title2Size
         Layout.topMargin: 10
         Layout.bottomMargin: 5
-        visible: Emu.isMobile()
     }
 
     FBLabel {
@@ -100,14 +99,12 @@ ColumnLayout {
         wrapMode: Text.WordWrap
         text: qsTr("Change the side of the keypad in landscape orientation.")
         font.pixelSize: TextMetrics.normalSize
-        visible: Emu.isMobile()
     }
 
     CheckBox {
         text: qsTr("Left-handed mode")
 
         checked: Emu.leftHanded
-        visible: Emu.isMobile()
         onCheckedChanged: {
             Emu.leftHanded = checked;
             checked = Qt.binding(function() { return Emu.leftHanded; });
