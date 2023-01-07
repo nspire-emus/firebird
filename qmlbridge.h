@@ -13,6 +13,12 @@ public:
     explicit QMLBridge(QObject *parent = 0);
     ~QMLBridge();
 
+    enum KeypadFillMode {
+        FillWidth = 0,
+        ResizeToFit
+    };
+    Q_ENUM(KeypadFillMode);
+
     Q_PROPERTY(unsigned int gdbPort READ getGDBPort WRITE setGDBPort NOTIFY gdbPortChanged)
     Q_PROPERTY(bool gdbEnabled READ getGDBEnabled WRITE setGDBEnabled NOTIFY gdbEnabledChanged)
     Q_PROPERTY(unsigned int rdbPort READ getRDBPort WRITE setRDBPort NOTIFY rdbPortChanged)
@@ -23,6 +29,7 @@ public:
     Q_PROPERTY(bool autostart READ getAutostart WRITE setAutostart NOTIFY autostartChanged)
     Q_PROPERTY(unsigned int defaultKit READ getDefaultKit WRITE setDefaultKit NOTIFY defaultKitChanged)
     Q_PROPERTY(bool leftHanded READ getLeftHanded WRITE setLeftHanded NOTIFY leftHandedChanged)
+    Q_PROPERTY(KeypadFillMode keypadFillMode READ getKeypadFillMode WRITE setKeypadFillMode NOTIFY keypadFillModeChanged)
     Q_PROPERTY(bool suspendOnClose READ getSuspendOnClose WRITE setSuspendOnClose NOTIFY suspendOnCloseChanged)
     Q_PROPERTY(QString usbdir READ getUSBDir WRITE setUSBDir NOTIFY usbDirChanged)
     Q_PROPERTY(QString version READ getVersion CONSTANT)
@@ -55,6 +62,8 @@ public:
     bool getAutostart();
     unsigned int getDefaultKit();
     void setDefaultKit(unsigned int id);
+    KeypadFillMode getKeypadFillMode();
+    void setKeypadFillMode(KeypadFillMode mode);
     bool getLeftHanded();
     void setLeftHanded(bool e);
     bool getSuspendOnClose();
@@ -146,6 +155,7 @@ signals:
     void autostartChanged();
     void defaultKitChanged();
     void leftHandedChanged();
+    void keypadFillModeChanged();
     void suspendOnCloseChanged();
     void usbDirChanged();
     void isRunningChanged();

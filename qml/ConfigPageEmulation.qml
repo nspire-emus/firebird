@@ -97,7 +97,7 @@ ColumnLayout {
     FBLabel {
         Layout.maximumWidth: parent.width
         wrapMode: Text.WordWrap
-        text: qsTr("Change the side of the keypad in landscape orientation.")
+        text: qsTr("Change the side of the keypad.")
         font.pixelSize: TextMetrics.normalSize
     }
 
@@ -108,6 +108,23 @@ ColumnLayout {
         onCheckedChanged: {
             Emu.leftHanded = checked;
             checked = Qt.binding(function() { return Emu.leftHanded; });
+        }
+    }
+
+    FBLabel {
+        Layout.maximumWidth: parent.width
+        wrapMode: Text.WordWrap
+        text: qsTr("Whether the keypad scrolls vertically in portrait orientation.")
+        font.pixelSize: TextMetrics.normalSize
+    }
+
+    CheckBox {
+        text: qsTr("Scrolling keypad")
+
+        checked: Emu.keypadFillMode === Emu.FillWidth
+        onCheckedChanged: {
+            Emu.keypadFillMode = checked ? Emu.FillWidth : Emu.ResizeToFit
+            checked = Qt.binding(function() { return Emu.keypadFillMode === Emu.FillWidth; });
         }
     }
 
