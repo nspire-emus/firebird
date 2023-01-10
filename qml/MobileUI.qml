@@ -214,7 +214,8 @@ ApplicationWindow {
                     var xOffset = listView.contentX - parent.x;
                     return Math.min(Math.max(0.0, Math.abs(xOffset) / listView.width), 0.6);
                 }
-                visible: opacity > 0.01
+                // Don't darken the drawer
+                visible: modelData === "MobileUIDrawer.qml" ? false : (opacity > 0.01)
 
                 MouseArea {
                     anchors.fill: parent
