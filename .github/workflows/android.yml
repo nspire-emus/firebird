@@ -53,6 +53,9 @@ jobs:
           qmake .. ANDROID_ABIS="arm64-v8a armeabi-v7a"
           make -j4 apk_install_target
 
+      # "platforms;android-33" currently points to an "android-33-ext4" platform, but the "-ext4"
+      # suffix breaks androiddeployqt which uses the last component as "androidCompileSdkVersion".
+      # By using android-32 as platform this is worked around. It'll be installed automatically.
       - name: Pack APK
         env:
           ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
@@ -63,9 +66,9 @@ jobs:
           cd build
           if [ -n "$ANDROID_KEYSTORE_PWD" ]; then
             echo "$ANDROID_KEYSTORE" | base64 -d > keystore.jks
-            androiddeployqt --input android-firebird-emu-deployment-settings.json --output android-build --apk firebird-emu.apk --sign keystore.jks firebirdemugh --storepass "$ANDROID_KEYSTORE_PWD"
+            androiddeployqt --android-platform android-32 --input android-firebird-emu-deployment-settings.json --output android-build --apk firebird-emu.apk --sign keystore.jks firebirdemugh --storepass "$ANDROID_KEYSTORE_PWD"
           else
-            androiddeployqt --input android-firebird-emu-deployment-settings.json --output android-build --apk firebird-emu.apk
+            androiddeployqt --android-platform android-32 --input android-firebird-emu-deployment-settings.json --output android-build --apk firebird-emu.apk
           fi
 
       - name: Upload zip
