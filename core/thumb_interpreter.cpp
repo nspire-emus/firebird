@@ -233,7 +233,7 @@ void cpu_thumb_loop() {
                     break;
                 }
             case 0xBE:
-                printf("Software breakpoint at %08x (%02x)\n", arm.reg[15], insn & 0xFF);
+                gui_debug_printf("Software breakpoint at %08x (%02x)\n", arm.reg[15], insn & 0xFF);
                 debugger(DBG_EXEC_BREAKPOINT, 0);
                 break;
 

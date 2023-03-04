@@ -467,11 +467,11 @@ int flash_save_as(const char *filename) {
     }
     emuprintf("Saving flash image %s...", filename);
     if (!fwrite(nand_data, nand.metrics.page_size * nand.metrics.num_pages, 1, f) || fflush(f)) {
+        int saved_errno = errno;
         fclose(f);
         f = NULL;
         remove(filename);
-        printf("\n could not write to ");
-        gui_perror(filename);
+        emuprintf("\n could not write to %s: %s", filename, strerror(saved_errno));
         return 1;
     }
     memset(nand.nand_block_modified, 0, nand.metrics.num_pages >> nand.metrics.log2_pages_per_block);
@@ -479,7 +479,7 @@ int flash_save_as(const char *filename) {
         fclose(flash_file);
 
     flash_file = f;
-    printf("done\n");
+    emuprintf("done\n");
     return 0;
 }
 
