@@ -30,6 +30,7 @@
 #include "os/os.h"
 
 #ifdef IS_IOS_BUILD
+#include <unistd.h>
 #include <sys/syscall.h>
 #include <sys/mman.h>
 #endif
