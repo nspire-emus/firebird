@@ -393,11 +393,8 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
 				goto unimpl;
 
 			if(i.data_proc.s
-			   && !(i.data_proc.op == OP_ADD || i.data_proc.op == OP_SUB || i.data_proc.op == OP_CMP || i.data_proc.op == OP_CMN
-				#ifndef SUPPORT_LINUX
-					|| i.data_proc.op == OP_TST
-				#endif
-			   ))
+			   && !(i.data_proc.op == OP_ADD || i.data_proc.op == OP_SUB
+			        || i.data_proc.op == OP_CMP || i.data_proc.op == OP_CMN))
 			{
 				/* We can't translate the S-bit that easily,
 				   as the barrel shifter output does not influence
@@ -460,11 +457,7 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
 				0x1A000000, // ADC (no shift!)
 				0x5A000000, // SBC (no shift!)
 				0, // RSC not possible
-				#ifdef SUPPORT_LINUX
-					0, // TST not possible, carry and overflow flags not identical
-				#else
-					0x6A00001F, // TST (ANDS with rd = wzr)
-				#endif
+				0, // TST not possible, carry and overflow flags not identical
 				0, // TEQ not possible
 				0x6B00001F, // CMP (SUBS with rd = wzr)
 				0x2B00001F, // CMN (ADDS with rd = wzr)
