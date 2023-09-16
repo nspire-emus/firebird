@@ -156,10 +156,6 @@ void keyToKeypad(QKeyEvent *event)
         ,{Qt::Key_Return, keymap::enter}
     };
 
-    // Ignore autorepeat, calc os must handle it on it's own
-    if (event->isAutoRepeat())
-        return;
-
     // Determine virtual key that correspond to the key we got
     auto vkey = event->nativeVirtualKey();
 
@@ -209,6 +205,10 @@ void keyToKeypad(QKeyEvent *event)
 
 void QtKeypadBridge::keyPressEvent(QKeyEvent *event)
 {
+    // Ignore autorepeat, calc os must handle it on its own
+    if(event->isAutoRepeat())
+        return;
+
     Qt::Key key = static_cast<Qt::Key>(event->key());
 
     switch(key)
@@ -244,6 +244,10 @@ void QtKeypadBridge::keyPressEvent(QKeyEvent *event)
 
 void QtKeypadBridge::keyReleaseEvent(QKeyEvent *event)
 {
+    // Ignore autorepeat, calc os must handle it on its own
+    if(event->isAutoRepeat())
+        return;
+
     Qt::Key key = static_cast<Qt::Key>(event->key());
 
     switch(key)
