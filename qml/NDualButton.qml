@@ -36,31 +36,20 @@ Rectangle {
     }
 
     Rectangle {
-        id: rectangle1
         width: 8
-        height: 20
-        color: "#222233"
-        radius: 0
+        height: 21
+        color: "#888"
         anchors.verticalCenterOffset: 5
-        anchors.horizontalCenterOffset: 0
-        z: 0
-        anchors.verticalCenter: parent.verticalCenter
-        anchors.horizontalCenter: parent.horizontalCenter
-        border.width: 1
-        border.color: "#888"
+        anchors.centerIn: parent
     }
 
     Rectangle {
-        id: rectangle2
         width: 8
         height: 18
         color: "#222233"
-        radius: 0
-        anchors.verticalCenterOffset: 5
-        anchors.horizontalCenterOffset: 0
+        anchors.verticalCenterOffset: 4
+        anchors.centerIn: parent
         z: 1
-        anchors.horizontalCenter: parent.horizontalCenter
-        anchors.verticalCenter: parent.verticalCenter
     }
 
     Text {
