@@ -18,11 +18,12 @@ RowLayout {
         id: dialogLoader
         active: false
         sourceComponent: FileDialog {
-            folder: Emu.dir(filePath)
+            folder: filePath ? Emu.dir(filePath) : Global.lastFileDialogDir
             // If save dialogs are not supported, force an open dialog
             selectExisting: parent.selectExisting || !Emu.saveDialogSupported()
             onAccepted: {
                 filePath = Emu.toLocalFile(fileUrl);
+                Global.lastFileDialogDir = Emu.dir(filePath);
                 forceRefresh++;
             }
         }
@@ -45,7 +46,7 @@ RowLayout {
             Layout.preferredWidth: 100
 
             font.italic: filePath === ""
-            text: filePath === "" ? qsTr("(none)") : Emu.basename(filePath)
+            text: { forceRefresh; return filePath === "" ? qsTr("(none)") : Emu.basename(filePath); }
             color: { forceRefresh; return ((!selectExisting && Emu.saveDialogSupported()) || filePath === "" || Emu.fileExists(filePath)) ? paletteActive.text : "red"; }
         }
 

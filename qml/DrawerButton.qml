@@ -6,6 +6,7 @@ import Firebird.UIComponents 1.0
 Rectangle {
     property alias icon: image.source
     property alias title: label.text
+    property alias subtitle: subtitleLabel.text
     property alias borderTopVisible: borderTop.visible
     property alias borderBottomVisible: borderBottom.visible
     property bool disabled: false
@@ -76,19 +77,34 @@ Rectangle {
         fillMode: Image.PreserveAspectFit
     }
 
-    FBLabel {
-        id: label
-
-        color: "black"
-
-        x: image.x + image.width + spacing
-
+    ColumnLayout {
         anchors {
+            margins: spacing
+            left: image.right
             top: parent.top
             bottom: parent.bottom
+            right: parent.right
         }
 
-        font.pixelSize: TextMetrics.title2Size
-        verticalAlignment: Text.AlignVCenter
+        FBLabel {
+            id: label
+
+            color: "black"
+
+            font.pixelSize: TextMetrics.title2Size
+            verticalAlignment: Text.AlignVCenter
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+        }
+
+        FBLabel {
+            id: subtitleLabel
+            elide: "ElideRight"
+
+            font.pixelSize: TextMetrics.normalSize * 0.8
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+            visible: text !== ""
+        }
     }
 }

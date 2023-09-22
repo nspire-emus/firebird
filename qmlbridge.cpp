@@ -286,14 +286,12 @@ QString QMLBridge::basename(QString path)
     if(path.isEmpty())
         return tr("None");
 
-    if(path.startsWith(QStringLiteral("content://")))
-    {
-        auto parts = path.splitRef(QStringLiteral("%2F"), QString::SkipEmptyParts, Qt::CaseInsensitive);
-        if(parts.length() > 1)
-            return parts.last().toString();
-
-        return tr("(Android File)");
-    }
+#ifdef Q_OS_ANDROID
+    extern char *android_basename(const char *path);
+    QScopedPointer<char, QScopedPointerPodDeleter> android_bn{android_basename(path.toUtf8().data())};
+    if(android_bn)
+        return QString::fromUtf8(android_bn.data());
+#endif
 
     return QFileInfo(path).fileName();
 }
@@ -425,6 +423,7 @@ void QMLBridge::setActive(bool b)
         connect(&emu_thread, SIGNAL(started(bool)), this, SLOT(started(bool)), Qt::QueuedConnection);
         connect(&emu_thread, SIGNAL(resumed(bool)), this, SLOT(resumed(bool)), Qt::QueuedConnection);
         connect(&emu_thread, SIGNAL(suspended(bool)), this, SLOT(suspended(bool)), Qt::QueuedConnection);
+        connect(&emu_thread, SIGNAL(debugStr(QString)), this, SIGNAL(debugStr(QString)), Qt::QueuedConnection);
 
         // We might have missed some events.
         turboModeChanged();
@@ -442,6 +441,7 @@ void QMLBridge::setActive(bool b)
         disconnect(&emu_thread, SIGNAL(started(bool)), this, SLOT(started(bool)));
         disconnect(&emu_thread, SIGNAL(resumed(bool)), this, SLOT(resumed(bool)));
         disconnect(&emu_thread, SIGNAL(suspended(bool)), this, SLOT(suspended(bool)));
+        disconnect(&emu_thread, SIGNAL(debugStr(QString)), this, SIGNAL(debugStr(QString)));
     }
 
     is_active = b;
