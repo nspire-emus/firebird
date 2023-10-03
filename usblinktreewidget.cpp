@@ -296,7 +296,7 @@ void USBLinkTreeWidget::downloadEntry()
             || context_menu_item->data(0, Qt::UserRole).toBool()) // Is a directory
         return;
 
-    QString dest = QFileDialog::getSaveFileName(this, tr("Chose save location"), QString(), tr("TNS file (*.tns)"));
+    QString dest = QFileDialog::getSaveFileName(this, tr("Chose save location"), context_menu_item->data(0, Qt::DisplayRole).toString(), tr("TNS file (*.tns)"));
     if(!dest.isEmpty())
         usblink_queue_download(usblink_path_item(context_menu_item).toStdString(), dest.toStdString(), usblink_download_callback, this);
 }
