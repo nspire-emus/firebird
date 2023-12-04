@@ -17,7 +17,6 @@ typedef struct lcd_state {
     uint32_t control;
     uint8_t int_mask;
     uint8_t int_status;
-    uint16_t palette[256];
     uint8_t cursor_ram[64*64/4]; // 64x64 2bpp cursor
     uint8_t cursor_control;
     uint8_t cursor_config;
@@ -26,6 +25,8 @@ typedef struct lcd_state {
     uint16_t cursor_clip;
     uint8_t cursor_int_mask;
     uint8_t cursor_int_status;
+    // Below here isn't zeroed in lcd_reset
+    uint16_t palette[256];
 } lcd_state;
 
 void lcd_draw_frame(uint8_t *buffer);

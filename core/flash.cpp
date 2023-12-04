@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -467,11 +468,11 @@ int flash_save_as(const char *filename) {
     }
     emuprintf("Saving flash image %s...", filename);
     if (!fwrite(nand_data, nand.metrics.page_size * nand.metrics.num_pages, 1, f) || fflush(f)) {
+        int saved_errno = errno;
         fclose(f);
         f = NULL;
         remove(filename);
-        printf("\n could not write to ");
-        gui_perror(filename);
+        emuprintf("\n could not write to %s: %s", filename, strerror(saved_errno));
         return 1;
     }
     memset(nand.nand_block_modified, 0, nand.metrics.num_pages >> nand.metrics.log2_pages_per_block);
@@ -479,7 +480,7 @@ int flash_save_as(const char *filename) {
         fclose(flash_file);
 
     flash_file = f;
-    printf("done\n");
+    emuprintf("done\n");
     return 0;
 }
 
@@ -776,8 +777,9 @@ bool flash_create_new(bool flag_large_nand, const char **preload_file, unsigned 
     if (preload_file[1]) load_file(nand_data, nand_metrics, PartitionBoot2, preload_file[1], 0); // Boot2 area
     size_t bootdata_offset = flash_partition_offset(PartitionBootdata, &nand_metrics, nand_data); // Bootdata
     memset(nand_data + bootdata_offset, 0xFF, nand_metrics.page_size);
-    memset(nand_data + bootdata_offset + 0x62, 0, 414);
+    memset(nand_data + bootdata_offset, 0, 512);
     memcpy(nand_data + bootdata_offset, bootdata, sizeof(bootdata));
+    ecc_fix(nand_data, nand_metrics, bootdata_offset / nand_metrics.page_size);
     if (preload_file[2]) load_file(nand_data, nand_metrics, PartitionDiags, preload_file[2], 0); // Diags area
     if (preload_file[3]) preload(nand_data, nand_metrics, PartitionFilesystem, "IMAGE", preload_file[3]); // Filesystem/OS
 

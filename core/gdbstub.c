@@ -245,6 +245,8 @@ static bool ndls_debug_received = false;
 static void gdb_connect_ndls_cb(struct arm_state *state) {
     ndls_debug_alloc_block = state->reg[0]; // can be 0
     ndls_debug_received = true;
+    if (!ndls_debug_alloc_block)
+        gui_debug_printf("Ndless failed to allocate the memory block for application debugging.\n");
 }
 
 /* BUFMAX defines the maximum number of characters in inbound/outbound buffers */
