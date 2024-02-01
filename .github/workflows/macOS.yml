@@ -10,12 +10,17 @@ on:
 
 jobs:
   build:
-    name: "Build: ${{ matrix.os }}"
+    name: "Build: ${{ matrix.os }} ${{ matrix.mactype }}"
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
-        os: [macOS-latest]
+        os: [macos-12,macos-14]
+        include:
+          - os: macos-12
+            mactype: "intel"
+          - os: macos-14
+            mactype: "arm"
 
     steps:
     - name: Checkout Git Repo
@@ -67,7 +72,7 @@ jobs:
               --icon-size 64 \
               --icon 'firebird-emu.app' 125 200 \
               --app-drop-link 400 200 \
-              'firebird-emu_macOS.dmg' \
+              'firebird-emu_macOS_${{matrix.mactype}}.dmg' \
               '/tmp/firebird-emu_macOS/'"
           eval "create-dmg $createDmgArgs" || eval "create-dmg $createDmgArgs" # We also retry just in case...
 
@@ -80,11 +85,11 @@ jobs:
       if: ${{ runner.os == 'macOS' && github.repository == 'nspire-emus/firebird' && env.HAVE_SECRETS == 'true' }}
       run: |
         xcrun notarytool store-credentials "notarytool-profile" --apple-id "$APPLE_NOTARIZATION_USERNAME" --team-id "$APPLE_NOTARIZATION_TEAMID" --password "$APPLE_NOTARIZATION_PASSWORD"
-        xcrun notarytool submit "firebird-emu_macOS.dmg" --keychain-profile "notarytool-profile" --wait
-        xcrun stapler staple "firebird-emu_macOS.dmg"
+        xcrun notarytool submit "firebird-emu_macOS_${{matrix.mactype}}.dmg" --keychain-profile "notarytool-profile" --wait
+        xcrun stapler staple "firebird-emu_macOS_${{matrix.mactype}}.dmg"
 
     - name: "Upload DMG"
       uses: actions/upload-artifact@v3
       with:
-          name: firebird-emu_macOS
-          path: firebird-emu_macOS.dmg
+          name: firebird-emu_macOS_${{matrix.mactype}}
+          path: firebird-emu_macOS_${{matrix.mactype}}.dmg
