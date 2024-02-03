@@ -1,5 +1,5 @@
 import QtQuick 2.0
-import QtQuick.Dialogs 1.1
+import Qt.labs.platform 1.1
 import QtQuick.Layouts 1.0
 
 import Firebird.Emu 1.0
@@ -88,14 +88,12 @@ Rectangle {
                      id: saveFailedDialog
                      title: qsTr("Error")
                      text: qsTr("Failed to save changes!")
-                     icon: StandardIcon.Warning
                  }
 
                  MessageDialog {
                      id: snapWarnDialog
                      title: qsTr("Warning")
                      text: qsTr("Flash saved, but no snapshot location configured.\nYou won't be able to resume.")
-                     icon: StandardIcon.Warning
                  }
 
                  onClicked: {

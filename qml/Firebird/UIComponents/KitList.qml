@@ -1,5 +1,5 @@
 import QtQuick 2.0
-import QtQuick.Controls 1.0
+import QtQuick.Controls 2.2
 import Firebird.Emu 1.0
 
 Rectangle {
@@ -22,6 +22,7 @@ Rectangle {
         anchors.fill: parent
 
         activeFocusOnTab: true
+        clip: true
 
         ListView {
             id: listView

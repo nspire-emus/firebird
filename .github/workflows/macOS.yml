@@ -2,20 +2,20 @@ name: Build macOS
 
 on:
   push:
-    branches: [ master, ci/macOS ]
+    branches: [ master ]
   pull_request:
-    branches: [ master, ci/macOS ]
+    branches: [ master ]
   release:
     types: [published]
 
 jobs:
   build:
-    name: "Build: ${{ matrix.os }}"
-    runs-on: ${{ matrix.os }}
+    name: "Qt ${{ matrix.qt }}"
+    runs-on: macOS-latest
     strategy:
       fail-fast: false
       matrix:
-        os: [macOS-latest]
+        qt: [ "5.15.2", "6.4.1" ]
 
     steps:
     - name: Checkout Git Repo
@@ -26,6 +26,7 @@ jobs:
     - name: Install Qt
       uses: jurplel/install-qt-action@43ec12788e42f375acfcb2cec059edfb9572fbaa # v3
       with:
+          version: "${{ matrix.qt }}"
           target: desktop
           setup-python: false
 
@@ -86,5 +87,5 @@ jobs:
     - name: "Upload DMG"
       uses: actions/upload-artifact@v3
       with:
-          name: firebird-emu_macOS
+          name: "firebird-emu_macOS-Qt${{ matrix.qt }}"
           path: firebird-emu_macOS.dmg

@@ -288,9 +288,13 @@ QString QMLBridge::basename(QString path)
 
     if(path.startsWith(QStringLiteral("content://")))
     {
-        auto parts = path.splitRef(QStringLiteral("%2F"), QString::SkipEmptyParts, Qt::CaseInsensitive);
+        #if QT_VERSION < QT_VERSION_CHECK(5, 15, 0)
+                auto parts = path.split(QStringLiteral("%2F"), QString::SkipEmptyParts, Qt::CaseInsensitive);
+        #else
+                auto parts = path.split(QStringLiteral("%2F"), Qt::SkipEmptyParts, Qt::CaseInsensitive);
+        #endif
         if(parts.length() > 1)
-            return parts.last().toString();
+            return parts.last();
 
         return tr("(Android File)");
     }

@@ -1,16 +1,14 @@
 import QtQuick 2.0
 import QtQuick.Layouts 1.1
-import QtQuick.Controls 1.2
-import QtQuick.Dialogs 1.3
+import QtQuick.Controls 2.0
+import QtQuick.Window 2.2
+import Qt.labs.platform 1.0
 import Firebird.Emu 1.0
 import Firebird.UIComponents 1.0
 
-Dialog {
+Window {
     id: flashDialog
     title: qsTr("Create Flash Image")
-    // Work around QTBUG-89607: Menu (used by ComboBox) doesn't work in modal windows
-    modality: Qt.platform.pluginName == "cocoa" ? Qt.NonModal : Qt.WindowModal
-    standardButtons: Dialog.Save | Dialog.Cancel
     onVisibleChanged: {
         // For some reason the initial size on wayland is too big.
         // Setting it to -1 initially appears to work around that.
@@ -20,11 +18,18 @@ Dialog {
         }
     }
 
+    SystemPalette {
+        id: paletteActive
+    }
+
+    color: paletteActive.window
+
     signal flashCreated(string filePath)
 
     GridLayout {
         id: layout
-        width: parent.width
+        anchors.fill: parent
+        anchors.margins: 5
         columns: 2
 
         FBLabel {
@@ -144,6 +149,17 @@ Dialog {
             color: "red"
             text: parent.validationText
         }
+
+        Button {
+            Layout.alignment: Qt.AlignRight
+            Layout.columnSpan: 2
+            text: qsTr("Save as")
+            enabled: layout.validationText == ""
+            onClicked: {
+                fileDialogLoader.active = true;
+                fileDialogLoader.item.visible = true;
+            }
+        }
     }
 
     MessageDialog {
@@ -156,9 +172,9 @@ Dialog {
         id: fileDialogLoader
         active: false
         sourceComponent: FileDialog {
-            selectExisting: false
+            fileMode: FileDialog.SaveFile
             onAccepted: {
-                var filePath = Emu.toLocalFile(fileUrl);
+                var filePath = Emu.toLocalFile(file);
                 var success = false;
                 if (!modelCombo.cx2Selected)
                     success = Emu.createFlash(filePath, modelCombo.productId, subtypeCombo.featureValue, manufSelect.filePath, boot2Select.filePath, osSelect.filePath, diagsSelect.filePath);
@@ -171,19 +187,6 @@ Dialog {
                 }
                 else
                     failureDialog.visible = true;
-            }
-        }
-    }
-
-    onActionChosen: {
-        if (action.button === Dialog.Save) {
-            // Don't close the dialog now, but only
-            // after successful saving
-            action.accepted = false;
-
-            if (!layout.validationText) {
-                fileDialogLoader.active = true;
-                fileDialogLoader.item.visible = true;
             }
         }
     }

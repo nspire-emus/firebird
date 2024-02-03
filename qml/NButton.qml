@@ -45,6 +45,7 @@ Rectangle {
         font.pixelSize: height*0.55
         color: font_color
         font.bold: true
+        renderType: Text.QtRendering
         // Workaround: Text.AutoText doesn't seem to work for properties (?)
         textFormat: text.indexOf(">") == -1 ? Text.PlainText : Text.RichText
         verticalAlignment: Text.AlignVCenter
@@ -95,7 +96,7 @@ Rectangle {
 
         hoverEnabled: !Emu.isMobile()
 
-        onPressed: {
+        onPressed: function(mouse) {
             mouse.accepted = true;
 
             if(mouse.button == Qt.LeftButton)
@@ -110,7 +111,7 @@ Rectangle {
             }
         }
 
-        onReleased: {
+        onReleased: function(mouse) {
             mouse.accepted = true;
 
             if(mouse.button == Qt.LeftButton

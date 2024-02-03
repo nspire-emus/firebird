@@ -59,7 +59,6 @@
         <file>qml/DrawerButton.qml</file>
         <file>qml/Firebird/UIComponents/VerticalSwipeBar.qml</file>
         <file>qml/FlashDialog.qml</file>
-        <file>qml/Firebird/UIComponents/IconButton.qml</file>
     </qresource>
     <qresource prefix="/i18n">
         <file>i18n/de_DE.qm</file>

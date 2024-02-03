@@ -1,11 +1,11 @@
 import QtQuick 2.0
-import QtQuick.Controls 1.0
+import QtQuick.Controls 2.2
 
 ScrollView {
     id: controls
     property alias keypad: keypad
-    horizontalScrollBarPolicy: Qt.ScrollBarAlwaysOff
-    verticalScrollBarPolicy: Qt.ScrollBarAlwaysOff
+    ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
+    ScrollBar.vertical.policy: ScrollBar.AlwaysOff
 
     Flickable {
         flickableDirection: Flickable.VerticalFlick

@@ -1,7 +1,6 @@
 import QtQuick 2.7
-import QtQuick.Layouts 1.0
-import QtQuick.Controls 1.4
-import QtQuick.Controls.Styles 1.4
+import QtQuick.Layouts 1.2
+import QtQuick.Controls 2.0
 
 import Firebird.UIComponents 1.0
 
@@ -9,8 +8,7 @@ Item {
     Layout.fillHeight: true
     Layout.fillWidth: true
 
-    TabView {
-        id: tabView
+    ColumnLayout {
         anchors {
             left: parent.left
             right: swipeBar.left
@@ -19,39 +17,35 @@ Item {
             bottomMargin: 2
         }
 
-        property var model: ConfigPagesModel {}
+        TabBar {
+            id: bar
+            property var model: ConfigPagesModel {}
 
-    /*    style: TabViewStyle {
-            tab: Rectangle {
-                color: styleData.selected ? "darkgrey" :"lightgrey"
+            Repeater {
+                id: rep
+                model: bar.model
 
-                implicitWidth: tabView.width / model.count
-                implicitHeight: title.contentHeight + 10
-
-                FBLabel {
-                    id: title
-                    anchors.fill: parent
-                    text: styleData.title
-                    font.pixelSize: TextMetrics.title1Size
-                    horizontalAlignment: Text.AlignHCenter
-                    verticalAlignment: Text.AlignVCenter
-                    elide: Text.ElideRight
-                    color: styleData.selected ? "white" : "black"
+                TabButton {
+                    text: qsTranslate("ConfigPagesModel", rep.model.get(index).title)
                 }
             }
-            frame: Rectangle { color: "#eeeeee" }
-        }*/
+        }
 
-        Repeater {
-            id: rep
-            model: tabView.model
+        SwipeView {
+            Layout.fillHeight: true
+            Layout.fillWidth: true
+            currentIndex: bar.currentIndex
+            clip: true
 
-            Tab {
-                title: qsTranslate("ConfigPagesModel", rep.model.get(index).title)
-                source: file
+            Repeater {
+                model: bar.model
+
+                Loader {
+                    source: file
+                }
             }
         }
-    }
+}
 
     FBLabel {
         id: autoSaveLabel
