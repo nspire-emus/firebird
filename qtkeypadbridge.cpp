@@ -156,20 +156,17 @@ void keyToKeypad(QKeyEvent *event)
         ,{Qt::Key_Return, keymap::enter}
     };
 
-    // Determine virtual key that correspond to the key we got
-    auto vkey = event->nativeVirtualKey();
+    // Determine physical key that correspond to the key we got,
+    // to be able to get releases reliably if modifiers change in between:
+    // Press shift, press 2 (-> "), release shift, release 2 (-> 2)
+    // results in press of 2 but release of " (example for de layout).
+    auto physkey = event->nativeScanCode();
+    if (physkey < 1)
+        physkey = event->key(); // (Bad) fallback to the virtual key if needed
 
-    // nativeVirtualKey should be working everywhere, but just in case it's not
-    if (vkey == 0 || vkey == 1)
-        vkey = event->nativeScanCode();
+    auto pressed = pressed_keys.find(physkey);
 
-    // If neither of them worked then simply use key code
-    if (vkey == 0 || vkey == 1)
-        vkey = event->key();
-
-    auto pressed = pressed_keys.find(vkey);
-
-    // If vkey is already pressed, then this must the the release event
+    // If physkey is already pressed, then this must the the release event
     if (pressed != pressed_keys.end())
     {
         setKeypad(*pressed, false);
@@ -197,7 +194,7 @@ void keyToKeypad(QKeyEvent *event)
 
         if (translated != QtKeyMap.end())
         {
-            pressed_keys.insert(vkey, *translated);
+            pressed_keys.insert(physkey, *translated);
             setKeypad(*translated, true);
         }
     }
