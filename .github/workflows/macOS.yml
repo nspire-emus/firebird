@@ -27,7 +27,8 @@ jobs:
       uses: jurplel/install-qt-action@f03f05556819ceb3781ee2f455ec44c339d683c0 # v4
       with:
           target: desktop
-          setup-python: false
+          # Broken: https://github.com/jurplel/install-qt-action/issues/239
+          # setup-python: false
 
     - name: Build firebird-emu Qt on macOS
       run: |
