@@ -1,4 +1,5 @@
 import QtQuick 2.0
+import QtQuick.Shapes 1.15
 import Firebird.Emu 1.0
 
 Rectangle {
@@ -11,6 +12,10 @@ Rectangle {
     // Pressing the right mouse button "locks" the button in enabled state
     property bool fixed: false
     property int keymap_id: 1
+
+    property alias svg: nsvg.svg
+    property alias colorSvg: nsvg.colorSvg
+
 
     signal clicked()
 
@@ -50,6 +55,13 @@ Rectangle {
         verticalAlignment: Text.AlignVCenter
         horizontalAlignment: Text.AlignHCenter
     }
+
+    NSvg{
+        id:nsvg
+        svg:"M 2.13e-5,-32.828401 C -18.090394,-32.828371 -32.828751,-18.09081 -32.828751,-3.4049999e-4 -32.828711,18.090021 -18.090394,32.828401 2.13e-5,32.828401 18.090394,32.828401 32.828711,18.090057 32.828751,-3.4049999e-4 32.828751,-18.09081 18.090394,-32.828401 2.13e-5,-32.828401 Z"
+        colorSvg: "blue"
+    }
+
 
     // This is needed to support pressing multiple buttons at once on multitouch
     MultiPointTouchArea {
