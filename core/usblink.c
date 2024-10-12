@@ -278,7 +278,8 @@ fail:
 teardown:
     throttle_timer_on();
     put_file_state = 0;
-    fclose(put_file);
+    if (put_file)
+        fclose(put_file);
     put_file = NULL;
 }
 
@@ -527,7 +528,7 @@ void usblink_received_packet(const uint8_t *data, uint32_t size) {
 bool usblink_put_file(const char *local, const char *remote, usblink_progress_cb callback, void *user_data) {
     mode = File_Send;
 
-    char *dot = strrchr(local, '.');
+    char *dot = local ? strrchr(local, '.') : NULL;
     // TODO (thanks for the reminder, Excale :P) : Filter depending on which model is being emulated
     if (dot && (!strcmp(dot, ".tno") || !strcmp(dot, ".tnc")
              || !strcmp(dot, ".tco") || !strcmp(dot, ".tcc")
@@ -542,17 +543,23 @@ bool usblink_put_file(const char *local, const char *remote, usblink_progress_cb
     current_user_data = user_data;
     current_file_callback = callback;
 
-    FILE *f = fopen_utf8(local, "rb");
-    if (!f) {
-        gui_perror(local);
-        return 0;
-    }
     if (put_file)
         fclose(put_file);
-    put_file = f;
-    fseek(f, 0, SEEK_END);
-    put_file_size_orig = put_file_size = ftell(f);
-    fseek(f, 0, SEEK_SET);
+
+    if (local && local[0] != '\0') {
+        put_file = fopen_utf8(local, "rb");
+        if (!put_file) {
+            gui_perror(local);
+            return 0;
+        }
+        fseek(put_file, 0, SEEK_END);
+        put_file_size_orig = put_file_size = ftell(put_file);
+        fseek(put_file, 0, SEEK_SET);
+    } else {
+        put_file = NULL;
+        put_file_size_orig = put_file_size = 0;
+    }
+
     put_file_state = SENDING_03;
 
     /* Send the first packet */
