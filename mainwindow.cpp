@@ -98,6 +98,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(&lcd, SIGNAL(closed()), ui->actionLCD_Window, SLOT(toggle()));
     connect(ui->actionXModem, SIGNAL(triggered()), this, SLOT(xmodemSend()));
     connect(ui->actionSwitch_to_Mobile_UI, SIGNAL(triggered()), this, SLOT(switchToMobileUI()));
+    connect(ui->actionLeavePTT, &QAction::triggered, the_qml_bridge, &QMLBridge::sendExitPTT);
     ui->actionConnect->setShortcut(QKeySequence(Qt::Key_F10));
     ui->actionConnect->setAutoRepeat(false);
 
@@ -495,6 +496,7 @@ void MainWindow::updateUIActionState(bool emulation_running)
     ui->actionConnect->setEnabled(emulation_running);
     ui->actionDebugger->setEnabled(emulation_running);
     ui->actionXModem->setEnabled(emulation_running);
+    ui->actionLeavePTT->setEnabled(emulation_running);
 
     ui->actionSuspend->setEnabled(emulation_running);
     ui->actionSuspend_to_file->setEnabled(emulation_running);
