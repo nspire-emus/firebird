@@ -278,7 +278,9 @@ bool QMLBridge::isMobile()
 
 void QMLBridge::sendFile(QUrl url, QString dir)
 {
-    usblink_queue_put_file(toLocalFile(url).toStdString(), dir.toStdString(), QMLBridge::usblink_progress_changed, this);
+    auto local = toLocalFile(url);
+    auto remote = dir + QLatin1Char('/') + basename(local);
+    usblink_queue_put_file(local.toStdString(), remote.toStdString(), QMLBridge::usblink_progress_changed, this);
 }
 
 QString QMLBridge::basename(QString path)

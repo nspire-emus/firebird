@@ -357,7 +357,16 @@ int process_debug_cmd(char *cmdline) {
                 if (*(file + len - 1) == '"')
                     *(file + len - 1) = '\0';
                 usblink_connect();
-                usblink_queue_put_file(std::string(file), std::string(ln_target_folder), nullptr, nullptr);
+
+                const char *file_name = file;
+                for (const char *p = file; *p; p++)
+                    if (*p == ':' || *p == '/' || *p == '\\')
+                        file_name = p + 1;
+
+                if (ln_target_folder.length() < 1 || *ln_target_folder.rbegin() != '/')
+                    ln_target_folder += '/';
+
+                usblink_queue_put_file(std::string(file), ln_target_folder + std::string(file_name), nullptr, nullptr);
             }
         } else if (!strcasecmp(ln_cmd, "st")) {
             char *dir = strtok(NULL, " \n\r");
