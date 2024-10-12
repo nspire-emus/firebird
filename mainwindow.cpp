@@ -288,8 +288,9 @@ void MainWindow::dropEvent(QDropEvent *e)
 
     for(auto &&url : mime_data->urls())
     {
-        auto local = QDir::toNativeSeparators(url.toLocalFile()).toStdString();
-        usblink_queue_put_file(local, the_qml_bridge->getUSBDir().toStdString(), usblink_progress_callback, this);
+        auto local = QDir::toNativeSeparators(url.toLocalFile());
+        auto remote = the_qml_bridge->getUSBDir() + QLatin1Char('/') + QFileInfo(local).fileName();
+        usblink_queue_put_file(local.toStdString(), remote.toStdString(), usblink_progress_callback, this);
     }
 }
 

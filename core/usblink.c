@@ -524,10 +524,10 @@ void usblink_received_packet(const uint8_t *data, uint32_t size) {
     }
 }
 
-bool usblink_put_file(const char *filepath, const char *folder, usblink_progress_cb callback, void *user_data) {
+bool usblink_put_file(const char *local, const char *remote, usblink_progress_cb callback, void *user_data) {
     mode = File_Send;
 
-    char *dot = strrchr(filepath, '.');
+    char *dot = strrchr(local, '.');
     // TODO (thanks for the reminder, Excale :P) : Filter depending on which model is being emulated
     if (dot && (!strcmp(dot, ".tno") || !strcmp(dot, ".tnc")
              || !strcmp(dot, ".tco") || !strcmp(dot, ".tcc")
@@ -535,29 +535,16 @@ bool usblink_put_file(const char *filepath, const char *folder, usblink_progress
              || !strcmp(dot, ".tco2") || !strcmp(dot, ".tcc2")
              || !strcmp(dot, ".tct2")) ) {
         emuprintf("File is an OS, calling usblink_send_os\n");
-        usblink_send_os(filepath, callback, user_data);
+        usblink_send_os(local, callback, user_data);
         return 1;
     }
 
     current_user_data = user_data;
     current_file_callback = callback;
 
-    const char *filename = filepath;
-    // Hack for android content:// urls
-    if(strncmp(filepath, "content://", 10) == 0) {
-        for (const char *p = filepath; *p; p++)
-            if (strncasecmp(p, "%2F", 3) == 0)
-                filename = p + 3;
-    }
-    else {
-        for (const char *p = filepath; *p; p++)
-            if (*p == ':' || *p == '/' || *p == '\\')
-                filename = p + 1;
-    }
-
-    FILE *f = fopen_utf8(filepath, "rb");
+    FILE *f = fopen_utf8(local, "rb");
     if (!f) {
-        gui_perror(filepath);
+        gui_perror(local);
         return 0;
     }
     if (put_file)
@@ -577,7 +564,7 @@ bool usblink_put_file(const char *filepath, const char *folder, usblink_progress
     uint8_t *data = out->data;
     *data++ = File_Put;
     *data++ = 1;
-    data += sprintf((char *)data, "%s/%s", folder, filename) + 1;
+    data += sprintf((char *)data, "%s", remote) + 1;
     *(uint32_t *)data = BSWAP32(put_file_size); data += 4;
     out->data_size = data - out->data;
     usblink_send_packet();
