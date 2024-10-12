@@ -451,6 +451,7 @@
     <addaction name="actionDebugger"/>
     <addaction name="separator"/>
     <addaction name="actionXModem"/>
+    <addaction name="actionLeavePTT"/>
     <addaction name="actionSwitch_to_Mobile_UI"/>
     <addaction name="separator"/>
     <addaction name="menuLanguage"/>
@@ -660,6 +661,11 @@
    </property>
    <property name="text">
     <string>Switch to Mobile UI</string>
+   </property>
+  </action>
+  <action name="actionLeavePTT">
+   <property name="text">
+    <string>Leave &amp;PTT</string>
    </property>
   </action>
  </widget>

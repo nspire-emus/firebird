@@ -86,6 +86,7 @@ public:
     Q_INVOKABLE bool isMobile();
 
     Q_INVOKABLE void sendFile(QUrl url, QString dir);
+    Q_INVOKABLE void sendExitPTT();
 
     // Various utility functions
     Q_INVOKABLE QString basename(QString path);

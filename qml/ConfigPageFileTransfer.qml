@@ -61,11 +61,13 @@ ColumnLayout {
             }
         }
 
-        ProgressBar {
-            id: transferProgress
-            Layout.fillWidth: true
-            minimumValue: 0
-            maximumValue: 100
+        Button {
+            text: qsTr("Leave Press-to-Test mode")
+            Layout.topMargin: 5
+            Layout.bottomMargin: 5
+            onClicked: {
+                Emu.sendExitPTT();
+            }
         }
     }
 
@@ -97,6 +99,13 @@ ColumnLayout {
                 }
             }
         }
+    }
+
+    ProgressBar {
+        id: transferProgress
+        Layout.fillWidth: true
+        minimumValue: 0
+        maximumValue: 100
     }
 
     FBLabel {

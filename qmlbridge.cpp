@@ -283,6 +283,12 @@ void QMLBridge::sendFile(QUrl url, QString dir)
     usblink_queue_put_file(local.toStdString(), remote.toStdString(), QMLBridge::usblink_progress_changed, this);
 }
 
+void QMLBridge::sendExitPTT()
+{
+    usblink_queue_new_dir("/Press-to-Test", nullptr, nullptr);
+    usblink_queue_put_file(std::string(), "/Press-to-Test/Exit Test Mode.tns", QMLBridge::usblink_progress_changed, this);
+}
+
 QString QMLBridge::basename(QString path)
 {
     if(path.isEmpty())
