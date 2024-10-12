@@ -86,10 +86,11 @@ ColumnLayout {
         Connections {
             target: Emu
             function onUsblinkProgressChanged(percent) {
-                if(percent < 0)
+                if(percent < 0) {
                     transferStatus.text = qsTr("Failed!");
-                else
-                {
+                    transferProgress.value = 0;
+                    transferProgress.indeterminate = false;
+                } else {
                     transferStatus.text = (percent >= 100) ? qsTr("Done!") : (percent + "%");
                     transferProgress.value = percent;
                     transferProgress.indeterminate = false;
