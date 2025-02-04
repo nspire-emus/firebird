@@ -85,7 +85,7 @@ jobs:
         xcrun stapler staple "firebird-emu_macOS.dmg"
 
     - name: "Upload DMG"
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
           name: firebird-emu_macOS
           path: firebird-emu_macOS.dmg

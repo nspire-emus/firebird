@@ -51,7 +51,7 @@ jobs:
         windeployqt --qmldir=../qml --no-qmltooling firebird-emu/firebird-emu.exe
 
     - name: Upload zip
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
           name: firebird-emu-${{ matrix.arch }}
           # Use a wildcard to force a subfolder
