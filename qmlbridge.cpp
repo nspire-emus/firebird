@@ -256,12 +256,22 @@ void QMLBridge::setButtonState(int id, bool state)
 {
     int col = id % KEYPAD_COLS, row = id / KEYPAD_COLS;
 
+#ifdef Q_OS_ANDROID
+    if (state)
+        androidVibrate();
+#endif
+
     ::keypad_set_key(row, col, state);
 }
 
 void QMLBridge::setTouchpadState(qreal x, qreal y, bool contact, bool down)
 {
     ::touchpad_set_state(x, y, contact, down);
+
+#ifdef Q_OS_ANDROID
+    if (down)
+        androidVibrate();
+#endif
 
     touchpadStateChanged();
 }
