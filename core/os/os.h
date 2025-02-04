@@ -25,6 +25,8 @@ FILE *fopen_utf8(const char *filename, const char *mode);
 #if defined(__ANDROID__)
 /* Returns an allocated string or NULL on failure. */
 char *android_basename(const char *path);
+/* KEYBOARD_TAP vibration for the current View. */
+void androidVibrate();
 #endif
 
 void *os_reserve(size_t size);
