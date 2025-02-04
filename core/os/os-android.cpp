@@ -155,3 +155,33 @@ char *android_basename(const char *path)
 
     return nullptr;
 }
+
+void androidVibrate()
+{
+    QAndroidJniEnvironment env;
+
+    // Call activity.getWindow().getDecorView().perforHapticFeedback(KEYBOARD_TAP);
+    QAndroidJniObject window = QtAndroid::androidActivity()
+            .callObjectMethod("getWindow", "()Landroid/view/Window;");
+
+    QAndroidJniObject decorView = window.callObjectMethod("getDecorView", "()Landroid/view/View;");
+
+    if (env->ExceptionCheck())
+    {
+        env->ExceptionDescribe();
+        env->ExceptionClear();
+        return;
+    }
+
+    bool success = decorView.callMethod<jboolean>("performHapticFeedback", "(I)Z", 3); // HapticFeedbackConstants.KEYBOARD_TAP
+
+    if (env->ExceptionCheck())
+    {
+        env->ExceptionDescribe();
+        env->ExceptionClear();
+        return;
+    }
+
+    if (!success)
+        qInfo() << "Haptic feedback failed";
+}
