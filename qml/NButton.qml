@@ -6,7 +6,6 @@ Rectangle {
     property string back_color: "#223"
     property string font_color: "#fff"
     property alias text: label.text
-    property bool active: pressed || mouseArea.containsMouse
     property bool pressed: false
     // Pressing the right mouse button "locks" the button in enabled state
     property bool fixed: false
@@ -14,10 +13,33 @@ Rectangle {
 
     signal clicked()
 
-    border.width: active ? 2 : 1
-    border.color: "#888"
     radius: 4
-    color: active ? active_color : back_color
+    color: "#888"
+
+    Rectangle {
+        width: parent.width
+        height: parent.height
+        x: pressed ? -0 : -1
+        y: pressed ? -0 : -1
+        radius: parent.radius
+        border.width: 1
+        border.color: parent.color
+        color: mouseArea.containsMouse ? active_color : back_color
+
+        Text {
+            id: label
+            text: "Foo"
+            anchors.fill: parent
+            anchors.centerIn: parent
+            font.pixelSize: height*0.55
+            color: font_color
+            font.bold: true
+            // Workaround: Text.AutoText doesn't seem to work for properties (?)
+            textFormat: text.indexOf(">") == -1 ? Text.PlainText : Text.RichText
+            verticalAlignment: Text.AlignVCenter
+            horizontalAlignment: Text.AlignHCenter
+        }
+    }
 
     onPressedChanged: {
         if(pressed)
@@ -35,20 +57,6 @@ Rectangle {
             if(id === keymap_id)
                 pressed = state;
         }
-    }
-
-    Text {
-        id: label
-        text: "Foo"
-        anchors.fill: parent
-        anchors.centerIn: parent
-        font.pixelSize: height*0.55
-        color: font_color
-        font.bold: true
-        // Workaround: Text.AutoText doesn't seem to work for properties (?)
-        textFormat: text.indexOf(">") == -1 ? Text.PlainText : Text.RichText
-        verticalAlignment: Text.AlignVCenter
-        horizontalAlignment: Text.AlignHCenter
     }
 
     // This is needed to support pressing multiple buttons at once on multitouch
