@@ -37,6 +37,20 @@ GridLayout {
         }
     }
 
+    Item {
+        visible: Emu.keypadFillMode !== Emu.FillWidth
+        Layout.fillHeight: true
+        Layout.fillWidth: true
+        Layout.columnSpan: 2
+
+        Keypad {
+            id: keypad2
+            x: Emu.leftHanded ? 0 : parent.width - width
+            property double myScale: Math.min(parent.height/height, parent.width/width)
+            transform: Scale { origin.x: Emu.leftHanded ? 0 : keypad2.width; origin.y: 0; xScale: keypad2.myScale; yScale: keypad2.myScale }
+        }
+    }
+
     Flickable {
         id: controls
 
@@ -53,6 +67,7 @@ GridLayout {
         contentHeight: keypad.height*controls.width/keypad.width + iosmargin.height
         clip: true
         pixelAligned: true
+        visible: Emu.keypadFillMode === Emu.FillWidth
 
         Keypad {
             id: keypad
@@ -79,6 +94,7 @@ GridLayout {
         Layout.fillWidth: true
         Layout.columnSpan: 2
         color: keypad.color
+        visible: Emu.keypadFillMode === Emu.FillWidth
     }
 
     states: [ State {

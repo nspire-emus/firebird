@@ -1,4 +1,5 @@
 import QtQuick 2.0
+import QtQuick.Shapes 1.15
 
 Rectangle {
     id: rectangle3
@@ -10,6 +11,14 @@ Rectangle {
     property alias button2: nbutton2
     property alias id1: nbutton1.keymap_id
     property alias id2: nbutton2.keymap_id
+    property alias svg1: nbutton1.svg
+    property alias svg2: nbutton2.svg
+    property alias topSvg1: svgTop1.svg
+    property alias topSvg2: svgTop2.svg
+    property alias colorSvg1: nbutton1.colorSvg
+    property alias colorSvg2: nbutton2.colorSvg
+    property alias colorTopSvg1: svgTop1.colorSvg
+    property alias colorTopSvg2: svgTop2.colorSvg
 
     width: 50
     height: 30
@@ -23,6 +32,9 @@ Rectangle {
         width: 25
         height: 20
         text: "a"
+
+        colorSvg: "blue"
+        svg:"M 2.13e-5,-32.828401 C -18.090394,-32.828371 -32.828751,-18.09081 -32.828751,-3.4049999e-4 -32.828711,18.090021 -18.090394,32.828401 2.13e-5,32.828401 18.090394,32.828401 32.828711,18.090057 32.828751,-3.4049999e-4 32.828751,-18.09081 18.090394,-32.828401 2.13e-5,-32.828401 Z"
     }
 
     NButton {
@@ -33,6 +45,9 @@ Rectangle {
         width: 25
         height: 20
         text: "b"
+        colorSvg: "red"
+        svg:"M 2.13e-5,-32.828401 C -18.090394,-32.828371 -32.828751,-18.09081 -32.828751,-3.4049999e-4 -32.828711,18.090021 -18.090394,32.828401 2.13e-5,32.828401 18.090394,32.828401 32.828711,18.090057 32.828751,-3.4049999e-4 32.828751,-18.09081 18.090394,-32.828401 2.13e-5,-32.828401 Z"
+
     }
 
     Rectangle {
@@ -76,6 +91,11 @@ Rectangle {
         z: -1
         font.pixelSize: 8
         font.bold: true
+        NSvg{
+            id: svgTop1
+            colorSvg: "green"
+            svg:"M 2.13e-5,-32.828401 C -18.090394,-32.828371 -32.828751,-18.09081 -32.828751,-3.4049999e-4 -32.828711,18.090021 -18.090394,32.828401 2.13e-5,32.828401 18.090394,32.828401 32.828711,18.090057 32.828751,-3.4049999e-4 32.828751,-18.09081 18.090394,-32.828401 2.13e-5,-32.828401 Z"
+        }
     }
 
     Text {
@@ -91,6 +111,11 @@ Rectangle {
         font.pixelSize: 8
         z: -2
         font.bold: true
+        NSvg{
+            id: svgTop2
+            colorSvg: "pink"
+            svg:"M 2.13e-5,-32.828401 C -18.090394,-32.828371 -32.828751,-18.09081 -32.828751,-3.4049999e-4 -32.828711,18.090021 -18.090394,32.828401 2.13e-5,32.828401 18.090394,32.828401 32.828711,18.090057 32.828751,-3.4049999e-4 32.828751,-18.09081 18.090394,-32.828401 2.13e-5,-32.828401 Z"
+        }
     }
 }
 

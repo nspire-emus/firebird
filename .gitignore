@@ -4,3 +4,4 @@
 *.user.*
 *.bc
 *.qmlc
+build/**
