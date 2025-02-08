@@ -28,7 +28,7 @@ QMLBridge::QMLBridge(QObject *parent) : QObject(parent)
 
     //Migrate old settings
     if(settings.contains(QStringLiteral("usbdir")) && !settings.contains(QStringLiteral("usbdirNew")))
-        setUSBDir(QStringLiteral("/") + settings.value(QStringLiteral("usbdir")).toString());
+        settings.setValue(QStringLiteral("usbdirNew"), QStringLiteral("/") + settings.value(QStringLiteral("usbdir")).toString());
 
     bool add_default_kit = false;
 
@@ -56,10 +56,75 @@ QMLBridge::QMLBridge(QObject *parent) : QObject(parent)
     }
 
     // Same for debug_on_*
-    debug_on_start = getDebugOnStart();
-    debug_on_warn = getDebugOnWarn();
+    ::debug_on_start = debug_on_start = settings.value(QStringLiteral("debugOnStart"), false).toBool();;
+    connect(this, &QMLBridge::debugOnStartChanged, [&] {
+        ::debug_on_start = debug_on_start;
+        settings.setValue(QStringLiteral("debugOnStart"), debug_on_start);
+    });
 
-    print_on_warn = getPrintOnWarn();
+    ::debug_on_warn = debug_on_warn = settings.value(QStringLiteral("debugOnWarn"), !isMobile()).toBool();
+    connect(this, &QMLBridge::debugOnWarnChanged, [&] {
+        ::debug_on_warn = debug_on_warn;
+        settings.setValue(QStringLiteral("debugOnWarn"), debug_on_warn);
+    });
+
+    ::print_on_warn = print_on_warn = settings.value(QStringLiteral("printOnWarn"), true).toBool();
+    connect(this, &QMLBridge::printOnWarnChanged, [&] {
+        ::print_on_warn = print_on_warn;
+        settings.setValue(QStringLiteral("printOnWarn"), print_on_warn);
+    });
+
+    gdb_port = settings.value(QStringLiteral("gdbPort"), 3333).toInt();;
+    connect(this, &QMLBridge::gdbPortChanged,
+            [&] { settings.setValue(QStringLiteral("gdbPort"), gdb_port); });
+
+    gdb_enabled = settings.value(QStringLiteral("gdbEnabled"), !isMobile()).toBool();
+    connect(this, &QMLBridge::gdbEnabledChanged,
+            [&] { settings.setValue(QStringLiteral("gdbEnabled"), gdb_enabled); });
+
+    rdb_enabled = settings.value(QStringLiteral("rdbgEnabled"), !isMobile()).toBool();
+    connect(this, &QMLBridge::rdbEnabledChanged,
+            [&] { settings.setValue(QStringLiteral("rdbgEnabled"), rdb_enabled); });
+
+    rdb_port = settings.value(QStringLiteral("rdbgPort"), 3334).toInt();
+    connect(this, &QMLBridge::rdbPortChanged,
+            [&] { settings.setValue(QStringLiteral("rdbgPort"), rdb_port); });
+
+    autostart = settings.value(QStringLiteral("emuAutostart"), true).toBool();
+    connect(this, &QMLBridge::autostartChanged,
+            [&] { settings.setValue(QStringLiteral("emuAutostart"), autostart); });
+
+    default_kit_id = settings.value(QStringLiteral("defaultKit"), 0).toUInt();
+    connect(this, &QMLBridge::defaultKitChanged,
+            [&] { settings.setValue(QStringLiteral("defaultKit"), default_kit_id); });
+
+    left_handed = settings.value(QStringLiteral("leftHanded"), false).toBool();
+    connect(this, &QMLBridge::leftHandedChanged,
+            [&] { settings.setValue(QStringLiteral("leftHanded"), left_handed); });
+
+    suspend_on_close = settings.value(QStringLiteral("suspendOnClose"), true).toBool();
+    connect(this, &QMLBridge::suspendOnCloseChanged,
+            [&] { settings.setValue(QStringLiteral("suspendOnClose"), suspend_on_close); });
+
+    usb_dir = settings.value(QStringLiteral("usbdirNew"), QStringLiteral("/ndless")).toString();
+    connect(this, &QMLBridge::usbDirChanged,
+            [&] { settings.setValue(QStringLiteral("usbdirNew"), usb_dir); });
+
+    mobile_x = settings.value(QStringLiteral("mobileX"), -1).toInt();
+    connect(this, &QMLBridge::mobileXChanged,
+            [&] { settings.setValue(QStringLiteral("mobileX"), mobile_x); });
+
+    mobile_y = settings.value(QStringLiteral("mobileY"), -1).toInt();
+    connect(this, &QMLBridge::mobileYChanged,
+            [&] { settings.setValue(QStringLiteral("mobileY"), mobile_y); });
+
+    mobile_w = settings.value(QStringLiteral("mobileWidth"), -1).toInt();
+    connect(this, &QMLBridge::mobileWChanged,
+            [&] { settings.setValue(QStringLiteral("mobileWidth"), mobile_w); });
+
+    mobile_h = settings.value(QStringLiteral("mobileHeight"), -1).toInt();
+    connect(this, &QMLBridge::mobileHChanged,
+            [&] { settings.setValue(QStringLiteral("mobileHeight"), mobile_h); });
 
     connect(&kit_model, SIGNAL(anythingChanged()), this, SLOT(saveKits()), Qt::QueuedConnection);
 
@@ -68,177 +133,6 @@ QMLBridge::QMLBridge(QObject *parent) : QObject(parent)
 
 QMLBridge::~QMLBridge()
 {}
-
-unsigned int QMLBridge::getGDBPort()
-{
-    return settings.value(QStringLiteral("gdbPort"), 3333).toInt();
-}
-
-void QMLBridge::setGDBPort(unsigned int port)
-{
-    if(getGDBPort() == port)
-        return;
-
-    settings.setValue(QStringLiteral("gdbPort"), port);
-    emit gdbPortChanged();
-}
-
-bool QMLBridge::getGDBEnabled()
-{
-    return settings.value(QStringLiteral("gdbEnabled"), !isMobile()).toBool();
-}
-
-void QMLBridge::setGDBEnabled(bool e)
-{
-    if(getGDBEnabled() == e)
-        return;
-
-    settings.setValue(QStringLiteral("gdbEnabled"), e);
-    emit gdbEnabledChanged();
-}
-
-unsigned int QMLBridge::getRDBPort()
-{
-    return settings.value(QStringLiteral("rdbgPort"), 3334).toInt();
-}
-
-void QMLBridge::setRDBPort(unsigned int port)
-{
-    if(getRDBPort() == port)
-        return;
-
-    settings.setValue(QStringLiteral("rdbgPort"), port);
-    emit rdbPortChanged();
-}
-
-bool QMLBridge::getRDBEnabled()
-{
-    return settings.value(QStringLiteral("rdbgEnabled"), !isMobile()).toBool();
-}
-
-void QMLBridge::setRDBEnabled(bool e)
-{
-    if(getRDBEnabled() == e)
-        return;
-
-    settings.setValue(QStringLiteral("rdbgEnabled"), e);
-    emit rdbEnabledChanged();
-}
-
-bool QMLBridge::getDebugOnWarn()
-{
-    return settings.value(QStringLiteral("debugOnWarn"), !isMobile()).toBool();
-}
-
-void QMLBridge::setDebugOnWarn(bool e)
-{
-    if(getDebugOnWarn() == e)
-        return;
-
-    debug_on_warn = e;
-    settings.setValue(QStringLiteral("debugOnWarn"), e);
-    emit debugOnWarnChanged();
-}
-
-bool QMLBridge::getDebugOnStart()
-{
-    return settings.value(QStringLiteral("debugOnStart"), false).toBool();
-}
-
-void QMLBridge::setDebugOnStart(bool e)
-{
-    if(getDebugOnStart() == e)
-        return;
-
-    debug_on_start = e;
-    settings.setValue(QStringLiteral("debugOnStart"), e);
-    emit debugOnStartChanged();
-}
-
-void QMLBridge::setPrintOnWarn(bool p)
-{
-    if (getPrintOnWarn() == p)
-        return;
-
-    print_on_warn = p;
-    settings.setValue(QStringLiteral("printOnWarn"), p);
-    emit printOnWarnChanged();
-}
-
-bool QMLBridge::getPrintOnWarn()
-{
-    return settings.value(QStringLiteral("printOnWarn"), true).toBool();
-}
-
-bool QMLBridge::getAutostart()
-{
-    return settings.value(QStringLiteral("emuAutostart"), true).toBool();
-}
-
-void QMLBridge::setAutostart(bool e)
-{
-    if(getAutostart() == e)
-        return;
-
-    settings.setValue(QStringLiteral("emuAutostart"), e);
-    emit autostartChanged();
-}
-
-unsigned int QMLBridge::getDefaultKit()
-{
-    return settings.value(QStringLiteral("defaultKit"), 0).toUInt();
-}
-
-void QMLBridge::setDefaultKit(unsigned int id)
-{
-    if(getDefaultKit() == id)
-        return;
-
-    settings.setValue(QStringLiteral("defaultKit"), id);
-    emit defaultKitChanged();
-}
-
-bool QMLBridge::getLeftHanded()
-{
-    return settings.value(QStringLiteral("leftHanded"), false).toBool();
-}
-
-void QMLBridge::setLeftHanded(bool e)
-{
-    if(getLeftHanded() == e)
-        return;
-
-    settings.setValue(QStringLiteral("leftHanded"), e);
-    emit leftHandedChanged();
-}
-
-bool QMLBridge::getSuspendOnClose()
-{
-    return settings.value(QStringLiteral("suspendOnClose"), true).toBool();
-}
-
-void QMLBridge::setSuspendOnClose(bool e)
-{
-    if(getSuspendOnClose() == e)
-        return;
-
-    settings.setValue(QStringLiteral("suspendOnClose"), e);
-    emit suspendOnCloseChanged();
-}
-
-QString QMLBridge::getUSBDir()
-{
-    return settings.value(QStringLiteral("usbdirNew"), QStringLiteral("/ndless")).toString();
-}
-
-void QMLBridge::setUSBDir(QString dir)
-{
-    if(getUSBDir() == dir)
-        return;
-
-    settings.setValue(QStringLiteral("usbdirNew"), dir);
-    emit usbDirChanged();
-}
 
 bool QMLBridge::getIsRunning()
 {
@@ -320,11 +214,6 @@ QString QMLBridge::toLocalFile(QUrl url)
 bool QMLBridge::fileExists(QString path)
 {
     return QFile::exists(path);
-}
-
-int QMLBridge::kitIndexForID(unsigned int id)
-{
-    return kit_model.indexForID(id);
 }
 
 #ifndef MOBILE_UI
@@ -468,46 +357,6 @@ void QMLBridge::setTurboMode(bool b)
     emu_thread.setTurboMode(b);
 }
 
-int QMLBridge::getMobileX()
-{
-    return settings.value(QStringLiteral("mobileX"), -1).toInt();
-}
-
-void QMLBridge::setMobileX(int x)
-{
-    settings.setValue(QStringLiteral("mobileX"), x);
-}
-
-int QMLBridge::getMobileY()
-{
-    return settings.value(QStringLiteral("mobileY"), -1).toInt();
-}
-
-void QMLBridge::setMobileY(int y)
-{
-    settings.setValue(QStringLiteral("mobileY"), y);
-}
-
-int QMLBridge::getMobileWidth()
-{
-    return settings.value(QStringLiteral("mobileWidth"), -1).toInt();
-}
-
-void QMLBridge::setMobileWidth(int w)
-{
-    settings.setValue(QStringLiteral("mobileWidth"), w);
-}
-
-int QMLBridge::getMobileHeight()
-{
-    return settings.value(QStringLiteral("mobileHeight"), -1).toInt();
-}
-
-void QMLBridge::setMobileHeight(int h)
-{
-    settings.setValue(QStringLiteral("mobileHeight"), h);
-}
-
 bool QMLBridge::restart()
 {
     if(emu_thread.isRunning() && !emu_thread.stop())
@@ -516,7 +365,7 @@ bool QMLBridge::restart()
         return false;
     }
 
-    emu_thread.port_gdb = getGDBEnabled() ? getGDBPort() : 0;
+    emu_thread.port_gdb = gdb_enabled ? gdb_port : 0;
     emu_thread.port_rdbg = getRDBEnabled() ? getRDBPort() : 0;
 
     if(!emu_thread.boot1.isEmpty() && !emu_thread.flash.isEmpty()) {
@@ -555,8 +404,8 @@ void QMLBridge::resume()
 {
     toastMessage(tr("Resuming emulation"));
 
-    emu_thread.port_gdb = getGDBEnabled() ? getGDBPort() : 0;
-    emu_thread.port_rdbg = getRDBEnabled() ? getRDBPort() : 0;
+    emu_thread.port_gdb = gdb_enabled ? gdb_port : 0;
+    emu_thread.port_rdbg = rdb_enabled ? rdb_port : 0;
 
     auto snapshot_path = getSnapshotPath();
     if(!snapshot_path.isEmpty())
@@ -567,7 +416,7 @@ void QMLBridge::resume()
 
 bool QMLBridge::useDefaultKit()
 {
-    if(setCurrentKit(getDefaultKit()))
+    if(setCurrentKit(default_kit_id))
         return true;
 
     setCurrentKit(kit_model.getKits()[0].id); // Use first kit as fallback
@@ -593,11 +442,11 @@ int QMLBridge::getCurrentKitId()
 
 const Kit *QMLBridge::useKit(unsigned int id)
 {
-    int kitIndex = kitIndexForID(id);
-    if(kitIndex < 0)
+    const QModelIndex kitIndex = kit_model.indexForID(id);
+    if(!kitIndex.isValid())
         return nullptr;
 
-    auto &&kit = kit_model.getKits()[kitIndex];
+    auto &&kit = kit_model.getKits()[kitIndex.row()];
     emu_thread.boot1 = kit.boot1;
     emu_thread.flash = kit.flash;
     fallback_snapshot_path = kit.snapshot;
@@ -627,9 +476,9 @@ QString QMLBridge::getFlashPath()
 
 QString QMLBridge::getSnapshotPath()
 {
-    int kitIndex = kitIndexForID(current_kit_id);
-    if(kitIndex >= 0)
-        return kit_model.getKits()[kitIndex].snapshot;
+    const QModelIndex kitIndex = kit_model.indexForID(current_kit_id);
+    if(kitIndex.isValid())
+        return kit_model.getKits()[kitIndex.row()].snapshot;
     else
         return fallback_snapshot_path;
 }
@@ -641,7 +490,14 @@ bool QMLBridge::saveDialogSupported()
         return QVersionNumber::fromString(QString::fromUtf8(qVersion())) < QVersionNumber(5, 13);
     #else
         return true;
-    #endif
+#endif
+}
+
+void QMLBridge::sortProxyModel(QObject *model, int column)
+{
+    auto *sortfilterproxymodel = qobject_cast<QSortFilterProxyModel*>(model);
+    if(sortfilterproxymodel)
+        sortfilterproxymodel->sort(column);
 }
 
 void QMLBridge::speedChanged(double speed)

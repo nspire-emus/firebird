@@ -120,6 +120,8 @@ int main(int argc, char **argv)
     qmlRegisterType<QMLFramebuffer>("Firebird.Emu", 1, 0, "EmuScreen");
     // Register KitModel
     qmlRegisterType<KitModel>("Firebird.Emu", 1, 0, "KitModel");
+	// Register Qt's stuff
+	qmlRegisterType<QSortFilterProxyModel>("Firebird.Emu", 1, 0, "QSortFilterProxyModel");
 
     #ifndef MOBILE_UI
         MainWindow mw;

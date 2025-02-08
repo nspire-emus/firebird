@@ -5,7 +5,7 @@ import Firebird.Emu 1.0
 Rectangle {
     property alias currentItem: listView.currentItem
     property alias currentIndex: listView.currentIndex
-    property alias kitModel: listView.model
+    property alias kitModel: sortedModel.sourceModel
 
     SystemPalette {
         id: paletteActive
@@ -32,16 +32,26 @@ Rectangle {
             highlightMoveDuration: 50
             highlightResizeDuration: 0
 
+            QSortFilterProxyModel {
+                id: sortedModel
+                sortRole: KitModel.TypeRole
+                Component.onCompleted: Emu.sortProxyModel(sortedModel, 0)
+            }
+
+            model: sortedModel
+
             highlight: Rectangle {
                 color: paletteActive.highlight
                 anchors.horizontalCenter: parent ? parent.horizontalCenter : undefined
             }
 
             delegate: Item {
-                property variant myData: model
+                property var myData: model;
 
                 height: item.height + 10
                 width: listView.width - listView.anchors.margins
+
+                property int kitIndex: sortedModel.mapToSource(sortedModel.index(index, 0)).row
 
                 MouseArea {
                     anchors.fill: parent
@@ -66,7 +76,6 @@ Rectangle {
                     id: item
                     width: parent.width - 15
                     anchors.centerIn: parent
-
                     kitName: name
                     flashFile: Emu.basename(flash)
                     stateFile: Emu.basename(snapshot)
@@ -83,7 +92,7 @@ Rectangle {
                     text: qsTr("Remove")
                     visible: parent.ListView.view.currentIndex === index && parent.ListView.view.count > 1
                     onClicked: {
-                        kitModel.remove(index)
+                        kitModel.removeRows(kitIndex, 1)
                     }
                 }
 
@@ -100,7 +109,7 @@ Rectangle {
                     text: qsTr("Copy")
                     visible: parent.ListView.view.currentIndex === index
                     onClicked: {
-                        kitModel.copy(index)
+                        kitModel.copy(kitIndex)
                     }
                 }
             }

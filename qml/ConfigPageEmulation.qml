@@ -47,10 +47,10 @@ ColumnLayout {
             Layout.maximumWidth: parent.parent.width * 0.4
             textRole: "name"
             model: Emu.kits
-            currentIndex: Emu.kitIndexForID(Emu.defaultKit)
+            currentIndex: model.indexForID(Emu.defaultKit).row
             onCurrentIndexChanged: {
-                Emu.defaultKit = model.getDataRow(currentIndex, KitModel.IDRole);
-                currentIndex = Qt.binding(function() { return Emu.kitIndexForID(Emu.defaultKit); });
+                Emu.defaultKit = model.data(model.index(currentIndex, 0), KitModel.IDRole);
+                currentIndex = Qt.binding(function() { return model.indexForID(Emu.defaultKit).row; });
             }
         }
     }
