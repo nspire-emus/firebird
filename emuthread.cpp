@@ -14,8 +14,10 @@
     #include <windows.h>
 #endif
 
-#include "core/debug.h"
 #include "core/emu.h"
+#include "core/mem.h"
+#include "core/mmu.h"
+#include "core/schedule.h"
 #include "core/usblink_queue.h"
 
 EmuThread emu_thread;
@@ -110,45 +112,36 @@ void throttle_timer_wait(unsigned int usec)
 }
 
 EmuThread::EmuThread(QObject *parent) :
-    QThread(parent)
+    QTimer(parent)
 {
     // There can only be one instance, this global one.
     assert(&emu_thread == this);
 
     // Set default settings
     debug_on_start = debug_on_warn = false;
+
+    connect(this, &QTimer::timeout, this, &EmuThread::loopStep);
+    connect(this, &EmuThread::speedChanged, this, [&](double d) {
+        if(turbo_mode)
+            setInterval(0);
+        else
+            setInterval(std::max(interval() * d, 1.0));
+    });
 }
 
 //Called occasionally, only way to do something in the same thread the emulator runs in.
 void EmuThread::doStuff(bool wait)
 {
-    do
-    {
         if(do_suspend)
         {
             bool success = emu_suspend(snapshot_path.c_str());
             do_suspend = false;
             emit suspended(success);
         }
-
-        if(enter_debugger)
-        {
-            setPaused(false);
-            enter_debugger = false;
-            if(!in_debugger)
-                debugger(DBG_USER, 0);
-        }
-
-        if(is_paused && wait)
-            msleep(100);
-
-    } while(is_paused && wait);
 }
 
-void EmuThread::run()
+void EmuThread::start()
 {
-    setTerminationEnabled();
-
     path_boot1 = QDir::toNativeSeparators(boot1).toStdString();
     path_flash = QDir::toNativeSeparators(flash).toStdString();
 
@@ -162,28 +155,15 @@ void EmuThread::run()
 
     do_resume = false;
 
-    if(success)
-        emu_loop(do_reset);
-
-    emit stopped();
+    if(success) {
+        startup(do_reset);
+        setInterval(1);
+        QTimer::start();
+    }
 }
 
 void EmuThread::throttleTimerWait(unsigned int usec)
 {
-    if(usec <= 1)
-        return;
-
-    #ifdef Q_OS_WINDOWS
-        // QThread::usleep uses Sleep, which may sleep up to ~32ms more!
-        // Use nanosleep inside a timeBeginPeriod/timeEndPeriod block for accuracy.
-        timeBeginPeriod(10);
-        struct timespec ts{};
-        ts.tv_nsec = usec * 1000;
-        nanosleep(&ts, nullptr);
-        timeEndPeriod(10);
-    #else
-        QThread::usleep(usec);
-    #endif
 }
 
 void EmuThread::setTurboMode(bool enabled)
@@ -208,6 +188,75 @@ void EmuThread::debuggerInput(QString str)
     debug_callback(debug_input.c_str());
 }
 
+void EmuThread::startup(bool reset)
+{
+    if(reset)
+    {
+        memset(mem_areas[1].ptr, 0, mem_areas[1].size);
+
+        memset(&arm, 0, sizeof arm);
+        arm.control = 0x00050078;
+        arm.cpsr_low28 = MODE_SVC | 0xC0;
+        cpu_events &= EVENT_DEBUG_STEP;
+
+        sched_reset();
+        sched.items[SCHED_THROTTLE].clock = CLOCK_27M;
+        extern void throttle_interval_event(int index);
+        sched.items[SCHED_THROTTLE].proc = throttle_interval_event;
+
+        memory_reset();
+    }
+
+    addr_cache_flush();
+
+    sched_update_next_event(0);
+
+    exiting = false;
+}
+
+void EmuThread::loopStep()
+{
+    int i = 1000;
+    while(i--)
+    {
+        sched_process_pending_events();
+        while (!exiting && cycle_count_delta < 0)
+        {
+            if (cpu_events & EVENT_RESET) {
+                gui_status_printf("Reset");
+                startup(true);
+                break;
+            }
+
+            if (cpu_events & EVENT_SLEEP) {
+                assert(emulate_cx2);
+                cycle_count_delta = 0;
+                break;
+            }
+
+            if (cpu_events & (EVENT_FIQ | EVENT_IRQ)) {
+                // Align PC in case the interrupt occurred immediately after a jump
+                if (arm.cpsr_low28 & 0x20)
+                    arm.reg[15] &= ~1;
+                else
+                    arm.reg[15] &= ~3;
+
+                if (cpu_events & EVENT_WAITING)
+                    arm.reg[15] += 4; // Skip over wait instruction
+
+                arm.reg[15] += 4;
+                cpu_exception((cpu_events & EVENT_FIQ) ? EX_FIQ : EX_IRQ);
+            }
+            cpu_events &= ~EVENT_WAITING;
+
+            if (arm.cpsr_low28 & 0x20)
+                cpu_thumb_loop();
+            else
+                cpu_arm_loop();
+        }
+    }
+}
+
 void EmuThread::setPaused(bool paused)
 {
     this->is_paused = paused;
@@ -216,8 +265,7 @@ void EmuThread::setPaused(bool paused)
 
 bool EmuThread::stop()
 {
-    if(!isRunning())
-        return true;
+    QTimer::stop();
 
     exiting = true;
     setPaused(false);
@@ -225,13 +273,6 @@ bool EmuThread::stop()
 
     // Cause the cpu core to leave the loop and check for events
     cycle_count_delta = 0;
-
-    if(!this->wait(200))
-    {
-        terminate();
-        if(!this->wait(200))
-            return false;
-    }
 
     emu_cleanup();
     return true;

@@ -42,7 +42,11 @@ unix: !android {
 
 QMAKE_CFLAGS += -g -std=gnu11 -Wall -Wextra
 QMAKE_CXXFLAGS += -g -Wall -Wextra -D QT_NO_CAST_FROM_ASCII
-LIBS += -lz
+wasm {
+    QMAKE_CFLAGS += -s USE_ZLIB
+    QMAKE_CXXFLAGS += -s USE_ZLIB
+    QMAKE_LFLAGS += -s USE_ZLIB
+} else: LIBS += -lz
 
 # Override bad default options to enable better optimizations
 QMAKE_CFLAGS_RELEASE = -O3 -DNDEBUG
@@ -53,7 +57,9 @@ QMAKE_CXXFLAGS_RELEASE = -O3 -DNDEBUG
 # with Qt's -reduce-relocations option (QTBUG-86173).
 # MinGW fails with
 # lto1.exe: internal compiler error: in gen_subprogram_die, at dwarf2out.c:22668
-!clang | !if(linux|freebsd): !win32: CONFIG += ltcg
+# wasm makes qmake misbehave: the various "-s FOO" options get their "-s" merged
+# into a single one.
+!clang | !if(linux|freebsd|wasm): !win32: CONFIG += ltcg
 
 # noexecstack is not supported by MinGW's as
 !win32 {
@@ -79,7 +85,7 @@ android {
     QMAKE_LFLAGS += -Wl,-Bsymbolic
 }
 
-ios|android: DEFINES += MOBILE_UI
+ios|android|wasm: DEFINES += MOBILE_UI
 
 ios {
     DEFINES += IS_IOS_BUILD

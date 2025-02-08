@@ -1,9 +1,9 @@
 #ifndef EMUTHREAD_H
 #define EMUTHREAD_H
 
-#include <QThread>
+#include <QTimer>
 
-class EmuThread : public QThread
+class EmuThread : public QTimer
 {
     Q_OBJECT
 public:
@@ -11,6 +11,8 @@ public:
 
     void doStuff(bool wait);
     void throttleTimerWait(unsigned int usec);
+
+    bool isRunning() { return isActive(); };
 
     QString boot1, flash;
     unsigned int port_gdb = 0, port_rdbg = 0;
@@ -39,7 +41,7 @@ signals:
     void debugInputRequested(bool b);
 
 public slots:
-    virtual void run() override;
+    void start();
 
     // State
     void setPaused(bool is_paused);
@@ -56,7 +58,11 @@ public slots:
     void enterDebugger();
     void debuggerInput(QString str);
 
+    void loopStep();
+
 private:
+    void startup(bool reset);
+
     bool enter_debugger = false;
     bool is_paused = false, do_suspend = false, do_resume = false;
     std::string debug_input, snapshot_path;

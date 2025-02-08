@@ -99,6 +99,16 @@ Rectangle {
                  }
 
                  onClicked: {
+                     // Different behaviour on WASM: Do not save the flash,
+                     // only save snapshots. Create a new file if none configured yet.
+                     if(Qt.platform.os === "wasm") {
+                         if(!Emu.saveSnapshot())
+                             saveFailedDialog.visible = true;
+
+                         closeDrawer();
+                         return;
+                     }
+
                      var flash_path = Emu.getFlashPath();
                      var snap_path = Emu.getSnapshotPath();
 
