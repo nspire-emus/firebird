@@ -14,151 +14,206 @@ on:
         required: true
         default: both
         type: choice
-        options:
-          - arm64
-          - intel
-          - both
+        options: [arm64, intel, both]
 
 jobs:
-  build:
-    name: "Build: ${{ matrix.mactype }} (${{ matrix.os }})"
-    runs-on: ${{ matrix.os }}
-
-    # On push/PR/release -> build both.
-    # On manual run -> filter by selected input.
-    if: >
-      ${{
-        github.event_name != 'workflow_dispatch' ||
-        github.event.inputs.arch == 'both' ||
-        (github.event.inputs.arch == 'arm64' && matrix.mactype == 'arm64') ||
-        (github.event.inputs.arch == 'intel' && matrix.mactype == 'intel')
-      }}
-
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          # Apple Silicon runner (arm64)
-          - os: macos-15
-            mactype: arm64
-            qmake_arch: arm64
-
-          # Intel runner (x86_64)
-          - os: macos-15-intel
-            mactype: intel
-            qmake_arch: x86_64
+  build_arm64:
+    name: "Build: macOS arm64"
+    runs-on: macos-15
+    if: ${{ github.event_name != 'workflow_dispatch' || github.event.inputs.arch == 'both' || github.event.inputs.arch == 'arm64' }}
 
     steps:
-    - name: Checkout Git Repo
-      uses: actions/checkout@v4
-      with:
-        submodules: 'recursive'
+      - name: Checkout Git Repo
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
 
-    - name: Install Qt
-      uses: jurplel/install-qt-action@f03f05556819ceb3781ee2f455ec44c339d683c0 # v4
-      with:
-        target: desktop
-        # Broken: https://github.com/jurplel/install-qt-action/issues/239
-        # setup-python: false
+      - name: Install Qt
+        uses: jurplel/install-qt-action@f03f05556819ceb3781ee2f455ec44c339d683c0 # v4
+        with:
+          target: desktop
 
-    - name: Show runner architecture
-      run: |
-        set -e
-        uname -a
-        uname -m
+      - name: Show runner architecture
+        run: |
+          set -e
+          uname -a
+          uname -m
 
-    - name: Build firebird-emu Qt on macOS
-      run: |
-        set -e
-        mkdir -p build
-        cd build
-        # Force the desired arch in the final app binary (matches the runner arch)
-        qmake .. "QMAKE_APPLE_DEVICE_ARCHS=${{ matrix.qmake_arch }}"
-        make -j"$(sysctl -n hw.ncpu)"
-        macdeployqt firebird-emu.app -qmldir=../qml
-        mkdir -p /tmp/firebird-emu_macOS/
-        mv firebird-emu.app /tmp/firebird-emu_macOS/
+      - name: Build firebird-emu (arm64)
+        run: |
+          set -e
+          mkdir -p build
+          cd build
+          qmake .. "QMAKE_APPLE_DEVICE_ARCHS=arm64" CONFIG+=release
+          make -j"$(sysctl -n hw.ncpu)"
+          macdeployqt firebird-emu.app -qmldir=../qml
+          mkdir -p /tmp/firebird-emu_macOS/
+          mv firebird-emu.app /tmp/firebird-emu_macOS/
 
-    - name: Create entitlements (used for JIT on arm64/hardened runtime)
-      run: |
-        cat > firebird.entitlements <<'EOF'
-        <?xml version="1.0" encoding="UTF-8"?>
-        <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-        <plist version="1.0">
-        <dict>
-          <key>com.apple.security.cs.allow-jit</key>
-          <true/>
-        </dict>
-        </plist>
-        EOF
+      - name: Create entitlements (only used for Developer ID signing)
+        run: |
+          cat > firebird.entitlements <<'EOF'
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>com.apple.security.cs.allow-jit</key>
+            <true/>
+          </dict>
+          </plist>
+          EOF
 
-    # If you have signing secrets (upstream), do the real codesign.
-    - name: "Codesign firebird-emu.app (Developer ID)"
-      env:
-        HAVE_SECRETS: ${{ secrets.MACOS_CERTIFICATE_PWD != '' }}
-        MACOS_CERTIFICATE: ${{ secrets.MACOS_CERTIFICATE }}
-        MACOS_CERTIFICATE_PWD: ${{ secrets.MACOS_CERTIFICATE_PWD }}
-        MACOS_KEYCHAIN_PWD: ${{ secrets.MACOS_KEYCHAIN_PWD }}
-        MACOS_CODESIGN_IDENT: ${{ secrets.MACOS_CODESIGN_IDENT }}
-      if: ${{ runner.os == 'macOS' && github.repository == 'nspire-emus/firebird' && env.HAVE_SECRETS == 'true' }}
-      run: |
-        echo "$MACOS_CERTIFICATE" | base64 -d > certificate.p12
-        security create-keychain -p "$MACOS_KEYCHAIN_PWD" build.keychain
-        security default-keychain -s build.keychain
-        security unlock-keychain -p "$MACOS_KEYCHAIN_PWD" build.keychain
-        security import certificate.p12 -k build.keychain -P "$MACOS_CERTIFICATE_PWD" -T /usr/bin/codesign
-        security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$MACOS_KEYCHAIN_PWD" build.keychain
+      - name: Detect signing/notarization secrets
+        id: sec
+        shell: bash
+        env:
+          MACOS_CERTIFICATE: ${{ secrets.MACOS_CERTIFICATE }}
+          MACOS_CERTIFICATE_PWD: ${{ secrets.MACOS_CERTIFICATE_PWD }}
+          MACOS_KEYCHAIN_PWD: ${{ secrets.MACOS_KEYCHAIN_PWD }}
+          MACOS_CODESIGN_IDENT: ${{ secrets.MACOS_CODESIGN_IDENT }}
+          APPLE_NOTARIZATION_USERNAME: ${{ secrets.APPLE_NOTARIZATION_USERNAME }}
+          APPLE_NOTARIZATION_PASSWORD: ${{ secrets.APPLE_NOTARIZATION_PASSWORD }}
+          APPLE_NOTARIZATION_TEAMID: ${{ secrets.APPLE_NOTARIZATION_TEAMID }}
+        run: |
+          have_signing=false
+          if [[ -n "$MACOS_CERTIFICATE" && -n "$MACOS_CERTIFICATE_PWD" && -n "$MACOS_KEYCHAIN_PWD" && -n "$MACOS_CODESIGN_IDENT" ]]; then
+            have_signing=true
+          fi
+          echo "have_signing=$have_signing" >> "$GITHUB_OUTPUT"
 
-        /usr/bin/codesign --deep --force --verify --verbose \
-          --sign "$MACOS_CODESIGN_IDENT" --timestamp --options runtime \
-          --entitlements firebird.entitlements \
-          /tmp/firebird-emu_macOS/firebird-emu.app
+          have_notary=false
+          if [[ -n "$APPLE_NOTARIZATION_USERNAME" && -n "$APPLE_NOTARIZATION_PASSWORD" && -n "$APPLE_NOTARIZATION_TEAMID" ]]; then
+            have_notary=true
+          fi
+          echo "have_notary=$have_notary" >> "$GITHUB_OUTPUT"
 
-    # For forks / personal builds without secrets: ad-hoc sign so the .app is runnable after download.
-    - name: "Codesign firebird-emu.app (ad-hoc)"
-      if: ${{ !(runner.os == 'macOS' && github.repository == 'nspire-emus/firebird' && secrets.MACOS_CERTIFICATE_PWD != '') }}
-      run: |
-        /usr/bin/codesign --deep --force --verify --verbose \
-          --sign - \
-          --entitlements firebird.entitlements \
-          /tmp/firebird-emu_macOS/firebird-emu.app || true
+      - name: Codesign firebird-emu.app (Developer ID)
+        if: ${{ steps.sec.outputs.have_signing == 'true' }}
+        env:
+          MACOS_CERTIFICATE: ${{ secrets.MACOS_CERTIFICATE }}
+          MACOS_CERTIFICATE_PWD: ${{ secrets.MACOS_CERTIFICATE_PWD }}
+          MACOS_KEYCHAIN_PWD: ${{ secrets.MACOS_KEYCHAIN_PWD }}
+          MACOS_CODESIGN_IDENT: ${{ secrets.MACOS_CODESIGN_IDENT }}
+        run: |
+          set -e
+          echo "$MACOS_CERTIFICATE" | base64 -d > certificate.p12
+          security create-keychain -p "$MACOS_KEYCHAIN_PWD" build.keychain
+          security default-keychain -s build.keychain
+          security unlock-keychain -p "$MACOS_KEYCHAIN_PWD" build.keychain
+          security import certificate.p12 -k build.keychain -P "$MACOS_CERTIFICATE_PWD" -T /usr/bin/codesign
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$MACOS_KEYCHAIN_PWD" build.keychain
 
-    - name: "Create the DMG"
-      run: |
-        brew install create-dmg || brew install create-dmg
+          /usr/bin/codesign --deep --force --verify --verbose \
+            --sign "$MACOS_CODESIGN_IDENT" --timestamp --options runtime \
+            --entitlements firebird.entitlements \
+            /tmp/firebird-emu_macOS/firebird-emu.app
 
-        dmg="firebird-emu_macOS_${{ matrix.mactype }}.dmg"
+      - name: Codesign firebird-emu.app (ad-hoc)
+        if: ${{ steps.sec.outputs.have_signing != 'true' }}
+        run: |
+          # Ad-hoc signing just so the downloaded .app is runnable.
+          /usr/bin/codesign --deep --force --verify --verbose --sign - \
+            /tmp/firebird-emu_macOS/firebird-emu.app || true
 
-        createDmgArgs="--codesign '${{ secrets.MACOS_CODESIGN_IDENT }}' \
-          --volname 'firebird-emu_macOS_${{ matrix.mactype }}' \
-          --window-pos 200 120 \
-          --window-size 600 400 \
-          --icon-size 64 \
-          --icon 'firebird-emu.app' 125 200 \
-          --app-drop-link 400 200 \
-          '${dmg}' \
-          '/tmp/firebird-emu_macOS/'"
+      - name: Create the DMG
+        env:
+          MACOS_CODESIGN_IDENT: ${{ secrets.MACOS_CODESIGN_IDENT }}
+        run: |
+          set -e
+          brew install create-dmg || brew reinstall create-dmg || true
 
-        eval "create-dmg $createDmgArgs" || eval "create-dmg $createDmgArgs"
+          dmg="firebird-emu_macOS_arm64.dmg"
+          codesign_arg=()
+          if [[ -n "$MACOS_CODESIGN_IDENT" ]]; then
+            codesign_arg+=(--codesign "$MACOS_CODESIGN_IDENT")
+          fi
 
-    - name: "[macOS] Notarize and staple DMG"
-      env:
-        HAVE_SECRETS: ${{ secrets.APPLE_NOTARIZATION_PASSWORD != '' }}
-        APPLE_NOTARIZATION_USERNAME: ${{ secrets.APPLE_NOTARIZATION_USERNAME }}
-        APPLE_NOTARIZATION_PASSWORD: ${{ secrets.APPLE_NOTARIZATION_PASSWORD }}
-        APPLE_NOTARIZATION_TEAMID: ${{ secrets.APPLE_NOTARIZATION_TEAMID }}
-      if: ${{ runner.os == 'macOS' && github.repository == 'nspire-emus/firebird' && env.HAVE_SECRETS == 'true' }}
-      run: |
-        dmg="firebird-emu_macOS_${{ matrix.mactype }}.dmg"
-        xcrun notarytool store-credentials "notarytool-profile" \
-          --apple-id "$APPLE_NOTARIZATION_USERNAME" \
-          --team-id "$APPLE_NOTARIZATION_TEAMID" \
-          --password "$APPLE_NOTARIZATION_PASSWORD"
-        xcrun notarytool submit "$dmg" --keychain-profile "notarytool-profile" --wait
-        xcrun stapler staple "$dmg"
+          create-dmg "${codesign_arg[@]}" \
+            --volname "firebird-emu_macOS_arm64" \
+            --window-pos 200 120 \
+            --window-size 600 400 \
+            --icon-size 64 \
+            --icon "firebird-emu.app" 125 200 \
+            --app-drop-link 400 200 \
+            "$dmg" \
+            "/tmp/firebird-emu_macOS/"
 
-    - name: "Upload DMG"
-      uses: actions/upload-artifact@v4
-      with:
-        name: firebird-emu_macOS_${{ matrix.mactype }}
-        path: firebird-emu_macOS_${{ matrix.mactype }}.dmg
+      - name: Notarize and staple DMG
+        if: ${{ steps.sec.outputs.have_signing == 'true' && steps.sec.outputs.have_notary == 'true' }}
+        env:
+          APPLE_NOTARIZATION_USERNAME: ${{ secrets.APPLE_NOTARIZATION_USERNAME }}
+          APPLE_NOTARIZATION_PASSWORD: ${{ secrets.APPLE_NOTARIZATION_PASSWORD }}
+          APPLE_NOTARIZATION_TEAMID: ${{ secrets.APPLE_NOTARIZATION_TEAMID }}
+        run: |
+          set -e
+          dmg="firebird-emu_macOS_arm64.dmg"
+          xcrun notarytool store-credentials "notarytool-profile" \
+            --apple-id "$APPLE_NOTARIZATION_USERNAME" \
+            --team-id "$APPLE_NOTARIZATION_TEAMID" \
+            --password "$APPLE_NOTARIZATION_PASSWORD"
+          xcrun notarytool submit "$dmg" --keychain-profile "notarytool-profile" --wait
+          xcrun stapler staple "$dmg"
+
+      - name: Upload DMG
+        uses: actions/upload-artifact@v4
+        with:
+          name: firebird-emu_macOS_arm64
+          path: firebird-emu_macOS_arm64.dmg
+
+  build_intel:
+    name: "Build: macOS intel (x86_64)"
+    runs-on: macos-15-intel
+    if: ${{ github.event_name != 'workflow_dispatch' || github.event.inputs.arch == 'both' || github.event.inputs.arch == 'intel' }}
+
+    steps:
+      - name: Checkout Git Repo
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install Qt
+        uses: jurplel/install-qt-action@f03f05556819ceb3781ee2f455ec44c339d683c0 # v4
+        with:
+          target: desktop
+
+      - name: Show runner architecture
+        run: |
+          set -e
+          uname -a
+          uname -m
+
+      - name: Build firebird-emu (x86_64)
+        run: |
+          set -e
+          mkdir -p build
+          cd build
+          qmake .. "QMAKE_APPLE_DEVICE_ARCHS=x86_64" CONFIG+=release
+          make -j"$(sysctl -n hw.ncpu)"
+          macdeployqt firebird-emu.app -qmldir=../qml
+          mkdir -p /tmp/firebird-emu_macOS/
+          mv firebird-emu.app /tmp/firebird-emu_macOS/
+
+      - name: Codesign firebird-emu.app (ad-hoc)
+        run: |
+          /usr/bin/codesign --deep --force --verify --verbose --sign - \
+            /tmp/firebird-emu_macOS/firebird-emu.app || true
+
+      - name: Create the DMG
+        run: |
+          set -e
+          brew install create-dmg || brew reinstall create-dmg || true
+          create-dmg \
+            --volname "firebird-emu_macOS_intel" \
+            --window-pos 200 120 \
+            --window-size 600 400 \
+            --icon-size 64 \
+            --icon "firebird-emu.app" 125 200 \
+            --app-drop-link 400 200 \
+            "firebird-emu_macOS_intel.dmg" \
+            "/tmp/firebird-emu_macOS/"
+
+      - name: Upload DMG
+        uses: actions/upload-artifact@v4
+        with:
+          name: firebird-emu_macOS_intel
+          path: firebird-emu_macOS_intel.dmg
