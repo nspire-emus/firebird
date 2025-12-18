@@ -7,70 +7,139 @@ on:
     branches: [ master, ci/macOS ]
   release:
     types: [published]
+  workflow_dispatch:
+    inputs:
+      arch:
+        description: "Which macOS architecture(s) to build"
+        required: true
+        default: both
+        type: choice
+        options:
+          - arm64
+          - intel
+          - both
 
 jobs:
   build:
-    name: "Build: ${{ matrix.os }}"
+    name: "Build: ${{ matrix.mactype }} (${{ matrix.os }})"
     runs-on: ${{ matrix.os }}
+
+    # On push/PR/release -> build both.
+    # On manual run -> filter by selected input.
+    if: >
+      ${{
+        github.event_name != 'workflow_dispatch' ||
+        github.event.inputs.arch == 'both' ||
+        (github.event.inputs.arch == 'arm64' && matrix.mactype == 'arm64') ||
+        (github.event.inputs.arch == 'intel' && matrix.mactype == 'intel')
+      }}
+
     strategy:
       fail-fast: false
       matrix:
-        os: [macOS-latest]
+        include:
+          # Apple Silicon runner (arm64)
+          - os: macos-15
+            mactype: arm64
+            qmake_arch: arm64
+
+          # Intel runner (x86_64)
+          - os: macos-15-intel
+            mactype: intel
+            qmake_arch: x86_64
 
     steps:
     - name: Checkout Git Repo
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
       with:
         submodules: 'recursive'
 
     - name: Install Qt
       uses: jurplel/install-qt-action@f03f05556819ceb3781ee2f455ec44c339d683c0 # v4
       with:
-          target: desktop
-          # Broken: https://github.com/jurplel/install-qt-action/issues/239
-          # setup-python: false
+        target: desktop
+        # Broken: https://github.com/jurplel/install-qt-action/issues/239
+        # setup-python: false
+
+    - name: Show runner architecture
+      run: |
+        set -e
+        uname -a
+        uname -m
 
     - name: Build firebird-emu Qt on macOS
       run: |
         set -e
-        mkdir build
+        mkdir -p build
         cd build
-        qmake .. && make -j4
+        # Force the desired arch in the final app binary (matches the runner arch)
+        qmake .. "QMAKE_APPLE_DEVICE_ARCHS=${{ matrix.qmake_arch }}"
+        make -j"$(sysctl -n hw.ncpu)"
         macdeployqt firebird-emu.app -qmldir=../qml
         mkdir -p /tmp/firebird-emu_macOS/
         mv firebird-emu.app /tmp/firebird-emu_macOS/
 
-    - name: "Codesign firebird-emu.app"
+    - name: Create entitlements (used for JIT on arm64/hardened runtime)
+      run: |
+        cat > firebird.entitlements <<'EOF'
+        <?xml version="1.0" encoding="UTF-8"?>
+        <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+        <plist version="1.0">
+        <dict>
+          <key>com.apple.security.cs.allow-jit</key>
+          <true/>
+        </dict>
+        </plist>
+        EOF
+
+    # If you have signing secrets (upstream), do the real codesign.
+    - name: "Codesign firebird-emu.app (Developer ID)"
       env:
-          HAVE_SECRETS: ${{ secrets.MACOS_CERTIFICATE_PWD != '' }}
-          MACOS_CERTIFICATE: ${{ secrets.MACOS_CERTIFICATE }}
-          MACOS_CERTIFICATE_PWD: ${{ secrets.MACOS_CERTIFICATE_PWD }}
-          MACOS_KEYCHAIN_PWD: ${{ secrets.MACOS_KEYCHAIN_PWD }}
-          MACOS_CODESIGN_IDENT: ${{ secrets.MACOS_CODESIGN_IDENT }}
+        HAVE_SECRETS: ${{ secrets.MACOS_CERTIFICATE_PWD != '' }}
+        MACOS_CERTIFICATE: ${{ secrets.MACOS_CERTIFICATE }}
+        MACOS_CERTIFICATE_PWD: ${{ secrets.MACOS_CERTIFICATE_PWD }}
+        MACOS_KEYCHAIN_PWD: ${{ secrets.MACOS_KEYCHAIN_PWD }}
+        MACOS_CODESIGN_IDENT: ${{ secrets.MACOS_CODESIGN_IDENT }}
       if: ${{ runner.os == 'macOS' && github.repository == 'nspire-emus/firebird' && env.HAVE_SECRETS == 'true' }}
       run: |
-          echo $MACOS_CERTIFICATE | base64 -d > certificate.p12
-          security create-keychain -p $MACOS_KEYCHAIN_PWD build.keychain
-          security default-keychain -s build.keychain
-          security unlock-keychain -p $MACOS_KEYCHAIN_PWD build.keychain
-          security import certificate.p12 -k build.keychain -P $MACOS_CERTIFICATE_PWD -T /usr/bin/codesign
-          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k $MACOS_KEYCHAIN_PWD build.keychain
-          /usr/bin/codesign --deep --force --verify --verbose --sign "$MACOS_CODESIGN_IDENT" --timestamp --options runtime /tmp/firebird-emu_macOS/firebird-emu.app
+        echo "$MACOS_CERTIFICATE" | base64 -d > certificate.p12
+        security create-keychain -p "$MACOS_KEYCHAIN_PWD" build.keychain
+        security default-keychain -s build.keychain
+        security unlock-keychain -p "$MACOS_KEYCHAIN_PWD" build.keychain
+        security import certificate.p12 -k build.keychain -P "$MACOS_CERTIFICATE_PWD" -T /usr/bin/codesign
+        security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$MACOS_KEYCHAIN_PWD" build.keychain
+
+        /usr/bin/codesign --deep --force --verify --verbose \
+          --sign "$MACOS_CODESIGN_IDENT" --timestamp --options runtime \
+          --entitlements firebird.entitlements \
+          /tmp/firebird-emu_macOS/firebird-emu.app
+
+    # For forks / personal builds without secrets: ad-hoc sign so the .app is runnable after download.
+    - name: "Codesign firebird-emu.app (ad-hoc)"
+      if: ${{ !(runner.os == 'macOS' && github.repository == 'nspire-emus/firebird' && secrets.MACOS_CERTIFICATE_PWD != '') }}
+      run: |
+        /usr/bin/codesign --deep --force --verify --verbose \
+          --sign - \
+          --entitlements firebird.entitlements \
+          /tmp/firebird-emu_macOS/firebird-emu.app || true
 
     - name: "Create the DMG"
       run: |
-          brew install create-dmg || brew install create-dmg; # we try twice because sometimes it fails...
-          # The codesign variable may be empty (for forks) but that's fine, create-dmg only does code-signing if it's not empty.
-          createDmgArgs="--codesign '${{ secrets.MACOS_CODESIGN_IDENT }}' \
-              --volname 'firebird-emu_macOS' \
-              --window-pos 200 120 \
-              --window-size 600 400 \
-              --icon-size 64 \
-              --icon 'firebird-emu.app' 125 200 \
-              --app-drop-link 400 200 \
-              'firebird-emu_macOS.dmg' \
-              '/tmp/firebird-emu_macOS/'"
-          eval "create-dmg $createDmgArgs" || eval "create-dmg $createDmgArgs" # We also retry just in case...
+        brew install create-dmg || brew install create-dmg
+
+        dmg="firebird-emu_macOS_${{ matrix.mactype }}.dmg"
+
+        createDmgArgs="--codesign '${{ secrets.MACOS_CODESIGN_IDENT }}' \
+          --volname 'firebird-emu_macOS_${{ matrix.mactype }}' \
+          --window-pos 200 120 \
+          --window-size 600 400 \
+          --icon-size 64 \
+          --icon 'firebird-emu.app' 125 200 \
+          --app-drop-link 400 200 \
+          '${dmg}' \
+          '/tmp/firebird-emu_macOS/'"
+
+        eval "create-dmg $createDmgArgs" || eval "create-dmg $createDmgArgs"
 
     - name: "[macOS] Notarize and staple DMG"
       env:
@@ -80,12 +149,16 @@ jobs:
         APPLE_NOTARIZATION_TEAMID: ${{ secrets.APPLE_NOTARIZATION_TEAMID }}
       if: ${{ runner.os == 'macOS' && github.repository == 'nspire-emus/firebird' && env.HAVE_SECRETS == 'true' }}
       run: |
-        xcrun notarytool store-credentials "notarytool-profile" --apple-id "$APPLE_NOTARIZATION_USERNAME" --team-id "$APPLE_NOTARIZATION_TEAMID" --password "$APPLE_NOTARIZATION_PASSWORD"
-        xcrun notarytool submit "firebird-emu_macOS.dmg" --keychain-profile "notarytool-profile" --wait
-        xcrun stapler staple "firebird-emu_macOS.dmg"
+        dmg="firebird-emu_macOS_${{ matrix.mactype }}.dmg"
+        xcrun notarytool store-credentials "notarytool-profile" \
+          --apple-id "$APPLE_NOTARIZATION_USERNAME" \
+          --team-id "$APPLE_NOTARIZATION_TEAMID" \
+          --password "$APPLE_NOTARIZATION_PASSWORD"
+        xcrun notarytool submit "$dmg" --keychain-profile "notarytool-profile" --wait
+        xcrun stapler staple "$dmg"
 
     - name: "Upload DMG"
       uses: actions/upload-artifact@v4
       with:
-          name: firebird-emu_macOS
-          path: firebird-emu_macOS.dmg
+        name: firebird-emu_macOS_${{ matrix.mactype }}
+        path: firebird-emu_macOS_${{ matrix.mactype }}.dmg

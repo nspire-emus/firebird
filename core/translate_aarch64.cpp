@@ -232,6 +232,11 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
 		// Mark translate_buffer as RW_
 		mprotect(translate_buffer, INSN_BUFFER_SIZE, PROT_READ | PROT_WRITE);
 	#endif
+	
+	#if defined(__APPLE__) && !defined(IS_IOS_BUILD)
+		// MAP_JIT uses per-thread W^X; enable writes while generating code.
+		os_jit_write_protect(0);
+	#endif
     
 	uint32_t **jump_table_start = jump_table_current;
 	uint32_t pc = pc_start, *insn_ptr = insn_ptr_start;
@@ -784,6 +789,11 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
 			// Even if no translation was done, pages got marked RW_
 			mprotect(translate_buffer, INSN_BUFFER_SIZE, PROT_READ | PROT_EXEC);
 		#endif
+		
+		#if defined(__APPLE__) && !defined(IS_IOS_BUILD)
+			// Switch back to executable mode for MAP_JIT (no-op elsewhere).
+			os_jit_write_protect(1);
+		#endif
 
 		// No virtual instruction got translated, just drop everything
 		translate_current = translate_buffer_inst_start;
@@ -837,6 +847,8 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
 		mprotect(translate_buffer, INSN_BUFFER_SIZE, PROT_READ | PROT_EXEC);
 		sys_cache_control(1 /* kCacheFunctionPrepareForExecution */, jump_table_start[0], (code_end-jump_table_start[0])*4);
 	#else
+	 	// Switch back to executable mode for MAP_JIT (no-op elsewhere).
+		os_jit_write_protect(1);
 		__builtin___clear_cache((char*)jump_table_start[0], (char*)code_end);
 	#endif
 }

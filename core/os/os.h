@@ -27,6 +27,13 @@ FILE *fopen_utf8(const char *filename, const char *mode);
 char *android_basename(const char *path);
 #endif
 
+/*
+* Apple Silicon macOS enforces W^X for JIT. When MAP_JIT is used, the current
+* thread must toggle between writable and executable JIT mappings using
+* pthread_jit_write_protect_np(). This is a no-op on other platforms.
+*/
+void os_jit_write_protect(int enabled);
+
 void *os_reserve(size_t size);
 void *os_alloc_executable(size_t size);
 void os_free(void *ptr, size_t size);

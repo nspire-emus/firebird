@@ -20,7 +20,7 @@ ifeq "$(TRANSLATION_ENABLED)" "TRUE"
         ASMSOURCES += ../core/asmcode_arm.S
         CSOURCES += ../core/asmcode.c
         CPPSOURCES += ../core/translate_arm.cpp
-    else ifeq "$(TOOLCHAIN_ARCH)" "aarch64"
+        else ifneq "$(filter aarch64 arm64,$(TOOLCHAIN_ARCH))" ""
         ASMSOURCES += ../core/asmcode_aarch64.S
         CSOURCES += ../core/asmcode.c
         CPPSOURCES += ../core/translate_aarch64.cpp

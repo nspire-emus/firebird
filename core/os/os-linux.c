@@ -77,6 +77,12 @@ void *os_alloc_executable(size_t size)
 {
 #if defined(IS_IOS_BUILD)
     void *ptr = mmap((void*)0x0, size, PROT_READ|PROT_WRITE, MAP_SHARED|MAP_ANON, -1, 0);
+#elif defined(__APPLE__) && defined(__aarch64__) && !defined(IS_IOS_BUILD)
+    /* Apple Silicon macOS requires MAP_JIT + pthread_jit_write_protect_np for JIT code. */
+    #ifndef MAP_JIT
+        #error "MAP_JIT is required for JIT on Apple Silicon macOS"
+    #endif
+    void *ptr = mmap((void*)0x0, size, PROT_READ|PROT_WRITE|PROT_EXEC, MAP_PRIVATE|MAP_ANON|MAP_JIT, -1, 0);
 #else
     void *ptr = mmap((void*)0x0, size, PROT_READ|PROT_WRITE|PROT_EXEC, MAP_SHARED|MAP_ANON, -1, 0);
 #endif
@@ -86,6 +92,16 @@ void *os_alloc_executable(size_t size)
 
     msync(ptr, size, MS_SYNC|MS_INVALIDATE);
     return ptr;
+}
+
+void os_jit_write_protect(int enabled)
+{
+#if defined(__APPLE__) && defined(__aarch64__) && !defined(IS_IOS_BUILD)
+    /* 0 = writable, 1 = executable (write-protected) */
+    pthread_jit_write_protect_np(enabled);
+#else
+    (void)enabled;
+#endif
 }
 
 void *os_map_cow(const char *filename, size_t size)
