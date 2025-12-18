@@ -2,9 +2,9 @@ name: Build macOS
 
 on:
   push:
-    branches: [ master, ci/macOS ]
+    branches: [ master, arm-macOS ]
   pull_request:
-    branches: [ master, ci/macOS ]
+    branches: [ master, arm-macOS ]
   release:
     types: [published]
   workflow_dispatch:
