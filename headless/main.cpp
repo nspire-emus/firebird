@@ -65,41 +65,76 @@ void throttle_timer_off() {}
 void throttle_timer_on() {}
 void throttle_timer_wait(unsigned int usec) {}
 
+static const char OPT_BOOT1[]              = "--boot1";
+static const char OPT_FLASH[]              = "--flash";
+static const char OPT_SNAPSHOT[]           = "--snapshot";
+static const char OPT_RAMPAYLOAD[]         = "--rampayload";
+static const char OPT_RAMPAYLOAD_ADDR[]    = "--rampayload-address";
+static const char OPT_DEBUG_ON_START[]     = "--debug-on-start";
+static const char OPT_DEBUG_ON_WARN[]      = "--debug-on-warn";
+static const char OPT_PRINT_ON_WARN[]      = "--print-on-warn";
+static const char OPT_DIAGS[]              = "--diags";
+static const char OPT_HELP[]               = "--help";
+static const uint32_t default_rampayload_base = 0x10000000;
+
+void show_help_menu(void)
+{
+	fprintf(stderr, "firebird-headless:\n");
+	fprintf(stderr, "  %-24s Show this help menu\n", OPT_HELP);
+	fprintf(stderr, "  %-24s Path to Boot1 image (required)\n", OPT_BOOT1);
+	fprintf(stderr, "  %-24s Path to Flash image (required)\n", OPT_FLASH);
+	fprintf(stderr, "  %-24s Path to snapshot image (optional)\n", OPT_SNAPSHOT);
+	fprintf(stderr, "  %-24s Path to RAM payload (optional)\n", OPT_RAMPAYLOAD);
+	fprintf(stderr, "  %-24s Address to load RAM payload at (default: 0x%x)\n",
+	       OPT_RAMPAYLOAD_ADDR, default_rampayload_base);
+	fprintf(stderr, "  %-24s Enter debugger on start\n", OPT_DEBUG_ON_START);
+	fprintf(stderr, "  %-24s Enter debugger on warnings\n", OPT_DEBUG_ON_WARN);
+	fprintf(stderr, "  %-24s Print warnings to console\n", OPT_PRINT_ON_WARN);
+	fprintf(stderr, "  %-24s Use diagnostics boot order\n", OPT_DIAGS);
+}
+
 int main(int argc, char *argv[])
 {
 	const char *boot1 = nullptr, *flash = nullptr, *snapshot = nullptr, *rampayload = nullptr;
-	uint32_t rampayload_base = 0x10000000;
+	uint32_t rampayload_base = default_rampayload_base;
 
 	for(int argi = 1; argi < argc; ++argi)
 	{
-		if(strcmp(argv[argi], "--boot1") == 0)
+		if(strcmp(argv[argi], OPT_BOOT1) == 0)
 			boot1 = argv[++argi];
-		else if(strcmp(argv[argi], "--flash") == 0)
+		else if(strcmp(argv[argi], OPT_FLASH) == 0)
 			flash = argv[++argi];
-		else if(strcmp(argv[argi], "--snapshot") == 0)
+		else if(strcmp(argv[argi], OPT_SNAPSHOT) == 0)
 			snapshot = argv[++argi];
-		else if(strcmp(argv[argi], "--rampayload") == 0)
+		else if(strcmp(argv[argi], OPT_RAMPAYLOAD) == 0)
 			rampayload = argv[++argi];
-		else if(strcmp(argv[argi], "--rampayload-address") == 0)
+		else if(strcmp(argv[argi], OPT_RAMPAYLOAD_ADDR) == 0)
 			rampayload_base = strtol(argv[++argi], nullptr, 0);
-		else if(strcmp(argv[argi], "--debug-on-start") == 0)
+		else if(strcmp(argv[argi], OPT_DEBUG_ON_START) == 0)
 			debug_on_start = true;
-		else if(strcmp(argv[argi], "--debug-on-warn") == 0)
+		else if(strcmp(argv[argi], OPT_DEBUG_ON_WARN) == 0)
 			debug_on_warn = true;
-		else if(strcmp(argv[argi], "--print-on-warn") == 0)
+		else if(strcmp(argv[argi], OPT_PRINT_ON_WARN) == 0)
 			print_on_warn = true;
-		else if(strcmp(argv[argi], "--diags") == 0)
+		else if(strcmp(argv[argi], OPT_DIAGS) == 0)
 			boot_order = ORDER_DIAGS;
+		else if (strcmp(argv[argi], OPT_HELP) == 0)
+		{
+			show_help_menu();
+			return 0;
+		}
 		else
 		{
 			fprintf(stderr, "Unknown argument '%s'.\n", argv[argi]);
+			show_help_menu();
 			return 1;
 		}
 	}
 
-	if(!boot1 || !flash)
+	if (!boot1 || !flash)
 	{
 		fprintf(stderr, "You need to specify at least Boot1 and Flash images.\n");
+		show_help_menu();
 		return 2;
 	}
 
