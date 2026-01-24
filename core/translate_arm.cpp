@@ -70,14 +70,14 @@ static inline void emit_al(uint32_t instruction)
 static void emit_ldr_armreg(const unsigned int rd, const unsigned int r_virt)
 {
     assert(rd < 16 && r_virt < 16);
-    emit_al(0x59a0000 | (rd << 12) | (r_virt << 2)); // ldr rd, [r10, #2*r_virt]
+    emit_al(0x59a0000 | (rd << 12) | (r_virt << 2)); // ldr rd, [r10, #4*r_virt]
 }
 
 // Saves rd into arm.reg[rs].
 static void emit_str_armreg(const unsigned int rd, const unsigned int r_virt)
 {
     assert(rd < 16 && r_virt < 16);
-    emit_al(0x58a0000 | (rd << 12) | (r_virt << 2)); // str rd, [r10, #2*r_virt]
+    emit_al(0x58a0000 | (rd << 12) | (r_virt << 2)); // str rd, [r10, #4*r_virt]
 }
 
 // Load and store flags from r11
