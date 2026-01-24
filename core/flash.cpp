@@ -816,7 +816,7 @@ bool flash_read_settings(uint32_t *sdram_size, uint32_t *product, uint32_t *feat
         if(flagsField.isValid() && flagsField.sizeOfData() == 4)
         {
             auto d = flagsField.data();
-            *features = (d[3] << 24) | (d[2] << 16) | (d[1] << 8) | d[0];
+            *features = (d[0] << 24) | (d[1] << 16) | (d[2] << 8) | d[3];
         }
         else
             emuprintf("Failed to parse hardware flags in CX II manuf\n");
