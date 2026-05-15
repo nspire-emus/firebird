@@ -175,5 +175,10 @@ Rectangle {
             if (!root.fixed)
                 parent.pressed = false;
         }
+
+        onExited: {
+            if (!root.fixed)
+                parent.pressed = false;
+        }
     }
 }
