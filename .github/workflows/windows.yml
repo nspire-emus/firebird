@@ -26,7 +26,7 @@ jobs:
         submodules: 'recursive'
 
     - name: Install Qt
-      uses: jurplel/install-qt-action@f03f05556819ceb3781ee2f455ec44c339d683c0 # v4
+      uses: jurplel/install-qt-action@48d3ad6db93f3627c8ee7a0454bc6f3744f7e730 # v4
       with:
         version: '5.15.2'
         host: 'windows'
