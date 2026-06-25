@@ -82,6 +82,9 @@ public slots:
     //Menu "Docks"
     void setUIEditMode(bool e);
 
+    //Menu "View"
+    void setDarkMode(bool enabled);
+
     //Menu "About"
     void showAbout();
 

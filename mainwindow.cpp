@@ -177,6 +177,33 @@ MainWindow::MainWindow(QWidget *parent) :
     restoreGeometry(settings->value(QStringLiteral("windowGeometry")).toByteArray());
     restoreState(settings->value(QStringLiteral("windowState")).toByteArray(), WindowStateVersion);
 
+    // Restore dark mode setting
+    bool darkModeEnabled = settings->value(QStringLiteral("darkMode"), false).toBool();
+    if(darkModeEnabled)
+        qputenv("QT_QPA_PLATFORM", QByteArrayLiteral("windows:darkmode=2"));
+    else
+        qputenv("QT_QPA_PLATFORM", QByteArrayLiteral("windows:darkmode=0"));
+
+#ifdef Q_OS_WIN
+    // Windows-only: Create View menu and Dark Mode action
+    QMenu *menuView = new QMenu(QStringLiteral("&View"), this);
+    QAction *darkModeAction = new QAction(QStringLiteral("&Dark Mode"), this);
+    darkModeAction->setCheckable(true);
+    darkModeAction->setChecked(savedDarkMode);
+
+    connect(darkModeAction, &QAction::toggled, this, [=](bool checked) {
+        if (checked != savedDarkMode) {
+            this->settings->setValue("theme/darkMode", checked);
+            QMessageBox::information(this, QStringLiteral("Theme Change"), QStringLiteral("Restarting to apply changes..."));
+            QProcess::startDetached(QApplication::applicationFilePath(), QApplication::arguments());
+            QApplication::quit();
+        }
+    });
+
+    menuView->addAction(darkModeAction);
+    ui->menubar->addMenu(menuView);
+#endif
+
     refillKitMenus();
 
     ui->lcdView->setFocus();
@@ -727,6 +754,20 @@ void MainWindow::setUIEditMode(bool e)
 void MainWindow::showAbout()
 {
     aboutDialog.show();
+}
+
+void MainWindow::setDarkMode(bool enabled)
+{
+    settings->setValue(QStringLiteral("darkMode"), enabled);
+
+    if(enabled)
+    {
+        qputenv("QT_QPA_PLATFORM", QByteArrayLiteral("windows:darkmode=2"));
+    }
+    else
+    {
+        qputenv("QT_QPA_PLATFORM", QByteArrayLiteral("windows:darkmode=0"));
+    }
 }
 
 void MainWindow::isBusy(bool busy)
