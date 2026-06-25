@@ -160,7 +160,7 @@ void androidVibrate()
 {
     QAndroidJniEnvironment env;
 
-    // Call activity.getWindow().getDecorView().perforHapticFeedback(KEYBOARD_TAP);
+    // Call activity.getWindow().getDecorView().performHapticFeedback(KEYBOARD_TAP);
     QAndroidJniObject window = QtAndroid::androidActivity()
             .callObjectMethod("getWindow", "()Landroid/view/Window;");
 
