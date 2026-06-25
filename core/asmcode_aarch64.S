@@ -1,5 +1,6 @@
+// Mach-O has a different syntax for relocations
 .macro loadsym reg, name
-	#if defined(__clang__) && !defined(ANDROID)
+	#if defined(__APPLE__)
 		adrp \reg, \name\()@PAGE
 		add \reg, \reg, \name\()@PAGEOFF
 	#else
