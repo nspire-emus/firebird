@@ -40,6 +40,7 @@ Rectangle {
                  id: restartButton
 
                  title: qsTr("Start")
+                 subtitle: qsTr("Kit: ") + Emu.kits.getDataRow(Emu.kitIndexForID(Emu.defaultKit), KitModel.NameRole)
                  icon: "qrc:/icons/resources/icons/edit-bomb.png"
 
                  onClicked: {
