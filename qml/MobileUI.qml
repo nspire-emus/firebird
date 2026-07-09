@@ -139,6 +139,13 @@ ApplicationWindow {
 
         model: [ "MobileUIConfig.qml", "MobileUIDrawer.qml", "MobileUIFront.qml" ]
 
+        // Start with the drawer open, otherwise positionViewAtIndex does sometimes
+        // not work...
+        currentIndex: 1
+
+        // Stay invisible until the initial index is set
+        visible: false
+
         /* The delegates write their X offsets into this array, so that we can use
            them as values for contentX. */
         property var pageX: []
@@ -146,12 +153,15 @@ ApplicationWindow {
         Component.onCompleted: {
             // Open drawer if emulation does not start automatically
             Emu.useDefaultKit(); // We need this here to get the default values
-            if(!Emu.autostart
-               || Emu.getBoot1Path() === ""
+            if(Emu.getBoot1Path() === ""
                || Emu.getFlashPath() === "")
+                positionViewAtIndex(0, ListView.SnapPosition);
+            else if(!Emu.autostart)
                 positionViewAtIndex(1, ListView.SnapPosition);
             else
                 positionViewAtIndex(2, ListView.SnapPosition);
+
+            visible = true
         }
 
         NumberAnimation {
@@ -204,7 +214,8 @@ ApplicationWindow {
                     var xOffset = listView.contentX - parent.x;
                     return Math.min(Math.max(0.0, Math.abs(xOffset) / listView.width), 0.6);
                 }
-                visible: opacity > 0.01
+                // Don't darken the drawer
+                visible: modelData === "MobileUIDrawer.qml" ? false : (opacity > 0.01)
 
                 MouseArea {
                     anchors.fill: parent
