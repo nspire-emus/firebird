@@ -13,7 +13,7 @@ isEmpty(SUPPORT_LINUX) | equals(SUPPORT_LINUX, auto) {
 }
 
 # Localization
-TRANSLATIONS += i18n/de_DE.ts i18n/fr_FR.ts i18n/pl_PL.ts
+TRANSLATIONS += i18n/de_DE.ts i18n/fr_FR.ts i18n/pl_PL.ts i18n/zh_CN.ts
 
 QT += core gui widgets quickwidgets
 android: QT += androidextras
