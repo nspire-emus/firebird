@@ -519,9 +519,11 @@ void MainWindow::convertTabsToDocks()
 {
     // Create "Docks" menu to make closing and opening docks more intuitive
     QMenu *docks_menu = new QMenu(tr("Docks"), this);
+    docks_menu->setObjectName(QStringLiteral("docksMenu"));
     ui->menubar->insertMenu(ui->menuAbout->menuAction(), docks_menu);
 
     QAction *editmode_toggle = new QAction(tr("Enable UI edit mode"), this);
+    editmode_toggle->setObjectName(QStringLiteral("uiEditModeAction"));
     editmode_toggle->setCheckable(true);
     editmode_toggle->setChecked(settings->value(QStringLiteral("uiEditModeEnabled"), true).toBool());
     connect(editmode_toggle, SIGNAL(toggled(bool)), this, SLOT(setUIEditMode(bool)));
@@ -567,6 +569,11 @@ void MainWindow::retranslateDocks()
 {
     // The docks are not handled by mainwindow.ui but got created by
     // convertTabsToDocks() above, so translation needs to be done manually.
+    if(QMenu *docksMenu = findChild<QMenu*>(QStringLiteral("docksMenu")))
+        docksMenu->setTitle(tr("Docks"));
+    if(QAction *editModeAction = findChild<QAction*>(QStringLiteral("uiEditModeAction")))
+        editModeAction->setText(tr("Enable UI edit mode"));
+
     const auto dockChildren = findChildren<DockWidget*>();
     for(DockWidget *dw : dockChildren) {
         if(dw->widget() == ui->tab)
