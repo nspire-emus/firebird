@@ -67,6 +67,7 @@ win32: {
 }
 
 macx: ICON = resources/logo.icns
+macx: QMAKE_LIBS_OPENGL = -framework OpenGL
 
 # This does also apply to android
 unix: SOURCES += core/os/os-linux.c
