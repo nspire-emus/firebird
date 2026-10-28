@@ -29,6 +29,22 @@ char *android_basename(const char *path);
 void androidVibrate();
 #endif
 
+/* Apple Silicon enforces W^X, so executable memory has to be mapped with
+ * MAP_JIT and toggled between writable and executable while code is emitted.
+ * pthread_jit_write_protect_np() is available since macOS 11.0, the first
+ * macOS release that supports Apple Silicon, so no runtime check is needed.
+ * On all other platforms executable memory can be mapped RWX directly and
+ * this is a no-op. */
+#if defined(__APPLE__) && defined(__aarch64__) && !defined(IS_IOS_BUILD)
+#define OS_JIT_WRITE_PROTECT 1
+void os_jit_write_protect(int writable);
+#else
+static inline void os_jit_write_protect(int writable)
+{
+    (void) writable;
+}
+#endif
+
 void *os_reserve(size_t size);
 void *os_alloc_executable(size_t size);
 void os_free(void *ptr, size_t size);

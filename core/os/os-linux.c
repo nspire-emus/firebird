@@ -19,6 +19,12 @@
 #include "../debug.h"
 #include "../mmu.h"
 
+#ifdef OS_JIT_WRITE_PROTECT
+/* Normally declared in <pthread.h>, but that declaration is hidden by the
+ * _XOPEN_SOURCE/_POSIX_C_SOURCE macros defined above. */
+extern void pthread_jit_write_protect_np(int enabled);
+#endif
+
 #ifdef IS_IOS_BUILD
 
 #include <unistd.h>
@@ -77,6 +83,10 @@ void *os_alloc_executable(size_t size)
 {
 #if defined(IS_IOS_BUILD)
     void *ptr = mmap((void*)0x0, size, PROT_READ|PROT_WRITE, MAP_SHARED|MAP_ANON, -1, 0);
+#elif defined(OS_JIT_WRITE_PROTECT)
+    // Apple Silicon rejects RWX mappings (W^X); MAP_JIT has to be used instead,
+    // see os_jit_write_protect().
+    void *ptr = mmap((void*)0x0, size, PROT_READ|PROT_WRITE|PROT_EXEC, MAP_PRIVATE|MAP_ANON|MAP_JIT, -1, 0);
 #else
     void *ptr = mmap((void*)0x0, size, PROT_READ|PROT_WRITE|PROT_EXEC, MAP_SHARED|MAP_ANON, -1, 0);
 #endif
@@ -87,6 +97,16 @@ void *os_alloc_executable(size_t size)
     msync(ptr, size, MS_SYNC|MS_INVALIDATE);
     return ptr;
 }
+
+#ifdef OS_JIT_WRITE_PROTECT
+/* MAP_JIT memory is executable and write-protected while the JIT is running.
+ * It may only be written to while the calling thread has write protection
+ * disabled, and may only be executed while it is enabled. */
+void os_jit_write_protect(int writable)
+{
+    pthread_jit_write_protect_np(writable ? 0 : 1);
+}
+#endif
 
 void *os_map_cow(const char *filename, size_t size)
 {
