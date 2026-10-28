@@ -228,6 +228,10 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
 		return;
 	}
 
+	// The JIT buffer is executable by default; make it writable while emitting
+	// code (no-op except on Apple Silicon macOS)
+	os_jit_write_protect(1);
+
 	#ifdef IS_IOS_BUILD
 		// Mark translate_buffer as RW_
 		mprotect(translate_buffer, INSN_BUFFER_SIZE, PROT_READ | PROT_WRITE);
@@ -787,6 +791,8 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
 
 		// No virtual instruction got translated, just drop everything
 		translate_current = translate_buffer_inst_start;
+		// Nothing was emitted, so make the buffer executable again
+		os_jit_write_protect(0);
 		return;
 	}
 
@@ -839,6 +845,9 @@ void translate(uint32_t pc_start, uint32_t *insn_ptr_start)
 	#else
 		__builtin___clear_cache((char*)jump_table_start[0], (char*)code_end);
 	#endif
+
+	// Make the freshly generated code executable again
+	os_jit_write_protect(0);
 }
 
 static void _invalidate_translation(int index)
