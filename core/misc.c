@@ -882,14 +882,15 @@ void adc_write_word(uint32_t addr, uint32_t value) {
 // Not really implemented
 uint32_t adc_cx2_read_word(uint32_t addr)
 {
-    (void) addr;
+    /* TRACE ONLY: log accesses, value unchanged */
+    warn("CX2 ADC read  addr=%08X", addr);
     return 0x6969;
 }
 
 void adc_cx2_write_word(uint32_t addr, uint32_t value)
 {
-    (void) addr;
-    (void) value;
+    /* TRACE ONLY: log accesses, behaviour unchanged */
+    warn("CX2 ADC write addr=%08X value=%08X", addr, value);
     // It expects an IRQ on writing something
     int_set(INT_ADC, 1);
 }
