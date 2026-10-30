@@ -914,7 +914,8 @@ uint32_t adc_cx2_read_word(uint32_t addr)
             case 0x14: return c->speed;
         }
     }
-    return bad_read_word(addr);
+    // Unrecognised registers: keep the original stub value (0x6969).
+    return 0x6969;
 }
 
 void adc_cx2_write_word(uint32_t addr, uint32_t value)
@@ -933,6 +934,7 @@ void adc_cx2_write_word(uint32_t addr, uint32_t value)
             case 0x0C:
             case 0x10:
             case 0x14:
+                int_set(INT_ADC, 1); // original stub: every write raises INT_ADC
                 return;
         }
     } else if ((n = addr >> 5 & 7) < 7) {
@@ -943,13 +945,15 @@ void adc_cx2_write_word(uint32_t addr, uint32_t value)
                 adc_cx2.int_status |= 3u << (4 * n);
                 int_set(INT_ADC, adc_cx2.int_status & adc_cx2.int_mask);
                 return;
-            case 0x04: c->unknown = value & 0xFFFFFFF; return;
-            case 0x08: c->count = value & 0x1FFFFFF; return;
-            case 0x0C: c->address = value & ~3; return;
-            case 0x14: c->speed = value & 0x3FF; return;
+            case 0x04: c->unknown = value & 0xFFFFFFF; int_set(INT_ADC, 1); return;
+            case 0x08: c->count = value & 0x1FFFFFF; int_set(INT_ADC, 1); return;
+            case 0x0C: c->address = value & ~3; int_set(INT_ADC, 1); return;
+            case 0x14: c->speed = value & 0x3FF; int_set(INT_ADC, 1); return;
         }
     }
-    bad_write_word(addr, value);
+    // Unrecognised registers: original stub behaviour - any write raises INT_ADC.
+    (void) value;
+    int_set(INT_ADC, 1);
 }
 
 bool misc_suspend(emu_snapshot *snapshot)
