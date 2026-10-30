@@ -65,6 +65,9 @@
         <file>i18n/de_DE.qm</file>
         <file>i18n/fr_FR.qm</file>
         <file>i18n/pl_PL.qm</file>
+        <file>i18n/zh_CN.qm</file>
+        <file>i18n/zh_TW.qm</file>
+        <file>i18n/yue_HK.qm</file>
     </qresource>
     <qresource prefix="/keyimages">
         <file>resources/keyimages/questionmark.png</file>
