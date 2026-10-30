@@ -879,19 +879,25 @@ void adc_write_word(uint32_t addr, uint32_t value) {
     return;
 }
 
-/* C4000000 on CX II: ADC (battery / VSys monitoring), 0x900B0000.
- * Register layout mirrors the CX ADC above. Channel voltages are placeholders
- * (full battery); the OS low-battery threshold is around 3300 mV. */
+/* CX II ADC, 0x900B0000 + 0x100 (channel regs), same register layout and
+ * channel map as the CX ADC (see hackspire "Memory-mapped I/O ports on CX",
+ * C4000000): channel 1 = VBATT, channel 2 = VSYS (155 units = 1 V),
+ * channel 3 = keypad/touchpad ID, others 310 units = 1 V.
+ * The OS low-battery check is VSys < 3300 mV, so report a healthy battery.
+ * 4052 mV is the same value the OS reports for VSLED in issue #390. */
+#define CX2_BATT_MV 4052u
+
 static adc_state adc_cx2;
 
 static uint16_t adc_cx2_read_channel(int n) {
-    static const uint16_t mv[2] = { 4200 /* VSys */, 4052 /* VSled */ };
     uint32_t count;
-    if (n >= 2)
-        return 0;
-    // Same scale as the CX ADC: 310 counts = 1 volt, clamped to 10 bits.
-    count = (mv[n] * 310u + 500u) / 1000u;
-    return count > 0x3FF ? 0x3FF : count;
+    if (n == 3)
+        return 73;  // touchpad-equipped keypad ID, as on the CX
+    if (n == 1 || n == 2) {
+        count = (CX2_BATT_MV * 155u + 500u) / 1000u;  // 155 units = 1 V
+        return count > 0x3FF ? 0x3FF : count;
+    }
+    return 930;  // as on the CX ADC
 }
 
 uint32_t adc_cx2_read_word(uint32_t addr)
