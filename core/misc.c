@@ -879,19 +879,77 @@ void adc_write_word(uint32_t addr, uint32_t value) {
     return;
 }
 
-// Not really implemented
+/* C4000000 on CX II: ADC (battery / VSys monitoring), 0x900B0000.
+ * Register layout mirrors the CX ADC above. Channel voltages are placeholders
+ * (full battery); the OS low-battery threshold is around 3300 mV. */
+static adc_state adc_cx2;
+
+static uint16_t adc_cx2_read_channel(int n) {
+    static const uint16_t mv[2] = { 4200 /* VSys */, 4052 /* VSled */ };
+    uint32_t count;
+    if (n >= 2)
+        return 0;
+    // Same scale as the CX ADC: 310 counts = 1 volt, clamped to 10 bits.
+    count = (mv[n] * 310u + 500u) / 1000u;
+    return count > 0x3FF ? 0x3FF : count;
+}
+
 uint32_t adc_cx2_read_word(uint32_t addr)
 {
-    (void) addr;
-    return 0x6969;
+    int n;
+    if (!(addr & 0x100)) {
+        switch (addr & 0xFF) {
+            case 0x00: return adc_cx2.int_status & adc_cx2.int_mask;
+            case 0x04: return adc_cx2.int_status;
+            case 0x08: return adc_cx2.int_mask;
+        }
+    } else if ((n = addr >> 5 & 7) < 7) {
+        struct adc_channel *c = &adc_cx2.channel[n];
+        switch (addr & 0x1F) {
+            case 0x00: return 0;
+            case 0x04: return c->unknown;
+            case 0x08: return c->count;
+            case 0x0C: return c->address;
+            case 0x10: return c->value;
+            case 0x14: return c->speed;
+        }
+    }
+    return bad_read_word(addr);
 }
 
 void adc_cx2_write_word(uint32_t addr, uint32_t value)
 {
-    (void) addr;
-    (void) value;
-    // It expects an IRQ on writing something
-    int_set(INT_ADC, 1);
+    int n;
+    if (!(addr & 0x100)) {
+        switch (addr & 0xFF) {
+            case 0x04: // Interrupt acknowledge
+                adc_cx2.int_status &= ~value;
+                int_set(INT_ADC, adc_cx2.int_status & adc_cx2.int_mask);
+                return;
+            case 0x08: // Interrupt enable
+                adc_cx2.int_mask = value & 0xFFFFFFF;
+                int_set(INT_ADC, adc_cx2.int_status & adc_cx2.int_mask);
+                return;
+            case 0x0C:
+            case 0x10:
+            case 0x14:
+                return;
+        }
+    } else if ((n = addr >> 5 & 7) < 7) {
+        struct adc_channel *c = &adc_cx2.channel[n];
+        switch (addr & 0x1F) {
+            case 0x00: // Command register - write 1 to measure voltage and store to +10
+                c->value = adc_cx2_read_channel(n);
+                adc_cx2.int_status |= 3u << (4 * n);
+                int_set(INT_ADC, adc_cx2.int_status & adc_cx2.int_mask);
+                return;
+            case 0x04: c->unknown = value & 0xFFFFFFF; return;
+            case 0x08: c->count = value & 0x1FFFFFF; return;
+            case 0x0C: c->address = value & ~3; return;
+            case 0x14: c->speed = value & 0x3FF; return;
+        }
+    }
+    bad_write_word(addr, value);
 }
 
 bool misc_suspend(emu_snapshot *snapshot)
