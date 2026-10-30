@@ -202,6 +202,7 @@ FORMS += \
     mainwindow.ui
 
 HEADERS += \
+    apptranslation.h \
     core/fieldparser.h \
     core/usb_cx2.h \
     core/usblink_cx2.h \

@@ -22,6 +22,7 @@
 #include "qmlbridge.h"
 #include "qtframebuffer.h"
 #include "qtkeypadbridge.h"
+#include "apptranslation.h"
 
 MainWindow *main_window;
 // Change this if you change the UI
@@ -124,7 +125,7 @@ MainWindow::MainWindow(QWidget *parent) :
         languageCode.chop(3); // Chop off file extension
         QLocale locale(languageCode);
         QAction *action = new QAction(locale.nativeLanguageName(), ui->menuLanguage);
-        connect(action, &QAction::triggered, this, [this,languageCode] { this->switchTranslator(languageCode); });
+        connect(action, &QAction::triggered, this, [this,locale] { this->switchTranslator(locale); });
         ui->menuLanguage->addAction(action);
     }
 
@@ -164,7 +165,7 @@ MainWindow::MainWindow(QWidget *parent) :
     QString prefLang = settings->value(QStringLiteral("preferred_lang"), QStringLiteral("none")).toString();
     if(prefLang != QStringLiteral("none"))
         switchTranslator(QLocale(prefLang));
-    else if(appTranslator.load(QLocale::system(), QStringLiteral(":/i18n/i18n/")))
+    else if(loadAppTranslation(appTranslator, QLocale::system()))
         qApp->installTranslator(&appTranslator);
 
     updateUIActionState(false);
@@ -258,7 +259,7 @@ void MainWindow::switchTranslator(const QLocale& locale)
     qApp->removeTranslator(&appTranslator);
     // For English, nothing to load after removing the translator.
     if (locale.name() == QStringLiteral("en_US")
-        || (appTranslator.load(locale, QStringLiteral(":/i18n/i18n/")) && qApp->installTranslator(&appTranslator)))
+        || (loadAppTranslation(appTranslator, locale) && qApp->installTranslator(&appTranslator)))
     {
         settings->setValue(QStringLiteral("preferred_lang"), locale.name());
     }
