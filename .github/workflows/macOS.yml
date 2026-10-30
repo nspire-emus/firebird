@@ -42,6 +42,7 @@ jobs:
         mv firebird-emu.app /tmp/firebird-emu_macOS/
 
     - name: "Codesign firebird-emu.app"
+      shell: bash
       env:
           HAVE_SECRETS: ${{ secrets.MACOS_CERTIFICATE_PWD != '' }}
           MACOS_CERTIFICATE: ${{ secrets.MACOS_CERTIFICATE }}
@@ -56,7 +57,14 @@ jobs:
           security unlock-keychain -p $MACOS_KEYCHAIN_PWD build.keychain
           security import certificate.p12 -k build.keychain -P $MACOS_CERTIFICATE_PWD -T /usr/bin/codesign
           security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k $MACOS_KEYCHAIN_PWD build.keychain
-          /usr/bin/codesign --deep --force --verify --verbose --sign "$MACOS_CODESIGN_IDENT" --timestamp --options runtime --entitlements resources/macos/firebird.entitlements /tmp/firebird-emu_macOS/firebird-emu.app
+          app=/tmp/firebird-emu_macOS/firebird-emu.app
+          # Sign bundled Qt frameworks/plugins first, without app entitlements.
+          find "$app/Contents" -depth \( -type d -name '*.framework' -o -type f -name '*.dylib' \) -print0 |
+            while IFS= read -r -d '' code; do
+              /usr/bin/codesign --force --verbose --sign "$MACOS_CODESIGN_IDENT" --timestamp "$code"
+            done
+          /usr/bin/codesign --force --verbose --sign "$MACOS_CODESIGN_IDENT" --timestamp --options runtime --entitlements resources/macos/firebird.entitlements "$app"
+          /usr/bin/codesign --verify --deep --strict --verbose "$app"
 
     - name: "Create the DMG"
       run: |
