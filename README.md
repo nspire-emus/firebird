@@ -11,6 +11,16 @@ Download:
 
 * [Latest release](https://github.com/nspire-emus/firebird/releases/latest)
 
+Known issue in Firebird 1.6:
+
+Firebird 1.6 can fail to move the cursor with the CX II touchpad or
+navigation pad even though clicks are visibly registered. This can happen
+with CX II manufacturer data that enables the capTIvate touchpad path. The
+issue was fixed after 1.6 by reading the CX II hardware feature flags from
+`manuf` in big-endian order. If you hit this behavior, use a current master
+build or a release that includes the fix for [#374](https://github.com/nspire-emus/firebird/issues/374)
+merged in [#378](https://github.com/nspire-emus/firebird/pull/378).
+
 Screenshots:
 -------------------
 
