@@ -83,9 +83,9 @@ void *os_alloc_executable(size_t size)
 {
 #if defined(IS_IOS_BUILD)
     void *ptr = mmap((void*)0x0, size, PROT_READ|PROT_WRITE, MAP_SHARED|MAP_ANON, -1, 0);
-#elif defined(OS_JIT_WRITE_PROTECT)
-    // Apple Silicon rejects RWX mappings (W^X); MAP_JIT has to be used instead,
-    // see os_jit_write_protect().
+#elif defined(__APPLE__)
+    // Hardened macOS apps need MAP_JIT and the allow-jit entitlement on both
+    // Intel and Apple Silicon. The latter also needs os_jit_write_protect().
     void *ptr = mmap((void*)0x0, size, PROT_READ|PROT_WRITE|PROT_EXEC, MAP_PRIVATE|MAP_ANON|MAP_JIT, -1, 0);
 #else
     void *ptr = mmap((void*)0x0, size, PROT_READ|PROT_WRITE|PROT_EXEC, MAP_SHARED|MAP_ANON, -1, 0);

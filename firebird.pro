@@ -69,6 +69,8 @@ win32: {
 
 macx: ICON = resources/logo.icns
 macx: QMAKE_LIBS_OPENGL = -framework OpenGL
+# MAP_JIT requires macOS 10.14. Qt 6 already requires a newer macOS version.
+macx:!ios:lessThan(QT_MAJOR_VERSION, 6): QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.14
 
 # This does also apply to android
 unix: SOURCES += core/os/os-linux.c

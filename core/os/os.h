@@ -33,8 +33,8 @@ void androidVibrate();
  * MAP_JIT and toggled between writable and executable while code is emitted.
  * pthread_jit_write_protect_np() is available since macOS 11.0, the first
  * macOS release that supports Apple Silicon, so no runtime check is needed.
- * On all other platforms executable memory can be mapped RWX directly and
- * this is a no-op. */
+ * Intel macOS also uses MAP_JIT, but does not need per-thread write protection.
+ * This is a no-op there and on other platforms. */
 #if defined(__APPLE__) && defined(__aarch64__) && !defined(IS_IOS_BUILD)
 #define OS_JIT_WRITE_PROTECT 1
 void os_jit_write_protect(int writable);
