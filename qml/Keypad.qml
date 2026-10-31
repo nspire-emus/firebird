@@ -193,7 +193,6 @@ Rectangle {
             text: "var"
             Layout.preferredWidth: -1
             Layout.fillWidth: false
-            border.width: 1
             clip: false
             keymap_id: 56
             Layout.column: 2
@@ -324,7 +323,6 @@ Rectangle {
     NBigButton {
         id: nButton7
         width: 33
-        color: "#68cce0"
         text: "ctrl"
         anchors.top: gridLayout1.top
         anchors.topMargin: 0
