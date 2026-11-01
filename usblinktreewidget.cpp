@@ -179,7 +179,7 @@ bool USBLinkTreeWidget::dropMimeData(QTreeWidgetItem *parent, int index, const Q
     {
         auto local = QDir::toNativeSeparators(url.toLocalFile());
         auto remote = parentDir + QLatin1Char('/') + QFileInfo(local).fileName();
-        usblink_queue_put_file(local.toStdString(), parentDir.toStdString(), usblink_upload_callback, this);
+        usblink_queue_put_file(local.toStdString(), remote.toStdString(), usblink_upload_callback, this);
     }
 
     return true;
