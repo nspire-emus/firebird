@@ -42,9 +42,8 @@ QImage renderFramebuffer()
 
 void paintFramebuffer(QPainter *p)
 {
-#ifdef IS_IOS_BUILD
+#if defined(Q_OS_IOS) || defined(Q_OS_WASM)
     // Apparently, this is needed (will be 2 on retina screens)
-    // TODO: actually make sure Android doesn't need that as well
     static const double devicePixelRatio = ((QGuiApplication*)QCoreApplication::instance())->primaryScreen()->devicePixelRatio();
 #else
     // Has to be 1 on desktop, even on retina (tested on OS X 10.11 with one retina, one non-retina, and both ; same on Win VM)

@@ -17,8 +17,8 @@ USBLinkTreeWidget::USBLinkTreeWidget(QWidget *parent)
     connect(this, SIGNAL(customContextMenuRequested(QPoint)), this,  SLOT(customContextMenuRequested(QPoint)));
     connect(this, SIGNAL(itemChanged(QTreeWidgetItem*, int)), this, SLOT(dataChangedHandler(QTreeWidgetItem*,int)));
     // This is a Qt::BlockingQueuedConnection as the usblink_dirlist_* family of functions needs to enumerate over the items directly after emitting the signal.
-    connect(this, SIGNAL(wantToAddTreeItem(QTreeWidgetItem*,QTreeWidgetItem*)), this, SLOT(addTreeItem(QTreeWidgetItem*,QTreeWidgetItem*)), Qt::BlockingQueuedConnection);
-    connect(this, SIGNAL(wantToReload()), this, SLOT(reloadFilebrowser()), Qt::QueuedConnection);
+    connect(this, SIGNAL(wantToAddTreeItem(QTreeWidgetItem*,QTreeWidgetItem*)), this, SLOT(addTreeItem(QTreeWidgetItem*,QTreeWidgetItem*)));
+    connect(this, SIGNAL(wantToReload()), this, SLOT(reloadFilebrowser()));
 
     this->setAcceptDrops(true);
 
