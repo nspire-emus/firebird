@@ -198,6 +198,20 @@ void QMLBridge::setDefaultKit(unsigned int id)
     emit defaultKitChanged();
 }
 
+QMLBridge::KeypadFillMode QMLBridge::getKeypadFillMode()
+{
+    return settings.value(QStringLiteral("keypadFillMode"), KeypadFillMode::FillWidth).value<KeypadFillMode>();
+}
+
+void QMLBridge::setKeypadFillMode(KeypadFillMode mode)
+{
+    if(getKeypadFillMode() == mode)
+        return;
+
+    settings.setValue(QStringLiteral("keypadFillMode"), mode);
+    emit keypadFillModeChanged();
+}
+
 bool QMLBridge::getLeftHanded()
 {
     return settings.value(QStringLiteral("leftHanded"), false).toBool();
