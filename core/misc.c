@@ -879,18 +879,86 @@ void adc_write_word(uint32_t addr, uint32_t value) {
     return;
 }
 
-// Not really implemented
+/* CX II ADC, 0x900B0000 + 0x100 (channel regs), same register layout and
+ * channel map as the CX ADC (see hackspire "Memory-mapped I/O ports on CX",
+ * C4000000): channel 1 = VBATT, channel 2 = VSYS (155 units = 1 V),
+ * channel 3 = keypad/touchpad ID, others 310 units = 1 V.
+ * The OS low-battery check is VSys < 3300 mV, so report a healthy battery.
+ * 4052 mV is the same value the OS reports for VSLED in issue #390. */
+#define CX2_BATT_MV 4052u
+
+static adc_state adc_cx2;
+
+static uint16_t adc_cx2_read_channel(int n) {
+    uint32_t count;
+    if (n == 3)
+        return 73;  // touchpad-equipped keypad ID, as on the CX
+    if (n == 1 || n == 2) {
+        count = (CX2_BATT_MV * 155u + 500u) / 1000u;  // 155 units = 1 V
+        return count > 0x3FF ? 0x3FF : count;
+    }
+    return 930;  // as on the CX ADC
+}
+
 uint32_t adc_cx2_read_word(uint32_t addr)
 {
-    (void) addr;
+    int n;
+    if (!(addr & 0x100)) {
+        switch (addr & 0xFF) {
+            case 0x00: return adc_cx2.int_status & adc_cx2.int_mask;
+            case 0x04: return adc_cx2.int_status;
+            case 0x08: return adc_cx2.int_mask;
+        }
+    } else if ((n = addr >> 5 & 7) < 7) {
+        struct adc_channel *c = &adc_cx2.channel[n];
+        switch (addr & 0x1F) {
+            case 0x00: return 0;
+            case 0x04: return c->unknown;
+            case 0x08: return c->count;
+            case 0x0C: return c->address;
+            case 0x10: return c->value;
+            case 0x14: return c->speed;
+        }
+    }
+    // Unrecognised registers: keep the original stub value (0x6969).
     return 0x6969;
 }
 
 void adc_cx2_write_word(uint32_t addr, uint32_t value)
 {
-    (void) addr;
+    int n;
+    if (!(addr & 0x100)) {
+        switch (addr & 0xFF) {
+            case 0x04: // Interrupt acknowledge
+                adc_cx2.int_status &= ~value;
+                int_set(INT_ADC, adc_cx2.int_status & adc_cx2.int_mask);
+                return;
+            case 0x08: // Interrupt enable
+                adc_cx2.int_mask = value & 0xFFFFFFF;
+                int_set(INT_ADC, adc_cx2.int_status & adc_cx2.int_mask);
+                return;
+            case 0x0C:
+            case 0x10:
+            case 0x14:
+                int_set(INT_ADC, 1); // original stub: every write raises INT_ADC
+                return;
+        }
+    } else if ((n = addr >> 5 & 7) < 7) {
+        struct adc_channel *c = &adc_cx2.channel[n];
+        switch (addr & 0x1F) {
+            case 0x00: // Command register - write 1 to measure voltage and store to +10
+                c->value = adc_cx2_read_channel(n);
+                adc_cx2.int_status |= 3u << (4 * n);
+                int_set(INT_ADC, adc_cx2.int_status & adc_cx2.int_mask);
+                return;
+            case 0x04: c->unknown = value & 0xFFFFFFF; int_set(INT_ADC, 1); return;
+            case 0x08: c->count = value & 0x1FFFFFF; int_set(INT_ADC, 1); return;
+            case 0x0C: c->address = value & ~3; int_set(INT_ADC, 1); return;
+            case 0x14: c->speed = value & 0x3FF; int_set(INT_ADC, 1); return;
+        }
+    }
+    // Unrecognised registers: original stub behaviour - any write raises INT_ADC.
     (void) value;
-    // It expects an IRQ on writing something
     int_set(INT_ADC, 1);
 }
 
